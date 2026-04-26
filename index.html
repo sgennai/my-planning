@@ -11,9 +11,11 @@
     :root {
       --bg: #0D0D0F;
       --bg-card: #16151A;
+      --bg-hover: #1B1A20;
       --border: #2A2830;
       --rule: #1E1C24;
       --gold: #C9A84C;
+      --gold-dim: #9C8845;
       --teal: #7EB8A4;
       --violet: #A78BCA;
       --coral: #E07B6A;
@@ -34,32 +36,28 @@
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
-    body {
-      position: relative;
-      overflow-x: hidden;
-    }
+    body { position: relative; overflow-x: hidden; }
     body::before {
-      content: '';
-      position: fixed; inset: 0;
-      pointer-events: none;
-      z-index: 0;
+      content: ''; position: fixed; inset: 0;
+      pointer-events: none; z-index: 0;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
       opacity: 0.6;
     }
     body::after {
-      content: '';
-      position: fixed; top: 0; left: 0; right: 0;
+      content: ''; position: fixed; top: 0; left: 0; right: 0;
       height: 2px; z-index: 10;
       background: linear-gradient(90deg, transparent, var(--gold), transparent);
     }
-    .wrap {
+
+    .wrap, .wrap-wide {
       position: relative; z-index: 1;
-      max-width: 820px;
       margin: 0 auto;
       padding: 0 24px 80px;
     }
+    .wrap { max-width: 820px; }
+    .wrap-wide { max-width: 1180px; }
     .screen-pad-top { padding-top: 80px; }
-    .screen-pad-top-sm { padding-top: 60px; }
+    .screen-pad-top-sm { padding-top: 40px; }
 
     .eyebrow {
       font-size: 11px;
@@ -68,7 +66,6 @@
       text-transform: uppercase;
       margin-bottom: 8px;
     }
-    .eyebrow.muted { color: var(--muted-4); }
     .eyebrow.danger { color: var(--coral); }
     h1.title {
       font-size: clamp(36px, 6vw, 64px);
@@ -96,17 +93,9 @@
       margin: 0 0 40px;
       font-style: italic;
     }
-    p.lede.small { font-size: 14px; }
 
-    button {
-      font-family: inherit;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-    button:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
+    button { font-family: inherit; cursor: pointer; transition: all 0.15s ease; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
     .btn-primary {
       padding: 12px 28px;
       background: var(--gold);
@@ -115,9 +104,7 @@
       font-size: 13px;
       letter-spacing: 0.1em;
     }
-    .btn-primary:hover:not(:disabled) {
-      background: #D9B85C;
-    }
+    .btn-primary:hover:not(:disabled) { background: #D9B85C; }
     .btn-secondary {
       padding: 12px 20px;
       background: transparent;
@@ -126,10 +113,7 @@
       font-size: 13px;
       letter-spacing: 0.05em;
     }
-    .btn-secondary:hover {
-      border-color: var(--muted-3);
-      color: var(--text);
-    }
+    .btn-secondary:hover { border-color: var(--muted-3); color: var(--text); }
     .btn-tertiary {
       padding: 8px 14px;
       background: transparent;
@@ -139,92 +123,7 @@
       letter-spacing: 0.15em;
       text-transform: uppercase;
     }
-    .btn-tertiary:hover {
-      color: var(--muted-2);
-    }
-
-    .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-
-    .card {
-      background: var(--bg-card);
-      border-top: 2px solid var(--gold);
-      padding: 28px 32px;
-      margin: 24px 0;
-    }
-    .card-label {
-      font-size: 11px;
-      letter-spacing: 0.25em;
-      color: var(--gold);
-      text-transform: uppercase;
-      margin-bottom: 16px;
-    }
-    .counter {
-      font-size: 96px;
-      font-weight: 400;
-      line-height: 1;
-      letter-spacing: -0.04em;
-      color: var(--text);
-      margin: 8px 0 24px;
-      font-variant-numeric: tabular-nums;
-    }
-    .card-meta {
-      font-size: 12px;
-      color: var(--muted-3);
-      line-height: 1.8;
-      margin-bottom: 20px;
-      font-style: italic;
-    }
-    .card-meta strong {
-      color: var(--gold);
-      font-style: normal;
-      font-family: var(--mono);
-      font-weight: normal;
-    }
-
-    .raw {
-      margin-top: 32px;
-      background: var(--bg-card);
-      border-left: 2px solid var(--border);
-    }
-    .raw summary {
-      padding: 14px 20px;
-      cursor: pointer;
-      font-size: 11px;
-      letter-spacing: 0.2em;
-      color: var(--muted-3);
-      text-transform: uppercase;
-      list-style: none;
-      user-select: none;
-    }
-    .raw summary::-webkit-details-marker { display: none; }
-    .raw summary::before {
-      content: '+ ';
-      color: var(--muted-4);
-    }
-    .raw[open] summary::before { content: '− '; }
-    .raw pre {
-      margin: 0;
-      padding: 0 20px 20px;
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--muted-2);
-      overflow-x: auto;
-      line-height: 1.6;
-    }
-
-    .footer {
-      margin-top: 64px;
-      padding-top: 24px;
-      border-top: 1px solid var(--rule);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .footer-info {
-      font-size: 11px;
-      color: var(--muted-4);
-      letter-spacing: 0.1em;
-    }
+    .btn-tertiary:hover { color: var(--muted-2); }
 
     .center { display: flex; align-items: center; justify-content: center; min-height: 80vh; text-align: center; }
 
@@ -268,20 +167,391 @@
       0%, 100% { opacity: 0.3; transform: scale(1); }
       50% { opacity: 1; transform: scale(1.2); }
     }
-
-    .fade-in {
-      animation: fadeIn 0.6s ease-out;
-    }
+    .fade-in { animation: fadeIn 0.6s ease-out; }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    @media (max-width: 600px) {
-      .wrap { padding: 0 20px 60px; }
-      .screen-pad-top { padding-top: 60px; }
-      .card { padding: 24px 22px; }
-      .counter { font-size: 72px; }
+    /* ───────── CALENDAR HEADER ───────── */
+    .cal-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .cal-title-block { display: flex; flex-direction: column; min-width: 0; }
+    .cal-eyebrow {
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .cal-week-label {
+      font-size: clamp(22px, 3vw, 28px);
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      color: var(--text);
+    }
+    .cal-week-range {
+      font-size: 12px;
+      color: var(--muted-3);
+      font-family: var(--mono);
+      letter-spacing: 0.05em;
+      margin-top: 4px;
+    }
+    .cal-controls { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .cal-nav-btn {
+      width: 38px; height: 38px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted-2);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--serif); font-size: 18px;
+    }
+    .cal-nav-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .cal-today-btn {
+      padding: 0 16px; height: 38px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted-2);
+      font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    }
+    .cal-today-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .cal-today-btn.active {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: rgba(201, 168, 76, 0.06);
+    }
+    .sync-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 10px; letter-spacing: 0.15em;
+      color: var(--muted-4); text-transform: uppercase;
+      font-family: var(--mono);
+    }
+    .sync-pill::before {
+      content: ''; width: 5px; height: 5px;
+      background: var(--teal); border-radius: 50%;
+      box-shadow: 0 0 8px var(--teal);
+    }
+    .sync-pill.saving::before { background: var(--gold); animation: pulse 1.2s ease-in-out infinite; }
+    .sync-pill.error::before { background: var(--coral); }
+
+    /* ───────── WEEK GRID (desktop) ───────── */
+    .week-grid {
+      background: var(--bg-card);
+      border-top: 1px solid var(--rule);
+      overflow: hidden;
+    }
+    .week-grid-header {
+      display: grid;
+      grid-template-columns: 56px repeat(7, 1fr);
+      border-bottom: 1px solid var(--rule);
+      position: sticky; top: 0; z-index: 4;
+      background: var(--bg-card);
+    }
+    .time-gutter-header { border-right: 1px solid var(--rule); }
+    .day-header {
+      padding: 12px 8px;
+      text-align: center;
+      border-left: 1px solid var(--rule);
+    }
+    .day-header.today { background: rgba(201, 168, 76, 0.05); }
+    .day-header-name {
+      font-size: 10px; letter-spacing: 0.2em;
+      color: var(--muted-3); text-transform: uppercase;
+    }
+    .day-header.today .day-header-name { color: var(--gold); }
+    .day-header.weekend .day-header-name { color: var(--muted-4); }
+    .day-header-date {
+      font-size: 17px; color: var(--muted-1);
+      margin-top: 4px;
+      font-variant-numeric: tabular-nums;
+      font-family: var(--serif);
+    }
+    .day-header.today .day-header-date { color: var(--text); font-weight: 500; }
+    .day-header.weekend .day-header-date { color: var(--muted-3); }
+
+    .week-grid-body {
+      display: grid;
+      grid-template-columns: 56px repeat(7, 1fr);
+      position: relative;
+    }
+    .time-gutter {
+      position: relative;
+      border-right: 1px solid var(--rule);
+    }
+    .hour-label {
+      position: absolute;
+      right: 8px;
+      font-size: 10px;
+      color: var(--muted-4);
+      font-family: var(--mono);
+      letter-spacing: 0.04em;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+    .day-column {
+      position: relative;
+      border-left: 1px solid var(--rule);
+      min-height: 100%;
+    }
+    .day-column.today { background: rgba(201, 168, 76, 0.025); }
+    .day-column.weekend { background: rgba(0,0,0,0.18); }
+    .hour-line {
+      position: absolute; left: 0; right: 0;
+      border-top: 1px solid var(--rule);
+      pointer-events: none;
+    }
+
+    .cal-item {
+      position: absolute;
+      border-radius: 2px;
+      padding: 3px 6px 3px 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: filter 0.15s ease, transform 0.15s ease;
+      font-family: var(--serif);
+    }
+    .cal-item:hover {
+      filter: brightness(1.25);
+      transform: translateX(1px);
+    }
+    .cal-item-title {
+      color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      font-size: 11px;
+      line-height: 1.25;
+    }
+    .cal-item-time {
+      font-size: 9px;
+      color: var(--muted-2);
+      font-family: var(--mono);
+      letter-spacing: 0.04em;
+      margin-bottom: 1px;
+      white-space: nowrap; overflow: hidden;
+    }
+    .cal-item-home-flag {
+      display: inline-block;
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.5;
+      margin-left: 5px;
+      vertical-align: middle;
+    }
+    .cal-item.tiny { padding: 2px 4px 2px 6px; }
+    .cal-item.tiny .cal-item-time { display: none; }
+    .cal-item.tiny .cal-item-title { font-size: 10px; }
+
+    .now-line {
+      position: absolute;
+      left: 0; right: 0;
+      height: 0;
+      border-top: 1px solid var(--gold);
+      pointer-events: none;
+      z-index: 5;
+      box-shadow: 0 0 8px rgba(201, 168, 76, 0.5);
+    }
+    .now-line::before {
+      content: '';
+      position: absolute;
+      left: -4px; top: -3.5px;
+      width: 7px; height: 7px;
+      background: var(--gold);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--gold);
+    }
+
+    /* ───────── AGENDA (mobile) ───────── */
+    .agenda-day-strip {
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      margin-bottom: 24px;
+      padding-bottom: 6px;
+      scrollbar-width: none;
+    }
+    .agenda-day-strip::-webkit-scrollbar { display: none; }
+    .agenda-day-chip {
+      padding: 10px 14px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted-3);
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 4px;
+      min-width: 56px;
+      font-family: var(--serif);
+    }
+    .agenda-day-chip-name {
+      font-size: 9px; letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted-3);
+    }
+    .agenda-day-chip-date {
+      font-size: 16px;
+      color: var(--muted-2);
+      font-variant-numeric: tabular-nums;
+    }
+    .agenda-day-chip.today { border-color: var(--muted-3); }
+    .agenda-day-chip.today .agenda-day-chip-name { color: var(--gold); }
+    .agenda-day-chip.selected {
+      border-color: var(--gold);
+      background: rgba(201, 168, 76, 0.06);
+    }
+    .agenda-day-chip.selected .agenda-day-chip-name { color: var(--gold); }
+    .agenda-day-chip.selected .agenda-day-chip-date { color: var(--text); }
+
+    .agenda-header {
+      margin-bottom: 16px;
+      display: flex; justify-content: space-between; align-items: baseline;
+    }
+    .agenda-day-title {
+      font-size: 22px; font-weight: 400;
+      letter-spacing: -0.01em;
+      color: var(--text);
+    }
+    .agenda-day-subtitle {
+      font-size: 11px;
+      color: var(--muted-3);
+      font-family: var(--mono);
+      letter-spacing: 0.1em;
+    }
+
+    .agenda-list { display: flex; flex-direction: column; gap: 3px; }
+    .agenda-item {
+      display: flex;
+      align-items: stretch;
+      background: var(--bg-card);
+      cursor: pointer;
+      transition: background 0.15s;
+      position: relative;
+    }
+    .agenda-item:hover { background: var(--bg-hover); }
+    .agenda-item-stripe { width: 3px; flex-shrink: 0; }
+    .agenda-item-time {
+      width: 70px;
+      padding: 14px 10px;
+      flex-shrink: 0;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted-2);
+      letter-spacing: 0.05em;
+      border-right: 1px solid var(--rule);
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .agenda-item-time-end { color: var(--muted-4); font-size: 9px; }
+    .agenda-item-content { padding: 14px 16px; flex: 1; min-width: 0; }
+    .agenda-item-title {
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.4;
+    }
+    .agenda-item-meta {
+      font-size: 11px;
+      color: var(--muted-3);
+      margin-top: 4px;
+      font-style: italic;
+      line-height: 1.5;
+    }
+    .agenda-item.past .agenda-item-time,
+    .agenda-item.past .agenda-item-title,
+    .agenda-item.past .agenda-item-meta { opacity: 0.4; }
+    .agenda-item.now { background: rgba(201, 168, 76, 0.07); }
+    .agenda-now-flag {
+      position: absolute;
+      right: 14px; top: 14px;
+      font-size: 9px; letter-spacing: 0.25em;
+      color: var(--gold);
+      font-family: var(--mono);
+    }
+    .agenda-empty {
+      padding: 60px 20px;
+      text-align: center;
+      color: var(--muted-4);
+      font-style: italic;
+      font-size: 13px;
+      background: var(--bg-card);
+    }
+
+    /* ───────── LEGEND + FOOTER ───────── */
+    .legend {
+      margin-top: 32px;
+      padding: 16px 0;
+      display: flex; flex-wrap: wrap;
+      gap: 18px;
+      border-top: 1px solid var(--rule);
+    }
+    .legend-item {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 10px; letter-spacing: 0.15em;
+      text-transform: uppercase;
+      font-family: var(--mono);
+    }
+    .legend-swatch {
+      width: 10px; height: 10px;
+      background: rgba(255,255,255,0.05);
+      border-left: 2px solid currentColor;
+    }
+
+    .raw {
+      margin-top: 32px;
+      background: var(--bg-card);
+      border-left: 2px solid var(--border);
+    }
+    .raw summary {
+      padding: 14px 20px;
+      cursor: pointer;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: var(--muted-3);
+      text-transform: uppercase;
+      list-style: none;
+      user-select: none;
+    }
+    .raw summary::-webkit-details-marker { display: none; }
+    .raw summary::before { content: '+ '; color: var(--muted-4); }
+    .raw[open] summary::before { content: '− '; }
+    .raw pre {
+      margin: 0;
+      padding: 0 20px 20px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted-3);
+      overflow-x: auto;
+      line-height: 1.6;
+      max-height: 360px;
+    }
+
+    .footer {
+      margin-top: 56px;
+      padding-top: 24px;
+      border-top: 1px solid var(--rule);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .footer-info {
+      font-size: 10px;
+      color: var(--muted-4);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      font-family: var(--mono);
+    }
+
+    @media (max-width: 759px) {
+      .wrap, .wrap-wide { padding: 0 18px 60px; }
+      .screen-pad-top { padding-top: 50px; }
+      .cal-header { gap: 12px; }
+      .cal-week-label { font-size: 22px; }
     }
   </style>
 </head>
@@ -294,50 +564,196 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <script type="text/babel" data-presets="env,react">
-    const { useState, useEffect, useRef, useCallback } = React;
+    const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
-    // ─────────────────────────────────────────────────────────────
+    // ═════════════════════════════════════════════════════════════
     // CONFIG
-    // ─────────────────────────────────────────────────────────────
+    // ═════════════════════════════════════════════════════════════
     const CLIENT_ID = '25894919429-pbtl8l6nn23vnvc8c8cbhg5f3n8gepu6.apps.googleusercontent.com';
     const SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
     const FILE_NAME = 'my-planning-data.json';
     const SCHEMA_VERSION = 1;
 
-    // Default data structure — V1 features will populate these later.
-    function makeDefaultData() {
-      const now = new Date().toISOString();
-      return {
-        schemaVersion: SCHEMA_VERSION,
-        createdAt: now,
-        lastModified: now,
-        // Skeleton verification field. Will be removed in V1 build.
-        testCounter: 0,
-        // V1 placeholders — empty for now:
-        routine: null,
-        overrides: {},
-        calendars: { workIcs: '', householdIcs: '' },
-        weeklyResets: [],
-        projects: [],
-        inbox: [],
-        elsewhereToggles: { morning: false, afternoon: false, allDay: false, date: null },
-      };
+    // Days: JS Date.getDay() — 0=Sun, 1=Mon ... 6=Sat. Visual columns are Mon-first.
+    const VISUAL_TO_JS_DAY = [1, 2, 3, 4, 5, 6, 0];
+    const DAY_NAMES_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const DAY_NAMES_LONG  = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+    const CATEGORY_STYLES = {
+      supplement: { color: '#9C8845', label: 'Supplement', bgAlpha: 0.10 },
+      focus:      { color: '#A78BCA', label: 'Focus',      bgAlpha: 0.13 },
+      gym:        { color: '#7EB8A4', label: 'Physical',   bgAlpha: 0.13 },
+      review:     { color: '#C9A84C', label: 'Review',     bgAlpha: 0.16 },
+      planning:   { color: '#7A7268', label: 'Planning',   bgAlpha: 0.10 },
+      prep:       { color: '#7A7268', label: 'Prep',       bgAlpha: 0.10 },
+      elsewhere:  { color: '#E07B6A', label: 'Elsewhere',  bgAlpha: 0.10 },
+      'micro-strength': { color: '#7EB8A4', label: 'Micro-strength', bgAlpha: 0.06 },
+    };
+
+    // ─────────────────────────────────────────────────────────────
+    // SEED ROUTINE — derived from MY PLANNING - routine.md and routine-details.md.
+    // Times are local 24h "HH:MM". Duration is in minutes. days uses JS Date.getDay().
+    // ─────────────────────────────────────────────────────────────
+    const SEED_ROUTINE = [
+      // Daily supplements
+      { id: 'sup-probiotic', title: 'Probiotic',         days: [0,1,2,3,4,5,6], start: '07:15', duration: 10, category: 'supplement' },
+      { id: 'sup-omega',     title: 'Omega',             days: [0,1,2,3,4,5,6], start: '07:15', duration: 10, category: 'supplement' },
+      { id: 'sup-mag1',      title: 'Magnesium • Pt 1',  days: [0,1,2,3,4,5,6], start: '07:15', duration: 10, category: 'supplement' },
+      { id: 'sup-multi',     title: 'Multi-vitamins',    days: [0,1,2,3,4,5,6], start: '07:45', duration: 10, category: 'supplement' },
+      { id: 'sup-creat1',    title: 'Creatine • Pt 1',   days: [0,1,2,3,4,5,6], start: '10:30', duration: 10, category: 'supplement' },
+      { id: 'sup-collagen',  title: 'Collagen',          days: [0,1,2,3,4,5,6], start: '13:00', duration: 10, category: 'supplement' },
+      { id: 'sup-hair',      title: 'Hair & nails',      days: [0,1,2,3,4,5,6], start: '13:00', duration: 10, category: 'supplement' },
+      { id: 'sup-creat2',    title: 'Creatine • Pt 2',   days: [0,1,2,3,4,5,6], start: '16:45', duration: 10, category: 'supplement' },
+      { id: 'sup-mag2',      title: 'Magnesium • Pt 2',  days: [0,1,2,3,4,5,6], start: '22:30', duration: 10, category: 'supplement' },
+
+      // Protein Mon-Fri
+      { id: 'protein-mf', title: 'Protein', days: [1,2,3,4,5], start: '07:35', duration: 10, category: 'supplement' },
+
+      // Focus session Tue-Fri
+      { id: 'focus-tu-fr', title: '2h Focus Session', days: [2,3,4,5], start: '08:45', duration: 120, category: 'focus', homeOnly: true,
+        note: 'Cycle through projects: NEXT / APP - AI FOR SALES / AI content from NEXT.' },
+
+      // Gym at home — Tue, Wed, Fri
+      { id: 'gym-home-tue', title: 'Gym at home', days: [2], start: '07:50', duration: 50, category: 'gym', homeOnly: true },
+      { id: 'gym-home-wed', title: 'Gym at home', days: [3], start: '07:50', duration: 50, category: 'gym', homeOnly: true },
+      { id: 'gym-home-fri', title: 'Gym at home', days: [5], start: '07:50', duration: 50, category: 'gym', homeOnly: true },
+
+      // Gym external — Mon, Thu
+      { id: 'gym-ext-mon', title: 'Gym (external)', days: [1], start: '12:00', duration: 90, category: 'gym',
+        note: 'Drive + workout. Leave 12:00, back 13:30. Electrolytes.' },
+      { id: 'gym-ext-thu', title: 'Gym (external)', days: [4], start: '11:45', duration: 90, category: 'gym',
+        note: 'Drive + workout. Leave 11:45, back 13:15. Electrolytes.' },
+
+      // Co-working space Mon
+      { id: 'cowork-mon-am', title: 'Co-working space', days: [1], start: '08:30', duration: 195, category: 'elsewhere' },
+      { id: 'cowork-mon-pm', title: 'Co-working space', days: [1], start: '14:00', duration: 180, category: 'elsewhere' },
+
+      // Friday weekly review
+      { id: 'weekly-review', title: 'Weekly Review', days: [5], start: '15:00', duration: 30, category: 'review',
+        note: 'CEO Weekly Reset — finish by 15:30. Laptop closed. Weekend protected.' },
+
+      // Mon-Thu evening: plan tomorrow's focus
+      { id: 'plan-tomorrow', title: "Plan tomorrow's focus", days: [1,2,3,4], start: '21:00', duration: 10, category: 'planning' },
+
+      // Wed evening: prep Thu gym
+      { id: 'prep-thu', title: 'Prep Thu gym bag + podcast', days: [3], start: '21:30', duration: 15, category: 'prep' },
+
+      // Sun evening: prep week ahead
+      { id: 'prep-week', title: 'Prep week ahead', days: [0], start: '20:00', duration: 30, category: 'prep',
+        note: 'Gym bag · work bag · Monday podcast · define what winning looks like.' },
+
+      // Hourly Micro-Strength — stored, not rendered as blocks. Surfaces in feature 2.
+      { id: 'micro-strength', title: 'Micro-Strength', days: [1,2,3,4,5], start: '09:00', duration: 1,
+        category: 'micro-strength', homeOnly: true, recurrence: 'top-of-hour-9-18',
+        note: 'Top of every hour, 9-18. ~60-80s: 10 air squats · 10 KB RDL · 10 push-ups · 6 KB row/side.' },
+    ];
+
+    // ═════════════════════════════════════════════════════════════
+    // HELPERS
+    // ═════════════════════════════════════════════════════════════
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    function startOfDay(d) {
+      const x = new Date(d); x.setHours(0,0,0,0); return x;
+    }
+    function startOfWeek(d) {
+      const x = startOfDay(d);
+      const jsDay = x.getDay();
+      const diff = jsDay === 0 ? -6 : 1 - jsDay; // Mon as week start
+      x.setDate(x.getDate() + diff);
+      return x;
+    }
+    function addDays(d, n) {
+      const x = new Date(d); x.setDate(x.getDate() + n); return x;
+    }
+    function isSameDay(a, b) {
+      return a.getFullYear() === b.getFullYear()
+        && a.getMonth() === b.getMonth()
+        && a.getDate() === b.getDate();
+    }
+    function toMinutes(hhmm) {
+      const [h, m] = hhmm.split(':').map(Number);
+      return h * 60 + m;
+    }
+    function formatDateShort(d) {
+      return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    }
+    function formatRange(a, b) {
+      const sameMonth = a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear();
+      if (sameMonth) {
+        return `${a.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} – ${b.getDate()}, ${b.getFullYear()}`;
+      }
+      return `${formatDateShort(a)} – ${formatDateShort(b)}, ${b.getFullYear()}`;
+    }
+
+    function hexToRgba(hex, alpha) {
+      const h = hex.replace('#', '');
+      const r = parseInt(h.substring(0, 2), 16);
+      const g = parseInt(h.substring(2, 4), 16);
+      const b = parseInt(h.substring(4, 6), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
     // ─────────────────────────────────────────────────────────────
-    // GOOGLE DRIVE LAYER
+    // ROUTINE SELECTION + LANE LAYOUT
     // ─────────────────────────────────────────────────────────────
+    function itemsForVisualColumn(visualCol, routine) {
+      const jsDay = VISUAL_TO_JS_DAY[visualCol];
+      return routine.filter(item =>
+        item.days.includes(jsDay) && !item.recurrence
+      );
+    }
+
+    function layoutDay(items) {
+      const sorted = [...items].sort((a, b) => toMinutes(a.start) - toMinutes(b.start));
+      const annotated = sorted.map(item => ({ ...item }));
+      const lanes = [];
+      annotated.forEach(item => {
+        const itemStart = toMinutes(item.start);
+        let placed = false;
+        for (let li = 0; li < lanes.length; li++) {
+          const last = lanes[li][lanes[li].length - 1];
+          const lastEnd = toMinutes(last.start) + last.duration;
+          if (itemStart >= lastEnd) {
+            lanes[li].push(item);
+            item._lane = li;
+            placed = true;
+            break;
+          }
+        }
+        if (!placed) {
+          lanes.push([item]);
+          item._lane = lanes.length - 1;
+        }
+      });
+      annotated.forEach(item => {
+        const aStart = toMinutes(item.start);
+        const aEnd = aStart + item.duration;
+        let maxLane = item._lane;
+        annotated.forEach(other => {
+          if (other === item) return;
+          const oStart = toMinutes(other.start);
+          const oEnd = oStart + other.duration;
+          if (oStart < aEnd && oEnd > aStart) {
+            maxLane = Math.max(maxLane, other._lane);
+          }
+        });
+        item._totalLanes = maxLane + 1;
+      });
+      return annotated;
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // GOOGLE DRIVE LAYER
+    // ═════════════════════════════════════════════════════════════
     let _tokenClient = null;
     let _accessToken = null;
 
     function waitForGoogle() {
       return new Promise((resolve) => {
         const check = () => {
-          if (window.google && window.google.accounts && window.google.accounts.oauth2) {
-            resolve();
-          } else {
-            setTimeout(check, 80);
-          }
+          if (window.google && window.google.accounts && window.google.accounts.oauth2) resolve();
+          else setTimeout(check, 80);
         };
         check();
       });
@@ -348,7 +764,7 @@
       _tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: SCOPE,
-        callback: () => {}, // overridden per-call
+        callback: () => {},
       });
     }
 
@@ -360,14 +776,12 @@
             _accessToken = resp.access_token;
             resolve(resp.access_token);
           } else {
-            reject(new Error(resp && resp.error_description || resp && resp.error || 'No token'));
+            reject(new Error(resp && (resp.error_description || resp.error) || 'No token'));
           }
         };
         try {
           _tokenClient.requestAccessToken({ prompt: silent ? '' : 'consent' });
-        } catch (e) {
-          reject(e);
-        }
+        } catch (e) { reject(e); }
       });
     }
 
@@ -382,13 +796,9 @@
     }
 
     async function driveFetch(url, options = {}) {
-      const headers = {
-        ...options.headers,
-        Authorization: `Bearer ${_accessToken}`,
-      };
+      const headers = { ...options.headers, Authorization: `Bearer ${_accessToken}` };
       const resp = await fetch(url, { ...options, headers });
       if (resp.status === 401) {
-        // Token expired — request a fresh one silently and retry once.
         await requestToken({ silent: true });
         return fetch(url, { ...options, headers: { ...options.headers, Authorization: `Bearer ${_accessToken}` } });
       }
@@ -404,8 +814,7 @@
     }
 
     async function downloadFile(fileId) {
-      const url = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`;
-      const resp = await driveFetch(url);
+      const resp = await driveFetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`);
       if (!resp.ok) throw new Error(`Drive download failed (${resp.status})`);
       return resp.json();
     }
@@ -414,20 +823,12 @@
       const metadata = { name: FILE_NAME, parents: ['appDataFolder'] };
       const boundary = '-------314159265358979323846';
       const body =
-        `--${boundary}\r\n` +
-        `Content-Type: application/json; charset=UTF-8\r\n\r\n` +
-        JSON.stringify(metadata) + `\r\n` +
-        `--${boundary}\r\n` +
-        `Content-Type: application/json\r\n\r\n` +
-        JSON.stringify(data) + `\r\n` +
-        `--${boundary}--`;
+        `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n` +
+        JSON.stringify(metadata) + `\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n` +
+        JSON.stringify(data) + `\r\n--${boundary}--`;
       const resp = await driveFetch(
         'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
-          body,
-        }
+        { method: 'POST', headers: { 'Content-Type': `multipart/related; boundary=${boundary}` }, body }
       );
       if (!resp.ok) throw new Error(`Drive create failed (${resp.status})`);
       return resp.json();
@@ -436,45 +837,83 @@
     async function updateFile(fileId, data) {
       const resp = await driveFetch(
         `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media&fields=id,modifiedTime`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        }
+        { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }
       );
       if (!resp.ok) throw new Error(`Drive update failed (${resp.status})`);
       return resp.json();
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // APP
-    // ─────────────────────────────────────────────────────────────
+    // ═════════════════════════════════════════════════════════════
+    // DEFAULT DATA + MIGRATION
+    // ═════════════════════════════════════════════════════════════
+    function makeDefaultData() {
+      const now = new Date().toISOString();
+      return {
+        schemaVersion: SCHEMA_VERSION,
+        createdAt: now,
+        lastModified: now,
+        routine: SEED_ROUTINE,
+        overrides: {},
+        calendars: { workIcs: '', householdIcs: '' },
+        weeklyResets: [],
+        projects: [],
+        inbox: [],
+        elsewhereToggles: { morning: false, afternoon: false, allDay: false, date: null },
+      };
+    }
+
+    function migrate(data) {
+      let changed = false;
+      const next = { ...data };
+      if (!next.schemaVersion) { next.schemaVersion = SCHEMA_VERSION; changed = true; }
+      if (next.routine == null || (Array.isArray(next.routine) && next.routine.length === 0)) {
+        next.routine = SEED_ROUTINE; changed = true;
+      }
+      if (!next.overrides) { next.overrides = {}; changed = true; }
+      if (!next.calendars) { next.calendars = { workIcs: '', householdIcs: '' }; changed = true; }
+      if (!next.weeklyResets) { next.weeklyResets = []; changed = true; }
+      if (!next.projects) { next.projects = []; changed = true; }
+      if (!next.inbox) { next.inbox = []; changed = true; }
+      if (!next.elsewhereToggles) { next.elsewhereToggles = { morning: false, afternoon: false, allDay: false, date: null }; changed = true; }
+      if ('testCounter' in next) { delete next.testCounter; changed = true; }
+      return { data: next, migrated: changed };
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // HOOKS
+    // ═════════════════════════════════════════════════════════════
+    function useMediaQuery(query) {
+      const [matches, setMatches] = useState(() =>
+        typeof window !== 'undefined' ? window.matchMedia(query).matches : false
+      );
+      useEffect(() => {
+        const mm = window.matchMedia(query);
+        const handler = (e) => setMatches(e.matches);
+        mm.addEventListener('change', handler);
+        return () => mm.removeEventListener('change', handler);
+      }, [query]);
+      return matches;
+    }
+
+    function useTickingClock(intervalMs = 60000) {
+      const [now, setNow] = useState(new Date());
+      useEffect(() => {
+        const id = setInterval(() => setNow(new Date()), intervalMs);
+        return () => clearInterval(id);
+      }, [intervalMs]);
+      return now;
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // APP ROOT
+    // ═════════════════════════════════════════════════════════════
     function App() {
-      const [phase, setPhase] = useState('booting'); // booting | signin | loading | ready | error
+      const [phase, setPhase] = useState('booting');
       const [error, setError] = useState('');
       const [fileId, setFileId] = useState(null);
       const [data, setData] = useState(null);
       const [saving, setSaving] = useState(false);
       const [lastSyncedAt, setLastSyncedAt] = useState(null);
-
-      // Boot: wait for GIS, init token client, attempt silent sign-in.
-      useEffect(() => {
-        (async () => {
-          try {
-            await initAuth();
-            // Try silent first. If it fails, surface the sign-in screen.
-            try {
-              await requestToken({ silent: true });
-              await loadOrCreate();
-            } catch {
-              setPhase('signin');
-            }
-          } catch (e) {
-            setError(`Init failed: ${e.message}`);
-            setPhase('error');
-          }
-        })();
-      }, []);
 
       const loadOrCreate = useCallback(async () => {
         setPhase('loading');
@@ -482,9 +921,14 @@
           const existing = await findDataFile();
           if (existing) {
             const content = await downloadFile(existing.id);
+            const { data: migrated, migrated: didMigrate } = migrate(content);
             setFileId(existing.id);
-            setData(content);
+            setData(migrated);
             setLastSyncedAt(new Date());
+            if (didMigrate) {
+              migrated.lastModified = new Date().toISOString();
+              await updateFile(existing.id, migrated);
+            }
           } else {
             const fresh = makeDefaultData();
             const created = await createFile(fresh);
@@ -499,6 +943,23 @@
         }
       }, []);
 
+      useEffect(() => {
+        (async () => {
+          try {
+            await initAuth();
+            try {
+              await requestToken({ silent: true });
+              await loadOrCreate();
+            } catch {
+              setPhase('signin');
+            }
+          } catch (e) {
+            setError(`Init failed: ${e.message}`);
+            setPhase('error');
+          }
+        })();
+      }, [loadOrCreate]);
+
       const handleSignIn = async () => {
         setError('');
         try {
@@ -509,7 +970,6 @@
           setPhase('signin');
         }
       };
-
       const handleSignOut = async () => {
         await revokeToken();
         setData(null);
@@ -517,55 +977,25 @@
         setLastSyncedAt(null);
         setPhase('signin');
       };
-
-      const persist = async (next) => {
-        setSaving(true);
-        setError('');
-        try {
-          await updateFile(fileId, next);
-          setData(next);
-          setLastSyncedAt(new Date());
-        } catch (e) {
-          setError(`Save failed: ${e.message}`);
-        } finally {
-          setSaving(false);
-        }
-      };
-
-      const handleIncrement = () => {
-        const next = {
-          ...data,
-          testCounter: (data.testCounter || 0) + 1,
-          lastModified: new Date().toISOString(),
-        };
-        persist(next);
-      };
-
       const handleReload = async () => {
         setError('');
         await loadOrCreate();
       };
 
-      // ── render ──
-      if (phase === 'booting') {
+      if (phase === 'booting')
         return <Centered><span className="pulse" /><span>Initializing</span></Centered>;
-      }
-      if (phase === 'loading') {
+      if (phase === 'loading')
         return <Centered><span className="pulse" /><span>Syncing with Drive</span></Centered>;
-      }
-      if (phase === 'error') {
+      if (phase === 'error')
         return <ErrorScreen message={error} onRetry={() => setPhase('signin')} />;
-      }
-      if (phase === 'signin') {
+      if (phase === 'signin')
         return <SignInScreen onSignIn={handleSignIn} error={error} />;
-      }
       return (
-        <SkeletonHome
+        <CalendarScreen
           data={data}
           saving={saving}
           lastSyncedAt={lastSyncedAt}
           error={error}
-          onIncrement={handleIncrement}
           onReload={handleReload}
           onSignOut={handleSignOut}
         />
@@ -593,9 +1023,7 @@
             Your routine, your calendars, your reflections —<br />
             stored privately in your own Google Drive.
           </p>
-          <button className="btn-primary" onClick={onSignIn}>
-            Sign in with Google →
-          </button>
+          <button className="btn-primary" onClick={onSignIn}>Sign in with Google →</button>
           {error && <div className="error-box">{error}</div>}
           <div className="info-box">
             <div className="info-label">How storage works</div>
@@ -617,57 +1045,312 @@
           <div style={{ marginTop: 24 }}>
             <button className="btn-primary" onClick={onRetry}>Try again</button>
           </div>
-          <div className="info-box">
-            <div className="info-label">Common causes</div>
-            • Pop-up blocker preventing the Google sign-in window<br />
-            • Network issue or Drive API rate limit<br />
-            • Your email isn't on the test users list in Google Cloud<br />
-            • Token expired — signing in again should fix it
-          </div>
         </div>
       );
     }
 
-    function SkeletonHome({ data, saving, lastSyncedAt, error, onIncrement, onReload, onSignOut }) {
-      const synced = lastSyncedAt ? lastSyncedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—';
-      return (
-        <div className="wrap screen-pad-top fade-in">
-          <div className="eyebrow">Sync verification · v0</div>
-          <h1 className="title">My Planning</h1>
-          <div className="rule" />
-          <p className="lede small">
-            Skeleton phase. Once we confirm cross-device sync works on this device<br />
-            and your phone, the six V1 features come next.
-          </p>
+    // ═════════════════════════════════════════════════════════════
+    // CALENDAR SCREEN
+    // ═════════════════════════════════════════════════════════════
+    function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut }) {
+      const isMobile = useMediaQuery('(max-width: 759px)');
+      const now = useTickingClock(60000);
+      const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
 
-          <div className="card">
-            <div className="card-label">Test counter</div>
-            <div className="counter">{data.testCounter || 0}</div>
-            <div className="card-meta">
-              Increment on this device, open the app on another, hit <strong>Reload</strong> — the number should match.<br />
-              Last synced: <strong>{synced}</strong>
-            </div>
-            <div className="row">
-              <button className="btn-primary" disabled={saving} onClick={onIncrement}>
-                {saving ? 'Saving…' : 'Increment'}
-              </button>
-              <button className="btn-secondary" disabled={saving} onClick={onReload}>
-                Reload from Drive
-              </button>
-            </div>
-            {error && <div className="error-box">{error}</div>}
-          </div>
+      const weekEnd = addDays(weekStart, 6);
+      const isCurrentWeek = isSameDay(weekStart, startOfWeek(now));
+
+      const goPrev = () => setWeekStart(addDays(weekStart, -7));
+      const goNext = () => setWeekStart(addDays(weekStart, 7));
+      const goToday = () => setWeekStart(startOfWeek(new Date()));
+
+      return (
+        <div className="wrap-wide screen-pad-top-sm fade-in">
+          <CalendarHeader
+            weekStart={weekStart}
+            weekEnd={weekEnd}
+            isCurrentWeek={isCurrentWeek}
+            onPrev={goPrev}
+            onNext={goNext}
+            onToday={goToday}
+            saving={saving}
+            error={error}
+            lastSyncedAt={lastSyncedAt}
+          />
+
+          {isMobile ? (
+            <AgendaView routine={data.routine} weekStart={weekStart} now={now} />
+          ) : (
+            <WeekGrid routine={data.routine} weekStart={weekStart} now={now} />
+          )}
+
+          <Legend />
 
           <details className="raw">
-            <summary>Raw data file</summary>
+            <summary>Diagnostics · raw data</summary>
             <pre>{JSON.stringify(data, null, 2)}</pre>
           </details>
 
           <div className="footer">
             <div className="footer-info">{FILE_NAME}</div>
-            <button className="btn-tertiary" onClick={onSignOut}>Sign out</button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="btn-tertiary" onClick={onReload}>↻ Reload</button>
+              <button className="btn-tertiary" onClick={onSignOut}>Sign out</button>
+            </div>
           </div>
         </div>
+      );
+    }
+
+    function CalendarHeader({ weekStart, weekEnd, isCurrentWeek, onPrev, onNext, onToday, saving, error, lastSyncedAt }) {
+      const synced = lastSyncedAt
+        ? lastSyncedAt.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+        : '—';
+      const status = error ? 'error' : (saving ? 'saving' : '');
+      const statusText = error ? 'Save error' : (saving ? 'Saving…' : `Synced ${synced}`);
+
+      return (
+        <div className="cal-header">
+          <div className="cal-title-block">
+            <div className="cal-eyebrow">My Planning</div>
+            <div className="cal-week-label">
+              {isCurrentWeek ? 'This week' : `Week of ${formatDateShort(weekStart)}`}
+            </div>
+            <div className="cal-week-range">{formatRange(weekStart, weekEnd)}</div>
+          </div>
+          <div className="cal-controls">
+            <span className={`sync-pill ${status}`}>{statusText}</span>
+            <div style={{ width: 12 }} />
+            <button className="cal-nav-btn" onClick={onPrev} aria-label="Previous week">‹</button>
+            <button
+              className={`cal-today-btn ${isCurrentWeek ? 'active' : ''}`}
+              onClick={onToday}
+            >Today</button>
+            <button className="cal-nav-btn" onClick={onNext} aria-label="Next week">›</button>
+          </div>
+        </div>
+      );
+    }
+
+    function Legend() {
+      const keys = ['supplement', 'focus', 'gym', 'review', 'planning', 'elsewhere'];
+      return (
+        <div className="legend">
+          {keys.map(k => {
+            const s = CATEGORY_STYLES[k];
+            return (
+              <div key={k} className="legend-item" style={{ color: s.color }}>
+                <span className="legend-swatch" style={{ borderLeftColor: s.color }} />
+                <span>{s.label}</span>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // WEEK GRID (desktop)
+    // ═════════════════════════════════════════════════════════════
+    const HOUR_HEIGHT = 56;
+    const START_HOUR = 6;
+    const END_HOUR = 23;
+    const HOURS_VISIBLE = END_HOUR - START_HOUR;
+
+    function WeekGrid({ routine, weekStart, now }) {
+      const totalHeight = HOURS_VISIBLE * HOUR_HEIGHT;
+      const isCurrentWeek = isSameDay(weekStart, startOfWeek(now));
+
+      return (
+        <div className="week-grid">
+          <div className="week-grid-header">
+            <div className="time-gutter-header" />
+            {Array.from({ length: 7 }, (_, col) => {
+              const date = addDays(weekStart, col);
+              const isToday = isCurrentWeek && isSameDay(date, now);
+              const isWeekend = col === 5 || col === 6;
+              return (
+                <div key={col} className={`day-header ${isToday ? 'today' : ''} ${isWeekend ? 'weekend' : ''}`}>
+                  <div className="day-header-name">{DAY_NAMES_SHORT[col]}</div>
+                  <div className="day-header-date">{date.getDate()}</div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="week-grid-body" style={{ height: totalHeight }}>
+            <div className="time-gutter">
+              {Array.from({ length: HOURS_VISIBLE + 1 }, (_, i) => (
+                <div
+                  key={i}
+                  className="hour-label"
+                  style={{ top: i * HOUR_HEIGHT }}
+                >{pad(START_HOUR + i)}:00</div>
+              ))}
+            </div>
+
+            {Array.from({ length: 7 }, (_, col) => {
+              const date = addDays(weekStart, col);
+              const isToday = isCurrentWeek && isSameDay(date, now);
+              const isWeekend = col === 5 || col === 6;
+              const dayItems = layoutDay(itemsForVisualColumn(col, routine));
+
+              return (
+                <div key={col} className={`day-column ${isToday ? 'today' : ''} ${isWeekend ? 'weekend' : ''}`}>
+                  {Array.from({ length: HOURS_VISIBLE }, (_, i) => (
+                    <div
+                      key={i}
+                      className="hour-line"
+                      style={{ top: (i + 1) * HOUR_HEIGHT }}
+                    />
+                  ))}
+                  {dayItems.map(item => <CalItem key={item.id} item={item} />)}
+                  {isToday && <NowLine now={now} />}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
+    function CalItem({ item }) {
+      const style = CATEGORY_STYLES[item.category] || CATEGORY_STYLES.supplement;
+      const startMin = toMinutes(item.start);
+      const offsetMin = startMin - START_HOUR * 60;
+      const top = (offsetMin / 60) * HOUR_HEIGHT;
+      const rawHeight = (item.duration / 60) * HOUR_HEIGHT;
+      const height = Math.max(rawHeight, 22);
+      const isTiny = rawHeight < 28;
+
+      const lane = item._lane || 0;
+      const totalLanes = item._totalLanes || 1;
+      const widthPct = 100 / totalLanes;
+      const leftPct = widthPct * lane;
+
+      const endMin = startMin + item.duration;
+      const endStr = `${pad(Math.floor(endMin / 60))}:${pad(endMin % 60)}`;
+      const tooltipParts = [
+        `${item.title} · ${item.start}–${endStr}`,
+        item.note,
+        item.homeOnly ? '(home only)' : null,
+      ].filter(Boolean);
+
+      return (
+        <div
+          className={`cal-item ${isTiny ? 'tiny' : ''}`}
+          title={tooltipParts.join('\n')}
+          style={{
+            top,
+            height,
+            left: `calc(${leftPct}% + 2px)`,
+            width: `calc(${widthPct}% - 4px)`,
+            background: hexToRgba(style.color, style.bgAlpha),
+            borderLeft: `2px solid ${style.color}`,
+          }}
+        >
+          {!isTiny && (
+            <div className="cal-item-time" style={{ color: style.color }}>{item.start}</div>
+          )}
+          <div className="cal-item-title">
+            {item.title}
+            {item.homeOnly && <span className="cal-item-home-flag" style={{ color: style.color }} />}
+          </div>
+        </div>
+      );
+    }
+
+    function NowLine({ now }) {
+      const min = now.getHours() * 60 + now.getMinutes();
+      const offsetMin = min - START_HOUR * 60;
+      if (offsetMin < 0 || offsetMin > HOURS_VISIBLE * 60) return null;
+      const top = (offsetMin / 60) * HOUR_HEIGHT;
+      return <div className="now-line" style={{ top }} />;
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // AGENDA VIEW (mobile)
+    // ═════════════════════════════════════════════════════════════
+    function AgendaView({ routine, weekStart, now }) {
+      const isCurrentWeek = isSameDay(weekStart, startOfWeek(now));
+      const todayCol = isCurrentWeek
+        ? (now.getDay() === 0 ? 6 : now.getDay() - 1)
+        : 0;
+      const [selectedCol, setSelectedCol] = useState(todayCol);
+
+      useEffect(() => {
+        setSelectedCol(isCurrentWeek ? todayCol : 0);
+      }, [weekStart.getTime()]); // eslint-disable-line
+
+      const date = addDays(weekStart, selectedCol);
+      const isSelectedToday = isCurrentWeek && isSameDay(date, now);
+      const sorted = [...itemsForVisualColumn(selectedCol, routine)]
+        .sort((a, b) => toMinutes(a.start) - toMinutes(b.start));
+
+      const nowMin = now.getHours() * 60 + now.getMinutes();
+
+      return (
+        <>
+          <div className="agenda-day-strip">
+            {Array.from({ length: 7 }, (_, col) => {
+              const d = addDays(weekStart, col);
+              const isToday = isCurrentWeek && isSameDay(d, now);
+              const isSelected = col === selectedCol;
+              return (
+                <button
+                  key={col}
+                  className={`agenda-day-chip ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}`}
+                  onClick={() => setSelectedCol(col)}
+                >
+                  <span className="agenda-day-chip-name">{DAY_NAMES_SHORT[col]}</span>
+                  <span className="agenda-day-chip-date">{d.getDate()}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="agenda-header">
+            <div className="agenda-day-title">{DAY_NAMES_LONG[selectedCol]}</div>
+            <div className="agenda-day-subtitle">{formatDateShort(date)}</div>
+          </div>
+
+          {sorted.length === 0 ? (
+            <div className="agenda-empty">No routine items on this day yet.</div>
+          ) : (
+            <div className="agenda-list">
+              {sorted.map(item => {
+                const style = CATEGORY_STYLES[item.category] || CATEGORY_STYLES.supplement;
+                const startMin = toMinutes(item.start);
+                const endMin = startMin + item.duration;
+                const endStr = `${pad(Math.floor(endMin / 60))}:${pad(endMin % 60)}`;
+                let stateClass = '';
+                if (isSelectedToday) {
+                  if (endMin < nowMin) stateClass = 'past';
+                  else if (startMin <= nowMin && endMin >= nowMin) stateClass = 'now';
+                }
+                return (
+                  <div key={item.id} className={`agenda-item ${stateClass}`}>
+                    <div className="agenda-item-stripe" style={{ background: style.color }} />
+                    <div className="agenda-item-time">
+                      <span>{item.start}</span>
+                      {item.duration >= 15 && <span className="agenda-item-time-end">→ {endStr}</span>}
+                    </div>
+                    <div className="agenda-item-content">
+                      <div className="agenda-item-title">
+                        {item.title}
+                        {item.homeOnly && (
+                          <span style={{ color: style.color, marginLeft: 8, fontSize: 9, letterSpacing: '0.15em', fontFamily: 'var(--mono)', opacity: 0.7 }}>HOME</span>
+                        )}
+                      </div>
+                      {item.note && <div className="agenda-item-meta">{item.note}</div>}
+                    </div>
+                    {stateClass === 'now' && <span className="agenda-now-flag">NOW</span>}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
       );
     }
 
