@@ -616,12 +616,333 @@
       font-family: var(--mono);
     }
 
+    /* ───────── RIGHT NOW BANNER ───────── */
+    .right-now {
+      background: linear-gradient(135deg, rgba(201, 168, 76, 0.12) 0%, rgba(201, 168, 76, 0.04) 100%);
+      border-left: 3px solid var(--gold);
+      padding: 18px 24px;
+      margin-bottom: 24px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: center;
+    }
+    .right-now-label {
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .right-now-label::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+      animation: pulse 1.4s ease-in-out infinite;
+      box-shadow: 0 0 6px var(--gold);
+    }
+    .right-now-now {
+      font-size: 17px;
+      color: var(--text);
+      line-height: 1.45;
+      font-weight: 400;
+    }
+    .right-now-now-empty {
+      font-size: 14px;
+      color: var(--muted-2);
+      font-style: italic;
+      line-height: 1.5;
+    }
+    .right-now-next {
+      font-size: 12px;
+      color: var(--muted-2);
+      margin-top: 6px;
+      font-family: var(--mono);
+      letter-spacing: 0.04em;
+    }
+    .right-now-next b {
+      color: var(--muted-1);
+      font-weight: 500;
+    }
+    .right-now-time {
+      text-align: right;
+      font-family: var(--mono);
+    }
+    .right-now-time-big {
+      font-size: 28px;
+      color: var(--text);
+      letter-spacing: 0.04em;
+      font-variant-numeric: tabular-nums;
+    }
+    .right-now-time-day {
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      color: var(--muted-3);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* ───────── MAIN GRID LAYOUT (portfolio + calendar) ───────── */
+    .main-layout {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+    @media (max-width: 1199px) {
+      .main-layout { grid-template-columns: 340px 1fr; gap: 16px; }
+    }
+    @media (max-width: 1023px) {
+      .main-layout { grid-template-columns: 1fr; }
+    }
+
+    /* ───────── PORTFOLIO PANEL ───────── */
+    .portfolio {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .portfolio-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 4px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--col-divider);
+    }
+    .portfolio-eyebrow {
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      color: var(--gold);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .portfolio-budget-summary {
+      font-size: 10px;
+      color: var(--muted-3);
+      font-family: var(--mono);
+      letter-spacing: 0.05em;
+    }
+    .portfolio-budget-summary b { color: var(--muted-1); font-weight: 500; }
+    .portfolio-budget-summary.over { color: var(--coral); }
+    .portfolio-budget-summary.over b { color: var(--coral); }
+
+    .project-card {
+      background: var(--bg-card);
+      border-left: 3px solid var(--border);
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .project-card.master { border-left-width: 4px; }
+    .project-card-header {
+      padding: 14px 16px 12px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .project-card-header:hover { background: var(--bg-hover); }
+    .project-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+    .project-card-name {
+      font-size: 14px;
+      color: var(--text);
+      font-weight: 500;
+      letter-spacing: 0.01em;
+    }
+    .project-card.master .project-card-name {
+      font-size: 16px;
+      letter-spacing: -0.01em;
+    }
+    .project-card-tier {
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      color: var(--muted-4);
+      font-family: var(--mono);
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    .project-card-subtitle {
+      font-size: 11px;
+      color: var(--muted-3);
+      font-style: italic;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+    .project-card-status {
+      font-size: 12px;
+      color: var(--muted-2);
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+    .project-card-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      color: var(--muted-3);
+      font-family: var(--mono);
+      letter-spacing: 0.05em;
+    }
+    .project-card-budget {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .project-card-budget-bar {
+      width: 50px;
+      height: 3px;
+      background: var(--rule);
+      position: relative;
+      overflow: hidden;
+    }
+    .project-card-budget-bar-fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      transition: width 0.3s;
+    }
+    .project-card-budget-text b { color: var(--muted-1); font-weight: 500; }
+    .project-card-effort { color: var(--muted-4); }
+
+    .project-card-body {
+      border-top: 1px solid var(--rule);
+      padding: 10px 16px 14px;
+      display: none;
+    }
+    .project-card.expanded .project-card-body { display: block; }
+    .project-card.expanded { background: var(--bg-hover); }
+
+    .next-actions-label {
+      font-size: 9px;
+      letter-spacing: 0.25em;
+      color: var(--muted-4);
+      text-transform: uppercase;
+      margin: 6px 0 8px;
+      font-weight: 600;
+    }
+    .next-action {
+      display: flex;
+      gap: 8px;
+      padding: 8px 10px;
+      background: var(--bg-card);
+      border-left: 2px solid var(--border);
+      margin-bottom: 4px;
+      cursor: grab;
+      transition: background 0.12s, border-color 0.12s;
+      align-items: flex-start;
+    }
+    .next-action:hover {
+      background: var(--bg-card-deep);
+      border-left-color: var(--muted-3);
+    }
+    .next-action-text {
+      font-size: 12px;
+      color: var(--muted-1);
+      line-height: 1.5;
+      flex: 1;
+    }
+    .next-action-time {
+      font-size: 9px;
+      color: var(--muted-4);
+      font-family: var(--mono);
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+      padding-top: 1px;
+    }
+
+    /* NEXT modules list — shown when NEXT card is expanded */
+    .module-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      margin-top: 4px;
+    }
+    .module-row {
+      background: var(--bg-card);
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.12s;
+    }
+    .module-row:hover { background: var(--bg-card-deep); }
+    .module-row-header {
+      padding: 9px 12px 9px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .module-row-priority {
+      font-size: 9px;
+      color: var(--muted-4);
+      font-family: var(--mono);
+      width: 24px;
+      flex-shrink: 0;
+      letter-spacing: 0.05em;
+    }
+    .module-row-priority.top {
+      color: var(--gold);
+      font-weight: 600;
+    }
+    .module-row-name {
+      flex: 1;
+      font-size: 12px;
+      color: var(--muted-1);
+      line-height: 1.35;
+    }
+    .module-row.expanded .module-row-name { color: var(--text); }
+    .module-row-status {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .module-row-effort {
+      font-size: 9px;
+      color: var(--muted-4);
+      font-family: var(--mono);
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+    .module-row-body {
+      display: none;
+      padding: 4px 14px 14px 38px;
+      border-top: 1px solid var(--rule);
+    }
+    .module-row.expanded .module-row-body { display: block; }
+    .module-row-description {
+      font-size: 11px;
+      color: var(--muted-3);
+      line-height: 1.6;
+      font-style: italic;
+      margin: 8px 0 10px;
+    }
+
+    /* ───────── CALENDAR PANEL (right side of layout) ───────── */
+    .calendar-panel {
+      min-width: 0; /* allows the grid inside to actually shrink */
+    }
+
+    /* Mobile adjustments: stack everything */
+    @media (max-width: 1023px) {
+      .right-now { padding: 14px 18px; grid-template-columns: 1fr; }
+      .right-now-time { text-align: left; display: flex; align-items: baseline; gap: 12px; }
+      .right-now-time-big { font-size: 20px; }
+      .right-now-time-day { margin-top: 0; }
+      .portfolio { margin-bottom: 24px; }
+    }
+
     @media (max-width: 759px) {
       .wrap, .wrap-wide { padding: 0 18px 60px; }
       .screen-pad-top { padding-top: 50px; }
       .cal-header { gap: 12px; }
       .cal-week-label { font-size: 22px; }
+      .right-now-now { font-size: 15px; }
     }
+
   </style>
 </head>
 <body>
@@ -641,7 +962,7 @@
     const CLIENT_ID = '25894919429-pbtl8l6nn23vnvc8c8cbhg5f3n8gepu6.apps.googleusercontent.com';
     const SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
     const FILE_NAME = 'my-planning-data.json';
-    const SCHEMA_VERSION = 2;
+    const SCHEMA_VERSION = 3;
 
     // Days: JS Date.getDay() — 0=Sun, 1=Mon ... 6=Sat. Visual columns are Mon-first.
     const VISUAL_TO_JS_DAY = [1, 2, 3, 4, 5, 6, 0];
@@ -741,6 +1062,219 @@
         category: 'micro-strength', homeOnly: true, recurrence: 'top-of-hour-9-18',
         note: 'Top of every hour, 9-18. ~60-80s: 10 air squats · 10 KB RDL · 10 push-ups · 6 KB row/side.' },
     ];
+
+    // ─────────────────────────────────────────────────────────────
+    // SEED PROJECTS — derived from the five status files in this Claude project.
+    // Tier 1=master, 2=career evidence, 3=health infra, 4=household hygiene, 5=meta-tooling.
+    // weeklyBudgetHours: number, or 0 = "when there's slack".
+    // status: short one-liner (verb-led), kept under ~120 chars.
+    // For NEXT (the master), the next actions live on individual modules, not on the project.
+    // For all others, nextActions live on the project.
+    // ─────────────────────────────────────────────────────────────
+    const SEED_PROJECTS = [
+      {
+        id: 'next',
+        name: 'NEXT',
+        subtitle: 'Change job · level up executive game',
+        tier: 1,
+        weeklyBudgetHours: 6,
+        status: 'Foundation built; deep content development pending across 13 modules.',
+        totalEffortRemainingHours: 67,
+        color: '#C9A84C', // gold — master
+        isMaster: true,
+        prioritySequence: [11, 10, 9, 1, 5, 6, 7, 12, 13, 3, 4, 2, 8],
+        modules: [
+          { id: 'm1', number: 1, name: 'Interview Preparation',
+            description: 'Master every type of senior AE interview question through repetition — MEDDPIC, forecasting, objection handling, closing, negotiation, C-level discussions, account planning, territory.',
+            status: 'in progress', effortRemainingHours: 4,
+            nextActions: [
+              { id: 'm1-a1', text: 'Write 5 Q&As: budgeting conversations, territory planning, closing steps', estimatedMin: 60, status: 'open' },
+              { id: 'm1-a2', text: 'Write 3 objection-handling scenarios for internal promotion context', estimatedMin: 45, status: 'open' },
+              { id: 'm1-a3', text: 'Review 10 existing cards, decide additional categories', estimatedMin: 30, status: 'open' },
+              { id: 'm1-a4', text: 'Run first full timed practice session (verbal, recorded)', estimatedMin: 60, status: 'open' },
+            ] },
+          { id: 'm2', number: 2, name: 'Complex B2B Sales Fluency Coach',
+            description: 'Daily practice on sales methodology, deal strategy, qualification, pipeline management, competitive positioning — anchored in MEDDPICC.',
+            status: 'in progress', effortRemainingHours: 5,
+            nextActions: [
+              { id: 'm2-a1', text: 'Extract content from ChatGPT Sales Fluency GPT into NEXT', estimatedMin: 60, status: 'open' },
+              { id: 'm2-a2', text: 'Write 3 missing cards: pipeline mgmt, territory planning, competitive displacement', estimatedMin: 90, status: 'open' },
+              { id: 'm2-a3', text: 'Define daily drill format (cards/session, rotation)', estimatedMin: 30, status: 'open' },
+            ] },
+          { id: 'm3', number: 3, name: 'Executive Communication Coach',
+            description: 'Daily practice on structured, concise, high-impact communication — series of 3 questions, 5-question practice, email discipline, verbal delivery.',
+            status: 'in progress', effortRemainingHours: 4,
+            nextActions: [
+              { id: 'm3-a1', text: 'Extract content from ChatGPT Exec Comm GPT into NEXT', estimatedMin: 60, status: 'open' },
+              { id: 'm3-a2', text: 'Design daily 15-min session format for verbal practice', estimatedMin: 45, status: 'open' },
+            ] },
+          { id: 'm4', number: 4, name: 'C-Level Questioning & Prompting',
+            description: 'Build fluency in asking the right questions to C-level execs — meetings, events, dinners — to build credibility and appear sharp.',
+            status: 'in progress', effortRemainingHours: 4,
+            nextActions: [
+              { id: 'm4-a1', text: 'Write role-specific question sets: CFO / CMO / CDO / CTO', estimatedMin: 90, status: 'open' },
+              { id: 'm4-a2', text: 'Write sector question sets: Banking / Insurance / Telco', estimatedMin: 75, status: 'open' },
+              { id: 'm4-a3', text: 'Design rapid-fire question generation drill', estimatedMin: 45, status: 'open' },
+            ] },
+          { id: 'm5', number: 5, name: 'Enterprise Agentic AI Expertise',
+            description: 'Expert-level knowledge on enterprise Agentic AI — adoption, impact, culture change, business outcomes, key use cases — with ROI models and vendor landscape.',
+            status: 'in progress', effortRemainingHours: 6,
+            nextActions: [
+              { id: 'm5-a1', text: 'Extract content from ChatGPT Agentic AI project into NEXT', estimatedMin: 75, status: 'open' },
+              { id: 'm5-a2', text: 'Write 2 cards: enterprise AI adoption framework + ROI model', estimatedMin: 90, status: 'open' },
+              { id: 'm5-a3', text: 'Determine daily reading practice', estimatedMin: 30, status: 'open' },
+            ] },
+          { id: 'm6', number: 6, name: 'Agentic AI in Marketing',
+            description: 'Deep expertise in Marketing AI — adoption patterns, use cases, business outcomes, CMO-level conversation frameworks, MarTech integration.',
+            status: 'in progress', effortRemainingHours: 5,
+            nextActions: [
+              { id: 'm6-a1', text: 'Build dedicated Marketing AI module (currently 1 card — needs full expansion)', estimatedMin: 90, status: 'open' },
+              { id: 'm6-a2', text: 'Write 3 cards: CMO conversation framework, attribution & measurement AI, MarTech stack', estimatedMin: 90, status: 'open' },
+              { id: 'm6-a3', text: 'Write AgentForce-specific Marketing Cloud use cases (Salesforce angle)', estimatedMin: 45, status: 'open' },
+            ] },
+          { id: 'm7', number: 7, name: 'AI Certifications Track',
+            description: 'Identify and complete free Agentic AI / Enterprise AI certifications to strengthen LinkedIn and CV.',
+            status: 'not started', effortRemainingHours: 10,
+            nextActions: [
+              { id: 'm7-a1', text: 'Compile shortlist of 5–8 free certifications (Salesforce Agentforce, Google, IBM, Coursera)', estimatedMin: 60, status: 'open' },
+              { id: 'm7-a2', text: 'Rank by LinkedIn signal value and time-to-complete', estimatedMin: 30, status: 'open' },
+              { id: 'm7-a3', text: 'Block dedicated study slots for first 2 certifications', estimatedMin: 15, status: 'open' },
+            ] },
+          { id: 'm8', number: 8, name: 'Banking & Insurance Industry Knowledge',
+            description: 'Up-to-date expertise on Banking and Insurance priorities, regulations (DORA, EU AI Act, Basel IV), and AI applications for credible C-level conversations.',
+            status: 'in progress', effortRemainingHours: 5,
+            nextActions: [
+              { id: 'm8-a1', text: 'Write Banking domain brief: top 10 strategic priorities + KPIs C-levels manage', estimatedMin: 90, status: 'open' },
+              { id: 'm8-a2', text: 'Write Insurance domain brief: claims, underwriting, distribution, AI use cases', estimatedMin: 90, status: 'open' },
+              { id: 'm8-a3', text: 'Write 1 regulatory card: DORA + EU AI Act — implications for AI adoption timelines', estimatedMin: 45, status: 'open' },
+            ] },
+          { id: 'm9', number: 9, name: 'Leadership Module',
+            description: 'Build and articulate a clear, compelling leadership philosophy — cross-cultural leadership, performance culture, coaching, change, building international teams.',
+            status: 'in progress', effortRemainingHours: 5,
+            nextActions: [
+              { id: 'm9-a1', text: 'Write 3 cards: coaching & developing people, managing underperformance, cross-cultural (APAC/EMEA)', estimatedMin: 90, status: 'open' },
+              { id: 'm9-a2', text: 'Write 1 card: building a performance culture from scratch in a new team', estimatedMin: 45, status: 'open' },
+              { id: 'm9-a3', text: 'Run practice session on existing 2 cards (vision + executive presence) — verbal, timed', estimatedMin: 30, status: 'open' },
+            ] },
+          { id: 'm10', number: 10, name: 'Management Philosophy & Style',
+            description: 'Fully develop and rehearse Mirror Management — the reciprocity-based management model — with worked examples, implementation plan, and real situation handling.',
+            status: 'in progress', effortRemainingHours: 4,
+            nextActions: [
+              { id: 'm10-a1', text: 'Build dedicated standalone module (consolidate from other modules)', estimatedMin: 90, status: 'open' },
+              { id: 'm10-a2', text: 'Write 2 worked examples: underperformance + trust-building with new team', estimatedMin: 75, status: 'open' },
+              { id: 'm10-a3', text: 'Write "First 90 days as a new manager" — Mirror Management from day one', estimatedMin: 60, status: 'open' },
+            ] },
+          { id: 'm11', number: 11, name: 'Personal Pitches & Narrative',
+            description: 'Polished, rehearsable pitches: international experience, cross-country strategy, management ambition, personal values (with proof), performance culture, leadership style.',
+            status: 'in progress', effortRemainingHours: 5,
+            nextActions: [
+              { id: 'm11-a1', text: 'Define 4–5 core values with 2-sentence proof points each (real career moments)', estimatedMin: 75, status: 'open' },
+              { id: 'm11-a2', text: 'Write cross-country strategy pitch: why group-level deals create €10M+ partnerships', estimatedMin: 75, status: 'open' },
+              { id: 'm11-a3', text: 'Write performance culture pitch + excellence-through-iteration pitch', estimatedMin: 60, status: 'open' },
+            ] },
+          { id: 'm12', number: 12, name: 'LinkedIn Profile Refresh',
+            description: 'Full rewrite of LinkedIn — headline, about section, experience bullets — maximising numbers, international scope, C-level engagement credibility, AI expertise positioning.',
+            status: 'not started', effortRemainingHours: 4,
+            nextActions: [
+              { id: 'm12-a1', text: 'Rewrite LinkedIn headline (3 variants to test)', estimatedMin: 30, status: 'open' },
+              { id: 'm12-a2', text: 'Rewrite About: hook → international narrative → AI expertise → ambition → CTA', estimatedMin: 90, status: 'open' },
+              { id: 'm12-a3', text: 'Rewrite top 3 experience bullets for HCLSoftware role with metrics', estimatedMin: 60, status: 'open' },
+            ] },
+          { id: 'm13', number: 13, name: 'LinkedIn Thought Leadership — Agentic AI',
+            description: 'High-impact, opinionated LinkedIn posts on Enterprise Agentic AI and Agentic AI in Marketing — written in your voice, not generic AI content.',
+            status: 'not started', effortRemainingHours: 6,
+            nextActions: [
+              { id: 'm13-a1', text: 'Define personal tone guide: 5 rules for how your LinkedIn posts sound', estimatedMin: 45, status: 'open' },
+              { id: 'm13-a2', text: 'Draft first post: contrarian or insight-led take on enterprise Agentic AI adoption', estimatedMin: 75, status: 'open' },
+              { id: 'm13-a3', text: 'Build 4-week content calendar outline (1 post/week, varied formats)', estimatedMin: 45, status: 'open' },
+            ] },
+        ],
+      },
+      {
+        id: 'ai-for-sales',
+        name: 'APP - AI FOR SALES',
+        subtitle: 'Account Intelligence Report skill',
+        tier: 2,
+        weeklyBudgetHours: 3,
+        status: 'v1 of skill is built and packaged; needs real-world pressure-testing on a live target account.',
+        totalEffortRemainingHours: 7,
+        color: '#A78BCA', // violet
+        nextActions: [
+          { id: 'ais-a1', text: 'Run skill end-to-end on one real Financial Services target — listed FR/Benelux/DACH bank or insurer', estimatedMin: 45, status: 'open' },
+          { id: 'ais-a2', text: 'Read output critically vs checklist; write list of v1 weaknesses', estimatedMin: 30, status: 'open' },
+          { id: 'ais-a3', text: 'Patch 1–2 weaknesses, repackage skill, retest on same target', estimatedMin: 60, status: 'open' },
+        ],
+      },
+      {
+        id: 'gym-translation',
+        name: 'Gym Exercise Translation',
+        subtitle: 'List of exercises with 2-step diagrams',
+        tier: 3,
+        weeklyBudgetHours: 2,
+        status: 'List of exercises ready; needs to be compiled into a one or two-pager with simple 2-step diagrams.',
+        totalEffortRemainingHours: 4,
+        color: '#7EB8A4', // teal
+        nextActions: [
+          { id: 'gym-a1', text: 'Pick the format (single PDF, printable card stack, web page)', estimatedMin: 20, status: 'open' },
+          { id: 'gym-a2', text: 'Compile exercise list into structured doc (name + 2-step description)', estimatedMin: 60, status: 'open' },
+          { id: 'gym-a3', text: 'Generate 2-step diagram per exercise (start point + end point)', estimatedMin: 120, status: 'open' },
+          { id: 'gym-a4', text: 'Final layout pass + print/save final version', estimatedMin: 30, status: 'open' },
+        ],
+      },
+      {
+        id: 'finance-tracking',
+        name: 'APP - FINANCE TRACKING',
+        subtitle: 'Household expense tracker',
+        tier: 4,
+        weeklyBudgetHours: 1,
+        status: 'Tracker functionally complete; final categorization + dashboard validation pending.',
+        totalEffortRemainingHours: 1.5,
+        color: '#B5896E', // warm tan — household
+        nextActions: [
+          { id: 'fin-a1', text: 'Load real bank export, apply rules until all entries are green, export categorised xlsx', estimatedMin: 45, status: 'open' },
+          { id: 'fin-a2', text: 'Review dashboard with real data: validate groupings, fix amounts, tweak Fixed expenses', estimatedMin: 20, status: 'open' },
+          { id: 'fin-a3', text: 'Add missing rules, save categories + rules to app, archive working HTML', estimatedMin: 15, status: 'open' },
+        ],
+      },
+      {
+        id: 'investment',
+        name: 'APP - INVESTMENT',
+        subtitle: 'Financial Advisor Agent',
+        tier: 4,
+        weeklyBudgetHours: 1,
+        status: 'Research agent paused; redesigning around real investment goals before more code.',
+        totalEffortRemainingHours: 5,
+        color: '#9C8845', // muted gold
+        nextActions: [
+          { id: 'inv-a1', text: 'Answer 2 scoping questions (PEA opened? Final ETF shortlist?) and confirm strategy', estimatedMin: 15, status: 'open' },
+          { id: 'inv-a2', text: 'Replace news-focused watchlist with positions.json reflecting real holdings; update config.py', estimatedMin: 20, status: 'open' },
+          { id: 'inv-a3', text: 'Redesign agent: weekly portfolio snapshot + ETF health check + plain-English verdict', estimatedMin: 30, status: 'open' },
+        ],
+      },
+      {
+        id: 'routine-planner',
+        name: 'APP - ROUTINE PLANNER',
+        subtitle: 'Long-term: native mobile routine app',
+        tier: 5,
+        weeklyBudgetHours: 0, // slack only
+        status: 'Architecture decided; blank Expo app running on iPhone; ready for first real screen.',
+        totalEffortRemainingHours: 135,
+        color: '#7A7268', // muted gray
+        nextActions: [
+          { id: 'rp-a1', text: 'Create src/ folder structure (screens/, components/, data/) and commit', estimatedMin: 20, status: 'open' },
+          { id: 'rp-a2', text: 'Build routine display screen (read-only weekly schedule, hardcoded data)', estimatedMin: 90, status: 'open' },
+          { id: 'rp-a3', text: 'Replace hardcoded routine with Supabase table (create free Supabase project first)', estimatedMin: 60, status: 'open' },
+        ],
+      },
+    ];
+
+    // Module status visual mapping (used in NEXT module list)
+    const MODULE_STATUS_STYLE = {
+      'not started': { color: '#5A5248', label: 'Not started' },
+      'in progress': { color: '#C9A84C', label: 'In progress' },
+      'paused':      { color: '#E07B6A', label: 'Paused' },
+      'complete':    { color: '#7EB8A4', label: 'Complete' },
+    };
 
     // ═════════════════════════════════════════════════════════════
     // HELPERS
@@ -950,7 +1484,8 @@
         overrides: {},
         calendars: { workIcs: '', householdIcs: '' },
         weeklyResets: [],
-        projects: [],
+        projects: SEED_PROJECTS,
+        scheduledBlocks: [],
         inbox: [],
         elsewhereToggles: { morning: false, afternoon: false, allDay: false, date: null },
       };
@@ -961,18 +1496,23 @@
       const next = { ...data };
       const prevVersion = next.schemaVersion || 0;
       if (prevVersion < SCHEMA_VERSION) { next.schemaVersion = SCHEMA_VERSION; changed = true; }
-      // Re-seed routine when crossing into v2 (no edit feature exists yet, so user data won't be lost).
-      // Once an edit UI lands, this branch goes away.
-      if (prevVersion < 2) {
-        next.routine = SEED_ROUTINE;
-        changed = true;
-      } else if (next.routine == null || (Array.isArray(next.routine) && next.routine.length === 0)) {
+      // v2: re-seed routine
+      if (prevVersion < 2) { next.routine = SEED_ROUTINE; changed = true; }
+      else if (next.routine == null || (Array.isArray(next.routine) && next.routine.length === 0)) {
         next.routine = SEED_ROUTINE; changed = true;
       }
+      // v3: seed projects + scheduledBlocks (no edit feature yet, safe to overwrite)
+      if (prevVersion < 3) {
+        next.projects = SEED_PROJECTS;
+        next.scheduledBlocks = next.scheduledBlocks || [];
+        changed = true;
+      } else if (!Array.isArray(next.projects) || next.projects.length === 0) {
+        next.projects = SEED_PROJECTS; changed = true;
+      }
+      if (!Array.isArray(next.scheduledBlocks)) { next.scheduledBlocks = []; changed = true; }
       if (!next.overrides) { next.overrides = {}; changed = true; }
       if (!next.calendars) { next.calendars = { workIcs: '', householdIcs: '' }; changed = true; }
       if (!next.weeklyResets) { next.weeklyResets = []; changed = true; }
-      if (!next.projects) { next.projects = []; changed = true; }
       if (!next.inbox) { next.inbox = []; changed = true; }
       if (!next.elsewhereToggles) { next.elsewhereToggles = { morning: false, afternoon: false, allDay: false, date: null }; changed = true; }
       if ('testCounter' in next) { delete next.testCounter; changed = true; }
@@ -1202,38 +1742,53 @@
 
       return (
         <div className={`wrap-wide screen-pad-top-sm fade-in ${dayView !== null ? 'day-view' : ''}`}>
-          <CalendarHeader
-            weekStart={weekStart}
-            weekEnd={weekEnd}
-            isCurrentWeek={isCurrentWeek}
-            dayView={dayView}
-            onPrev={goPrev}
-            onNext={goNext}
-            onToday={goToday}
-            saving={saving}
-            error={error}
-            lastSyncedAt={lastSyncedAt}
+          <RightNowBanner
+            routine={data.routine}
+            scheduledBlocks={data.scheduledBlocks || []}
+            projects={data.projects || []}
+            now={now}
           />
 
-          {dayView !== null && !isMobile && (
-            <button className="day-view-back" onClick={() => setDayView(null)}>
-              ← Back to week
-            </button>
-          )}
+          <div className="main-layout">
+            <div className="portfolio">
+              <PortfolioPanel projects={data.projects || []} />
+            </div>
 
-          {isMobile ? (
-            <AgendaView routine={data.routine} weekStart={weekStart} now={now} />
-          ) : (
-            <WeekGrid
-              routine={data.routine}
-              weekStart={weekStart}
-              now={now}
-              singleCol={dayView}
-              onDayClick={handleDayClick}
-            />
-          )}
+            <div className="calendar-panel">
+              <CalendarHeader
+                weekStart={weekStart}
+                weekEnd={weekEnd}
+                isCurrentWeek={isCurrentWeek}
+                dayView={dayView}
+                onPrev={goPrev}
+                onNext={goNext}
+                onToday={goToday}
+                saving={saving}
+                error={error}
+                lastSyncedAt={lastSyncedAt}
+              />
 
-          <Legend />
+              {dayView !== null && !isMobile && (
+                <button className="day-view-back" onClick={() => setDayView(null)}>
+                  ← Back to week
+                </button>
+              )}
+
+              {isMobile ? (
+                <AgendaView routine={data.routine} weekStart={weekStart} now={now} />
+              ) : (
+                <WeekGrid
+                  routine={data.routine}
+                  weekStart={weekStart}
+                  now={now}
+                  singleCol={dayView}
+                  onDayClick={handleDayClick}
+                />
+              )}
+
+              <Legend />
+            </div>
+          </div>
 
           <details className="raw">
             <summary>Diagnostics · raw data</summary>
@@ -1248,6 +1803,259 @@
             </div>
           </div>
         </div>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // RIGHT NOW BANNER
+    // ═════════════════════════════════════════════════════════════
+    function RightNowBanner({ routine, scheduledBlocks, projects, now }) {
+      const jsDay = now.getDay();
+      const todayCol = jsDay === 0 ? 6 : jsDay - 1;
+      const nowMin = now.getHours() * 60 + now.getMinutes();
+      const todayKey = startOfDay(now).toISOString();
+
+      // Routine items happening today, sorted chronologically
+      const todayRoutine = itemsForVisualColumn(todayCol, routine)
+        .map(it => ({
+          source: 'routine',
+          title: it.title,
+          start: toMinutes(it.start),
+          end: toMinutes(it.start) + it.duration,
+          note: it.note,
+          category: it.category,
+        }));
+
+      // Scheduled project blocks for today
+      const todayBlocks = (scheduledBlocks || [])
+        .filter(b => b.date === todayKey)
+        .map(b => {
+          const project = projects.find(p => p.id === b.projectId);
+          return {
+            source: 'project',
+            title: b.title,
+            start: toMinutes(b.start),
+            end: toMinutes(b.start) + b.duration,
+            note: project ? project.name : '',
+            category: 'project',
+          };
+        });
+
+      const allTodayItems = [...todayRoutine, ...todayBlocks].sort((a, b) => a.start - b.start);
+
+      const current = allTodayItems.find(it => it.start <= nowMin && it.end > nowMin);
+      const upcoming = allTodayItems.filter(it => it.start > nowMin);
+      const next = upcoming[0];
+
+      // Micro-strength: surface when within first 90 seconds of an hour, 9-18, Mon-Fri (and not at home only when off-toggled — V1: always show)
+      const isWeekday = jsDay >= 1 && jsDay <= 5;
+      const inMicroWindow = isWeekday && now.getHours() >= 9 && now.getHours() <= 18 && now.getMinutes() < 2;
+
+      const dayName = DAY_NAMES_LONG[todayCol];
+      const dateStr = formatDateShort(now);
+      const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+      let nowBlock;
+      if (inMicroWindow) {
+        nowBlock = (
+          <>
+            <div className="right-now-now">⚡ Micro-Strength · top of the hour</div>
+            <div className="right-now-next" style={{ color: 'var(--teal)' }}>
+              ~60–80s · 10 air squats · 10 KB RDL · 10 push-ups · 6 KB row/side
+            </div>
+          </>
+        );
+      } else if (current) {
+        const remaining = current.end - nowMin;
+        nowBlock = (
+          <>
+            <div className="right-now-now">{current.title}</div>
+            <div className="right-now-next">
+              <b>{remaining} min remaining</b>
+              {next && <> · then <b>{next.title}</b> at {pad(Math.floor(next.start / 60))}:{pad(next.start % 60)}</>}
+            </div>
+          </>
+        );
+      } else if (next) {
+        const minsUntil = next.start - nowMin;
+        const startStr = `${pad(Math.floor(next.start / 60))}:${pad(next.start % 60)}`;
+        nowBlock = (
+          <>
+            <div className="right-now-now-empty">
+              {minsUntil < 60 ? `Free for ${minsUntil} min — use them deliberately.` : 'Open block. Decide what to work on.'}
+            </div>
+            <div className="right-now-next">Next: <b>{next.title}</b> at {startStr}</div>
+          </>
+        );
+      } else {
+        nowBlock = (
+          <>
+            <div className="right-now-now-empty">Day is done. Rest is part of the work.</div>
+          </>
+        );
+      }
+
+      return (
+        <div className="right-now">
+          <div>
+            <div className="right-now-label">Right Now</div>
+            {nowBlock}
+          </div>
+          <div className="right-now-time">
+            <div className="right-now-time-big">{timeStr}</div>
+            <div className="right-now-time-day">{dayName} · {dateStr}</div>
+          </div>
+        </div>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // PORTFOLIO PANEL
+    // ═════════════════════════════════════════════════════════════
+    function PortfolioPanel({ projects }) {
+      const [expandedId, setExpandedId] = useState('next'); // NEXT expanded by default
+
+      // Total weekly budget across all projects with a fixed budget
+      const totalBudget = projects.reduce((sum, p) => sum + (p.weeklyBudgetHours || 0), 0);
+      // For now actual hours scheduled = 0 (we have no scheduled blocks yet — comes when we wire drag-drop)
+      const totalScheduled = 0;
+      const overBudget = totalScheduled > totalBudget;
+
+      return (
+        <>
+          <div className="portfolio-header">
+            <div className="portfolio-eyebrow">Portfolio</div>
+            <div className={`portfolio-budget-summary ${overBudget ? 'over' : ''}`}>
+              <b>{totalScheduled}h</b> / {totalBudget}h this week
+            </div>
+          </div>
+          {projects.map(project => (
+            <ProjectCard
+              key={project.id}
+              project={project}
+              expanded={expandedId === project.id}
+              onToggle={() => setExpandedId(expandedId === project.id ? null : project.id)}
+            />
+          ))}
+        </>
+      );
+    }
+
+    function ProjectCard({ project, expanded, onToggle }) {
+      const isMaster = !!project.isMaster;
+      const budgetText = project.weeklyBudgetHours === 0
+        ? 'slack only'
+        : `${project.weeklyBudgetHours}h / week`;
+      const tierLabel = `Tier ${project.tier}`;
+
+      return (
+        <div
+          className={`project-card ${isMaster ? 'master' : ''} ${expanded ? 'expanded' : ''}`}
+          style={{ borderLeftColor: project.color || 'var(--border)' }}
+        >
+          <div className="project-card-header" onClick={onToggle}>
+            <div className="project-card-top">
+              <div className="project-card-name" style={isMaster ? { color: project.color } : {}}>
+                {project.name}
+              </div>
+              <div className="project-card-tier">{tierLabel}</div>
+            </div>
+            {project.subtitle && (
+              <div className="project-card-subtitle">{project.subtitle}</div>
+            )}
+            <div className="project-card-status">{project.status}</div>
+            <div className="project-card-meta">
+              <div className="project-card-budget">
+                <span className="project-card-budget-text">{budgetText}</span>
+              </div>
+              {project.totalEffortRemainingHours != null && (
+                <span className="project-card-effort">~{project.totalEffortRemainingHours}h remaining</span>
+              )}
+            </div>
+          </div>
+
+          {expanded && (
+            <div className="project-card-body">
+              {isMaster && project.modules ? (
+                <NextModulesList project={project} />
+              ) : (
+                <ProjectNextActions project={project} />
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function ProjectNextActions({ project }) {
+      const actions = project.nextActions || [];
+      if (actions.length === 0) {
+        return <div style={{ fontSize: 11, color: 'var(--muted-4)', fontStyle: 'italic' }}>No next actions defined.</div>;
+      }
+      return (
+        <>
+          <div className="next-actions-label">Next actions</div>
+          {actions.map(a => (
+            <div key={a.id} className="next-action" draggable="true" title="Drag to calendar (coming soon)">
+              <div className="next-action-text">{a.text}</div>
+              {a.estimatedMin && (
+                <div className="next-action-time">~{a.estimatedMin}m</div>
+              )}
+            </div>
+          ))}
+        </>
+      );
+    }
+
+    function NextModulesList({ project }) {
+      const [expandedModuleId, setExpandedModuleId] = useState(null);
+      const sequence = project.prioritySequence || [];
+      // Build display order: priority sequence first, then any modules not in the sequence
+      const moduleByNumber = {};
+      project.modules.forEach(m => { moduleByNumber[m.number] = m; });
+      const orderedModules = [];
+      sequence.forEach(n => { if (moduleByNumber[n]) orderedModules.push(moduleByNumber[n]); });
+      project.modules.forEach(m => { if (!sequence.includes(m.number)) orderedModules.push(m); });
+
+      return (
+        <>
+          <div className="next-actions-label">Modules · priority order</div>
+          <div className="module-list">
+            {orderedModules.map((mod, idx) => {
+              const statusStyle = MODULE_STATUS_STYLE[mod.status] || MODULE_STATUS_STYLE['not started'];
+              const isExpanded = expandedModuleId === mod.id;
+              const isTop = idx < 3;
+              return (
+                <div key={mod.id} className={`module-row ${isExpanded ? 'expanded' : ''}`}>
+                  <div className="module-row-header" onClick={() => setExpandedModuleId(isExpanded ? null : mod.id)}>
+                    <div className={`module-row-priority ${isTop ? 'top' : ''}`}>#{idx + 1}</div>
+                    <div className="module-row-name">{mod.name}</div>
+                    <div className="module-row-effort">~{mod.effortRemainingHours}h</div>
+                    <div
+                      className="module-row-status"
+                      style={{ background: statusStyle.color }}
+                      title={statusStyle.label}
+                    />
+                  </div>
+                  {isExpanded && (
+                    <div className="module-row-body">
+                      <div className="module-row-description">{mod.description}</div>
+                      <div className="next-actions-label">Next actions</div>
+                      {mod.nextActions.map(a => (
+                        <div key={a.id} className="next-action" draggable="true" title="Drag to calendar (coming soon)">
+                          <div className="next-action-text">{a.text}</div>
+                          {a.estimatedMin && (
+                            <div className="next-action-time">~{a.estimatedMin}m</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </>
       );
     }
 
