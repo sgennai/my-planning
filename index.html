@@ -623,8 +623,8 @@
       padding: 18px 24px;
       margin-bottom: 24px;
       display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 16px;
+      grid-template-columns: 1fr auto auto;
+      gap: 24px;
       align-items: center;
     }
     .right-now-label {
@@ -671,6 +671,9 @@
     .right-now-time {
       text-align: right;
       font-family: var(--mono);
+      padding-right: 8px;
+      border-right: 1px solid rgba(201, 168, 76, 0.18);
+      padding-right: 24px;
     }
     .right-now-time-big {
       font-size: 28px;
@@ -685,6 +688,69 @@
       text-transform: uppercase;
       margin-top: 2px;
     }
+
+    /* Reference Library access panel inside the Right Now banner */
+    .right-now-reference {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 180px;
+    }
+    .right-now-reference-label {
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      color: var(--gold);
+      text-transform: uppercase;
+      font-weight: 500;
+      opacity: 0.85;
+    }
+    .ref-quick-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .ref-quick-item {
+      background: transparent;
+      border: none;
+      padding: 4px 0;
+      color: var(--muted-1);
+      font-family: var(--serif);
+      font-size: 12px;
+      text-align: left;
+      cursor: pointer;
+      transition: color 0.12s;
+      letter-spacing: 0.005em;
+      line-height: 1.4;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .ref-quick-item::before {
+      content: '›';
+      color: var(--muted-4);
+      font-family: var(--mono);
+      transition: color 0.12s, transform 0.12s;
+    }
+    .ref-quick-item:hover {
+      color: var(--gold);
+    }
+    .ref-quick-item:hover::before {
+      color: var(--gold);
+      transform: translateX(2px);
+    }
+    .ref-quick-more {
+      font-size: 10px;
+      color: var(--muted-3);
+      font-family: var(--mono);
+      letter-spacing: 0.1em;
+      margin-top: 4px;
+      padding: 4px 0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+    }
+    .ref-quick-more:hover { color: var(--gold); }
 
     /* ───────── MAIN GRID LAYOUT (portfolio + calendar) ───────── */
     .main-layout {
@@ -1194,10 +1260,340 @@
     .modal { position: relative; }
 
 
+    /* ───────── RESIZE HANDLE ───────── */
+    .cal-item-resize-handle {
+      position: absolute;
+      left: 0; right: 0;
+      bottom: 0;
+      height: 6px;
+      cursor: ns-resize;
+      z-index: 3;
+      background: transparent;
+    }
+    .cal-item-resize-handle:hover {
+      background: rgba(201, 168, 76, 0.25);
+    }
+    .cal-item.resizing {
+      filter: brightness(1.35);
+      outline: 1px dashed var(--gold);
+      outline-offset: -1px;
+    }
+    /* Routine items: cursor pointer to telegraph "click to edit" */
+    .cal-item.routine-item { cursor: pointer; }
+    .cal-item.moved {
+      box-shadow: inset 2px 0 0 var(--gold);
+    }
+    .cal-item.moved::before {
+      content: '↪';
+      position: absolute;
+      top: 1px; right: 4px;
+      font-size: 12px;
+      color: var(--gold);
+      line-height: 1;
+    }
+    .cal-item.overridden::before {
+      content: '✎';
+      position: absolute;
+      top: 2px; right: 4px;
+      font-size: 10px;
+      color: var(--gold);
+      opacity: 0.6;
+    }
+
+    /* ───────── REFERENCE LIBRARY MODAL ───────── */
+    .ref-modal { max-width: 720px; }
+    .ref-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .ref-entry {
+      background: var(--bg-card-deep);
+      border-left: 2px solid var(--border);
+    }
+    .ref-entry-header {
+      padding: 14px 18px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      transition: background 0.12s, border-color 0.12s;
+      user-select: none;
+    }
+    .ref-entry-header:hover {
+      background: var(--bg-hover);
+    }
+    .ref-entry.expanded {
+      border-left-color: var(--gold);
+    }
+    .ref-entry-title {
+      font-size: 14px;
+      color: var(--text);
+      letter-spacing: 0.005em;
+    }
+    .ref-entry-chevron {
+      color: var(--muted-3);
+      font-family: var(--mono);
+      font-size: 14px;
+      transition: transform 0.15s, color 0.12s;
+    }
+    .ref-entry.expanded .ref-entry-chevron { transform: rotate(90deg); color: var(--gold); }
+    .ref-entry-body {
+      padding: 6px 22px 18px;
+      display: none;
+    }
+    .ref-entry.expanded .ref-entry-body { display: block; }
+    .ref-entry-content {
+      font-size: 13px;
+      color: var(--muted-1);
+      line-height: 1.75;
+      white-space: pre-wrap;
+      font-family: var(--serif);
+    }
+    .ref-entry-edit-btn {
+      background: none;
+      border: none;
+      color: var(--muted-3);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      cursor: pointer;
+      text-transform: uppercase;
+      padding: 6px 0;
+      margin-top: 8px;
+    }
+    .ref-entry-edit-btn:hover { color: var(--gold); }
+    .ref-entry-edit textarea {
+      width: 100%;
+      min-height: 220px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--serif);
+      font-size: 13px;
+      padding: 12px 14px;
+      line-height: 1.75;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    .ref-entry-edit textarea:focus {
+      outline: none;
+      border-color: var(--gold);
+    }
+    .ref-entry-edit-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    /* ───────── ROUTINE EDIT FORMS ───────── */
+    .routine-modal { max-width: 720px; }
+    .routine-day-group { margin-bottom: 16px; }
+    .routine-day-group-label {
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    .routine-item-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      background: var(--bg-card-deep);
+      border-left: 2px solid var(--border);
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s;
+      margin-bottom: 1px;
+    }
+    .routine-item-row:hover {
+      background: var(--bg-hover);
+      border-left-color: var(--gold);
+    }
+    .routine-item-row-time {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted-2);
+      letter-spacing: 0.04em;
+      width: 90px;
+      flex-shrink: 0;
+    }
+    .routine-item-row-title {
+      flex: 1;
+      font-size: 13px;
+      color: var(--text);
+    }
+    .routine-item-row-cat {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .routine-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+    .routine-form-row {
+      grid-column: span 2;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .routine-form-row.half { grid-column: span 1; }
+    .routine-form-label {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--muted-3);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .routine-form-input {
+      background: var(--bg-card-deep);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 12px;
+      font-family: var(--serif);
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    .routine-form-input:focus { outline: none; border-color: var(--gold); }
+    .routine-form-input.mono { font-family: var(--mono); font-size: 13px; }
+    .routine-form-textarea {
+      background: var(--bg-card-deep);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 12px;
+      font-family: var(--serif);
+      font-size: 13px;
+      line-height: 1.6;
+      min-height: 70px;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    .routine-form-textarea:focus { outline: none; border-color: var(--gold); }
+    .day-chips {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .day-chip {
+      padding: 8px 12px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted-3);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: var(--serif);
+      min-width: 48px;
+      text-align: center;
+    }
+    .day-chip.active {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: rgba(201, 168, 76, 0.06);
+    }
+    .cat-chips {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .cat-chip {
+      padding: 6px 10px;
+      background: transparent;
+      border: 1px solid var(--border);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: var(--mono);
+      color: var(--muted-3);
+    }
+    .cat-chip.active {
+      background: rgba(201, 168, 76, 0.08);
+    }
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+      padding: 6px 0;
+    }
+    .checkbox-row input[type="checkbox"] {
+      width: 16px; height: 16px;
+      accent-color: var(--gold);
+      cursor: pointer;
+    }
+    .checkbox-row span {
+      font-size: 13px; color: var(--muted-1);
+    }
+    .scope-toggle {
+      display: flex;
+      gap: 1px;
+      background: var(--bg);
+      padding: 2px;
+      border: 1px solid var(--border);
+      margin-bottom: 4px;
+    }
+    .scope-toggle-btn {
+      flex: 1;
+      padding: 8px 12px;
+      background: transparent;
+      border: none;
+      color: var(--muted-3);
+      font-family: var(--serif);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+    .scope-toggle-btn.active {
+      background: rgba(201, 168, 76, 0.14);
+      color: var(--gold);
+    }
+    .scope-hint {
+      font-size: 11px;
+      color: var(--muted-3);
+      font-style: italic;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    /* ───────── HEADER MANAGE BUTTON ───────── */
+    .manage-btn {
+      padding: 0 14px;
+      height: 38px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted-2);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      font-family: var(--serif);
+      cursor: pointer;
+    }
+    .manage-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* Mobile adjustments: stack everything */
+    @media (max-width: 1023px) {
       .right-now { padding: 14px 18px; grid-template-columns: 1fr; }
-      .right-now-time { text-align: left; display: flex; align-items: baseline; gap: 12px; }
+      .right-now-time {
+        text-align: left;
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        border-right: none;
+        padding-right: 0;
+      }
       .right-now-time-big { font-size: 20px; }
       .right-now-time-day { margin-top: 0; }
+      .right-now-reference { display: none; }
       .portfolio { margin-bottom: 24px; }
     }
 
@@ -1207,6 +1603,8 @@
       .cal-header { gap: 12px; }
       .cal-week-label { font-size: 22px; }
       .right-now-now { font-size: 15px; }
+      .routine-form-grid { grid-template-columns: 1fr; }
+      .routine-form-row.half { grid-column: span 1; }
     }
 
   </style>
@@ -1241,7 +1639,7 @@
     const CLIENT_ID = '25894919429-pbtl8l6nn23vnvc8c8cbhg5f3n8gepu6.apps.googleusercontent.com';
     const SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
     const FILE_NAME = 'my-planning-data.json';
-    const SCHEMA_VERSION = 3;
+    const SCHEMA_VERSION = 4;
 
     // Days: JS Date.getDay() — 0=Sun, 1=Mon ... 6=Sat. Visual columns are Mon-first.
     const VISUAL_TO_JS_DAY = [1, 2, 3, 4, 5, 6, 0];
@@ -1555,6 +1953,88 @@
       'complete':    { color: '#7EB8A4', label: 'Complete' },
     };
 
+    // Categories users can pick when adding/editing routine items
+    const CATEGORY_OPTIONS = ['supplement', 'focus', 'gym', 'review', 'planning', 'prep', 'elsewhere', 'commute'];
+
+    // ─────────────────────────────────────────────────────────────
+    // SEED REFERENCE LIBRARY — quick-access reference content.
+    // Each entry is a static text reference, editable by the user.
+    // ─────────────────────────────────────────────────────────────
+    const SEED_REFERENCE_LIBRARY = [
+      {
+        id: 'ref-micro-strength',
+        title: 'Micro-Strength Protocol',
+        body: `Top of every hour, 9–18, Mon–Fri. ~60–80 seconds total.
+
+1. Air squats — 10 reps
+   Feet shoulder-width, sit back, knees track over toes, full depth.
+
+2. Kettlebell Romanian Deadlift (RDL) — 10 reps
+   Hinge at hips, slight knee bend, KB stays close to legs, neutral spine.
+
+3. Push-ups — 10 reps
+   Tight core, full range, elbows at ~45°.
+
+4. Kettlebell One-Arm Row — 6 reps per side
+   Or both arms standing/leaning forward with 2 kettlebells.
+   Drive elbow up and back, squeeze shoulder blade.`,
+      },
+      {
+        id: 'ref-gym-bag',
+        title: 'Gym Bag Contents',
+        body: `Pack the night before. Standard contents:
+
+• Shoes
+• Socks
+• Shorts / jogging
+• T-shirt
+• Sweater
+• Water bottle (with electrolytes)`,
+      },
+      {
+        id: 'ref-work-bag',
+        title: 'Work Bag Contents',
+        body: `Pack the night before. Standard contents:
+
+• 2 laptops
+• Mouse
+• Cables
+• AirPods
+• Watch`,
+      },
+      {
+        id: 'ref-weekly-review',
+        title: 'Friday Weekly Review — Quick Template',
+        body: `30 minutes. Finish by 15:30. Laptop closed. Weekend protected.
+
+Reflection:
+• What went well this week?
+• What can be changed, improved, removed, or expanded?
+• Am I working on the right thing?
+• Did I achieve what I said winning would look like (Sunday's definition)?
+
+Patterns to watch:
+• Activities that, doubled, would meaningfully improve life?
+  (Sport · Reading · Outside activities)
+• Activities that, halved, would meaningfully improve life?
+  (e.g. ruminating about job change)
+
+Capture a story:
+• Which moment from this week is worth keeping for future interviews?
+  (Use STAR format if it helps: Situation, Task, Action, Result)
+
+Close the week:
+• Block next week's calendar based on top priorities
+• Cancel/move meetings that don't support them
+• Build in thinking time and reset space FIRST`,
+      },
+      {
+        id: 'ref-meeting-reset',
+        title: 'Meeting Reset Notes',
+        body: `(Paste your meeting reset notes here — placeholder for the meeting-reset.md content. Click EDIT to replace.)`,
+      },
+    ];
+
     // ═════════════════════════════════════════════════════════════
     // HELPERS
     // ═════════════════════════════════════════════════════════════
@@ -1672,6 +2152,73 @@
       });
     }
 
+    // ─────────────────────────────────────────────────────────────
+    // ROUTINE OVERRIDES — per-occurrence "this week only" changes
+    // ─────────────────────────────────────────────────────────────
+    // Override key format: `${routineItemId}:${dateISO}` where dateISO = startOfDay(date).toISOString()
+    // Override types:
+    //   { type: 'skip' } — don't render this occurrence
+    //   { type: 'edit', start?, duration?, title?, note? } — edit just this occurrence
+    //   { type: 'move', moveToDate, start?, duration? } — move to a different date
+    function makeOverrideKey(itemId, date) {
+      return `${itemId}:${startOfDay(date).toISOString()}`;
+    }
+
+    // Resolve which routine items render on a given date, applying overrides.
+    function resolvedRoutineForDate(routine, overrides, date) {
+      const dateKey = startOfDay(date).toISOString();
+      const dateMs = startOfDay(date).getTime();
+      const jsDay = date.getDay();
+      const out = [];
+
+      // 1. Items that normally occur on this day (with edit/skip overrides applied)
+      routine.forEach(item => {
+        if (!item.days.includes(jsDay)) return;
+        if (item.recurrence) return; // skip micro-strength etc.
+        const key = makeOverrideKey(item.id, date);
+        const ov = overrides[key];
+        if (!ov) {
+          out.push({ ...item, _kind: 'routine' });
+          return;
+        }
+        if (ov.type === 'skip') return;
+        if (ov.type === 'move') return; // rendered on another date
+        if (ov.type === 'edit') {
+          out.push({
+            ...item,
+            title: ov.title != null ? ov.title : item.title,
+            note: ov.note != null ? ov.note : item.note,
+            start: ov.start != null ? ov.start : item.start,
+            duration: ov.duration != null ? ov.duration : item.duration,
+            _kind: 'routine',
+            _overridden: true,
+          });
+        }
+      });
+
+      // 2. Items moved TO this date from another day
+      Object.entries(overrides || {}).forEach(([key, ov]) => {
+        if (!ov || ov.type !== 'move' || !ov.moveToDate) return;
+        if (startOfDay(new Date(ov.moveToDate)).getTime() !== dateMs) return;
+        const itemId = key.split(':')[0];
+        const item = routine.find(r => r.id === itemId);
+        if (!item) return;
+        out.push({
+          ...item,
+          start: ov.start != null ? ov.start : item.start,
+          duration: ov.duration != null ? ov.duration : item.duration,
+          title: ov.title != null ? ov.title : item.title,
+          note: ov.note != null ? ov.note : item.note,
+          _kind: 'routine',
+          _moved: true,
+          _movedFromDate: key.split(':').slice(1).join(':'), // original date ISO
+          _overrideKey: key,
+        });
+      });
+
+      return out;
+    }
+
     // Total minutes for a given project this week (only counts scheduled + partial,
     // not completed — once done it's "spent" not "scheduled").
     function plannedMinutesForProject(blocks, weekStart, projectId) {
@@ -1686,12 +2233,10 @@
         .reduce((sum, b) => sum + (b.actualMinutes || 0), 0);
     }
 
-    // Combine routine items + project blocks for a single day, then run lane allocation.
-    function combinedDayItems(visualCol, routine, blocks, weekStart) {
+    // Combine routine items + project blocks for a single day, applying overrides + lane allocation.
+    function combinedDayItems(visualCol, routine, blocks, weekStart, overrides) {
       const date = addDays(weekStart, visualCol);
-      const routineItems = itemsForVisualColumn(visualCol, routine).map(it => ({
-        ...it, _kind: 'routine',
-      }));
+      const routineItems = resolvedRoutineForDate(routine, overrides || {}, date);
       const blockItems = blocksForDate(blocks, date).map(b => ({
         id: b.id,
         title: b.title,
@@ -1836,6 +2381,7 @@
         weeklyResets: [],
         projects: SEED_PROJECTS,
         scheduledBlocks: [],
+        referenceLibrary: SEED_REFERENCE_LIBRARY,
         inbox: [],
         elsewhereToggles: { morning: false, afternoon: false, allDay: false, date: null },
       };
@@ -1851,13 +2397,18 @@
       else if (next.routine == null || (Array.isArray(next.routine) && next.routine.length === 0)) {
         next.routine = SEED_ROUTINE; changed = true;
       }
-      // v3: seed projects + scheduledBlocks (no edit feature yet, safe to overwrite)
+      // v3: seed projects + scheduledBlocks
       if (prevVersion < 3) {
         next.projects = SEED_PROJECTS;
         next.scheduledBlocks = next.scheduledBlocks || [];
         changed = true;
       } else if (!Array.isArray(next.projects) || next.projects.length === 0) {
         next.projects = SEED_PROJECTS; changed = true;
+      }
+      // v4: seed referenceLibrary (only if missing — preserves user edits)
+      if (!Array.isArray(next.referenceLibrary) || next.referenceLibrary.length === 0) {
+        next.referenceLibrary = SEED_REFERENCE_LIBRARY;
+        changed = true;
       }
       if (!Array.isArray(next.scheduledBlocks)) { next.scheduledBlocks = []; changed = true; }
       if (!next.overrides) { next.overrides = {}; changed = true; }
@@ -2064,7 +2615,11 @@
       const now = useTickingClock(60000);
       const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
       const [dayView, setDayView] = useState(null); // null = week view, 0..6 = visual column
-      const [openBlockId, setOpenBlockId] = useState(null); // block currently shown in popover
+      const [openBlockId, setOpenBlockId] = useState(null); // scheduled block popover
+      const [openRoutineEdit, setOpenRoutineEdit] = useState(null); // { itemId, date } for routine click popover
+      const [refLibraryOpen, setRefLibraryOpen] = useState(false);
+      const [refExpandedId, setRefExpandedId] = useState(null);
+      const [routineManagerOpen, setRoutineManagerOpen] = useState(false);
 
       const weekEnd = addDays(weekStart, 6);
       const isCurrentWeek = isSameDay(weekStart, startOfWeek(now));
@@ -2106,9 +2661,65 @@
         }));
       }, [persistData]);
 
+      // ─── Reference library handlers ─────────────────
+      const updateRefEntry = useCallback((id, body) => {
+        persistData(d => ({
+          ...d,
+          referenceLibrary: (d.referenceLibrary || []).map(r =>
+            r.id === id ? { ...r, body } : r
+          ),
+        }));
+      }, [persistData]);
+
+      // ─── Routine handlers ───────────────────────────
+      // "From now on" = mutate the underlying routine item
+      const updateRoutineItem = useCallback((itemId, changes) => {
+        persistData(d => ({
+          ...d,
+          routine: (d.routine || []).map(r =>
+            r.id === itemId ? { ...r, ...changes } : r
+          ),
+        }));
+      }, [persistData]);
+
+      const addRoutineItem = useCallback((newItem) => {
+        const item = {
+          id: `routine-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          ...newItem,
+        };
+        persistData(d => ({
+          ...d,
+          routine: [...(d.routine || []), item],
+        }));
+      }, [persistData]);
+
+      const deleteRoutineItem = useCallback((itemId) => {
+        persistData(d => ({
+          ...d,
+          routine: (d.routine || []).filter(r => r.id !== itemId),
+          // Also clean up any overrides for this item
+          overrides: Object.fromEntries(
+            Object.entries(d.overrides || {}).filter(([k]) => !k.startsWith(`${itemId}:`))
+          ),
+        }));
+      }, [persistData]);
+
+      // "This week only" = create/update an override
+      const setOverride = useCallback((itemId, date, override) => {
+        const key = makeOverrideKey(itemId, date);
+        persistData(d => {
+          const next = { ...(d.overrides || {}) };
+          if (override == null) {
+            delete next[key];
+          } else {
+            next[key] = override;
+          }
+          return { ...d, overrides: next };
+        });
+      }, [persistData]);
+
       const goPrev = () => {
         if (dayView !== null) {
-          // Day view: shift one day. Crossing a week boundary shifts the week too.
           if (dayView === 0) {
             setWeekStart(addDays(weekStart, -7));
             setDayView(6);
@@ -2140,22 +2751,30 @@
       };
 
       const handleDayClick = (col) => {
-        if (isMobile) return; // mobile already shows day-at-a-time
+        if (isMobile) return;
         if (dayView === col) setDayView(null);
         else setDayView(col);
       };
 
+      const handleRoutineClick = useCallback((itemId, date) => {
+        setOpenRoutineEdit({ itemId, date: date.toISOString() });
+      }, []);
+
       const blocks = data.scheduledBlocks || [];
       const projects = data.projects || [];
       const openBlock = openBlockId ? blocks.find(b => b.id === openBlockId) : null;
+      const refLibrary = data.referenceLibrary || [];
 
       return (
         <div className={`wrap-wide screen-pad-top-sm fade-in ${dayView !== null ? 'day-view' : ''}`}>
           <RightNowBanner
             routine={data.routine}
+            overrides={data.overrides || {}}
             scheduledBlocks={blocks}
             projects={projects}
+            referenceLibrary={refLibrary}
             now={now}
+            onOpenReference={(id) => { setRefExpandedId(id); setRefLibraryOpen(true); }}
           />
 
           <div className="main-layout">
@@ -2179,6 +2798,7 @@
                 saving={saving}
                 error={error}
                 lastSyncedAt={lastSyncedAt}
+                onManageRoutine={() => setRoutineManagerOpen(true)}
               />
 
               {dayView !== null && !isMobile && (
@@ -2190,15 +2810,18 @@
               {isMobile ? (
                 <AgendaView
                   routine={data.routine}
+                  overrides={data.overrides || {}}
                   scheduledBlocks={blocks}
                   projects={projects}
                   weekStart={weekStart}
                   now={now}
                   onBlockClick={(blockId) => setOpenBlockId(blockId)}
+                  onRoutineClick={handleRoutineClick}
                 />
               ) : (
                 <WeekGrid
                   routine={data.routine}
+                  overrides={data.overrides || {}}
                   scheduledBlocks={blocks}
                   projects={projects}
                   weekStart={weekStart}
@@ -2207,6 +2830,8 @@
                   onDayClick={handleDayClick}
                   onCreateBlock={createBlock}
                   onBlockClick={(blockId) => setOpenBlockId(blockId)}
+                  onRoutineClick={handleRoutineClick}
+                  onUpdateBlock={updateBlock}
                 />
               )}
 
@@ -2221,6 +2846,38 @@
               onClose={() => setOpenBlockId(null)}
               onUpdate={(changes) => updateBlock(openBlock.id, changes)}
               onDelete={() => { deleteBlock(openBlock.id); setOpenBlockId(null); }}
+            />
+          )}
+
+          {openRoutineEdit && (
+            <RoutineItemPopover
+              context={openRoutineEdit}
+              routine={data.routine || []}
+              overrides={data.overrides || {}}
+              onClose={() => setOpenRoutineEdit(null)}
+              onUpdateItem={updateRoutineItem}
+              onDeleteItem={deleteRoutineItem}
+              onSetOverride={setOverride}
+            />
+          )}
+
+          {refLibraryOpen && (
+            <ReferenceLibraryModal
+              entries={refLibrary}
+              expandedId={refExpandedId}
+              onChangeExpanded={setRefExpandedId}
+              onClose={() => setRefLibraryOpen(false)}
+              onUpdate={updateRefEntry}
+            />
+          )}
+
+          {routineManagerOpen && (
+            <RoutineManagerModal
+              routine={data.routine || []}
+              onClose={() => setRoutineManagerOpen(false)}
+              onUpdateItem={updateRoutineItem}
+              onAddItem={addRoutineItem}
+              onDeleteItem={deleteRoutineItem}
             />
           )}
 
@@ -2243,14 +2900,13 @@
     // ═════════════════════════════════════════════════════════════
     // RIGHT NOW BANNER
     // ═════════════════════════════════════════════════════════════
-    function RightNowBanner({ routine, scheduledBlocks, projects, now }) {
+    function RightNowBanner({ routine, overrides, scheduledBlocks, projects, referenceLibrary, now, onOpenReference }) {
       const jsDay = now.getDay();
       const todayCol = jsDay === 0 ? 6 : jsDay - 1;
       const nowMin = now.getHours() * 60 + now.getMinutes();
-      const todayKey = startOfDay(now).toISOString();
 
-      // Routine items happening today, sorted chronologically
-      const todayRoutine = itemsForVisualColumn(todayCol, routine)
+      // Routine items happening today (with overrides applied), sorted chronologically
+      const todayRoutine = resolvedRoutineForDate(routine, overrides || {}, now)
         .map(it => ({
           source: 'routine',
           title: it.title,
@@ -2281,7 +2937,6 @@
       const upcoming = allTodayItems.filter(it => it.start > nowMin);
       const next = upcoming[0];
 
-      // Micro-strength: surface when within first 90 seconds of an hour, 9-18, Mon-Fri (and not at home only when off-toggled — V1: always show)
       const isWeekday = jsDay >= 1 && jsDay <= 5;
       const inMicroWindow = isWeekday && now.getHours() >= 9 && now.getHours() <= 18 && now.getMinutes() < 2;
 
@@ -2329,6 +2984,9 @@
         );
       }
 
+      // Reference Library quick links — show first 4 entries; "More…" opens full modal
+      const quickRefs = (referenceLibrary || []).slice(0, 4);
+
       return (
         <div className="right-now">
           <div>
@@ -2338,6 +2996,21 @@
           <div className="right-now-time">
             <div className="right-now-time-big">{timeStr}</div>
             <div className="right-now-time-day">{dayName} · {dateStr}</div>
+          </div>
+          <div className="right-now-reference">
+            <div className="right-now-reference-label">Reference</div>
+            <div className="ref-quick-list">
+              {quickRefs.map(r => (
+                <button key={r.id} className="ref-quick-item" onClick={() => onOpenReference && onOpenReference(r.id)}>
+                  {r.title}
+                </button>
+              ))}
+              {(referenceLibrary || []).length > 4 && (
+                <button className="ref-quick-more" onClick={() => onOpenReference && onOpenReference(null)}>
+                  More…
+                </button>
+              )}
+            </div>
           </div>
         </div>
       );
@@ -2726,7 +3399,7 @@
       );
     }
 
-    function CalendarHeader({ weekStart, weekEnd, isCurrentWeek, dayView, onPrev, onNext, onToday, saving, error, lastSyncedAt }) {
+    function CalendarHeader({ weekStart, weekEnd, isCurrentWeek, dayView, onPrev, onNext, onToday, saving, error, lastSyncedAt, onManageRoutine }) {
       const synced = lastSyncedAt
         ? lastSyncedAt.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
         : '—';
@@ -2753,6 +3426,9 @@
           <div className="cal-controls">
             <span className={`sync-pill ${status}`}>{statusText}</span>
             <div style={{ width: 12 }} />
+            {onManageRoutine && (
+              <button className="manage-btn" onClick={onManageRoutine} title="Manage your routine items">⚙ Routine</button>
+            )}
             <button className="cal-nav-btn" onClick={onPrev} aria-label={isDayView ? 'Previous day' : 'Previous week'}>‹</button>
             <button
               className={`cal-today-btn ${(isDayView ? focusedIsToday : isCurrentWeek) ? 'active' : ''}`}
@@ -2790,7 +3466,7 @@
     const END_HOUR = 23;
     const HOURS_VISIBLE = END_HOUR - START_HOUR;
 
-    function WeekGrid({ routine, scheduledBlocks, projects, weekStart, now, singleCol, onDayClick, onCreateBlock, onBlockClick }) {
+    function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, now, singleCol, onDayClick, onCreateBlock, onBlockClick, onRoutineClick, onUpdateBlock }) {
       const isDayView = singleCol !== null && singleCol !== undefined;
       const HOUR_HEIGHT = isDayView ? HOUR_HEIGHT_DAY : HOUR_HEIGHT_WEEK;
       const totalHeight = HOURS_VISIBLE * HOUR_HEIGHT;
@@ -2918,7 +3594,7 @@
               const date = addDays(weekStart, col);
               const isToday = isCurrentWeek && isSameDay(date, now);
               const isWeekend = col === 5 || col === 6;
-              const dayItems = combinedDayItems(col, routine, scheduledBlocks || [], weekStart);
+              const dayItems = combinedDayItems(col, routine, scheduledBlocks || [], weekStart, overrides);
 
               return (
                 <div
@@ -2937,11 +3613,14 @@
                   ))}
                   {dayItems.map(item => (
                     <CalItem
-                      key={item.id}
+                      key={item.id + ':' + col}
                       item={item}
+                      date={date}
                       hourHeight={HOUR_HEIGHT}
                       projects={projects}
                       onBlockClick={onBlockClick}
+                      onRoutineClick={onRoutineClick}
+                      onUpdateBlock={onUpdateBlock}
                     />
                   ))}
                   {isToday && <NowLine now={now} hourHeight={HOUR_HEIGHT} />}
@@ -2960,8 +3639,9 @@
       );
     }
 
-    function CalItem({ item, hourHeight, projects, onBlockClick }) {
+    function CalItem({ item, date, hourHeight, projects, onBlockClick, onRoutineClick, onUpdateBlock }) {
       const isBlock = item._kind === 'block';
+      const isRoutine = item._kind === 'routine';
       const block = isBlock ? item._block : null;
       const project = isBlock && projects ? projects.find(p => p.id === block.projectId) : null;
       const projectColor = (project && project.color) || 'var(--gold)';
@@ -2974,7 +3654,11 @@
       const startMin = toMinutes(item.start);
       const offsetMin = startMin - START_HOUR * 60;
       const top = (offsetMin / 60) * hourHeight;
-      const rawHeight = (item.duration / 60) * hourHeight;
+
+      // Resize state (block-only, while dragging the bottom handle)
+      const [resizingDuration, setResizingDuration] = useState(null);
+      const effectiveDuration = resizingDuration != null ? resizingDuration : item.duration;
+      const rawHeight = (effectiveDuration / 60) * hourHeight;
       const height = Math.max(rawHeight, 22);
       const isTiny = rawHeight < 26;
       const isShort = !isTiny && rawHeight < 50;
@@ -2984,22 +3668,56 @@
       const widthPct = 100 / totalLanes;
       const leftPct = widthPct * lane;
 
-      const endMin = startMin + item.duration;
+      const endMin = startMin + effectiveDuration;
       const endStr = `${pad(Math.floor(endMin / 60))}:${pad(endMin % 60)}`;
+
+      // Resize handler — only on blocks. Drags the bottom edge to change duration.
+      const onResizeStart = (e) => {
+        if (!isBlock || !onUpdateBlock) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const startY = e.clientY;
+        const initialDuration = item.duration;
+        let lastDur = initialDuration;
+        const onMove = (ev) => {
+          const dy = ev.clientY - startY;
+          const minutesDelta = (dy / hourHeight) * 60;
+          let newDur = initialDuration + minutesDelta;
+          newDur = Math.max(15, Math.round(newDur / 15) * 15); // snap to 15 min, min 15
+          newDur = Math.min(newDur, (END_HOUR - START_HOUR) * 60 - (startMin - START_HOUR * 60)); // don't exceed view
+          if (newDur !== lastDur) {
+            lastDur = newDur;
+            setResizingDuration(newDur);
+          }
+        };
+        const onUp = () => {
+          document.removeEventListener('mousemove', onMove);
+          document.removeEventListener('mouseup', onUp);
+          if (lastDur !== initialDuration) {
+            onUpdateBlock(block.id, { duration: lastDur });
+          }
+          setResizingDuration(null);
+        };
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+      };
 
       const tooltipParts = isBlock
         ? [
             `${item.title}`,
             project ? `Project: ${project.name}` : null,
-            `${item.start}–${endStr} (${item.duration} min)`,
+            `${item.start}–${endStr} (${effectiveDuration} min)`,
             block.status === 'partial' ? `Partial · ${block.actualMinutes || 0} min logged` : null,
             block.status === 'completed' ? `Completed · ${block.actualMinutes || 0} min` : null,
-            'Click to manage',
+            'Click to manage · drag bottom edge to resize',
           ].filter(Boolean)
         : [
             `${item.title} · ${item.start}–${endStr}`,
             item.note,
             item.homeOnly ? '(home only)' : null,
+            item._moved ? 'Moved this week from another day' : null,
+            item._overridden ? 'Edited just for this week' : null,
+            'Click to edit',
           ].filter(Boolean);
 
       let cls = 'cal-item';
@@ -3009,11 +3727,21 @@
         cls += ' project-block';
         if (block.status === 'completed') cls += ' completed';
         if (block.status === 'partial') cls += ' partial';
+        if (resizingDuration != null) cls += ' resizing';
+      }
+      if (isRoutine) {
+        cls += ' routine-item';
+        if (item._moved) cls += ' moved';
+        else if (item._overridden) cls += ' overridden';
       }
 
-      const onClick = isBlock && onBlockClick
-        ? (e) => { e.stopPropagation(); onBlockClick(block.id); }
-        : undefined;
+      const onClick = (e) => {
+        // Don't trigger when the click was actually on the resize handle
+        if (e.target.classList && e.target.classList.contains('cal-item-resize-handle')) return;
+        e.stopPropagation();
+        if (isBlock && onBlockClick) onBlockClick(block.id);
+        else if (isRoutine && onRoutineClick && date) onRoutineClick(item.id, date);
+      };
 
       return (
         <div
@@ -3042,6 +3770,9 @@
           {item.note && !isTiny && !isShort && !isBlock && (
             <div className="cal-item-note">{item.note}</div>
           )}
+          {isBlock && block.status !== 'completed' && (
+            <div className="cal-item-resize-handle" onMouseDown={onResizeStart} />
+          )}
         </div>
       );
     }
@@ -3057,7 +3788,7 @@
     // ═════════════════════════════════════════════════════════════
     // AGENDA VIEW (mobile)
     // ═════════════════════════════════════════════════════════════
-    function AgendaView({ routine, scheduledBlocks, projects, weekStart, now, onBlockClick }) {
+    function AgendaView({ routine, overrides, scheduledBlocks, projects, weekStart, now, onBlockClick, onRoutineClick }) {
       const isCurrentWeek = isSameDay(weekStart, startOfWeek(now));
       const todayCol = isCurrentWeek
         ? (now.getDay() === 0 ? 6 : now.getDay() - 1)
@@ -3071,9 +3802,7 @@
       const date = addDays(weekStart, selectedCol);
       const isSelectedToday = isCurrentWeek && isSameDay(date, now);
 
-      const routineItems = itemsForVisualColumn(selectedCol, routine).map(it => ({
-        ...it, _kind: 'routine',
-      }));
+      const routineItems = resolvedRoutineForDate(routine, overrides || {}, date);
       const blockItems = blocksForDate(scheduledBlocks || [], date).map(b => {
         const project = (projects || []).find(p => p.id === b.projectId);
         return {
@@ -3138,14 +3867,16 @@
 
                 const handleClick = isBlock && onBlockClick
                   ? () => onBlockClick(block.id)
-                  : undefined;
+                  : (!isBlock && onRoutineClick
+                      ? () => onRoutineClick(item.id, date)
+                      : undefined);
 
                 return (
                   <div
                     key={item.id}
                     className={`agenda-item ${stateClass}`}
                     onClick={handleClick}
-                    style={isBlock ? { cursor: 'pointer' } : {}}
+                    style={handleClick ? { cursor: 'pointer' } : {}}
                   >
                     <div className="agenda-item-stripe" style={{ background: color }} />
                     <div className="agenda-item-time">
@@ -3178,6 +3909,597 @@
             </div>
           )}
         </>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // ROUTINE ITEM POPOVER — click any routine block on the calendar
+    // ═════════════════════════════════════════════════════════════
+    function RoutineItemPopover({ context, routine, overrides, onClose, onUpdateItem, onDeleteItem, onSetOverride }) {
+      const item = routine.find(r => r.id === context.itemId);
+      if (!item) {
+        return (
+          <div className="modal-backdrop" onClick={onClose}>
+            <div className="modal" onClick={e => e.stopPropagation()}>
+              <div className="modal-header"><div className="modal-title">Routine item not found</div></div>
+              <div className="modal-body"><button className="modal-btn" onClick={onClose}>Close</button></div>
+            </div>
+          </div>
+        );
+      }
+      const date = new Date(context.date);
+      const overrideKey = makeOverrideKey(item.id, date);
+      const existingOverride = overrides[overrideKey];
+      const isMovedFromAnother = existingOverride && existingOverride.type === 'move'; // shouldn't happen — we pass the original item id
+      const dayName = DAY_NAMES_LONG[(date.getDay() === 0 ? 6 : date.getDay() - 1)];
+
+      // Effective values for this date (apply override if any)
+      const effective = {
+        title: existingOverride && existingOverride.title != null ? existingOverride.title : item.title,
+        start: existingOverride && existingOverride.start != null ? existingOverride.start : item.start,
+        duration: existingOverride && existingOverride.duration != null ? existingOverride.duration : item.duration,
+        note: existingOverride && existingOverride.note != null ? existingOverride.note : item.note,
+      };
+
+      const [scope, setScope] = useState('thisWeek'); // 'thisWeek' or 'fromNow'
+      const [editTitle, setEditTitle] = useState(effective.title);
+      const [editStart, setEditStart] = useState(effective.start);
+      const [editDuration, setEditDuration] = useState(effective.duration);
+      const [editNote, setEditNote] = useState(effective.note || '');
+
+      const isPast = startOfDay(date).getTime() < startOfDay(new Date()).getTime();
+
+      const handleBackdropClick = (e) => {
+        if (e.target === e.currentTarget) onClose();
+      };
+
+      const handleSkipThisWeek = () => {
+        onSetOverride(item.id, date, { type: 'skip' });
+        onClose();
+      };
+
+      const handleSaveEdit = () => {
+        if (!editStart.match(/^\d{1,2}:\d{2}$/)) return;
+        const dur = Number(editDuration);
+        if (isNaN(dur) || dur < 5) return;
+        const [h, m] = editStart.split(':').map(Number);
+        const cleanStart = `${pad(h)}:${pad(m)}`;
+        if (scope === 'thisWeek') {
+          // Store override
+          onSetOverride(item.id, date, {
+            type: 'edit',
+            title: editTitle !== item.title ? editTitle : undefined,
+            start: cleanStart !== item.start ? cleanStart : undefined,
+            duration: dur !== item.duration ? dur : undefined,
+            note: (editNote || '') !== (item.note || '') ? editNote : undefined,
+          });
+        } else {
+          // Mutate routine + clear any override for this date
+          onUpdateItem(item.id, {
+            title: editTitle,
+            start: cleanStart,
+            duration: dur,
+            note: editNote,
+          });
+          if (existingOverride) onSetOverride(item.id, date, null);
+        }
+        onClose();
+      };
+
+      const handleDeletePermanently = () => {
+        if (!confirm(`Delete "${item.title}" from your routine permanently? This affects all weeks, past and future.`)) return;
+        onDeleteItem(item.id);
+        onClose();
+      };
+
+      const handleClearOverride = () => {
+        onSetOverride(item.id, date, null);
+        onClose();
+      };
+
+      // For "move to another day this week" — choose the destination day
+      const [movePickerOpen, setMovePickerOpen] = useState(false);
+      const weekStart = startOfWeek(date);
+      const handleMoveToDay = (destCol) => {
+        const destDate = addDays(weekStart, destCol);
+        onSetOverride(item.id, date, {
+          type: 'move',
+          moveToDate: destDate.toISOString(),
+          // start + duration stay the same; user can edit them after
+        });
+        onClose();
+      };
+
+      const categoryLabel = (CATEGORY_STYLES[item.category] || {}).label || item.category;
+
+      return (
+        <div className="modal-backdrop" onClick={handleBackdropClick}>
+          <div className="modal" style={{ borderTopColor: (CATEGORY_STYLES[item.category] || {}).color || 'var(--gold)' }}>
+            <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+            <div className="modal-header">
+              <div className="modal-eyebrow">Routine · {categoryLabel}</div>
+              <div className="modal-title">{effective.title}</div>
+              <div className="modal-meta">
+                <span>{dayName} · {formatDateShort(date)}</span>
+                <span>{effective.start} · {effective.duration} min</span>
+                {existingOverride && existingOverride.type === 'edit' && <span style={{ color: 'var(--gold)' }}>Edited this week</span>}
+              </div>
+            </div>
+
+            <div className="modal-body">
+              {/* Quick actions for this week */}
+              {!movePickerOpen && (
+                <>
+                  <div className="modal-section">
+                    <div className="modal-section-label">Just this week</div>
+                    <div className="modal-actions">
+                      {!isPast && (
+                        <>
+                          <button className="modal-btn" onClick={handleSkipThisWeek}>
+                            <span>✕ Skip this {dayName}</span>
+                            <span className="modal-btn-hint">won't appear this week</span>
+                          </button>
+                          <button className="modal-btn" onClick={() => setMovePickerOpen(true)}>
+                            <span>↪ Move to another day this week</span>
+                            <span className="modal-btn-hint">just this week</span>
+                          </button>
+                        </>
+                      )}
+                      {existingOverride && (
+                        <button className="modal-btn" onClick={handleClearOverride}>
+                          <span>↺ Restore this week to default</span>
+                          <span className="modal-btn-hint">remove this week's override</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="modal-section">
+                    <div className="modal-section-label">Edit details</div>
+                    <div className="scope-toggle">
+                      <button
+                        className={`scope-toggle-btn ${scope === 'thisWeek' ? 'active' : ''}`}
+                        onClick={() => setScope('thisWeek')}
+                      >Just this week</button>
+                      <button
+                        className={`scope-toggle-btn ${scope === 'fromNow' ? 'active' : ''}`}
+                        onClick={() => setScope('fromNow')}
+                      >From now on</button>
+                    </div>
+                    <div className="scope-hint">
+                      {scope === 'thisWeek'
+                        ? 'Changes apply to this week only — next week reverts to your routine default.'
+                        : 'Changes update your routine permanently — applies to every future occurrence.'}
+                    </div>
+                    <div className="routine-form-grid">
+                      <div className="routine-form-row">
+                        <div className="routine-form-label">Title</div>
+                        <input
+                          type="text"
+                          className="routine-form-input"
+                          value={editTitle}
+                          onChange={e => setEditTitle(e.target.value)}
+                        />
+                      </div>
+                      <div className="routine-form-row half">
+                        <div className="routine-form-label">Start time</div>
+                        <input
+                          type="text"
+                          className="routine-form-input mono"
+                          value={editStart}
+                          onChange={e => setEditStart(e.target.value)}
+                          placeholder="HH:MM"
+                        />
+                      </div>
+                      <div className="routine-form-row half">
+                        <div className="routine-form-label">Duration (min)</div>
+                        <input
+                          type="number"
+                          className="routine-form-input mono"
+                          value={editDuration}
+                          min="5" max="600" step="5"
+                          onChange={e => setEditDuration(e.target.value)}
+                        />
+                      </div>
+                      <div className="routine-form-row">
+                        <div className="routine-form-label">Note (optional)</div>
+                        <textarea
+                          className="routine-form-textarea"
+                          value={editNote}
+                          onChange={e => setEditNote(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                      <button className="modal-btn primary" style={{ flex: 1 }} onClick={handleSaveEdit}>
+                        <span>Save {scope === 'thisWeek' ? 'for this week' : 'permanently'}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="modal-section">
+                    <button className="modal-btn danger" onClick={handleDeletePermanently}>
+                      <span>✕ Delete from routine permanently</span>
+                      <span className="modal-btn-hint">all weeks</span>
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* Move-to-day picker */}
+              {movePickerOpen && (
+                <div className="modal-section">
+                  <div className="modal-section-label">Move to which day this week?</div>
+                  <div className="day-chips" style={{ marginBottom: 12 }}>
+                    {Array.from({ length: 7 }, (_, col) => {
+                      const d = addDays(weekStart, col);
+                      const isOriginal = isSameDay(d, date);
+                      return (
+                        <button
+                          key={col}
+                          className={`day-chip ${isOriginal ? 'active' : ''}`}
+                          disabled={isOriginal}
+                          style={isOriginal ? { opacity: 0.4, cursor: 'not-allowed' } : {}}
+                          onClick={() => handleMoveToDay(col)}
+                        >
+                          <div>{DAY_NAMES_SHORT[col]}</div>
+                          <div style={{ fontSize: 14, fontFamily: 'var(--mono)', marginTop: 4 }}>{d.getDate()}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button className="modal-btn" onClick={() => setMovePickerOpen(false)}>
+                    <span>← Back</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // REFERENCE LIBRARY MODAL — quick reference content (editable)
+    // ═════════════════════════════════════════════════════════════
+    function ReferenceLibraryModal({ entries, expandedId, onChangeExpanded, onClose, onUpdate }) {
+      const [editingId, setEditingId] = useState(null);
+      const [editBuffer, setEditBuffer] = useState('');
+
+      const handleBackdropClick = (e) => {
+        if (e.target === e.currentTarget) onClose();
+      };
+
+      const startEdit = (entry) => {
+        setEditingId(entry.id);
+        setEditBuffer(entry.body);
+      };
+      const saveEdit = () => {
+        if (editingId) onUpdate(editingId, editBuffer);
+        setEditingId(null);
+      };
+      const cancelEdit = () => {
+        setEditingId(null);
+        setEditBuffer('');
+      };
+
+      return (
+        <div className="modal-backdrop" onClick={handleBackdropClick}>
+          <div className="modal ref-modal">
+            <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+            <div className="modal-header">
+              <div className="modal-eyebrow">Reference Library</div>
+              <div className="modal-title">Things worth keeping handy</div>
+            </div>
+            <div className="modal-body">
+              <div className="ref-list">
+                {entries.map(entry => {
+                  const isExpanded = expandedId === entry.id;
+                  const isEditing = editingId === entry.id;
+                  return (
+                    <div key={entry.id} className={`ref-entry ${isExpanded ? 'expanded' : ''}`}>
+                      <div className="ref-entry-header" onClick={() => onChangeExpanded(isExpanded ? null : entry.id)}>
+                        <div className="ref-entry-title">{entry.title}</div>
+                        <div className="ref-entry-chevron">›</div>
+                      </div>
+                      <div className="ref-entry-body">
+                        {isEditing ? (
+                          <div className="ref-entry-edit">
+                            <textarea
+                              value={editBuffer}
+                              onChange={e => setEditBuffer(e.target.value)}
+                              autoFocus
+                            />
+                            <div className="ref-entry-edit-actions">
+                              <button className="modal-btn primary" onClick={saveEdit}>
+                                <span>Save</span>
+                              </button>
+                              <button className="modal-btn" onClick={cancelEdit}>
+                                <span>Cancel</span>
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="ref-entry-content">{entry.body}</div>
+                            <button className="ref-entry-edit-btn" onClick={() => startEdit(entry)}>✎ Edit</button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // ROUTINE MANAGER MODAL — full edit/add/delete of underlying routine
+    // ═════════════════════════════════════════════════════════════
+    function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDeleteItem }) {
+      // null = list view; 'new' = adding new; or itemId = editing existing
+      const [editingId, setEditingId] = useState(null);
+
+      const handleBackdropClick = (e) => {
+        if (e.target === e.currentTarget) onClose();
+      };
+
+      // Group routine items by their primary day for display
+      // Items appearing on multiple days are shown under their first day with a "+N more" suffix
+      const visible = routine.filter(r => !r.recurrence);
+      const grouped = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 0: [] };
+      visible.forEach(item => {
+        const firstDay = item.days[0] != null ? item.days[0] : 1;
+        grouped[firstDay] = grouped[firstDay] || [];
+        grouped[firstDay].push(item);
+      });
+      // Sort each group by start time
+      Object.keys(grouped).forEach(k => grouped[k].sort((a, b) => toMinutes(a.start) - toMinutes(b.start)));
+
+      const dayOrder = [1, 2, 3, 4, 5, 6, 0];
+
+      if (editingId === null) {
+        return (
+          <div className="modal-backdrop" onClick={handleBackdropClick}>
+            <div className="modal routine-modal">
+              <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+              <div className="modal-header">
+                <div className="modal-eyebrow">Manage Routine</div>
+                <div className="modal-title">Your weekly routine</div>
+                <div className="modal-meta">
+                  <span>{visible.length} items</span>
+                  <span style={{ fontStyle: 'italic' }}>Click any item to edit · or add a new one below</span>
+                </div>
+              </div>
+              <div className="modal-body">
+                <div style={{ marginBottom: 18 }}>
+                  <button className="modal-btn primary" onClick={() => setEditingId('new')}>
+                    <span>+ Add a new routine item</span>
+                  </button>
+                </div>
+                {dayOrder.map(jsDay => {
+                  const items = grouped[jsDay] || [];
+                  if (items.length === 0) return null;
+                  const visualCol = jsDay === 0 ? 6 : jsDay - 1;
+                  return (
+                    <div key={jsDay} className="routine-day-group">
+                      <div className="routine-day-group-label">{DAY_NAMES_LONG[visualCol]}</div>
+                      {items.map(item => {
+                        const cat = CATEGORY_STYLES[item.category] || {};
+                        const multiDay = item.days.length > 1;
+                        return (
+                          <div key={item.id} className="routine-item-row" onClick={() => setEditingId(item.id)}>
+                            <div className="routine-item-row-time">{item.start} · {item.duration}m</div>
+                            <div className="routine-item-row-title">
+                              {item.title}
+                              {multiDay && <span style={{ fontSize: 10, color: 'var(--muted-3)', marginLeft: 8, fontFamily: 'var(--mono)' }}>+{item.days.length - 1} more day{item.days.length > 2 ? 's' : ''}</span>}
+                            </div>
+                            <div className="routine-item-row-cat" style={{ color: cat.color || 'var(--muted-3)' }}>
+                              {cat.label || item.category}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // Edit/new form
+      const isNew = editingId === 'new';
+      const editingItem = isNew ? null : routine.find(r => r.id === editingId);
+
+      return (
+        <RoutineEditForm
+          item={editingItem}
+          isNew={isNew}
+          onCancel={() => setEditingId(null)}
+          onSave={(values) => {
+            if (isNew) {
+              onAddItem(values);
+            } else {
+              onUpdateItem(editingItem.id, values);
+            }
+            setEditingId(null);
+          }}
+          onDelete={editingItem ? () => {
+            if (!confirm(`Delete "${editingItem.title}" from your routine permanently?`)) return;
+            onDeleteItem(editingItem.id);
+            setEditingId(null);
+          } : null}
+          onCloseModal={onClose}
+        />
+      );
+    }
+
+    function RoutineEditForm({ item, isNew, onCancel, onSave, onDelete, onCloseModal }) {
+      const [title, setTitle] = useState(item ? item.title : '');
+      const [days, setDays] = useState(item ? [...item.days] : [1, 2, 3, 4, 5]);
+      const [start, setStart] = useState(item ? item.start : '08:00');
+      const [duration, setDuration] = useState(item ? item.duration : 30);
+      const [category, setCategory] = useState(item ? item.category : 'planning');
+      const [note, setNote] = useState(item ? (item.note || '') : '');
+      const [homeOnly, setHomeOnly] = useState(item ? !!item.homeOnly : false);
+
+      const toggleDay = (d) => {
+        setDays(days.includes(d) ? days.filter(x => x !== d) : [...days, d].sort());
+      };
+
+      const handleSave = () => {
+        if (!title.trim()) { alert('Title is required.'); return; }
+        if (!start.match(/^\d{1,2}:\d{2}$/)) { alert('Start must be HH:MM.'); return; }
+        if (days.length === 0) { alert('Select at least one day.'); return; }
+        const dur = Number(duration);
+        if (isNaN(dur) || dur < 5) { alert('Duration must be at least 5 minutes.'); return; }
+        const [h, m] = start.split(':').map(Number);
+        const cleanStart = `${pad(h)}:${pad(m)}`;
+        onSave({
+          title: title.trim(),
+          days: [...days].sort(),
+          start: cleanStart,
+          duration: dur,
+          category,
+          note: note.trim(),
+          ...(homeOnly ? { homeOnly: true } : {}),
+        });
+      };
+
+      const handleBackdropClick = (e) => {
+        if (e.target === e.currentTarget) onCloseModal();
+      };
+
+      // Day chip ordering: Mon-first
+      const dayPicker = [1, 2, 3, 4, 5, 6, 0];
+
+      return (
+        <div className="modal-backdrop" onClick={handleBackdropClick}>
+          <div className="modal routine-modal">
+            <button className="modal-close" onClick={onCloseModal} aria-label="Close">×</button>
+            <div className="modal-header">
+              <div className="modal-eyebrow">{isNew ? 'New routine item' : 'Edit routine item'}</div>
+              <div className="modal-title">{title || 'Untitled'}</div>
+              <div className="modal-meta">
+                <span style={{ fontStyle: 'italic' }}>Changes apply to all weeks, past and future</span>
+              </div>
+            </div>
+            <div className="modal-body">
+              <div className="routine-form-grid">
+                <div className="routine-form-row">
+                  <div className="routine-form-label">Title</div>
+                  <input
+                    type="text"
+                    className="routine-form-input"
+                    value={title}
+                    onChange={e => setTitle(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+
+                <div className="routine-form-row">
+                  <div className="routine-form-label">Days of week</div>
+                  <div className="day-chips">
+                    {dayPicker.map(jsDay => {
+                      const visualCol = jsDay === 0 ? 6 : jsDay - 1;
+                      return (
+                        <button
+                          key={jsDay}
+                          className={`day-chip ${days.includes(jsDay) ? 'active' : ''}`}
+                          onClick={() => toggleDay(jsDay)}
+                        >{DAY_NAMES_SHORT[visualCol]}</button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="routine-form-row half">
+                  <div className="routine-form-label">Start time</div>
+                  <input
+                    type="text"
+                    className="routine-form-input mono"
+                    value={start}
+                    onChange={e => setStart(e.target.value)}
+                    placeholder="HH:MM"
+                  />
+                </div>
+                <div className="routine-form-row half">
+                  <div className="routine-form-label">Duration (min)</div>
+                  <input
+                    type="number"
+                    className="routine-form-input mono"
+                    value={duration}
+                    min="5" max="600" step="5"
+                    onChange={e => setDuration(e.target.value)}
+                  />
+                </div>
+
+                <div className="routine-form-row">
+                  <div className="routine-form-label">Category</div>
+                  <div className="cat-chips">
+                    {CATEGORY_OPTIONS.map(c => {
+                      const cat = CATEGORY_STYLES[c] || {};
+                      const active = category === c;
+                      return (
+                        <button
+                          key={c}
+                          className={`cat-chip ${active ? 'active' : ''}`}
+                          style={{
+                            color: active ? cat.color : 'var(--muted-3)',
+                            borderColor: active ? cat.color : 'var(--border)',
+                          }}
+                          onClick={() => setCategory(c)}
+                        >{cat.label || c}</button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="routine-form-row">
+                  <div className="routine-form-label">Note (optional)</div>
+                  <textarea
+                    className="routine-form-textarea"
+                    value={note}
+                    onChange={e => setNote(e.target.value)}
+                  />
+                </div>
+
+                <div className="routine-form-row">
+                  <label className="checkbox-row">
+                    <input
+                      type="checkbox"
+                      checked={homeOnly}
+                      onChange={e => setHomeOnly(e.target.checked)}
+                    />
+                    <span>Home only — hide when working from elsewhere</span>
+                  </label>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 8, marginTop: 18 }}>
+                <button className="modal-btn primary" style={{ flex: 1 }} onClick={handleSave}>
+                  <span>{isNew ? 'Add to routine' : 'Save changes'}</span>
+                </button>
+                <button className="modal-btn" onClick={onCancel}>
+                  <span>Cancel</span>
+                </button>
+              </div>
+
+              {!isNew && onDelete && (
+                <div style={{ marginTop: 12 }}>
+                  <button className="modal-btn danger" onClick={onDelete}>
+                    <span>✕ Delete this routine item permanently</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       );
     }
 
