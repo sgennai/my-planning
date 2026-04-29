@@ -926,8 +926,274 @@
       min-width: 0; /* allows the grid inside to actually shrink */
     }
 
-    /* Mobile adjustments: stack everything */
-    @media (max-width: 1023px) {
+    /* ───────── SCHEDULED PROJECT BLOCKS ───────── */
+    .cal-item.project-block {
+      border-left-width: 3px;
+      cursor: pointer;
+    }
+    .cal-item.project-block .cal-item-project {
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      font-family: var(--mono);
+      margin-top: 2px;
+      opacity: 0.8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .cal-item.project-block.completed {
+      opacity: 0.55;
+    }
+    .cal-item.project-block.completed .cal-item-title {
+      text-decoration: line-through;
+      text-decoration-color: rgba(255,255,255,0.35);
+    }
+    .cal-item.project-block.completed::after {
+      content: '✓';
+      position: absolute;
+      top: 4px; right: 6px;
+      font-size: 11px;
+      color: var(--teal);
+    }
+    .cal-item.project-block.partial {
+      background-image: repeating-linear-gradient(
+        135deg,
+        transparent 0px, transparent 6px,
+        rgba(255,255,255,0.04) 6px, rgba(255,255,255,0.04) 12px
+      );
+    }
+    .cal-item.project-block.partial::after {
+      content: '½';
+      position: absolute;
+      top: 2px; right: 6px;
+      font-size: 12px;
+      color: var(--coral);
+      font-family: var(--serif);
+    }
+
+    /* Drop target highlight */
+    .day-column.drop-active {
+      background: rgba(201, 168, 76, 0.06) !important;
+      box-shadow: inset 0 0 0 1px var(--gold);
+    }
+    .day-column.drop-active::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(201, 168, 76, 0.04) 50%,
+        transparent 100%
+      );
+      animation: shimmer 1.6s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 0.9; }
+    }
+
+    /* Drop preview ghost */
+    .drop-ghost {
+      position: absolute;
+      left: 2px; right: 2px;
+      pointer-events: none;
+      border: 1px dashed var(--gold);
+      background: rgba(201, 168, 76, 0.08);
+      border-radius: 2px;
+      z-index: 6;
+    }
+
+    /* ───────── ACTION CHIP STATES ───────── */
+    .next-action.scheduled {
+      opacity: 0.55;
+      cursor: default;
+    }
+    .next-action.scheduled:hover {
+      background: var(--bg-card);
+      border-left-color: var(--border);
+    }
+    .next-action-badge {
+      font-size: 8px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 2px 5px;
+      border-radius: 2px;
+      font-family: var(--mono);
+      flex-shrink: 0;
+      align-self: flex-start;
+      margin-top: 1px;
+    }
+    .next-action-badge.scheduled {
+      background: rgba(201, 168, 76, 0.15);
+      color: var(--gold);
+    }
+    .next-action-dragging { opacity: 0.4; }
+
+    /* ───────── BLOCK POPOVER MODAL ───────── */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      animation: fadeIn 0.15s ease-out;
+    }
+    .modal {
+      background: var(--bg-card);
+      max-width: 480px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      border-top: 3px solid var(--gold);
+      animation: modalIn 0.18s ease-out;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .modal-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--rule);
+    }
+    .modal-eyebrow {
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .modal-title {
+      font-size: 18px;
+      color: var(--text);
+      line-height: 1.3;
+      font-weight: 400;
+      letter-spacing: -0.005em;
+    }
+    .modal-meta {
+      display: flex;
+      gap: 14px;
+      margin-top: 10px;
+      font-size: 11px;
+      color: var(--muted-3);
+      font-family: var(--mono);
+      letter-spacing: 0.05em;
+      flex-wrap: wrap;
+    }
+    .modal-meta-project { color: var(--gold); }
+    .modal-body {
+      padding: 18px 24px 22px;
+    }
+    .modal-section {
+      margin-bottom: 18px;
+    }
+    .modal-section:last-child { margin-bottom: 0; }
+    .modal-section-label {
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      color: var(--muted-3);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    .modal-input-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .modal-input {
+      background: var(--bg-card-deep);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      font-family: var(--mono);
+      font-size: 14px;
+      width: 90px;
+      letter-spacing: 0.04em;
+    }
+    .modal-input:focus {
+      outline: none;
+      border-color: var(--gold);
+    }
+    .modal-input.wide { width: 110px; }
+    .modal-input-suffix {
+      color: var(--muted-3);
+      font-size: 12px;
+      font-family: var(--mono);
+    }
+    .modal-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .modal-btn {
+      padding: 11px 16px;
+      background: var(--bg-card-deep);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--serif);
+      font-size: 13px;
+      cursor: pointer;
+      text-align: left;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.12s;
+    }
+    .modal-btn:hover { border-color: var(--muted-3); background: var(--bg-hover); }
+    .modal-btn-hint {
+      font-size: 10px;
+      color: var(--muted-3);
+      font-family: var(--mono);
+      letter-spacing: 0.05em;
+    }
+    .modal-btn.primary {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+    .modal-btn.primary:hover {
+      background: rgba(201, 168, 76, 0.08);
+    }
+    .modal-btn.danger {
+      border-color: rgba(224, 123, 106, 0.3);
+      color: var(--coral);
+    }
+    .modal-btn.danger:hover {
+      border-color: var(--coral);
+      background: rgba(224, 123, 106, 0.06);
+    }
+    .modal-btn.complete {
+      background: rgba(126, 184, 164, 0.06);
+      border-color: rgba(126, 184, 164, 0.3);
+      color: var(--teal);
+    }
+    .modal-btn.complete:hover {
+      background: rgba(126, 184, 164, 0.12);
+      border-color: var(--teal);
+    }
+    .modal-close {
+      position: absolute;
+      top: 16px; right: 18px;
+      background: none;
+      border: none;
+      color: var(--muted-3);
+      font-size: 22px;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+      width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal { position: relative; }
+
+
       .right-now { padding: 14px 18px; grid-template-columns: 1fr; }
       .right-now-time { text-align: left; display: flex; align-items: baseline; gap: 12px; }
       .right-now-time-big { font-size: 20px; }
@@ -1371,6 +1637,77 @@
       return annotated;
     }
 
+    // ─────────────────────────────────────────────────────────────
+    // SCHEDULED BLOCKS — date matching, week filtering, layout combining
+    // ─────────────────────────────────────────────────────────────
+    function blocksForDate(blocks, date) {
+      const dateKey = startOfDay(date).getTime();
+      return blocks.filter(b => {
+        if (b.status === 'skipped') return false;
+        const d = new Date(b.date);
+        return startOfDay(d).getTime() === dateKey;
+      });
+    }
+
+    function blocksForWeek(blocks, weekStart) {
+      const start = startOfDay(weekStart).getTime();
+      const end = startOfDay(addDays(weekStart, 7)).getTime();
+      return blocks.filter(b => {
+        if (b.status === 'skipped') return false;
+        const t = new Date(b.date).getTime();
+        return t >= start && t < end;
+      });
+    }
+
+    // Total minutes for a given project this week (only counts scheduled + partial,
+    // not completed — once done it's "spent" not "scheduled").
+    function plannedMinutesForProject(blocks, weekStart, projectId) {
+      return blocksForWeek(blocks, weekStart)
+        .filter(b => b.projectId === projectId && b.status !== 'completed')
+        .reduce((sum, b) => sum + (b.duration || 0), 0);
+    }
+
+    function spentMinutesForProject(blocks, weekStart, projectId) {
+      return blocksForWeek(blocks, weekStart)
+        .filter(b => b.projectId === projectId && (b.status === 'completed' || b.status === 'partial'))
+        .reduce((sum, b) => sum + (b.actualMinutes || 0), 0);
+    }
+
+    // Combine routine items + project blocks for a single day, then run lane allocation.
+    function combinedDayItems(visualCol, routine, blocks, weekStart) {
+      const date = addDays(weekStart, visualCol);
+      const routineItems = itemsForVisualColumn(visualCol, routine).map(it => ({
+        ...it, _kind: 'routine',
+      }));
+      const blockItems = blocksForDate(blocks, date).map(b => ({
+        id: b.id,
+        title: b.title,
+        start: b.start,
+        duration: b.duration,
+        category: 'project-block',
+        _kind: 'block',
+        _block: b,
+      }));
+      return layoutDay([...routineItems, ...blockItems]);
+    }
+
+    // Get the set of action IDs that are currently scheduled or completed
+    // (so the chip can show as scheduled and avoid duplicate scheduling).
+    function actionStateMap(blocks) {
+      const map = {};
+      blocks.forEach(b => {
+        if (!b.actionId) return;
+        if (b.status === 'skipped') return;
+        // 'completed' wins over 'scheduled' wins over 'partial'
+        const cur = map[b.actionId];
+        const rank = { partial: 1, scheduled: 2, completed: 3 };
+        if (!cur || rank[b.status] > rank[cur.status]) {
+          map[b.actionId] = { status: b.status, blockId: b.id, duration: b.duration };
+        }
+      });
+      return map;
+    }
+
     // ═════════════════════════════════════════════════════════════
     // GOOGLE DRIVE LAYER
     // ═════════════════════════════════════════════════════════════
@@ -1638,6 +1975,7 @@
           error={error}
           onReload={handleReload}
           onSignOut={handleSignOut}
+          onPersist={persist}
         />
       );
     }
@@ -1692,14 +2030,52 @@
     // ═════════════════════════════════════════════════════════════
     // CALENDAR SCREEN
     // ═════════════════════════════════════════════════════════════
-    function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut }) {
+    function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut, onPersist }) {
       const isMobile = useMediaQuery('(max-width: 759px)');
       const now = useTickingClock(60000);
       const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
       const [dayView, setDayView] = useState(null); // null = week view, 0..6 = visual column
+      const [openBlockId, setOpenBlockId] = useState(null); // block currently shown in popover
 
       const weekEnd = addDays(weekStart, 6);
       const isCurrentWeek = isSameDay(weekStart, startOfWeek(now));
+
+      const persistData = useCallback((mutator) => {
+        const nextData = typeof mutator === 'function' ? mutator(data) : mutator;
+        const withTimestamp = { ...nextData, lastModified: new Date().toISOString() };
+        onPersist(withTimestamp);
+      }, [data, onPersist]);
+
+      const createBlock = useCallback((block) => {
+        const newBlock = {
+          id: `block-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          status: 'scheduled',
+          actualMinutes: null,
+          completedAt: null,
+          createdAt: new Date().toISOString(),
+          ...block,
+        };
+        persistData(d => ({
+          ...d,
+          scheduledBlocks: [...(d.scheduledBlocks || []), newBlock],
+        }));
+      }, [persistData]);
+
+      const updateBlock = useCallback((blockId, changes) => {
+        persistData(d => ({
+          ...d,
+          scheduledBlocks: (d.scheduledBlocks || []).map(b =>
+            b.id === blockId ? { ...b, ...changes } : b
+          ),
+        }));
+      }, [persistData]);
+
+      const deleteBlock = useCallback((blockId) => {
+        persistData(d => ({
+          ...d,
+          scheduledBlocks: (d.scheduledBlocks || []).filter(b => b.id !== blockId),
+        }));
+      }, [persistData]);
 
       const goPrev = () => {
         if (dayView !== null) {
@@ -1740,18 +2116,26 @@
         else setDayView(col);
       };
 
+      const blocks = data.scheduledBlocks || [];
+      const projects = data.projects || [];
+      const openBlock = openBlockId ? blocks.find(b => b.id === openBlockId) : null;
+
       return (
         <div className={`wrap-wide screen-pad-top-sm fade-in ${dayView !== null ? 'day-view' : ''}`}>
           <RightNowBanner
             routine={data.routine}
-            scheduledBlocks={data.scheduledBlocks || []}
-            projects={data.projects || []}
+            scheduledBlocks={blocks}
+            projects={projects}
             now={now}
           />
 
           <div className="main-layout">
             <div className="portfolio">
-              <PortfolioPanel projects={data.projects || []} />
+              <PortfolioPanel
+                projects={projects}
+                scheduledBlocks={blocks}
+                weekStart={weekStart}
+              />
             </div>
 
             <div className="calendar-panel">
@@ -1775,20 +2159,41 @@
               )}
 
               {isMobile ? (
-                <AgendaView routine={data.routine} weekStart={weekStart} now={now} />
+                <AgendaView
+                  routine={data.routine}
+                  scheduledBlocks={blocks}
+                  projects={projects}
+                  weekStart={weekStart}
+                  now={now}
+                  onBlockClick={(blockId) => setOpenBlockId(blockId)}
+                />
               ) : (
                 <WeekGrid
                   routine={data.routine}
+                  scheduledBlocks={blocks}
+                  projects={projects}
                   weekStart={weekStart}
                   now={now}
                   singleCol={dayView}
                   onDayClick={handleDayClick}
+                  onCreateBlock={createBlock}
+                  onBlockClick={(blockId) => setOpenBlockId(blockId)}
                 />
               )}
 
               <Legend />
             </div>
           </div>
+
+          {openBlock && (
+            <BlockPopover
+              block={openBlock}
+              projects={projects}
+              onClose={() => setOpenBlockId(null)}
+              onUpdate={(changes) => updateBlock(openBlock.id, changes)}
+              onDelete={() => { deleteBlock(openBlock.id); setOpenBlockId(null); }}
+            />
+          )}
 
           <details className="raw">
             <summary>Diagnostics · raw data</summary>
@@ -1826,9 +2231,9 @@
           category: it.category,
         }));
 
-      // Scheduled project blocks for today
-      const todayBlocks = (scheduledBlocks || [])
-        .filter(b => b.date === todayKey)
+      // Scheduled project blocks for today (excluding completed/skipped — those are done)
+      const todayBlocks = blocksForDate(scheduledBlocks || [], now)
+        .filter(b => b.status !== 'completed')
         .map(b => {
           const project = projects.find(p => p.id === b.projectId);
           return {
@@ -1912,21 +2317,23 @@
     // ═════════════════════════════════════════════════════════════
     // PORTFOLIO PANEL
     // ═════════════════════════════════════════════════════════════
-    function PortfolioPanel({ projects }) {
+    function PortfolioPanel({ projects, scheduledBlocks, weekStart }) {
       const [expandedId, setExpandedId] = useState('next'); // NEXT expanded by default
 
-      // Total weekly budget across all projects with a fixed budget
-      const totalBudget = projects.reduce((sum, p) => sum + (p.weeklyBudgetHours || 0), 0);
-      // For now actual hours scheduled = 0 (we have no scheduled blocks yet — comes when we wire drag-drop)
-      const totalScheduled = 0;
-      const overBudget = totalScheduled > totalBudget;
+      const totalBudgetMin = projects.reduce((sum, p) => sum + (p.weeklyBudgetHours || 0) * 60, 0);
+      const totalScheduledMin = projects.reduce(
+        (sum, p) => sum + plannedMinutesForProject(scheduledBlocks, weekStart, p.id),
+        0
+      );
+      const overBudget = totalScheduledMin > totalBudgetMin;
+      const actionStates = useMemo(() => actionStateMap(scheduledBlocks), [scheduledBlocks]);
 
       return (
         <>
           <div className="portfolio-header">
             <div className="portfolio-eyebrow">Portfolio</div>
             <div className={`portfolio-budget-summary ${overBudget ? 'over' : ''}`}>
-              <b>{totalScheduled}h</b> / {totalBudget}h this week
+              <b>{minutesToHrLabel(totalScheduledMin)}</b> / {minutesToHrLabel(totalBudgetMin)} this week
             </div>
           </div>
           {projects.map(project => (
@@ -1935,18 +2342,37 @@
               project={project}
               expanded={expandedId === project.id}
               onToggle={() => setExpandedId(expandedId === project.id ? null : project.id)}
+              scheduledBlocks={scheduledBlocks}
+              weekStart={weekStart}
+              actionStates={actionStates}
             />
           ))}
         </>
       );
     }
 
-    function ProjectCard({ project, expanded, onToggle }) {
+    function minutesToHrLabel(min) {
+      if (!min) return '0h';
+      const h = Math.floor(min / 60);
+      const m = min % 60;
+      if (h === 0) return `${m}m`;
+      if (m === 0) return `${h}h`;
+      return `${h}h ${m}m`;
+    }
+
+    function ProjectCard({ project, expanded, onToggle, scheduledBlocks, weekStart, actionStates }) {
       const isMaster = !!project.isMaster;
-      const budgetText = project.weeklyBudgetHours === 0
-        ? 'slack only'
-        : `${project.weeklyBudgetHours}h / week`;
       const tierLabel = `Tier ${project.tier}`;
+
+      const plannedMin = plannedMinutesForProject(scheduledBlocks, weekStart, project.id);
+      const budgetMin = (project.weeklyBudgetHours || 0) * 60;
+      const fillPct = budgetMin > 0 ? Math.min(100, (plannedMin / budgetMin) * 100) : 0;
+      const isOver = budgetMin > 0 && plannedMin > budgetMin;
+      const isSlackOnly = project.weeklyBudgetHours === 0;
+
+      const budgetText = isSlackOnly
+        ? 'slack only'
+        : `${minutesToHrLabel(plannedMin)} / ${project.weeklyBudgetHours}h`;
 
       return (
         <div
@@ -1966,7 +2392,20 @@
             <div className="project-card-status">{project.status}</div>
             <div className="project-card-meta">
               <div className="project-card-budget">
-                <span className="project-card-budget-text">{budgetText}</span>
+                {!isSlackOnly && (
+                  <div className="project-card-budget-bar">
+                    <div
+                      className="project-card-budget-bar-fill"
+                      style={{
+                        width: `${fillPct}%`,
+                        background: isOver ? 'var(--coral)' : project.color,
+                      }}
+                    />
+                  </div>
+                )}
+                <span className="project-card-budget-text" style={isOver ? { color: 'var(--coral)' } : {}}>
+                  {budgetText}
+                </span>
               </div>
               {project.totalEffortRemainingHours != null && (
                 <span className="project-card-effort">~{project.totalEffortRemainingHours}h remaining</span>
@@ -1977,9 +2416,9 @@
           {expanded && (
             <div className="project-card-body">
               {isMaster && project.modules ? (
-                <NextModulesList project={project} />
+                <NextModulesList project={project} actionStates={actionStates} />
               ) : (
-                <ProjectNextActions project={project} />
+                <ProjectNextActions project={project} actionStates={actionStates} />
               )}
             </div>
           )}
@@ -1987,30 +2426,80 @@
       );
     }
 
-    function ProjectNextActions({ project }) {
-      const actions = project.nextActions || [];
+    // ─────────────────────────────────────────────────────────────
+    // ActionChip — draggable chip representing a "next action" in the portfolio
+    // ─────────────────────────────────────────────────────────────
+    function ActionChip({ action, project, moduleNumber, actionStates }) {
+      const state = actionStates[action.id];
+      const status = state ? state.status : 'open';
+      const draggable = status !== 'completed';
+
+      const onDragStart = (e) => {
+        if (!draggable) { e.preventDefault(); return; }
+        e.dataTransfer.effectAllowed = 'copy';
+        const payload = {
+          type: 'next-action',
+          projectId: project.id,
+          actionId: action.id,
+          title: action.text,
+          duration: action.estimatedMin || 30,
+          moduleNumber: moduleNumber || null,
+          color: project.color,
+        };
+        e.dataTransfer.setData('application/json', JSON.stringify(payload));
+        e.currentTarget.classList.add('next-action-dragging');
+      };
+      const onDragEnd = (e) => {
+        e.currentTarget.classList.remove('next-action-dragging');
+      };
+
+      const cls = `next-action${status === 'scheduled' ? ' scheduled' : ''}`;
+      const tooltip = draggable
+        ? (status === 'scheduled'
+            ? 'Already scheduled — drag to schedule another instance'
+            : 'Drag onto a calendar slot to schedule')
+        : 'Completed';
+
+      return (
+        <div
+          className={cls}
+          draggable={draggable}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+          title={tooltip}
+        >
+          <div className="next-action-text">{action.text}</div>
+          {status === 'scheduled' && (
+            <span className="next-action-badge scheduled" title="A calendar block exists for this">SCHED</span>
+          )}
+          {action.estimatedMin && status !== 'scheduled' && (
+            <div className="next-action-time">~{action.estimatedMin}m</div>
+          )}
+        </div>
+      );
+    }
+
+    function ProjectNextActions({ project, actionStates }) {
+      const actions = (project.nextActions || []).filter(a => {
+        const s = actionStates[a.id];
+        return !s || s.status !== 'completed';
+      });
       if (actions.length === 0) {
-        return <div style={{ fontSize: 11, color: 'var(--muted-4)', fontStyle: 'italic' }}>No next actions defined.</div>;
+        return <div style={{ fontSize: 11, color: 'var(--muted-4)', fontStyle: 'italic' }}>All actions complete or none defined.</div>;
       }
       return (
         <>
           <div className="next-actions-label">Next actions</div>
           {actions.map(a => (
-            <div key={a.id} className="next-action" draggable="true" title="Drag to calendar (coming soon)">
-              <div className="next-action-text">{a.text}</div>
-              {a.estimatedMin && (
-                <div className="next-action-time">~{a.estimatedMin}m</div>
-              )}
-            </div>
+            <ActionChip key={a.id} action={a} project={project} actionStates={actionStates} />
           ))}
         </>
       );
     }
 
-    function NextModulesList({ project }) {
+    function NextModulesList({ project, actionStates }) {
       const [expandedModuleId, setExpandedModuleId] = useState(null);
       const sequence = project.prioritySequence || [];
-      // Build display order: priority sequence first, then any modules not in the sequence
       const moduleByNumber = {};
       project.modules.forEach(m => { moduleByNumber[m.number] = m; });
       const orderedModules = [];
@@ -2025,6 +2514,10 @@
               const statusStyle = MODULE_STATUS_STYLE[mod.status] || MODULE_STATUS_STYLE['not started'];
               const isExpanded = expandedModuleId === mod.id;
               const isTop = idx < 3;
+              const visibleActions = (mod.nextActions || []).filter(a => {
+                const s = actionStates[a.id];
+                return !s || s.status !== 'completed';
+              });
               return (
                 <div key={mod.id} className={`module-row ${isExpanded ? 'expanded' : ''}`}>
                   <div className="module-row-header" onClick={() => setExpandedModuleId(isExpanded ? null : mod.id)}>
@@ -2041,14 +2534,13 @@
                     <div className="module-row-body">
                       <div className="module-row-description">{mod.description}</div>
                       <div className="next-actions-label">Next actions</div>
-                      {mod.nextActions.map(a => (
-                        <div key={a.id} className="next-action" draggable="true" title="Drag to calendar (coming soon)">
-                          <div className="next-action-text">{a.text}</div>
-                          {a.estimatedMin && (
-                            <div className="next-action-time">~{a.estimatedMin}m</div>
-                          )}
-                        </div>
-                      ))}
+                      {visibleActions.length === 0 ? (
+                        <div style={{ fontSize: 11, color: 'var(--muted-4)', fontStyle: 'italic' }}>All actions complete.</div>
+                      ) : (
+                        visibleActions.map(a => (
+                          <ActionChip key={a.id} action={a} project={project} moduleNumber={mod.number} actionStates={actionStates} />
+                        ))
+                      )}
                     </div>
                   )}
                 </div>
@@ -2056,6 +2548,152 @@
             })}
           </div>
         </>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // BLOCK POPOVER — click any scheduled block to manage it
+    // ═════════════════════════════════════════════════════════════
+    function BlockPopover({ block, projects, onClose, onUpdate, onDelete }) {
+      const project = projects.find(p => p.id === block.projectId);
+      const projectColor = (project && project.color) || 'var(--gold)';
+      const dateObj = new Date(block.date);
+      const dayName = DAY_NAMES_LONG[(dateObj.getDay() === 0 ? 6 : dateObj.getDay() - 1)];
+      const startMin = toMinutes(block.start);
+      const endMin = startMin + (block.duration || 0);
+      const endStr = `${pad(Math.floor(endMin / 60))}:${pad(endMin % 60)}`;
+
+      const isPast = new Date(block.date).getTime() < startOfDay(new Date()).getTime() - 1;
+      const isCompleted = block.status === 'completed';
+      const isPartial = block.status === 'partial';
+
+      // Local form state for editing duration + start
+      const [editStart, setEditStart] = useState(block.start);
+      const [editDuration, setEditDuration] = useState(block.duration);
+      const [actualMin, setActualMin] = useState(block.actualMinutes || block.duration || 30);
+
+      const handleBackdropClick = (e) => {
+        if (e.target === e.currentTarget) onClose();
+      };
+
+      const handleComplete = () => {
+        onUpdate({
+          status: 'completed',
+          actualMinutes: Number(actualMin) || 0,
+          completedAt: new Date().toISOString(),
+        });
+        onClose();
+      };
+      const handlePartial = () => {
+        onUpdate({
+          status: 'partial',
+          actualMinutes: Number(actualMin) || 0,
+          completedAt: new Date().toISOString(),
+        });
+        onClose();
+      };
+      const handleSkip = () => {
+        // Treat skip as deletion (action returns to open). For past blocks this also removes
+        // them from the calendar — which matches "didn't happen".
+        onDelete();
+      };
+      const handleSaveEdit = () => {
+        const dur = Number(editDuration);
+        if (!editStart.match(/^\d{1,2}:\d{2}$/) || isNaN(dur) || dur < 5) return;
+        const [h, m] = editStart.split(':').map(Number);
+        const cleanStart = `${pad(h)}:${pad(m)}`;
+        onUpdate({ start: cleanStart, duration: dur });
+        onClose();
+      };
+
+      return (
+        <div className="modal-backdrop" onClick={handleBackdropClick}>
+          <div className="modal" style={{ borderTopColor: projectColor }}>
+            <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+            <div className="modal-header">
+              <div className="modal-eyebrow" style={{ color: projectColor }}>
+                {project ? project.name : 'Block'}
+                {isCompleted && ' · completed'}
+                {isPartial && ' · partial'}
+              </div>
+              <div className="modal-title">{block.title}</div>
+              <div className="modal-meta">
+                <span>{dayName} · {formatDateShort(dateObj)}</span>
+                <span>{block.start}–{endStr}</span>
+                <span>{block.duration} min scheduled</span>
+                {block.actualMinutes != null && (
+                  <span style={{ color: 'var(--teal)' }}>{block.actualMinutes} min spent</span>
+                )}
+              </div>
+            </div>
+
+            <div className="modal-body">
+              {!isCompleted && (
+                <div className="modal-section">
+                  <div className="modal-section-label">Time spent</div>
+                  <div className="modal-input-row">
+                    <input
+                      type="number"
+                      className="modal-input"
+                      value={actualMin}
+                      min="0" max="600" step="5"
+                      onChange={e => setActualMin(e.target.value)}
+                    />
+                    <span className="modal-input-suffix">minutes</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="modal-section">
+                <div className="modal-section-label">{isCompleted ? 'Adjust' : 'Mark this block as'}</div>
+                <div className="modal-actions">
+                  {!isCompleted && (
+                    <>
+                      <button className="modal-btn complete" onClick={handleComplete}>
+                        <span>✓ Done · log time and remove from list</span>
+                        <span className="modal-btn-hint">action complete</span>
+                      </button>
+                      <button className="modal-btn" onClick={handlePartial}>
+                        <span>½ Partial · log time, action stays open</span>
+                        <span className="modal-btn-hint">re-schedule it</span>
+                      </button>
+                    </>
+                  )}
+                  <button className="modal-btn danger" onClick={handleSkip}>
+                    <span>{isPast ? "✕ Didn't happen · remove block" : "✕ Unschedule · return to portfolio"}</span>
+                    <span className="modal-btn-hint">action returns to open</span>
+                  </button>
+                </div>
+              </div>
+
+              {!isCompleted && (
+                <div className="modal-section">
+                  <div className="modal-section-label">Edit time + duration</div>
+                  <div className="modal-input-row">
+                    <input
+                      type="text"
+                      className="modal-input wide"
+                      value={editStart}
+                      onChange={e => setEditStart(e.target.value)}
+                      placeholder="HH:MM"
+                    />
+                    <input
+                      type="number"
+                      className="modal-input"
+                      value={editDuration}
+                      min="5" max="600" step="5"
+                      onChange={e => setEditDuration(e.target.value)}
+                    />
+                    <span className="modal-input-suffix">min</span>
+                    <button className="modal-btn primary" style={{ flex: 1 }} onClick={handleSaveEdit}>
+                      <span>Save changes</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       );
     }
 
@@ -2123,13 +2761,96 @@
     const END_HOUR = 23;
     const HOURS_VISIBLE = END_HOUR - START_HOUR;
 
-    function WeekGrid({ routine, weekStart, now, singleCol, onDayClick }) {
+    function WeekGrid({ routine, scheduledBlocks, projects, weekStart, now, singleCol, onDayClick, onCreateBlock, onBlockClick }) {
       const isDayView = singleCol !== null && singleCol !== undefined;
       const HOUR_HEIGHT = isDayView ? HOUR_HEIGHT_DAY : HOUR_HEIGHT_WEEK;
       const totalHeight = HOURS_VISIBLE * HOUR_HEIGHT;
       const isCurrentWeek = isSameDay(weekStart, startOfWeek(now));
 
       const cols = isDayView ? [singleCol] : [0, 1, 2, 3, 4, 5, 6];
+
+      const [activeDropCol, setActiveDropCol] = useState(null);
+      const [dropPreview, setDropPreview] = useState(null); // { col, top, height }
+      const dragPayloadRef = useRef(null);
+
+      // Convert mouse Y position within a day column → snapped HH:MM string
+      const yToTimeString = (y) => {
+        const minutesFromGridStart = (y / HOUR_HEIGHT) * 60;
+        const totalMinutes = START_HOUR * 60 + minutesFromGridStart;
+        const snapped = Math.max(START_HOUR * 60, Math.round(totalMinutes / 15) * 15);
+        const clamped = Math.min(snapped, END_HOUR * 60 - 15);
+        return `${pad(Math.floor(clamped / 60))}:${pad(clamped % 60)}`;
+      };
+
+      const onColDragOver = (e, col) => {
+        if (!onCreateBlock) return;
+        // Only handle drags carrying our payload
+        if (!Array.from(e.dataTransfer.types).includes('application/json')) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+        const rect = e.currentTarget.getBoundingClientRect();
+        const y = e.clientY - rect.top;
+        const startStr = yToTimeString(y);
+        const startMin = toMinutes(startStr);
+        const dur = (dragPayloadRef.current && dragPayloadRef.current.duration) || 30;
+        const top = ((startMin - START_HOUR * 60) / 60) * HOUR_HEIGHT;
+        const height = (dur / 60) * HOUR_HEIGHT;
+        setActiveDropCol(col);
+        setDropPreview({ col, top, height, start: startStr });
+      };
+
+      const onColDragLeave = (e) => {
+        // dragleave fires when entering child elements; only clear on actual exit
+        if (e.currentTarget.contains(e.relatedTarget)) return;
+        setActiveDropCol(null);
+        setDropPreview(null);
+      };
+
+      const onColDrop = (e, col) => {
+        e.preventDefault();
+        setActiveDropCol(null);
+        setDropPreview(null);
+        let payload;
+        try {
+          payload = JSON.parse(e.dataTransfer.getData('application/json'));
+        } catch { return; }
+        if (!payload || payload.type !== 'next-action') return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const y = e.clientY - rect.top;
+        const startStr = yToTimeString(y);
+        const date = startOfDay(addDays(weekStart, col)).toISOString();
+        onCreateBlock({
+          projectId: payload.projectId,
+          actionId: payload.actionId,
+          title: payload.title,
+          date,
+          start: startStr,
+          duration: payload.duration || 30,
+        });
+        dragPayloadRef.current = null;
+      };
+
+      // Capture drag enter on document so we can read the payload (dataTransfer.getData
+      // is restricted during dragover) — we read it from a ref instead, set on drag start.
+      // Action chips in this app set window-level state via their own dragstart; we keep it simple
+      // by re-parsing on dragover with a heuristic since duration is in payload.
+      // Actually the cleanest path: read getData synchronously on drop only. For the preview
+      // size we use the payload's duration value the chip set on a global window field.
+      useEffect(() => {
+        const handler = (e) => {
+          if (!Array.from(e.dataTransfer.types).includes('application/json')) return;
+          // Some browsers expose getData on dragstart only. We listen to dragstart globally:
+        };
+        const onDragStart = (e) => {
+          try {
+            const raw = e.dataTransfer.getData('application/json');
+            if (raw) dragPayloadRef.current = JSON.parse(raw);
+          } catch {}
+        };
+        // Listen at the document level so any chip's dragstart updates our ref
+        document.addEventListener('dragstart', onDragStart, true);
+        return () => document.removeEventListener('dragstart', onDragStart, true);
+      }, []);
 
       return (
         <div className="week-grid">
@@ -2168,10 +2889,16 @@
               const date = addDays(weekStart, col);
               const isToday = isCurrentWeek && isSameDay(date, now);
               const isWeekend = col === 5 || col === 6;
-              const dayItems = layoutDay(itemsForVisualColumn(col, routine));
+              const dayItems = combinedDayItems(col, routine, scheduledBlocks || [], weekStart);
 
               return (
-                <div key={col} className={`day-column ${isToday ? 'today' : ''} ${isWeekend ? 'weekend' : ''}`}>
+                <div
+                  key={col}
+                  className={`day-column ${isToday ? 'today' : ''} ${isWeekend ? 'weekend' : ''} ${activeDropCol === col ? 'drop-active' : ''}`}
+                  onDragOver={(e) => onColDragOver(e, col)}
+                  onDragLeave={onColDragLeave}
+                  onDrop={(e) => onColDrop(e, col)}
+                >
                   {Array.from({ length: HOURS_VISIBLE }, (_, i) => (
                     <div
                       key={i}
@@ -2179,8 +2906,23 @@
                       style={{ top: (i + 1) * HOUR_HEIGHT }}
                     />
                   ))}
-                  {dayItems.map(item => <CalItem key={item.id} item={item} hourHeight={HOUR_HEIGHT} />)}
+                  {dayItems.map(item => (
+                    <CalItem
+                      key={item.id}
+                      item={item}
+                      hourHeight={HOUR_HEIGHT}
+                      projects={projects}
+                      onBlockClick={onBlockClick}
+                    />
+                  ))}
                   {isToday && <NowLine now={now} hourHeight={HOUR_HEIGHT} />}
+                  {dropPreview && dropPreview.col === col && (
+                    <div className="drop-ghost" style={{ top: dropPreview.top, height: dropPreview.height }}>
+                      <div style={{ padding: 4, fontSize: 10, color: 'var(--gold)', fontFamily: 'var(--mono)', letterSpacing: '0.05em' }}>
+                        {dropPreview.start}
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -2189,8 +2931,17 @@
       );
     }
 
-    function CalItem({ item, hourHeight }) {
-      const style = CATEGORY_STYLES[item.category] || CATEGORY_STYLES.supplement;
+    function CalItem({ item, hourHeight, projects, onBlockClick }) {
+      const isBlock = item._kind === 'block';
+      const block = isBlock ? item._block : null;
+      const project = isBlock && projects ? projects.find(p => p.id === block.projectId) : null;
+      const projectColor = (project && project.color) || 'var(--gold)';
+
+      // Style + colors
+      const style = isBlock
+        ? { color: projectColor, bgAlpha: 0.18 }
+        : (CATEGORY_STYLES[item.category] || CATEGORY_STYLES.supplement);
+
       const startMin = toMinutes(item.start);
       const offsetMin = startMin - START_HOUR * 60;
       const top = (offsetMin / 60) * hourHeight;
@@ -2206,20 +2957,40 @@
 
       const endMin = startMin + item.duration;
       const endStr = `${pad(Math.floor(endMin / 60))}:${pad(endMin % 60)}`;
-      const tooltipParts = [
-        `${item.title} · ${item.start}–${endStr}`,
-        item.note,
-        item.homeOnly ? '(home only)' : null,
-      ].filter(Boolean);
+
+      const tooltipParts = isBlock
+        ? [
+            `${item.title}`,
+            project ? `Project: ${project.name}` : null,
+            `${item.start}–${endStr} (${item.duration} min)`,
+            block.status === 'partial' ? `Partial · ${block.actualMinutes || 0} min logged` : null,
+            block.status === 'completed' ? `Completed · ${block.actualMinutes || 0} min` : null,
+            'Click to manage',
+          ].filter(Boolean)
+        : [
+            `${item.title} · ${item.start}–${endStr}`,
+            item.note,
+            item.homeOnly ? '(home only)' : null,
+          ].filter(Boolean);
 
       let cls = 'cal-item';
       if (isTiny) cls += ' tiny';
       else if (isShort) cls += ' short';
+      if (isBlock) {
+        cls += ' project-block';
+        if (block.status === 'completed') cls += ' completed';
+        if (block.status === 'partial') cls += ' partial';
+      }
+
+      const onClick = isBlock && onBlockClick
+        ? (e) => { e.stopPropagation(); onBlockClick(block.id); }
+        : undefined;
 
       return (
         <div
           className={cls}
           title={tooltipParts.join('\n')}
+          onClick={onClick}
           style={{
             top,
             height,
@@ -2234,9 +3005,12 @@
           )}
           <div className="cal-item-title">
             {item.title}
-            {item.homeOnly && <span className="cal-item-home-flag" style={{ color: style.color }} />}
+            {item.homeOnly && !isBlock && <span className="cal-item-home-flag" style={{ color: style.color }} />}
           </div>
-          {item.note && !isTiny && !isShort && (
+          {isBlock && project && !isTiny && (
+            <div className="cal-item-project" style={{ color: style.color }}>{project.name}</div>
+          )}
+          {item.note && !isTiny && !isShort && !isBlock && (
             <div className="cal-item-note">{item.note}</div>
           )}
         </div>
@@ -2254,7 +3028,7 @@
     // ═════════════════════════════════════════════════════════════
     // AGENDA VIEW (mobile)
     // ═════════════════════════════════════════════════════════════
-    function AgendaView({ routine, weekStart, now }) {
+    function AgendaView({ routine, scheduledBlocks, projects, weekStart, now, onBlockClick }) {
       const isCurrentWeek = isSameDay(weekStart, startOfWeek(now));
       const todayCol = isCurrentWeek
         ? (now.getDay() === 0 ? 6 : now.getDay() - 1)
@@ -2267,9 +3041,24 @@
 
       const date = addDays(weekStart, selectedCol);
       const isSelectedToday = isCurrentWeek && isSameDay(date, now);
-      const sorted = [...itemsForVisualColumn(selectedCol, routine)]
-        .sort((a, b) => toMinutes(a.start) - toMinutes(b.start));
 
+      const routineItems = itemsForVisualColumn(selectedCol, routine).map(it => ({
+        ...it, _kind: 'routine',
+      }));
+      const blockItems = blocksForDate(scheduledBlocks || [], date).map(b => {
+        const project = (projects || []).find(p => p.id === b.projectId);
+        return {
+          id: b.id,
+          title: b.title,
+          start: b.start,
+          duration: b.duration,
+          category: 'project-block',
+          _kind: 'block',
+          _block: b,
+          _project: project,
+        };
+      });
+      const sorted = [...routineItems, ...blockItems].sort((a, b) => toMinutes(a.start) - toMinutes(b.start));
       const nowMin = now.getHours() * 60 + now.getMinutes();
 
       return (
@@ -2298,11 +3087,16 @@
           </div>
 
           {sorted.length === 0 ? (
-            <div className="agenda-empty">No routine items on this day yet.</div>
+            <div className="agenda-empty">No items on this day yet. Plan from a desktop to schedule project work.</div>
           ) : (
             <div className="agenda-list">
               {sorted.map(item => {
-                const style = CATEGORY_STYLES[item.category] || CATEGORY_STYLES.supplement;
+                const isBlock = item._kind === 'block';
+                const block = isBlock ? item._block : null;
+                const project = isBlock ? item._project : null;
+                const color = isBlock
+                  ? ((project && project.color) || 'var(--gold)')
+                  : (CATEGORY_STYLES[item.category] || CATEGORY_STYLES.supplement).color;
                 const startMin = toMinutes(item.start);
                 const endMin = startMin + item.duration;
                 const endStr = `${pad(Math.floor(endMin / 60))}:${pad(endMin % 60)}`;
@@ -2311,23 +3105,44 @@
                   if (endMin < nowMin) stateClass = 'past';
                   else if (startMin <= nowMin && endMin >= nowMin) stateClass = 'now';
                 }
+                if (isBlock && block.status === 'completed') stateClass += ' past';
+
+                const handleClick = isBlock && onBlockClick
+                  ? () => onBlockClick(block.id)
+                  : undefined;
+
                 return (
-                  <div key={item.id} className={`agenda-item ${stateClass}`}>
-                    <div className="agenda-item-stripe" style={{ background: style.color }} />
+                  <div
+                    key={item.id}
+                    className={`agenda-item ${stateClass}`}
+                    onClick={handleClick}
+                    style={isBlock ? { cursor: 'pointer' } : {}}
+                  >
+                    <div className="agenda-item-stripe" style={{ background: color }} />
                     <div className="agenda-item-time">
                       <span>{item.start}</span>
                       {item.duration >= 15 && <span className="agenda-item-time-end">→ {endStr}</span>}
                     </div>
                     <div className="agenda-item-content">
                       <div className="agenda-item-title">
+                        {isBlock && block.status === 'completed' && '✓ '}
+                        {isBlock && block.status === 'partial' && '½ '}
                         {item.title}
-                        {item.homeOnly && (
-                          <span style={{ color: style.color, marginLeft: 8, fontSize: 9, letterSpacing: '0.15em', fontFamily: 'var(--mono)', opacity: 0.7 }}>HOME</span>
+                        {item.homeOnly && !isBlock && (
+                          <span style={{ color, marginLeft: 8, fontSize: 9, letterSpacing: '0.15em', fontFamily: 'var(--mono)', opacity: 0.7 }}>HOME</span>
+                        )}
+                        {isBlock && project && (
+                          <span style={{ color, marginLeft: 8, fontSize: 9, letterSpacing: '0.15em', fontFamily: 'var(--mono)', opacity: 0.7 }}>
+                            {project.name.replace('APP - ', '')}
+                          </span>
                         )}
                       </div>
-                      {item.note && <div className="agenda-item-meta">{item.note}</div>}
+                      {item.note && !isBlock && <div className="agenda-item-meta">{item.note}</div>}
+                      {isBlock && block.actualMinutes != null && (
+                        <div className="agenda-item-meta">{block.actualMinutes} min spent</div>
+                      )}
                     </div>
-                    {stateClass === 'now' && <span className="agenda-now-flag">NOW</span>}
+                    {stateClass.includes('now') && !isBlock && <span className="agenda-now-flag">NOW</span>}
                   </div>
                 );
               })}
