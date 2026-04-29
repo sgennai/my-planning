@@ -1213,6 +1213,19 @@
 </head>
 <body>
   <div id="root"></div>
+  <div id="errbox" style="display:none;position:fixed;top:0;left:0;right:0;background:#2A1A1A;color:#E07B6A;padding:14px 18px;font-family:monospace;font-size:12px;z-index:9999;border-bottom:2px solid #E07B6A;line-height:1.6;white-space:pre-wrap;max-height:60vh;overflow:auto"></div>
+  <script>
+    window.addEventListener('error', function(e) {
+      var box = document.getElementById('errbox');
+      box.style.display = 'block';
+      box.textContent = 'ERROR: ' + (e.message || 'unknown') + '\n\nat ' + (e.filename || '?') + ':' + (e.lineno || '?') + ':' + (e.colno || '?') + (e.error && e.error.stack ? '\n\n' + e.error.stack : '');
+    });
+    window.addEventListener('unhandledrejection', function(e) {
+      var box = document.getElementById('errbox');
+      box.style.display = 'block';
+      box.textContent = 'PROMISE REJECTION: ' + (e.reason && e.reason.message ? e.reason.message : String(e.reason));
+    });
+  </script>
 
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -1919,6 +1932,22 @@
           setPhase('error');
         }
       }, []);
+
+      // Persist new data to Drive. Optimistically updates local state, then syncs.
+      const persist = useCallback(async (nextData) => {
+        if (!fileId) return;
+        setData(nextData); // optimistic — render reflects change immediately
+        setSaving(true);
+        setError('');
+        try {
+          await updateFile(fileId, nextData);
+          setLastSyncedAt(new Date());
+        } catch (e) {
+          setError(`Save failed: ${e.message}`);
+        } finally {
+          setSaving(false);
+        }
+      }, [fileId]);
 
       useEffect(() => {
         (async () => {
