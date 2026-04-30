@@ -1607,6 +1607,434 @@
       .routine-form-row.half { grid-column: span 1; }
     }
 
+    /* ───────── ELSEWHERE TOGGLES ───────── */
+    .elsewhere-toggles {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+    .elsewhere-label {
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      color: var(--muted-3);
+      text-transform: uppercase;
+      font-family: var(--mono);
+      margin-right: 4px;
+    }
+    .elsewhere-btn {
+      padding: 7px 12px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted-3);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: var(--serif);
+      transition: all 0.15s;
+    }
+    .elsewhere-btn:hover {
+      border-color: var(--coral);
+      color: var(--coral);
+    }
+    .elsewhere-btn.active {
+      background: rgba(224, 123, 106, 0.12);
+      border-color: var(--coral);
+      color: var(--coral);
+    }
+
+    /* ───────── CAPTURE INBOX ───────── */
+    .capture-bar {
+      display: flex;
+      gap: 0;
+      margin-bottom: 16px;
+      background: var(--bg-card);
+      border-left: 2px solid var(--border);
+      transition: border-color 0.15s;
+    }
+    .capture-bar:focus-within {
+      border-left-color: var(--gold);
+    }
+    .capture-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      padding: 12px 16px;
+      font-family: var(--serif);
+      font-size: 13px;
+      outline: none;
+      letter-spacing: 0.005em;
+    }
+    .capture-input::placeholder {
+      color: var(--muted-4);
+      font-style: italic;
+    }
+    .capture-count {
+      padding: 12px 16px;
+      background: transparent;
+      border: none;
+      color: var(--muted-3);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .capture-count:hover { color: var(--gold); }
+    .capture-count.has-items { color: var(--gold); }
+
+    .inbox-modal { max-width: 640px; }
+    .inbox-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .inbox-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 14px;
+      background: var(--bg-card-deep);
+      border-left: 2px solid var(--border);
+      transition: background 0.12s;
+    }
+    .inbox-item:hover { background: var(--bg-hover); }
+    .inbox-item.actioned {
+      opacity: 0.45;
+    }
+    .inbox-item.actioned .inbox-item-text {
+      text-decoration: line-through;
+    }
+    .inbox-item-checkbox {
+      flex-shrink: 0;
+      width: 16px; height: 16px;
+      margin-top: 1px;
+      accent-color: var(--gold);
+      cursor: pointer;
+    }
+    .inbox-item-text {
+      flex: 1;
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .inbox-item-time {
+      font-size: 10px;
+      color: var(--muted-4);
+      font-family: var(--mono);
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+      padding-top: 2px;
+    }
+    .inbox-item-delete {
+      background: none;
+      border: none;
+      color: var(--muted-4);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0 4px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .inbox-item-delete:hover { color: var(--coral); }
+    .inbox-empty {
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--muted-4);
+      font-style: italic;
+      font-size: 13px;
+    }
+
+    /* ───────── WEEKLY RESET OVERLAY (full-screen) ───────── */
+    .reset-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 200;
+      overflow-y: auto;
+      animation: fadeIn 0.2s ease-out;
+    }
+    .reset-overlay::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      opacity: 0.6;
+    }
+    .reset-overlay::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+    .reset-wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+    .reset-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+    .reset-eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.3em;
+      color: var(--gold);
+      text-transform: uppercase;
+    }
+    .reset-exit {
+      background: none;
+      border: none;
+      color: var(--muted-3);
+      cursor: pointer;
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      font-family: var(--serif);
+    }
+    .reset-exit:hover { color: var(--gold); }
+    .reset-progress-total {
+      height: 2px;
+      background: var(--rule);
+      margin-bottom: 28px;
+      position: relative;
+    }
+    .reset-progress-total-fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      background: var(--gold);
+      transition: width 1s linear;
+    }
+    .reset-phase-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 28px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .reset-phase-tab {
+      padding: 7px 12px;
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted-4);
+      cursor: pointer;
+      white-space: nowrap;
+      font-family: var(--serif);
+      text-transform: uppercase;
+    }
+    .reset-phase-tab.active {
+      color: var(--bg);
+    }
+    .reset-phase-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 20px;
+    }
+    .reset-phase-label {
+      font-size: 11px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .reset-phase-meta {
+      font-size: 11px;
+      color: var(--muted-4);
+      font-family: var(--mono);
+    }
+    .reset-timer {
+      font-size: 36px;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.04em;
+      font-family: var(--mono);
+    }
+    .reset-timer.warning { color: var(--coral); }
+    .reset-timer-controls {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 6px;
+    }
+    .reset-timer-btn {
+      padding: 5px 11px;
+      background: transparent;
+      border: 1px solid;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: var(--serif);
+    }
+    .reset-phase-progress {
+      height: 1px;
+      background: var(--rule);
+      margin-bottom: 36px;
+    }
+    .reset-phase-progress-fill {
+      height: 100%;
+      transition: width 1s linear;
+    }
+    .reset-prompts {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+    .reset-prompt-label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted-1);
+      line-height: 1.6;
+      margin-bottom: 10px;
+      font-style: italic;
+    }
+    .reset-prompt-num {
+      color: var(--gold);
+      margin-right: 6px;
+      font-style: normal;
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+    .reset-input {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 14px;
+      font-size: 14px;
+      font-family: var(--serif);
+      outline: none;
+      box-sizing: border-box;
+      line-height: 1.7;
+    }
+    .reset-input:focus { border-color: var(--gold); }
+    .reset-textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+    .reset-scale {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .reset-scale-btn {
+      width: 36px; height: 36px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted-4);
+      cursor: pointer;
+      font-size: 13px;
+      font-family: var(--serif);
+    }
+    .reset-scale-btn.active {
+      background: rgba(201, 168, 76, 0.13);
+    }
+    .reset-scorecard-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 10px 14px;
+      background: var(--bg-card);
+      margin-bottom: 2px;
+    }
+    .reset-scorecard-label {
+      font-size: 12px;
+      color: var(--muted-2);
+      width: 160px;
+      flex-shrink: 0;
+    }
+    .reset-scorecard-buttons {
+      display: flex;
+      gap: 4px;
+    }
+    .reset-scorecard-btn {
+      width: 32px; height: 32px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted-4);
+      cursor: pointer;
+      font-size: 12px;
+      font-family: var(--serif);
+    }
+    .reset-scorecard-rating {
+      font-size: 10px;
+      color: var(--muted-4);
+      font-style: italic;
+    }
+    .reset-story-block {
+      background: var(--bg-card);
+      padding: 12px 14px;
+      margin-bottom: 2px;
+    }
+    .reset-story-label {
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      color: var(--violet);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .reset-story-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 0;
+      font-family: var(--serif);
+      font-size: 13px;
+      line-height: 1.6;
+      min-height: 50px;
+      resize: vertical;
+      box-sizing: border-box;
+      outline: none;
+    }
+    .reset-story-input:focus { border-bottom-color: var(--gold); }
+    .reset-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--rule);
+    }
+    .reset-saved-card {
+      margin-top: 40px;
+      padding: 32px;
+      background: var(--bg-card);
+      border-top: 2px solid var(--gold);
+      text-align: center;
+    }
+    .reset-saved-eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.3em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .reset-saved-text {
+      font-size: 15px;
+      color: var(--muted-2);
+      font-style: italic;
+      line-height: 1.9;
+      max-width: 500px;
+      margin: 0 auto 24px;
+    }
+
+    /* Friday review CTA — appears on the Friday Weekly Review block */
+    .cal-item.friday-review-active {
+      background: rgba(201, 168, 76, 0.25) !important;
+      box-shadow: 0 0 0 1px var(--gold), 0 0 12px rgba(201, 168, 76, 0.4);
+    }
+
   </style>
 </head>
 <body>
@@ -1639,7 +2067,7 @@
     const CLIENT_ID = '25894919429-pbtl8l6nn23vnvc8c8cbhg5f3n8gepu6.apps.googleusercontent.com';
     const SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
     const FILE_NAME = 'my-planning-data.json';
-    const SCHEMA_VERSION = 4;
+    const SCHEMA_VERSION = 6;
 
     // Days: JS Date.getDay() — 0=Sun, 1=Mon ... 6=Sat. Visual columns are Mon-first.
     const VISUAL_TO_JS_DAY = [1, 2, 3, 4, 5, 6, 0];
@@ -1957,6 +2385,73 @@
     const CATEGORY_OPTIONS = ['supplement', 'focus', 'gym', 'review', 'planning', 'prep', 'elsewhere', 'commute'];
 
     // ─────────────────────────────────────────────────────────────
+    // WEEKLY RESET PHASES — ported from ceo-weekly-reset.jsx
+    // 5 phases, ~20 minutes total. Friday 15:00–15:30 ritual.
+    // ─────────────────────────────────────────────────────────────
+    const WEEKLY_RESET_PHASES = [
+      {
+        id: 'pulse',
+        label: 'I. PULSE CHECK',
+        duration: 120,
+        color: '#C9A84C',
+        prompts: [
+          { q: "Energy level entering this week's reset (1–10)", type: 'scale', key: 'energy' },
+          { q: 'One word that captures how this week felt', type: 'short', key: 'word' },
+          { q: 'If this week was an investment, what return did it generate?', type: 'short', key: 'roi' },
+        ],
+      },
+      {
+        id: 'audit',
+        label: 'II. WEEK AUDIT',
+        duration: 360,
+        color: '#7EB8A4',
+        prompts: [
+          { q: 'What went well this week? (Be specific — name the moment, decision, or output.)', type: 'long', key: 'wentWell' },
+          { q: 'What should be changed, improved, removed, or expanded?', type: 'long', key: 'improve' },
+          { q: 'Score this week across four dimensions (1–5)', type: 'scorecard', key: 'scorecard' },
+          { q: 'Where did I spend time this week that a senior executive would not have? What did that cost me?', type: 'long', key: 'timeCost' },
+          { q: 'Which activities, if doubled, would meaningfully improve my life or career?', type: 'long', key: 'double' },
+          { q: 'Which activities, if halved or removed, would improve my life?', type: 'long', key: 'halve' },
+        ],
+      },
+      {
+        id: 'leadership',
+        label: 'III. LEADERSHIP LENS',
+        duration: 300,
+        color: '#A78BCA',
+        prompts: [
+          { q: 'At which moments did I give in to my ego? What triggered it?', type: 'long', key: 'ego' },
+          { q: 'At which moments did I give in to emotion instead of judgment? What was at stake?', type: 'long', key: 'emotion2' },
+          { q: 'Where did I demonstrate leadership or composure under pressure? (Name the moment.)', type: 'long', key: 'values' },
+          { q: 'Story capture — which moment this week is worth keeping?', type: 'story', key: 'story' },
+        ],
+      },
+      {
+        id: 'strategic',
+        label: 'IV. STRATEGIC ALIGNMENT',
+        duration: 240,
+        color: '#E07B6A',
+        prompts: [
+          { q: 'Am I working on the right problems and priorities? What evidence supports or challenges this?', type: 'long', key: 'priorities' },
+          { q: 'What is the single highest-leverage move I could make next week?', type: 'long', key: 'leverage' },
+        ],
+      },
+      {
+        id: 'commit',
+        label: 'V. FORWARD COMMITMENT',
+        duration: 180,
+        color: '#C9A84C',
+        prompts: [
+          { q: 'Key Insight #1 — What is the most important thing I learned this week?', type: 'long', key: 'insight1' },
+          { q: 'Key Insight #2 — What pattern am I noticing across recent weeks?', type: 'long', key: 'insight2' },
+          { q: 'Key Insight #3 — What belief or behavior needs to shift?', type: 'long', key: 'insight3' },
+          { q: 'Improvement Experiment for Next Week — What will I test? How will I know it worked?', type: 'long', key: 'experiment' },
+        ],
+      },
+    ];
+    const WEEKLY_RESET_TOTAL_SECONDS = WEEKLY_RESET_PHASES.reduce((a, p) => a + p.duration, 0);
+
+    // ─────────────────────────────────────────────────────────────
     // SEED REFERENCE LIBRARY — quick-access reference content.
     // Each entry is a static text reference, editable by the user.
     // ─────────────────────────────────────────────────────────────
@@ -2030,8 +2525,145 @@ Close the week:
       },
       {
         id: 'ref-meeting-reset',
-        title: 'Meeting Reset Notes',
-        body: `(Paste your meeting reset notes here — placeholder for the meeting-reset.md content. Click EDIT to replace.)`,
+        title: 'Meeting Reset · 60-Second Executive Reset',
+        body: `START WITH LOW VOLUME
+PAUSE. THINK. SPEAK. SPEAK SLOWLY. USE LOW TONE.
+Slow is smooth. Smooth is powerful.
+
+EMOTIONAL CONTROL AT ALL TIMES. ONE SINGLE BREAK IS REMEMBERED.
+WHEN IN DIFFICULTY: PAUSE, BREATHE, SLOW DOWN, THINK, ASK A QUESTION, TRY TO UNDERSTAND
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+0–15 SECONDS · PHYSIOLOGY RESET
+• Sit upright
+• Feet grounded
+• Inhale 4 seconds
+• Exhale 6 seconds
+• Lower shoulders
+• Relax jaw
+• Slow blinking
+
+> Calm body. Clear mind.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+15–30 SECONDS · IDENTITY ANCHOR
+Silently repeat:
+• I operate at executive altitude. I am operating at the level I am stepping into — not the level I am leaving.
+• I am here to bring perspective.
+• I don't need approval.
+
+> Shift from performer → strategic advisor.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+30–45 SECONDS · INTENT LOCK
+Ask yourself:
+1. What is the real business objective?
+2. What outcome must exist at the end?
+3. What decision or next step do I want?
+
+> Compress into one sentence:
+> "By the end of this meeting, we will have clarity on ______."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+45–60 SECONDS · EXECUTIVE CALIBRATION
+
+• Slow down
+• Low tone, cut intensity
+• Cut 20% (Executives respect compression — be mindful of that mid-sentence)
+• At all times during the meeting, make sure you are still addressing the question: What decision are we driving toward?
+• Pause before answering (two seconds of silence = authority). When answering: synthesize, respond with structure
+• Structure everything, never ramble:
+   – three points
+   – SCQA
+   – problem → impact → options → recommendation
+   – current state → risk → path forward
+  Executives think in frameworks.
+• Speak in outcomes (Revenue, Risk, Growth, Time-to-Value, Competitive Advantage — if it doesn't connect to business impact, cut it.)
+• No defensive energy, no justifying. State. Pause. Stop. Do not stack arguments or fill silence or over-explain. Play with strategically placed silences.
+• Teach, do not perform.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DISAGREEING WITH A SENIOR LEADER
+• "May I offer an alternative angle?"
+• "One potential risk I see is ___."
+• "Another way to approach this could be ___."
+
+NO DEFENSIVE ENERGY · IF CHALLENGED
+• "That's a fair point."
+• "Let's unpack that."
+• "Help me understand your concern."
+• "Here's how I'm thinking about it."
+
+> Calm curiosity = power.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DISCUSSING CHALLENGES OR ROADBLOCKS · STRUCTURE
+1. What is the strategic objective?
+2. What decisions were made and by whom (factually)?
+3. What was tried?
+4. Why did it not work (factually)?
+5. What observable results occurred?
+6. What structural gap does this reveal?
+7. What changed as a result, what is the impact?
+8. What is the recommendation now?
+9. What is the constructive path forward?
+
+When in frustration, talk about SYSTEMS, not people.
+"They didn't…" → "The current process creates…"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+WHEN TENSION IN THE ROOM
+Causes: Ownership ambiguity · Perceived criticism · Budget/resource pressure · Ego protection · Past decisions being questioned.
+Goal: Raise altitude, protect relationships, re-anchor to business impact, move the room forward.
+
+· SLOW THE ROOM (de-escalate)
+"I think we're touching something important, let's pause for a second and align on what we're trying to solve / to clarify the objective."
+
+· MOVE AWAY FROM PEOPLE → TOWARD PURPOSE
+• "The original objective was ___."
+• "The business outcome we're aiming for is ___."
+• "If we zoom out, the real question is ___."
+• "Rather than focusing on who, can we focus on what in the process allowed this?"
+
+· NEUTRALIZE PERSONAL FRICTION
+"I don't see this as a people issue — I see this as a structural one. I think everyone acted based on the information available at the time."
+
+· TURN TENSION INTO FORWARD MOTION (pivot)
+• "Given that, what would strengthen this moving forward?"
+• "What adjustment would materially improve our odds next time?"
+• "If we were to redesign this from scratch, what would we change?"
+
+· CLOSE WITH DIRECTION
+• "Here's what I'm hearing…" (3 bullets)
+• "Does this reflect where we are?"
+• "So next step would be ___ — agreed?"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CONTROL THE FRAME
+"Let's align on the objective of this discussion. From your perspective, what would make this a successful conversation?"
+
+CLOSE WITH DIRECTION
+End with:
+• Clear summary
+• Clear next step
+• Clear owner
+
+Authority is clarity of movement.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+> Calm = Authority
+
+MY MINDSET = Calm. Clear. Structured. Outcome-driven.
+MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       },
     ];
 
@@ -2219,6 +2851,25 @@ Close the week:
       return out;
     }
 
+    // Apply working-from-elsewhere filter to today's items only.
+    // Toggles affect ONLY today: morning hides homeOnly items starting before noon,
+    // afternoon hides homeOnly items starting at/after noon, allDay hides them all.
+    function applyElsewhereFilter(items, date, elsewhereToggles, today) {
+      if (!elsewhereToggles || !today) return items;
+      // Only filter when date IS today
+      if (!isSameDay(date, today)) return items;
+      const t = elsewhereToggles;
+      if (!t.morning && !t.afternoon && !t.allDay) return items;
+      return items.filter(it => {
+        if (!it.homeOnly) return true;
+        const startMin = toMinutes(it.start);
+        if (t.allDay) return false;
+        if (t.morning && startMin < 12 * 60) return false;
+        if (t.afternoon && startMin >= 12 * 60) return false;
+        return true;
+      });
+    }
+
     // Total minutes for a given project this week (only counts scheduled + partial,
     // not completed — once done it's "spent" not "scheduled").
     function plannedMinutesForProject(blocks, weekStart, projectId) {
@@ -2234,9 +2885,10 @@ Close the week:
     }
 
     // Combine routine items + project blocks for a single day, applying overrides + lane allocation.
-    function combinedDayItems(visualCol, routine, blocks, weekStart, overrides) {
+    function combinedDayItems(visualCol, routine, blocks, weekStart, overrides, elsewhereToggles, today) {
       const date = addDays(weekStart, visualCol);
-      const routineItems = resolvedRoutineForDate(routine, overrides || {}, date);
+      let routineItems = resolvedRoutineForDate(routine, overrides || {}, date);
+      routineItems = applyElsewhereFilter(routineItems, date, elsewhereToggles, today);
       const blockItems = blocksForDate(blocks, date).map(b => ({
         id: b.id,
         title: b.title,
@@ -2409,6 +3061,20 @@ Close the week:
       if (!Array.isArray(next.referenceLibrary) || next.referenceLibrary.length === 0) {
         next.referenceLibrary = SEED_REFERENCE_LIBRARY;
         changed = true;
+      }
+      // v5: replace the meeting-reset placeholder entry with real content.
+      // We only replace this one entry — other entries keep any edits.
+      if (prevVersion < 5 && Array.isArray(next.referenceLibrary)) {
+        const meetingReset = SEED_REFERENCE_LIBRARY.find(r => r.id === 'ref-meeting-reset');
+        if (meetingReset) {
+          const idx = next.referenceLibrary.findIndex(r => r.id === 'ref-meeting-reset');
+          if (idx >= 0) {
+            next.referenceLibrary[idx] = meetingReset;
+          } else {
+            next.referenceLibrary.push(meetingReset);
+          }
+          changed = true;
+        }
       }
       if (!Array.isArray(next.scheduledBlocks)) { next.scheduledBlocks = []; changed = true; }
       if (!next.overrides) { next.overrides = {}; changed = true; }
@@ -2620,6 +3286,8 @@ Close the week:
       const [refLibraryOpen, setRefLibraryOpen] = useState(false);
       const [refExpandedId, setRefExpandedId] = useState(null);
       const [routineManagerOpen, setRoutineManagerOpen] = useState(false);
+      const [inboxOpen, setInboxOpen] = useState(false);
+      const [resetOverlayOpen, setResetOverlayOpen] = useState(false);
 
       const weekEnd = addDays(weekStart, 6);
       const isCurrentWeek = isSameDay(weekStart, startOfWeek(now));
@@ -2718,6 +3386,81 @@ Close the week:
         });
       }, [persistData]);
 
+      // ─── Inbox handlers ─────────────────────────────
+      const addInboxItem = useCallback((text) => {
+        const t = text.trim();
+        if (!t) return;
+        const item = {
+          id: `inbox-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          text: t,
+          createdAt: new Date().toISOString(),
+          actioned: false,
+        };
+        persistData(d => ({ ...d, inbox: [item, ...(d.inbox || [])] }));
+      }, [persistData]);
+      const toggleInboxItem = useCallback((id) => {
+        persistData(d => ({
+          ...d,
+          inbox: (d.inbox || []).map(it =>
+            it.id === id ? { ...it, actioned: !it.actioned } : it
+          ),
+        }));
+      }, [persistData]);
+      const deleteInboxItem = useCallback((id) => {
+        persistData(d => ({
+          ...d,
+          inbox: (d.inbox || []).filter(it => it.id !== id),
+        }));
+      }, [persistData]);
+
+      // ─── Elsewhere toggles ──────────────────────────
+      // Auto-reset toggles when the date changes (each new day they start fresh).
+      const elsewhere = data.elsewhereToggles || { morning: false, afternoon: false, allDay: false, date: null };
+      const todayDateKey = startOfDay(now).toISOString();
+      useEffect(() => {
+        if (!elsewhere.date || elsewhere.date !== todayDateKey) {
+          // Past their date — silently reset, but only if any was on
+          if (elsewhere.morning || elsewhere.afternoon || elsewhere.allDay) {
+            persistData(d => ({
+              ...d,
+              elsewhereToggles: { morning: false, afternoon: false, allDay: false, date: todayDateKey },
+            }));
+          }
+        }
+      }, [todayDateKey]); // eslint-disable-line
+
+      const toggleElsewhere = useCallback((mode) => {
+        persistData(d => {
+          const cur = d.elsewhereToggles || { morning: false, afternoon: false, allDay: false, date: null };
+          const next = { ...cur, date: todayDateKey };
+          if (mode === 'allDay') {
+            const nv = !cur.allDay;
+            next.allDay = nv;
+            if (nv) { next.morning = false; next.afternoon = false; }
+          } else {
+            next[mode] = !cur[mode];
+            if (next[mode]) next.allDay = false;
+          }
+          return { ...d, elsewhereToggles: next };
+        });
+      }, [persistData, todayDateKey]);
+
+      // ─── Weekly reset save ──────────────────────────
+      const saveWeeklyReset = useCallback((answers) => {
+        const weekLabel = `Week of ${formatDateShort(weekStart)}, ${weekStart.getFullYear()}`;
+        const entry = {
+          id: `reset-${Date.now()}`,
+          week: weekLabel,
+          weekStart: weekStart.toISOString(),
+          date: new Date().toISOString(),
+          answers,
+        };
+        persistData(d => ({
+          ...d,
+          weeklyResets: [entry, ...(d.weeklyResets || [])].slice(0, 52),
+        }));
+      }, [persistData, weekStart]);
+
       const goPrev = () => {
         if (dayView !== null) {
           if (dayView === 0) {
@@ -2775,6 +3518,13 @@ Close the week:
             referenceLibrary={refLibrary}
             now={now}
             onOpenReference={(id) => { setRefExpandedId(id); setRefLibraryOpen(true); }}
+            elsewhereToggles={elsewhere}
+          />
+
+          <CaptureBar
+            inbox={data.inbox || []}
+            onAdd={addInboxItem}
+            onOpenInbox={() => setInboxOpen(true)}
           />
 
           <div className="main-layout">
@@ -2801,6 +3551,13 @@ Close the week:
                 onManageRoutine={() => setRoutineManagerOpen(true)}
               />
 
+              {!isMobile && (
+                <ElsewhereToggles
+                  elsewhere={elsewhere}
+                  onToggle={toggleElsewhere}
+                />
+              )}
+
               {dayView !== null && !isMobile && (
                 <button className="day-view-back" onClick={() => setDayView(null)}>
                   ← Back to week
@@ -2817,6 +3574,7 @@ Close the week:
                   now={now}
                   onBlockClick={(blockId) => setOpenBlockId(blockId)}
                   onRoutineClick={handleRoutineClick}
+                  elsewhereToggles={elsewhere}
                 />
               ) : (
                 <WeekGrid
@@ -2832,6 +3590,7 @@ Close the week:
                   onBlockClick={(blockId) => setOpenBlockId(blockId)}
                   onRoutineClick={handleRoutineClick}
                   onUpdateBlock={updateBlock}
+                  elsewhereToggles={elsewhere}
                 />
               )}
 
@@ -2881,6 +3640,24 @@ Close the week:
             />
           )}
 
+          {inboxOpen && (
+            <InboxModal
+              inbox={data.inbox || []}
+              onClose={() => setInboxOpen(false)}
+              onToggle={toggleInboxItem}
+              onDelete={deleteInboxItem}
+            />
+          )}
+
+          {resetOverlayOpen && (
+            <WeeklyResetOverlay
+              weekStart={weekStart}
+              now={now}
+              onClose={() => setResetOverlayOpen(false)}
+              onSave={(answers) => { saveWeeklyReset(answers); }}
+            />
+          )}
+
           <details className="raw">
             <summary>Diagnostics · raw data</summary>
             <pre>{JSON.stringify(data, null, 2)}</pre>
@@ -2888,7 +3665,12 @@ Close the week:
 
           <div className="footer">
             <div className="footer-info">{FILE_NAME}</div>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <FridayReviewLauncher
+                now={now}
+                weeklyResets={data.weeklyResets || []}
+                onLaunch={() => setResetOverlayOpen(true)}
+              />
               <button className="btn-tertiary" onClick={onReload}>↻ Reload</button>
               <button className="btn-tertiary" onClick={onSignOut}>Sign out</button>
             </div>
@@ -2900,13 +3682,18 @@ Close the week:
     // ═════════════════════════════════════════════════════════════
     // RIGHT NOW BANNER
     // ═════════════════════════════════════════════════════════════
-    function RightNowBanner({ routine, overrides, scheduledBlocks, projects, referenceLibrary, now, onOpenReference }) {
+    function RightNowBanner({ routine, overrides, scheduledBlocks, projects, referenceLibrary, now, onOpenReference, elsewhereToggles }) {
       const jsDay = now.getDay();
       const todayCol = jsDay === 0 ? 6 : jsDay - 1;
       const nowMin = now.getHours() * 60 + now.getMinutes();
 
-      // Routine items happening today (with overrides applied), sorted chronologically
-      const todayRoutine = resolvedRoutineForDate(routine, overrides || {}, now)
+      // Routine items happening today (with overrides applied + elsewhere filter), sorted chronologically
+      const todayRoutine = applyElsewhereFilter(
+        resolvedRoutineForDate(routine, overrides || {}, now),
+        now,
+        elsewhereToggles,
+        now
+      )
         .map(it => ({
           source: 'routine',
           title: it.title,
@@ -3466,7 +4253,7 @@ Close the week:
     const END_HOUR = 23;
     const HOURS_VISIBLE = END_HOUR - START_HOUR;
 
-    function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, now, singleCol, onDayClick, onCreateBlock, onBlockClick, onRoutineClick, onUpdateBlock }) {
+    function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, now, singleCol, onDayClick, onCreateBlock, onBlockClick, onRoutineClick, onUpdateBlock, elsewhereToggles }) {
       const isDayView = singleCol !== null && singleCol !== undefined;
       const HOUR_HEIGHT = isDayView ? HOUR_HEIGHT_DAY : HOUR_HEIGHT_WEEK;
       const totalHeight = HOURS_VISIBLE * HOUR_HEIGHT;
@@ -3594,7 +4381,7 @@ Close the week:
               const date = addDays(weekStart, col);
               const isToday = isCurrentWeek && isSameDay(date, now);
               const isWeekend = col === 5 || col === 6;
-              const dayItems = combinedDayItems(col, routine, scheduledBlocks || [], weekStart, overrides);
+              const dayItems = combinedDayItems(col, routine, scheduledBlocks || [], weekStart, overrides, elsewhereToggles, now);
 
               return (
                 <div
@@ -3788,7 +4575,7 @@ Close the week:
     // ═════════════════════════════════════════════════════════════
     // AGENDA VIEW (mobile)
     // ═════════════════════════════════════════════════════════════
-    function AgendaView({ routine, overrides, scheduledBlocks, projects, weekStart, now, onBlockClick, onRoutineClick }) {
+    function AgendaView({ routine, overrides, scheduledBlocks, projects, weekStart, now, onBlockClick, onRoutineClick, elsewhereToggles }) {
       const isCurrentWeek = isSameDay(weekStart, startOfWeek(now));
       const todayCol = isCurrentWeek
         ? (now.getDay() === 0 ? 6 : now.getDay() - 1)
@@ -3802,7 +4589,12 @@ Close the week:
       const date = addDays(weekStart, selectedCol);
       const isSelectedToday = isCurrentWeek && isSameDay(date, now);
 
-      const routineItems = resolvedRoutineForDate(routine, overrides || {}, date);
+      const routineItems = applyElsewhereFilter(
+        resolvedRoutineForDate(routine, overrides || {}, date),
+        date,
+        elsewhereToggles,
+        now
+      );
       const blockItems = blocksForDate(scheduledBlocks || [], date).map(b => {
         const project = (projects || []).find(p => p.id === b.projectId);
         return {
@@ -4499,6 +5291,470 @@ Close the week:
               )}
             </div>
           </div>
+        </div>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // CAPTURE BAR — single text input for fleeting thoughts
+    // ═════════════════════════════════════════════════════════════
+    function CaptureBar({ inbox, onAdd, onOpenInbox }) {
+      const [value, setValue] = useState('');
+      const submit = () => {
+        if (!value.trim()) return;
+        onAdd(value);
+        setValue('');
+      };
+      const onKeyDown = (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          submit();
+        }
+      };
+      const openCount = inbox.filter(i => !i.actioned).length;
+      return (
+        <div className="capture-bar">
+          <input
+            type="text"
+            className="capture-input"
+            placeholder="Capture a fleeting thought — Enter to save…"
+            value={value}
+            onChange={e => setValue(e.target.value)}
+            onKeyDown={onKeyDown}
+          />
+          <button
+            className={`capture-count ${openCount > 0 ? 'has-items' : ''}`}
+            onClick={onOpenInbox}
+            title={`${openCount} open · ${inbox.length} total`}
+          >
+            Inbox · {openCount}
+          </button>
+        </div>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // INBOX MODAL — review captured thoughts
+    // ═════════════════════════════════════════════════════════════
+    function InboxModal({ inbox, onClose, onToggle, onDelete }) {
+      const handleBackdropClick = (e) => {
+        if (e.target === e.currentTarget) onClose();
+      };
+      const open = inbox.filter(i => !i.actioned);
+      const actioned = inbox.filter(i => i.actioned);
+
+      const formatTimestamp = (iso) => {
+        const d = new Date(iso);
+        const now = new Date();
+        const diffMs = now.getTime() - d.getTime();
+        const diffHrs = diffMs / (1000 * 60 * 60);
+        if (diffHrs < 1) return `${Math.max(1, Math.floor(diffMs / 60000))}m ago`;
+        if (diffHrs < 24) return `${Math.floor(diffHrs)}h ago`;
+        if (diffHrs < 24 * 7) return `${Math.floor(diffHrs / 24)}d ago`;
+        return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      };
+
+      return (
+        <div className="modal-backdrop" onClick={handleBackdropClick}>
+          <div className="modal inbox-modal">
+            <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+            <div className="modal-header">
+              <div className="modal-eyebrow">Capture Inbox</div>
+              <div className="modal-title">{open.length} open · {inbox.length} total</div>
+              <div className="modal-meta">
+                <span style={{ fontStyle: 'italic' }}>If a thought becomes an action, re-create it on a project card</span>
+              </div>
+            </div>
+            <div className="modal-body">
+              {inbox.length === 0 ? (
+                <div className="inbox-empty">No captures yet. Use the bar above the calendar to drop thoughts in.</div>
+              ) : (
+                <>
+                  {open.length > 0 && (
+                    <div style={{ marginBottom: 16 }}>
+                      <div className="modal-section-label">Open</div>
+                      <div className="inbox-list">
+                        {open.map(item => (
+                          <div key={item.id} className="inbox-item">
+                            <input
+                              type="checkbox"
+                              className="inbox-item-checkbox"
+                              checked={false}
+                              onChange={() => onToggle(item.id)}
+                            />
+                            <div className="inbox-item-text">{item.text}</div>
+                            <div className="inbox-item-time">{formatTimestamp(item.createdAt)}</div>
+                            <button
+                              className="inbox-item-delete"
+                              onClick={() => { if (confirm('Delete this capture?')) onDelete(item.id); }}
+                              title="Delete"
+                            >×</button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {actioned.length > 0 && (
+                    <div>
+                      <div className="modal-section-label">Done</div>
+                      <div className="inbox-list">
+                        {actioned.map(item => (
+                          <div key={item.id} className="inbox-item actioned">
+                            <input
+                              type="checkbox"
+                              className="inbox-item-checkbox"
+                              checked={true}
+                              onChange={() => onToggle(item.id)}
+                            />
+                            <div className="inbox-item-text">{item.text}</div>
+                            <div className="inbox-item-time">{formatTimestamp(item.createdAt)}</div>
+                            <button
+                              className="inbox-item-delete"
+                              onClick={() => onDelete(item.id)}
+                              title="Delete"
+                            >×</button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // ELSEWHERE TOGGLES — hide home-only items for today
+    // ═════════════════════════════════════════════════════════════
+    function ElsewhereToggles({ elsewhere, onToggle }) {
+      return (
+        <div className="elsewhere-toggles">
+          <span className="elsewhere-label">Today, I'm</span>
+          <button
+            className={`elsewhere-btn ${elsewhere.morning ? 'active' : ''}`}
+            onClick={() => onToggle('morning')}
+            disabled={elsewhere.allDay}
+          >Out · Morning</button>
+          <button
+            className={`elsewhere-btn ${elsewhere.afternoon ? 'active' : ''}`}
+            onClick={() => onToggle('afternoon')}
+            disabled={elsewhere.allDay}
+          >Out · Afternoon</button>
+          <button
+            className={`elsewhere-btn ${elsewhere.allDay ? 'active' : ''}`}
+            onClick={() => onToggle('allDay')}
+          >Out · All day</button>
+          {(elsewhere.morning || elsewhere.afternoon || elsewhere.allDay) && (
+            <span style={{ fontSize: 10, color: 'var(--coral)', fontFamily: 'var(--mono)', letterSpacing: '0.15em', marginLeft: 8 }}>
+              Home-only items hidden · resets at midnight
+            </span>
+          )}
+        </div>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // FRIDAY REVIEW LAUNCHER — appears in footer, prominent on Fridays
+    // ═════════════════════════════════════════════════════════════
+    function FridayReviewLauncher({ now, weeklyResets, onLaunch }) {
+      const isFriday = now.getDay() === 5;
+      // Has the current week already been reset?
+      const thisWeekStart = startOfWeek(now);
+      const alreadyDone = (weeklyResets || []).some(r => {
+        if (!r.weekStart) return false;
+        return startOfDay(new Date(r.weekStart)).getTime() === thisWeekStart.getTime();
+      });
+
+      const hour = now.getHours();
+      const isReviewWindow = isFriday && hour >= 14 && hour < 18; // surface 14:00–18:00 Friday
+      const isOverdue = isFriday && hour >= 18 && !alreadyDone;
+
+      let label = 'Weekly Review';
+      let style = {};
+      if (alreadyDone) {
+        label = '✓ Reviewed this week';
+        style = { color: 'var(--teal)', borderColor: 'var(--teal)' };
+      } else if (isReviewWindow) {
+        label = '▶ Start Weekly Review';
+        style = { color: 'var(--gold)', borderColor: 'var(--gold)', background: 'rgba(201,168,76,0.1)' };
+      } else if (isOverdue) {
+        label = '⚠ Weekly Review (overdue)';
+        style = { color: 'var(--coral)', borderColor: 'var(--coral)' };
+      }
+
+      return (
+        <button
+          className="btn-tertiary"
+          onClick={onLaunch}
+          style={{ ...style, padding: '8px 14px', border: '1px solid var(--border)', letterSpacing: '0.15em' }}
+        >{label}</button>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // WEEKLY RESET OVERLAY — full-screen guided reflection
+    // ═════════════════════════════════════════════════════════════
+    function WeeklyResetOverlay({ weekStart, now, onClose, onSave }) {
+      const [phaseIdx, setPhaseIdx] = useState(0);
+      const [secondsLeft, setSecondsLeft] = useState(WEEKLY_RESET_PHASES[0].duration);
+      const [running, setRunning] = useState(false);
+      const [answers, setAnswers] = useState({});
+      const [saved, setSaved] = useState(false);
+      const timerRef = useRef(null);
+
+      const currentPhase = WEEKLY_RESET_PHASES[phaseIdx];
+      const elapsedInPhase = currentPhase.duration - secondsLeft;
+      const phaseProgress = elapsedInPhase / currentPhase.duration;
+      const totalElapsed = WEEKLY_RESET_PHASES.slice(0, phaseIdx).reduce((a, p) => a + p.duration, 0) + elapsedInPhase;
+      const totalProgress = totalElapsed / WEEKLY_RESET_TOTAL_SECONDS;
+
+      useEffect(() => {
+        if (running) {
+          timerRef.current = setInterval(() => {
+            setSecondsLeft(s => {
+              if (s <= 1) {
+                clearInterval(timerRef.current);
+                if (phaseIdx < WEEKLY_RESET_PHASES.length - 1) {
+                  const next = phaseIdx + 1;
+                  setPhaseIdx(next);
+                  setSecondsLeft(WEEKLY_RESET_PHASES[next].duration);
+                  setRunning(false);
+                } else {
+                  setRunning(false);
+                }
+                return 0;
+              }
+              return s - 1;
+            });
+          }, 1000);
+        } else {
+          clearInterval(timerRef.current);
+        }
+        return () => clearInterval(timerRef.current);
+      }, [running, phaseIdx]);
+
+      const goPhase = (i) => {
+        setPhaseIdx(i);
+        setSecondsLeft(WEEKLY_RESET_PHASES[i].duration);
+        setRunning(false);
+      };
+      const update = (key, val) => setAnswers(a => ({ ...a, [key]: val }));
+      const handleSave = () => {
+        onSave(answers);
+        setSaved(true);
+      };
+
+      const fmtTime = (s) => `${pad(Math.floor(s / 60))}:${pad(s % 60)}`;
+      const weekLabel = `Week of ${formatDateShort(weekStart)}, ${weekStart.getFullYear()}`;
+
+      return (
+        <div className="reset-overlay">
+          <div className="reset-wrap">
+            <div className="reset-header">
+              <div>
+                <div className="reset-eyebrow">CEO Weekly Reset</div>
+                <div style={{ fontSize: 22, marginTop: 4, letterSpacing: '-0.01em' }}>{weekLabel}</div>
+              </div>
+              <button className="reset-exit" onClick={onClose}>✕ Exit</button>
+            </div>
+
+            <div className="reset-progress-total">
+              <div className="reset-progress-total-fill" style={{ width: `${totalProgress * 100}%` }} />
+            </div>
+
+            <div className="reset-phase-tabs">
+              {WEEKLY_RESET_PHASES.map((p, i) => (
+                <button
+                  key={p.id}
+                  className={`reset-phase-tab ${i === phaseIdx ? 'active' : ''}`}
+                  onClick={() => goPhase(i)}
+                  style={i === phaseIdx ? { background: p.color, borderColor: p.color } : {}}
+                >{p.label}</button>
+              ))}
+            </div>
+
+            <div className="reset-phase-bar">
+              <div>
+                <div className="reset-phase-label" style={{ color: currentPhase.color }}>{currentPhase.label}</div>
+                <div className="reset-phase-meta">{phaseIdx + 1} of {WEEKLY_RESET_PHASES.length} · {currentPhase.prompts.length} prompts</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div className={`reset-timer ${secondsLeft < 30 ? 'warning' : ''}`} style={{ color: secondsLeft < 30 ? 'var(--coral)' : currentPhase.color }}>
+                  {fmtTime(secondsLeft)}
+                </div>
+                <div className="reset-timer-controls">
+                  <button
+                    className="reset-timer-btn"
+                    onClick={() => setRunning(r => !r)}
+                    style={{
+                      borderColor: running ? 'var(--coral)' : currentPhase.color,
+                      color: running ? 'var(--coral)' : currentPhase.color,
+                      background: running ? 'rgba(224,123,106,0.1)' : 'rgba(201,168,76,0.1)',
+                    }}
+                  >{running ? '⏸ Pause' : '▶ Start'}</button>
+                  {phaseIdx < WEEKLY_RESET_PHASES.length - 1 && (
+                    <button
+                      className="reset-timer-btn"
+                      onClick={() => goPhase(phaseIdx + 1)}
+                      style={{ borderColor: 'var(--border)', color: 'var(--muted-3)' }}
+                    >Next →</button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="reset-phase-progress">
+              <div className="reset-phase-progress-fill" style={{ width: `${phaseProgress * 100}%`, background: currentPhase.color }} />
+            </div>
+
+            <div className="reset-prompts">
+              {currentPhase.prompts.map((p, i) => (
+                <ResetPrompt
+                  key={p.key}
+                  prompt={p}
+                  index={i}
+                  value={answers[p.key]}
+                  scorecardValue={answers.scorecard}
+                  storyValue={answers.story}
+                  phaseColor={currentPhase.color}
+                  onUpdate={(val) => update(p.key, val)}
+                />
+              ))}
+            </div>
+
+            <div className="reset-nav">
+              <button
+                className="btn-secondary"
+                onClick={() => phaseIdx > 0 && goPhase(phaseIdx - 1)}
+                disabled={phaseIdx === 0}
+                style={{ opacity: phaseIdx === 0 ? 0.3 : 1 }}
+              >← Previous</button>
+              {phaseIdx < WEEKLY_RESET_PHASES.length - 1 ? (
+                <button className="btn-primary" onClick={() => goPhase(phaseIdx + 1)}>Next Phase →</button>
+              ) : (
+                <button
+                  className="btn-primary"
+                  onClick={handleSave}
+                  style={{ background: saved ? 'var(--teal)' : 'var(--gold)' }}
+                  disabled={saved}
+                >{saved ? '✓ Saved' : 'Save & Sync'}</button>
+              )}
+            </div>
+
+            {saved && (
+              <div className="reset-saved-card">
+                <div className="reset-saved-eyebrow">Session Saved</div>
+                <div className="reset-saved-text">
+                  Close your eyes. Take three slow breaths.<br />
+                  Name one thing you are grateful for.<br />
+                  State your experiment for next week aloud.<br />
+                  You are done. Go rest.
+                </div>
+                <button className="btn-primary" onClick={onClose}>Close</button>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    function ResetPrompt({ prompt, index, value, scorecardValue, storyValue, phaseColor, onUpdate }) {
+      return (
+        <div>
+          <label className="reset-prompt-label">
+            <span className="reset-prompt-num" style={{ color: phaseColor }}>{String(index + 1).padStart(2, '0')}</span>
+            {prompt.q}
+          </label>
+          {prompt.type === 'scale' && (
+            <div className="reset-scale">
+              {[1,2,3,4,5,6,7,8,9,10].map(n => (
+                <button
+                  key={n}
+                  className={`reset-scale-btn ${value === n ? 'active' : ''}`}
+                  onClick={() => onUpdate(n)}
+                  style={value === n ? { borderColor: phaseColor, color: phaseColor, background: hexToRgba(phaseColor, 0.13) } : {}}
+                >{n}</button>
+              ))}
+            </div>
+          )}
+          {prompt.type === 'short' && (
+            <input
+              type="text"
+              className="reset-input"
+              placeholder="Type here…"
+              value={value || ''}
+              onChange={e => onUpdate(e.target.value)}
+            />
+          )}
+          {prompt.type === 'long' && (
+            <textarea
+              className="reset-input reset-textarea"
+              placeholder="Write without filtering. Honesty is the only standard here."
+              value={value || ''}
+              onChange={e => onUpdate(e.target.value)}
+            />
+          )}
+          {prompt.type === 'scorecard' && (
+            <div>
+              {[
+                { key: 'sc_strategic', label: 'Strategic work' },
+                { key: 'sc_execution', label: 'Execution quality' },
+                { key: 'sc_learning', label: 'Learning & growth' },
+                { key: 'sc_leadership', label: 'Leadership presence' },
+              ].map(row => {
+                const sc = scorecardValue || {};
+                return (
+                  <div key={row.key} className="reset-scorecard-row">
+                    <div className="reset-scorecard-label">{row.label}</div>
+                    <div className="reset-scorecard-buttons">
+                      {[1,2,3,4,5].map(n => (
+                        <button
+                          key={n}
+                          className="reset-scorecard-btn"
+                          onClick={() => onUpdate({ ...sc, [row.key]: n })}
+                          style={sc[row.key] === n ? {
+                            borderColor: phaseColor,
+                            color: phaseColor,
+                            background: hexToRgba(phaseColor, 0.2),
+                          } : {}}
+                        >{n}</button>
+                      ))}
+                    </div>
+                    {sc[row.key] && (
+                      <div className="reset-scorecard-rating">
+                        {['', 'Critical gap', 'Below standard', 'On track', 'Strong', 'Exceptional'][sc[row.key]]}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          {prompt.type === 'story' && (
+            <div>
+              {[
+                { key: 'story_situation', label: 'Situation', placeholder: 'What was the context or challenge?' },
+                { key: 'story_action', label: 'Action', placeholder: 'What did you specifically do or decide?' },
+                { key: 'story_value', label: 'Value demonstrated', placeholder: 'e.g. ownership, courage, clarity, strategic thinking, integrity' },
+              ].map(row => {
+                const st = storyValue || {};
+                return (
+                  <div key={row.key} className="reset-story-block">
+                    <div className="reset-story-label">{row.label}</div>
+                    <textarea
+                      className="reset-story-input"
+                      placeholder={row.placeholder}
+                      value={st[row.key] || ''}
+                      onChange={e => onUpdate({ ...st, [row.key]: e.target.value })}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       );
     }
