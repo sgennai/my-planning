@@ -1644,6 +1644,63 @@
       color: var(--coral);
     }
 
+    /* ───────── ELSEWHERE SUGGESTIONS BANNER ───────── */
+    .suggest-banner {
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      background: rgba(201, 168, 76, 0.08);
+      border-left: 3px solid var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .suggest-banner-icon {
+      color: var(--gold);
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .suggest-banner-text {
+      flex: 1;
+      min-width: 200px;
+      font-size: 13px;
+      color: var(--muted-1);
+      line-height: 1.5;
+    }
+    .suggest-banner-text b {
+      color: var(--text);
+      font-weight: 500;
+    }
+    .suggest-chips {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .suggest-chip {
+      padding: 6px 12px;
+      background: transparent;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      font-family: var(--mono);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .suggest-chip:hover {
+      background: rgba(201, 168, 76, 0.18);
+    }
+    .suggest-dismiss {
+      background: transparent;
+      border: none;
+      color: var(--muted-3);
+      font-size: 14px;
+      cursor: pointer;
+      padding: 4px 8px;
+      flex-shrink: 0;
+    }
+    .suggest-dismiss:hover { color: var(--muted-1); }
+
     /* ───────── CAPTURE INBOX ───────── */
     .capture-bar {
       display: flex;
@@ -3193,6 +3250,12 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         if (ov.type === 'skip') return;
         if (ov.type === 'move') return; // rendered on another date
         if (ov.type === 'edit') {
+          // Detect whether the override actually changes anything visible
+          const hasChange =
+            (ov.title != null && ov.title !== item.title) ||
+            (ov.note != null && ov.note !== item.note) ||
+            (ov.start != null && ov.start !== item.start) ||
+            (ov.duration != null && ov.duration !== item.duration);
           out.push({
             ...item,
             title: ov.title != null ? ov.title : item.title,
@@ -3200,7 +3263,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             start: ov.start != null ? ov.start : item.start,
             duration: ov.duration != null ? ov.duration : item.duration,
             _kind: 'routine',
-            _overridden: true,
+            _overridden: hasChange,
           });
         }
       });
@@ -4008,6 +4071,17 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                 <ElsewhereToggles
                   elsewhere={elsewhere}
                   onToggle={toggleElsewhere}
+                />
+              )}
+
+              {!isMobile && (
+                <ElsewhereSuggestions
+                  routine={data.routine || []}
+                  overrides={data.overrides || {}}
+                  elsewhere={elsewhere}
+                  today={now}
+                  onMove={(itemId, newStart) => setOverride(itemId, now, { type: 'edit', start: newStart })}
+                  onDismiss={(itemId) => setOverride(itemId, now, { type: 'edit', _dismissedSuggestion: true })}
                 />
               )}
 
@@ -5967,6 +6041,92 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             </span>
           )}
         </div>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // ELSEWHERE SUGGESTIONS — one banner per homeOnly supplement
+    // that conflicts with today's elsewhere toggles. One-tap move.
+    // ═════════════════════════════════════════════════════════════
+    function ElsewhereSuggestions({ routine, overrides, elsewhere, today, onMove, onDismiss }) {
+      const anyToggleOn = elsewhere && (elsewhere.morning || elsewhere.afternoon || elsewhere.allDay);
+      if (!anyToggleOn) return null;
+
+      const jsDay = today.getDay();
+
+      // Find affected supplements: homeOnly + supplement category + scheduled today
+      // and falling in the period(s) blocked by the toggles, AND not yet handled by an override today.
+      const affected = routine.filter(item => {
+        if (item.recurrence) return false;
+        if (item.category !== 'supplement') return false;
+        if (!item.homeOnly) return false;
+        if (!item.days.includes(jsDay)) return false;
+        const startMin = toMinutes(item.start);
+        if (elsewhere.allDay) return true;
+        if (elsewhere.morning && startMin < 12 * 60) return true;
+        if (elsewhere.afternoon && startMin >= 12 * 60) return true;
+        return false;
+      }).filter(item => {
+        // Skip if user has already handled this with an override (moved or dismissed)
+        const key = makeOverrideKey(item.id, today);
+        const ov = overrides[key];
+        if (!ov) return true;
+        // If they've already edited the start time today, the suggestion is resolved.
+        return false;
+      });
+
+      if (affected.length === 0) return null;
+
+      // Suggest 3 candidate times based on which period is free.
+      // If morning is blocked (or all-day), suggest afternoon/evening times.
+      // If only afternoon is blocked, suggest morning times.
+      const buildSuggestions = (item) => {
+        const startMin = toMinutes(item.start);
+        const inMorning = startMin < 12 * 60;
+        // Default suggestion sets — three sensible chips
+        let candidates;
+        if (elsewhere.allDay) {
+          // Push to evening regardless of original time
+          candidates = ['18:00', '19:30', '21:00'];
+        } else if (inMorning) {
+          // Originally morning, push to afternoon/evening
+          candidates = ['14:00', '17:00', '19:00'];
+        } else {
+          // Originally afternoon, push to morning
+          candidates = ['08:00', '10:00', '11:30'];
+        }
+        // Drop any candidate that's STILL in a blocked period
+        return candidates.filter(t => {
+          const m = toMinutes(t);
+          if (elsewhere.allDay) return false ? false : true; // keep all if all-day (you have to pick something)
+          if (elsewhere.morning && m < 12 * 60) return false;
+          if (elsewhere.afternoon && m >= 12 * 60) return false;
+          return true;
+        });
+      };
+
+      return (
+        <>
+          {affected.map(item => {
+            const suggestions = buildSuggestions(item);
+            return (
+              <div key={item.id} className="suggest-banner">
+                <span className="suggest-banner-icon">⚡</span>
+                <div className="suggest-banner-text">
+                  <b>{item.title}</b> at {item.start} conflicts with being out today. Move to:
+                </div>
+                <div className="suggest-chips">
+                  {suggestions.map(t => (
+                    <button key={t} className="suggest-chip" onClick={() => onMove(item.id, t)}>
+                      {t}
+                    </button>
+                  ))}
+                </div>
+                <button className="suggest-dismiss" onClick={() => onDismiss(item.id)} title="Dismiss this suggestion for today">×</button>
+              </div>
+            );
+          })}
+        </>
       );
     }
 
