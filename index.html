@@ -2029,7 +2029,110 @@
       margin: 0 auto 24px;
     }
 
-    /* Friday review CTA — appears on the Friday Weekly Review block */
+    /* ───────── IMPORTED ICS EVENTS ───────── */
+    .cal-item.ics-event {
+      border-left-style: dashed;
+      cursor: default;
+    }
+    .cal-item.ics-event:hover {
+      filter: brightness(1.15);
+    }
+    .cal-item.ics-event.ics-work {
+      background: rgba(140, 140, 150, 0.16);
+      border-left-color: #8C8C96;
+    }
+    .cal-item.ics-event.ics-household {
+      background: rgba(120, 150, 175, 0.16);
+      border-left-color: #7896AF;
+    }
+    .cal-item.ics-event .cal-item-time {
+      opacity: 0.7;
+    }
+    .cal-item.ics-event .cal-item-title {
+      opacity: 0.85;
+    }
+    .cal-item.ics-event.all-day {
+      background: rgba(140, 140, 150, 0.08);
+      border: 1px dashed rgba(140, 140, 150, 0.5);
+      border-left-width: 3px;
+    }
+
+    /* ───────── SETTINGS MODAL ───────── */
+    .settings-modal { max-width: 720px; }
+    .settings-section {
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--rule);
+    }
+    .settings-section:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    .settings-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .settings-field-label {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      color: var(--muted-2);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .settings-field-hint {
+      font-size: 11px;
+      color: var(--muted-3);
+      font-style: italic;
+      margin-top: 2px;
+      line-height: 1.5;
+    }
+    .settings-field-hint code {
+      font-family: var(--mono);
+      font-size: 10px;
+      background: var(--bg-card-deep);
+      padding: 1px 5px;
+      color: var(--muted-1);
+    }
+    .settings-input {
+      background: var(--bg-card-deep);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 12px;
+      font-family: var(--mono);
+      font-size: 12px;
+      width: 100%;
+      box-sizing: border-box;
+      letter-spacing: 0.02em;
+    }
+    .settings-input:focus { outline: none; border-color: var(--gold); }
+    .settings-input.placeholder {
+      color: var(--muted-4);
+      font-style: italic;
+    }
+    .calendar-status {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 11px;
+      color: var(--muted-3);
+      font-family: var(--mono);
+      letter-spacing: 0.05em;
+      padding: 8px 0;
+    }
+    .calendar-status .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--muted-4);
+      flex-shrink: 0;
+    }
+    .calendar-status.ok .dot { background: var(--teal); }
+    .calendar-status.error .dot { background: var(--coral); }
+    .calendar-status.loading .dot { background: var(--gold); animation: pulse 1.2s ease-in-out infinite; }
+
+
     .cal-item.friday-review-active {
       background: rgba(201, 168, 76, 0.25) !important;
       box-shadow: 0 0 0 1px var(--gold), 0 0 12px rgba(201, 168, 76, 0.4);
@@ -2067,7 +2170,7 @@
     const CLIENT_ID = '25894919429-pbtl8l6nn23vnvc8c8cbhg5f3n8gepu6.apps.googleusercontent.com';
     const SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
     const FILE_NAME = 'my-planning-data.json';
-    const SCHEMA_VERSION = 6;
+    const SCHEMA_VERSION = 7;
 
     // Days: JS Date.getDay() — 0=Sun, 1=Mon ... 6=Sat. Visual columns are Mon-first.
     const VISUAL_TO_JS_DAY = [1, 2, 3, 4, 5, 6, 0];
@@ -2796,6 +2899,280 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       return `${itemId}:${startOfDay(date).toISOString()}`;
     }
 
+    // ─────────────────────────────────────────────────────────────
+    // ICS PARSER — handles the subset of iCalendar that real Google
+    // Calendar feeds actually emit: VEVENT with DTSTART/DTEND,
+    // RRULE (DAILY/WEEKLY/MONTHLY/YEARLY + INTERVAL/COUNT/UNTIL/BYDAY),
+    // EXDATE for skipped occurrences. Anything else is treated as a
+    // single occurrence at DTSTART.
+    // ─────────────────────────────────────────────────────────────
+
+    // Unfold continuation lines (RFC 5545: lines starting with space/tab continue the previous line)
+    function unfoldICS(text) {
+      return text.replace(/\r?\n[ \t]/g, '');
+    }
+
+    // Parse an ICS DATE-TIME value into a JS Date.
+    // Handles "20260101T093000Z" (UTC), "20260101T093000" (local), "TZID=...:20260101T093000" (timezone).
+    // For TZID values we treat them as local — good enough for visual display.
+    function parseICSDate(value) {
+      if (!value) return null;
+      // Strip TZID prefix if present (handled at param level, not here)
+      const v = value.replace(/^.*:/, '').trim();
+      // All-day "20260101"
+      if (/^\d{8}$/.test(v)) {
+        const y = +v.slice(0, 4), mo = +v.slice(4, 6) - 1, d = +v.slice(6, 8);
+        return new Date(y, mo, d, 0, 0, 0);
+      }
+      // Datetime "20260101T093000" or "20260101T093000Z"
+      const m = v.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z?)$/);
+      if (!m) return null;
+      const [, y, mo, d, h, mi, s, z] = m;
+      if (z === 'Z') {
+        return new Date(Date.UTC(+y, +mo - 1, +d, +h, +mi, +s));
+      }
+      return new Date(+y, +mo - 1, +d, +h, +mi, +s);
+    }
+
+    // Parse a single VEVENT block into a structured object
+    function parseVEvent(lines) {
+      const ev = { rrule: null, exdates: [] };
+      lines.forEach(line => {
+        // Split on the first colon, but watch for parameters before it (e.g. DTSTART;TZID=...:value)
+        const colonIdx = line.indexOf(':');
+        if (colonIdx === -1) return;
+        const lhs = line.slice(0, colonIdx);
+        const rhs = line.slice(colonIdx + 1);
+        // Property name is everything before the first ;
+        const semiIdx = lhs.indexOf(';');
+        const propName = (semiIdx === -1 ? lhs : lhs.slice(0, semiIdx)).toUpperCase();
+        const propParams = semiIdx === -1 ? '' : lhs.slice(semiIdx + 1);
+        switch (propName) {
+          case 'SUMMARY':
+            ev.title = rhs.replace(/\\n/g, ' ').replace(/\\,/g, ',').replace(/\\;/g, ';');
+            break;
+          case 'DTSTART':
+            ev.startRaw = rhs;
+            ev.start = parseICSDate(rhs);
+            ev.allDay = /^\d{8}$/.test(rhs.trim()) || /VALUE=DATE/i.test(propParams);
+            break;
+          case 'DTEND':
+            ev.end = parseICSDate(rhs);
+            break;
+          case 'DURATION':
+            // Simple ISO 8601 duration (PT1H30M)
+            ev.durationStr = rhs;
+            break;
+          case 'RRULE':
+            ev.rrule = parseRRule(rhs);
+            break;
+          case 'EXDATE': {
+            const parts = rhs.split(',');
+            parts.forEach(p => {
+              const d = parseICSDate(p);
+              if (d) ev.exdates.push(d.getTime());
+            });
+            break;
+          }
+          case 'UID':
+            ev.uid = rhs;
+            break;
+          case 'STATUS':
+            ev.status = rhs;
+            break;
+          case 'LOCATION':
+            ev.location = rhs;
+            break;
+        }
+      });
+      // Fill in end if missing — default to 1 hour after start, or end-of-day for all-day
+      if (ev.start && !ev.end) {
+        if (ev.allDay) {
+          ev.end = new Date(ev.start);
+          ev.end.setHours(23, 59, 0, 0);
+        } else {
+          ev.end = new Date(ev.start.getTime() + 60 * 60 * 1000);
+        }
+      }
+      return ev;
+    }
+
+    function parseRRule(value) {
+      const out = {};
+      value.split(';').forEach(part => {
+        const [k, v] = part.split('=');
+        if (!k || !v) return;
+        out[k.toUpperCase()] = v;
+      });
+      const r = {
+        freq: (out.FREQ || '').toUpperCase(), // DAILY/WEEKLY/MONTHLY/YEARLY
+        interval: out.INTERVAL ? parseInt(out.INTERVAL, 10) : 1,
+        count: out.COUNT ? parseInt(out.COUNT, 10) : null,
+        until: out.UNTIL ? parseICSDate(out.UNTIL) : null,
+        byday: out.BYDAY ? out.BYDAY.split(',').map(s => s.trim().toUpperCase()) : null,
+      };
+      return r;
+    }
+
+    // Map RRULE BYDAY codes to JS Date.getDay() values
+    const RRULE_DAY_MAP = { SU: 0, MO: 1, TU: 2, WE: 3, TH: 4, FR: 5, SA: 6 };
+
+    // Expand a VEVENT's recurrence into concrete instances within [windowStart, windowEnd]
+    function expandEvent(ev, windowStart, windowEnd) {
+      if (!ev.start) return [];
+      const occurrences = [];
+      const startMs = ev.start.getTime();
+      const endMs = ev.end ? ev.end.getTime() : startMs + 60 * 60 * 1000;
+      const durationMs = endMs - startMs;
+
+      const isExcluded = (d) => ev.exdates.includes(d.getTime());
+
+      // No RRULE — single event
+      if (!ev.rrule || !ev.rrule.freq) {
+        if (ev.start <= windowEnd && (ev.end || ev.start) >= windowStart && !isExcluded(ev.start)) {
+          occurrences.push({ start: ev.start, end: ev.end || new Date(startMs + durationMs) });
+        }
+        return occurrences;
+      }
+
+      const r = ev.rrule;
+      // Safety bound
+      const maxIter = 500;
+      let iter = 0;
+      let count = 0;
+
+      const pushIf = (d) => {
+        if (isExcluded(d)) return;
+        if (d > windowEnd) return false; // stop
+        const e = new Date(d.getTime() + durationMs);
+        if (e >= windowStart) {
+          occurrences.push({ start: new Date(d), end: e });
+        }
+        return true;
+      };
+
+      if (r.freq === 'DAILY') {
+        let cursor = new Date(ev.start);
+        while (iter++ < maxIter) {
+          if (r.until && cursor > r.until) break;
+          if (r.count && count >= r.count) break;
+          if (cursor > windowEnd) break;
+          if (cursor >= windowStart || cursor.getTime() === ev.start.getTime()) {
+            pushIf(cursor);
+          }
+          count++;
+          cursor = new Date(cursor); cursor.setDate(cursor.getDate() + r.interval);
+        }
+      } else if (r.freq === 'WEEKLY') {
+        // If BYDAY present, iterate week by week and emit on each listed day
+        const days = r.byday ? r.byday.map(c => RRULE_DAY_MAP[c.replace(/^[+-]?\d+/, '')]).filter(d => d != null) : [ev.start.getDay()];
+        // Cursor starts at the start of the week containing DTSTART
+        let weekCursor = new Date(ev.start);
+        weekCursor.setDate(weekCursor.getDate() - weekCursor.getDay()); // back to Sunday
+        weekCursor.setHours(ev.start.getHours(), ev.start.getMinutes(), ev.start.getSeconds(), 0);
+        while (iter++ < maxIter) {
+          if (r.until && weekCursor > r.until) break;
+          if (weekCursor.getTime() - 7 * 24 * 60 * 60 * 1000 > windowEnd.getTime()) break;
+          for (const day of days) {
+            if (r.count && count >= r.count) break;
+            const occ = new Date(weekCursor);
+            occ.setDate(occ.getDate() + day);
+            if (occ < ev.start) continue; // skip occurrences before DTSTART
+            if (r.until && occ > r.until) break;
+            if (occ > windowEnd) break;
+            if (occ >= windowStart) pushIf(occ);
+            count++;
+          }
+          if (r.count && count >= r.count) break;
+          weekCursor = new Date(weekCursor); weekCursor.setDate(weekCursor.getDate() + 7 * r.interval);
+        }
+      } else if (r.freq === 'MONTHLY') {
+        let cursor = new Date(ev.start);
+        while (iter++ < maxIter) {
+          if (r.until && cursor > r.until) break;
+          if (r.count && count >= r.count) break;
+          if (cursor > windowEnd) break;
+          if (cursor >= windowStart || cursor.getTime() === ev.start.getTime()) pushIf(cursor);
+          count++;
+          cursor = new Date(cursor); cursor.setMonth(cursor.getMonth() + r.interval);
+        }
+      } else if (r.freq === 'YEARLY') {
+        let cursor = new Date(ev.start);
+        while (iter++ < maxIter) {
+          if (r.until && cursor > r.until) break;
+          if (r.count && count >= r.count) break;
+          if (cursor > windowEnd) break;
+          if (cursor >= windowStart || cursor.getTime() === ev.start.getTime()) pushIf(cursor);
+          count++;
+          cursor = new Date(cursor); cursor.setFullYear(cursor.getFullYear() + r.interval);
+        }
+      } else {
+        // Unsupported FREQ — fall back to a single occurrence
+        if (ev.start <= windowEnd && (ev.end || ev.start) >= windowStart && !isExcluded(ev.start)) {
+          occurrences.push({ start: ev.start, end: ev.end || new Date(startMs + durationMs) });
+        }
+      }
+
+      return occurrences;
+    }
+
+    // Parse a full ICS document and return structured events
+    function parseICS(text) {
+      if (!text) return [];
+      const unfolded = unfoldICS(text);
+      const lines = unfolded.split(/\r?\n/);
+      const events = [];
+      let cur = null;
+      for (const line of lines) {
+        if (line.startsWith('BEGIN:VEVENT')) cur = [];
+        else if (line.startsWith('END:VEVENT')) {
+          if (cur) {
+            const ev = parseVEvent(cur);
+            // Skip CANCELLED events
+            if (ev.status !== 'CANCELLED' && ev.start) events.push(ev);
+            cur = null;
+          }
+        } else if (cur) {
+          cur.push(line);
+        }
+      }
+      return events;
+    }
+
+    // Build a flat list of occurrences from parsed events for a given week window.
+    // Each occurrence is { source, title, start, end, location, allDay }.
+    function expandEventsForWindow(events, windowStart, windowEnd, source) {
+      const out = [];
+      events.forEach(ev => {
+        const occs = expandEvent(ev, windowStart, windowEnd);
+        occs.forEach(occ => {
+          out.push({
+            source,
+            title: ev.title || '(untitled)',
+            start: occ.start,
+            end: occ.end,
+            location: ev.location,
+            allDay: ev.allDay,
+            uid: ev.uid,
+          });
+        });
+      });
+      return out;
+    }
+
+    // Fetch and parse an ICS feed via the proxy. Returns parsed events (not yet expanded).
+    async function fetchICS(proxyUrl, feedUrl) {
+      if (!proxyUrl || !feedUrl) throw new Error('Missing proxy or feed URL');
+      const url = `${proxyUrl}?url=${encodeURIComponent(feedUrl)}`;
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error(`Fetch failed (${resp.status}): ${await resp.text().catch(() => '')}`);
+      const text = await resp.text();
+      if (!text.includes('BEGIN:VCALENDAR')) {
+        throw new Error('Response does not look like an ICS feed');
+      }
+      return parseICS(text);
+    }
+
     // Resolve which routine items render on a given date, applying overrides.
     function resolvedRoutineForDate(routine, overrides, date) {
       const dateKey = startOfDay(date).toISOString();
@@ -2884,8 +3261,9 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         .reduce((sum, b) => sum + (b.actualMinutes || 0), 0);
     }
 
-    // Combine routine items + project blocks for a single day, applying overrides + lane allocation.
-    function combinedDayItems(visualCol, routine, blocks, weekStart, overrides, elsewhereToggles, today) {
+    // Combine routine items + project blocks + ICS imported events for a single day,
+    // applying overrides + lane allocation.
+    function combinedDayItems(visualCol, routine, blocks, weekStart, overrides, elsewhereToggles, today, icsOccurrences) {
       const date = addDays(weekStart, visualCol);
       let routineItems = resolvedRoutineForDate(routine, overrides || {}, date);
       routineItems = applyElsewhereFilter(routineItems, date, elsewhereToggles, today);
@@ -2898,7 +3276,21 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         _kind: 'block',
         _block: b,
       }));
-      return layoutDay([...routineItems, ...blockItems]);
+      // ICS occurrences for this date
+      const icsItems = (icsOccurrences || []).filter(occ => isSameDay(occ.start, date)).map((occ, i) => {
+        const startStr = `${pad(occ.start.getHours())}:${pad(occ.start.getMinutes())}`;
+        const durationMin = Math.max(15, Math.round((occ.end.getTime() - occ.start.getTime()) / 60000));
+        return {
+          id: `ics-${occ.source}-${occ.uid || i}-${occ.start.getTime()}`,
+          title: occ.title,
+          start: startStr,
+          duration: durationMin,
+          category: 'ics-event',
+          _kind: 'ics',
+          _ics: occ,
+        };
+      });
+      return layoutDay([...routineItems, ...blockItems, ...icsItems]);
     }
 
     // Get the set of action IDs that are currently scheduled or completed
@@ -3029,7 +3421,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         lastModified: now,
         routine: SEED_ROUTINE,
         overrides: {},
-        calendars: { workIcs: '', householdIcs: '' },
+        calendars: { workIcs: '', householdIcs: '', proxyUrl: '' },
         weeklyResets: [],
         projects: SEED_PROJECTS,
         scheduledBlocks: [],
@@ -3078,7 +3470,8 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       }
       if (!Array.isArray(next.scheduledBlocks)) { next.scheduledBlocks = []; changed = true; }
       if (!next.overrides) { next.overrides = {}; changed = true; }
-      if (!next.calendars) { next.calendars = { workIcs: '', householdIcs: '' }; changed = true; }
+      if (!next.calendars) { next.calendars = { workIcs: '', householdIcs: '', proxyUrl: '' }; changed = true; }
+      else if (next.calendars.proxyUrl === undefined) { next.calendars.proxyUrl = ''; changed = true; }
       if (!next.weeklyResets) { next.weeklyResets = []; changed = true; }
       if (!next.inbox) { next.inbox = []; changed = true; }
       if (!next.elsewhereToggles) { next.elsewhereToggles = { morning: false, afternoon: false, allDay: false, date: null }; changed = true; }
@@ -3288,6 +3681,11 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       const [routineManagerOpen, setRoutineManagerOpen] = useState(false);
       const [inboxOpen, setInboxOpen] = useState(false);
       const [resetOverlayOpen, setResetOverlayOpen] = useState(false);
+      const [settingsOpen, setSettingsOpen] = useState(false);
+      // ICS imported events: per-feed parsed events in memory (not synced to Drive)
+      // Shape: { work: { events: [...], lastFetched: Date, error: '' }, household: { ... } }
+      const [icsCache, setIcsCache] = useState({ work: null, household: null });
+      const [icsRefreshing, setIcsRefreshing] = useState(false);
 
       const weekEnd = addDays(weekStart, 6);
       const isCurrentWeek = isSameDay(weekStart, startOfWeek(now));
@@ -3461,6 +3859,61 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         }));
       }, [persistData, weekStart]);
 
+      // ─── ICS handlers ───────────────────────────────
+      const calendarSettings = data.calendars || { workIcs: '', householdIcs: '', proxyUrl: '' };
+
+      const updateCalendarSettings = useCallback((patch) => {
+        persistData(d => ({
+          ...d,
+          calendars: { ...(d.calendars || {}), ...patch },
+        }));
+      }, [persistData]);
+
+      const refreshICS = useCallback(async () => {
+        const settings = data.calendars || {};
+        if (!settings.proxyUrl) return;
+        setIcsRefreshing(true);
+        const next = { work: null, household: null };
+        const fetchOne = async (key, url) => {
+          if (!url) return;
+          try {
+            const events = await fetchICS(settings.proxyUrl, url);
+            next[key] = { events, lastFetched: new Date(), error: '' };
+          } catch (e) {
+            next[key] = { events: [], lastFetched: new Date(), error: e.message || 'Fetch failed' };
+          }
+        };
+        await Promise.all([
+          fetchOne('work', settings.workIcs),
+          fetchOne('household', settings.householdIcs),
+        ]);
+        setIcsCache(next);
+        setIcsRefreshing(false);
+      }, [data.calendars]);
+
+      // Auto-fetch on mount + when feed URLs change
+      const cfgKey = `${calendarSettings.proxyUrl}|${calendarSettings.workIcs}|${calendarSettings.householdIcs}`;
+      useEffect(() => {
+        if (calendarSettings.proxyUrl && (calendarSettings.workIcs || calendarSettings.householdIcs)) {
+          refreshICS();
+        }
+        // eslint-disable-next-line
+      }, [cfgKey]);
+
+      // Compute ICS occurrences for the visible week (memoized — recomputes only when week or cache changes)
+      const icsOccurrences = useMemo(() => {
+        const winStart = startOfDay(weekStart);
+        const winEnd = startOfDay(addDays(weekStart, 7));
+        const out = [];
+        ['work', 'household'].forEach(source => {
+          const entry = icsCache[source];
+          if (!entry || !entry.events) return;
+          const occs = expandEventsForWindow(entry.events, winStart, winEnd, source);
+          out.push(...occs);
+        });
+        return out;
+      }, [weekStart, icsCache]);
+
       const goPrev = () => {
         if (dayView !== null) {
           if (dayView === 0) {
@@ -3575,6 +4028,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                   onBlockClick={(blockId) => setOpenBlockId(blockId)}
                   onRoutineClick={handleRoutineClick}
                   elsewhereToggles={elsewhere}
+                  icsOccurrences={icsOccurrences}
                 />
               ) : (
                 <WeekGrid
@@ -3591,6 +4045,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                   onRoutineClick={handleRoutineClick}
                   onUpdateBlock={updateBlock}
                   elsewhereToggles={elsewhere}
+                  icsOccurrences={icsOccurrences}
                 />
               )}
 
@@ -3658,6 +4113,17 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             />
           )}
 
+          {settingsOpen && (
+            <SettingsModal
+              calendars={calendarSettings}
+              icsCache={icsCache}
+              icsRefreshing={icsRefreshing}
+              onUpdate={updateCalendarSettings}
+              onRefresh={refreshICS}
+              onClose={() => setSettingsOpen(false)}
+            />
+          )}
+
           <details className="raw">
             <summary>Diagnostics · raw data</summary>
             <pre>{JSON.stringify(data, null, 2)}</pre>
@@ -3671,6 +4137,12 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                 weeklyResets={data.weeklyResets || []}
                 onLaunch={() => setResetOverlayOpen(true)}
               />
+              {(calendarSettings.workIcs || calendarSettings.householdIcs) && (
+                <button className="btn-tertiary" onClick={refreshICS} disabled={icsRefreshing}>
+                  {icsRefreshing ? '↻ Refreshing…' : '↻ Calendars'}
+                </button>
+              )}
+              <button className="btn-tertiary" onClick={() => setSettingsOpen(true)}>⚙ Settings</button>
               <button className="btn-tertiary" onClick={onReload}>↻ Reload</button>
               <button className="btn-tertiary" onClick={onSignOut}>Sign out</button>
             </div>
@@ -4253,7 +4725,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
     const END_HOUR = 23;
     const HOURS_VISIBLE = END_HOUR - START_HOUR;
 
-    function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, now, singleCol, onDayClick, onCreateBlock, onBlockClick, onRoutineClick, onUpdateBlock, elsewhereToggles }) {
+    function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, now, singleCol, onDayClick, onCreateBlock, onBlockClick, onRoutineClick, onUpdateBlock, elsewhereToggles, icsOccurrences }) {
       const isDayView = singleCol !== null && singleCol !== undefined;
       const HOUR_HEIGHT = isDayView ? HOUR_HEIGHT_DAY : HOUR_HEIGHT_WEEK;
       const totalHeight = HOURS_VISIBLE * HOUR_HEIGHT;
@@ -4381,7 +4853,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
               const date = addDays(weekStart, col);
               const isToday = isCurrentWeek && isSameDay(date, now);
               const isWeekend = col === 5 || col === 6;
-              const dayItems = combinedDayItems(col, routine, scheduledBlocks || [], weekStart, overrides, elsewhereToggles, now);
+              const dayItems = combinedDayItems(col, routine, scheduledBlocks || [], weekStart, overrides, elsewhereToggles, now, icsOccurrences);
 
               return (
                 <div
@@ -4429,14 +4901,21 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
     function CalItem({ item, date, hourHeight, projects, onBlockClick, onRoutineClick, onUpdateBlock }) {
       const isBlock = item._kind === 'block';
       const isRoutine = item._kind === 'routine';
+      const isIcs = item._kind === 'ics';
       const block = isBlock ? item._block : null;
       const project = isBlock && projects ? projects.find(p => p.id === block.projectId) : null;
       const projectColor = (project && project.color) || 'var(--gold)';
 
       // Style + colors
-      const style = isBlock
-        ? { color: projectColor, bgAlpha: 0.18 }
-        : (CATEGORY_STYLES[item.category] || CATEGORY_STYLES.supplement);
+      let style;
+      if (isBlock) {
+        style = { color: projectColor, bgAlpha: 0.18 };
+      } else if (isIcs) {
+        const isWork = item._ics && item._ics.source === 'work';
+        style = { color: isWork ? '#8C8C96' : '#7896AF', bgAlpha: 0.16 };
+      } else {
+        style = (CATEGORY_STYLES[item.category] || CATEGORY_STYLES.supplement);
+      }
 
       const startMin = toMinutes(item.start);
       const offsetMin = startMin - START_HOUR * 60;
@@ -4498,14 +4977,22 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             block.status === 'completed' ? `Completed · ${block.actualMinutes || 0} min` : null,
             'Click to manage · drag bottom edge to resize',
           ].filter(Boolean)
-        : [
-            `${item.title} · ${item.start}–${endStr}`,
-            item.note,
-            item.homeOnly ? '(home only)' : null,
-            item._moved ? 'Moved this week from another day' : null,
-            item._overridden ? 'Edited just for this week' : null,
-            'Click to edit',
-          ].filter(Boolean);
+        : isIcs
+          ? [
+              `${item.title}`,
+              `Source: ${item._ics.source === 'work' ? 'Work calendar' : 'Household calendar'}`,
+              `${item.start}–${endStr}`,
+              item._ics.location ? `Location: ${item._ics.location}` : null,
+              'Read-only · edit in source calendar',
+            ].filter(Boolean)
+          : [
+              `${item.title} · ${item.start}–${endStr}`,
+              item.note,
+              item.homeOnly ? '(home only)' : null,
+              item._moved ? 'Moved this week from another day' : null,
+              item._overridden ? 'Edited just for this week' : null,
+              'Click to edit',
+            ].filter(Boolean);
 
       let cls = 'cal-item';
       if (isTiny) cls += ' tiny';
@@ -4521,10 +5008,16 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         if (item._moved) cls += ' moved';
         else if (item._overridden) cls += ' overridden';
       }
+      if (isIcs) {
+        cls += ' ics-event';
+        cls += item._ics.source === 'work' ? ' ics-work' : ' ics-household';
+        if (item._ics.allDay) cls += ' all-day';
+      }
 
       const onClick = (e) => {
         // Don't trigger when the click was actually on the resize handle
         if (e.target.classList && e.target.classList.contains('cal-item-resize-handle')) return;
+        if (isIcs) return; // ICS events are read-only
         e.stopPropagation();
         if (isBlock && onBlockClick) onBlockClick(block.id);
         else if (isRoutine && onRoutineClick && date) onRoutineClick(item.id, date);
@@ -4575,7 +5068,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
     // ═════════════════════════════════════════════════════════════
     // AGENDA VIEW (mobile)
     // ═════════════════════════════════════════════════════════════
-    function AgendaView({ routine, overrides, scheduledBlocks, projects, weekStart, now, onBlockClick, onRoutineClick, elsewhereToggles }) {
+    function AgendaView({ routine, overrides, scheduledBlocks, projects, weekStart, now, onBlockClick, onRoutineClick, elsewhereToggles, icsOccurrences }) {
       const isCurrentWeek = isSameDay(weekStart, startOfWeek(now));
       const todayCol = isCurrentWeek
         ? (now.getDay() === 0 ? 6 : now.getDay() - 1)
@@ -4608,7 +5101,20 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
           _project: project,
         };
       });
-      const sorted = [...routineItems, ...blockItems].sort((a, b) => toMinutes(a.start) - toMinutes(b.start));
+      const icsItems = (icsOccurrences || []).filter(occ => isSameDay(occ.start, date)).map((occ, i) => {
+        const startStr = `${pad(occ.start.getHours())}:${pad(occ.start.getMinutes())}`;
+        const durationMin = Math.max(15, Math.round((occ.end.getTime() - occ.start.getTime()) / 60000));
+        return {
+          id: `ics-${occ.source}-${occ.uid || i}-${occ.start.getTime()}`,
+          title: occ.title,
+          start: startStr,
+          duration: durationMin,
+          category: 'ics-event',
+          _kind: 'ics',
+          _ics: occ,
+        };
+      });
+      const sorted = [...routineItems, ...blockItems, ...icsItems].sort((a, b) => toMinutes(a.start) - toMinutes(b.start));
       const nowMin = now.getHours() * 60 + now.getMinutes();
 
       return (
@@ -4642,11 +5148,14 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             <div className="agenda-list">
               {sorted.map(item => {
                 const isBlock = item._kind === 'block';
+                const isIcs = item._kind === 'ics';
                 const block = isBlock ? item._block : null;
                 const project = isBlock ? item._project : null;
                 const color = isBlock
                   ? ((project && project.color) || 'var(--gold)')
-                  : (CATEGORY_STYLES[item.category] || CATEGORY_STYLES.supplement).color;
+                  : isIcs
+                    ? (item._ics.source === 'work' ? '#8C8C96' : '#7896AF')
+                    : (CATEGORY_STYLES[item.category] || CATEGORY_STYLES.supplement).color;
                 const startMin = toMinutes(item.start);
                 const endMin = startMin + item.duration;
                 const endStr = `${pad(Math.floor(endMin / 60))}:${pad(endMin % 60)}`;
@@ -4659,7 +5168,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
 
                 const handleClick = isBlock && onBlockClick
                   ? () => onBlockClick(block.id)
-                  : (!isBlock && onRoutineClick
+                  : (!isBlock && !isIcs && onRoutineClick
                       ? () => onRoutineClick(item.id, date)
                       : undefined);
 
@@ -4668,9 +5177,9 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                     key={item.id}
                     className={`agenda-item ${stateClass}`}
                     onClick={handleClick}
-                    style={handleClick ? { cursor: 'pointer' } : {}}
+                    style={handleClick ? { cursor: 'pointer' } : (isIcs ? { opacity: 0.85 } : {})}
                   >
-                    <div className="agenda-item-stripe" style={{ background: color }} />
+                    <div className="agenda-item-stripe" style={{ background: color, ...(isIcs ? { opacity: 0.7 } : {}) }} />
                     <div className="agenda-item-time">
                       <span>{item.start}</span>
                       {item.duration >= 15 && <span className="agenda-item-time-end">→ {endStr}</span>}
@@ -4682,6 +5191,11 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                         {item.title}
                         {item.homeOnly && !isBlock && (
                           <span style={{ color, marginLeft: 8, fontSize: 9, letterSpacing: '0.15em', fontFamily: 'var(--mono)', opacity: 0.7 }}>HOME</span>
+                        )}
+                        {isIcs && (
+                          <span style={{ color, marginLeft: 8, fontSize: 9, letterSpacing: '0.15em', fontFamily: 'var(--mono)', opacity: 0.7 }}>
+                            {item._ics.source === 'work' ? 'WORK' : 'HOUSEHOLD'}
+                          </span>
                         )}
                         {isBlock && project && (
                           <span style={{ color, marginLeft: 8, fontSize: 9, letterSpacing: '0.15em', fontFamily: 'var(--mono)', opacity: 0.7 }}>
@@ -5457,10 +5971,151 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
     }
 
     // ═════════════════════════════════════════════════════════════
-    // FRIDAY REVIEW LAUNCHER — appears in footer, prominent on Fridays
+    // SETTINGS MODAL — calendar feeds + proxy URL
+    // ═════════════════════════════════════════════════════════════
+    function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh, onClose }) {
+      const [proxyUrl, setProxyUrl] = useState(calendars.proxyUrl || '');
+      const [workIcs, setWorkIcs] = useState(calendars.workIcs || '');
+      const [householdIcs, setHouseholdIcs] = useState(calendars.householdIcs || '');
+
+      const handleBackdropClick = (e) => {
+        if (e.target === e.currentTarget) onClose();
+      };
+
+      const handleSave = () => {
+        onUpdate({
+          proxyUrl: proxyUrl.trim(),
+          workIcs: workIcs.trim(),
+          householdIcs: householdIcs.trim(),
+        });
+        // Don't close — let user trigger refresh first
+      };
+
+      const handleSaveAndRefresh = async () => {
+        onUpdate({
+          proxyUrl: proxyUrl.trim(),
+          workIcs: workIcs.trim(),
+          householdIcs: householdIcs.trim(),
+        });
+        // Note: useEffect on cfgKey will trigger refresh automatically
+        onClose();
+      };
+
+      const renderStatus = (key, label) => {
+        const cache = icsCache[key];
+        if (icsRefreshing) {
+          return <div className="calendar-status loading"><span className="dot" /><span>{label}: fetching…</span></div>;
+        }
+        if (!cache) {
+          if (!calendars[key === 'work' ? 'workIcs' : 'householdIcs']) return null;
+          return <div className="calendar-status"><span className="dot" /><span>{label}: not yet fetched</span></div>;
+        }
+        if (cache.error) {
+          return <div className="calendar-status error"><span className="dot" /><span>{label}: {cache.error}</span></div>;
+        }
+        const ts = cache.lastFetched
+          ? cache.lastFetched.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+          : '—';
+        return (
+          <div className="calendar-status ok">
+            <span className="dot" />
+            <span>{label}: {cache.events.length} events · last fetched {ts}</span>
+          </div>
+        );
+      };
+
+      return (
+        <div className="modal-backdrop" onClick={handleBackdropClick}>
+          <div className="modal settings-modal">
+            <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+            <div className="modal-header">
+              <div className="modal-eyebrow">Settings</div>
+              <div className="modal-title">External calendar feeds</div>
+              <div className="modal-meta">
+                <span style={{ fontStyle: 'italic' }}>Imported events appear read-only — edit them in the source calendar</span>
+              </div>
+            </div>
+            <div className="modal-body">
+              <div className="settings-section">
+                <div className="settings-field">
+                  <div className="settings-field-label">ICS Proxy URL</div>
+                  <input
+                    type="text"
+                    className="settings-input"
+                    value={proxyUrl}
+                    placeholder="https://your-worker.your-subdomain.workers.dev"
+                    onChange={e => setProxyUrl(e.target.value)}
+                  />
+                  <div className="settings-field-hint">
+                    Your private Cloudflare Worker that fetches ICS feeds. Browsers block direct cross-origin calendar requests, so the Worker relays them. Setup: ~5 min — instructions below the form.
+                  </div>
+                </div>
+              </div>
+
+              <div className="settings-section">
+                <div className="settings-field">
+                  <div className="settings-field-label">Work calendar (ICS)</div>
+                  <input
+                    type="text"
+                    className="settings-input"
+                    value={workIcs}
+                    placeholder="https://calendar.google.com/calendar/ical/.../basic.ics"
+                    onChange={e => setWorkIcs(e.target.value)}
+                  />
+                  <div className="settings-field-hint">
+                    In Google Calendar: Settings → Integrate calendar → "Secret address in iCal format". Note: company-managed calendars often disallow ICS export.
+                  </div>
+                  {renderStatus('work', 'Work')}
+                </div>
+                <div className="settings-field">
+                  <div className="settings-field-label">Household calendar (ICS)</div>
+                  <input
+                    type="text"
+                    className="settings-input"
+                    value={householdIcs}
+                    placeholder="https://calendar.google.com/calendar/ical/.../basic.ics"
+                    onChange={e => setHouseholdIcs(e.target.value)}
+                  />
+                  <div className="settings-field-hint">
+                    Same place: Settings → Integrate calendar → Secret iCal address.
+                  </div>
+                  {renderStatus('household', 'Household')}
+                </div>
+              </div>
+
+              <div className="settings-section">
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button className="modal-btn primary" style={{ flex: 1 }} onClick={handleSaveAndRefresh}>
+                    <span>Save & fetch</span>
+                  </button>
+                  <button className="modal-btn" onClick={handleSave}>
+                    <span>Save without fetching</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="settings-section">
+                <div className="settings-field-label" style={{ marginBottom: 12 }}>Cloudflare Worker setup (5 min)</div>
+                <div className="settings-field-hint" style={{ lineHeight: 1.8 }}>
+                  <ol style={{ paddingLeft: 18, margin: '8px 0', color: 'var(--muted-2)' }}>
+                    <li style={{ marginBottom: 8 }}>Sign up free at <code>workers.cloudflare.com</code></li>
+                    <li style={{ marginBottom: 8 }}>Create a new Worker, paste the proxy code (provided alongside this app), deploy</li>
+                    <li style={{ marginBottom: 8 }}>Copy the Worker's URL (looks like <code>https://my-planning-proxy.&lt;your-subdomain&gt;.workers.dev</code>)</li>
+                    <li style={{ marginBottom: 8 }}>Paste it into the Proxy URL field above</li>
+                  </ol>
+                  Detailed instructions are in the conversation that built this app.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // WEEKLY REVIEW LAUNCHER — same look every day, marks completion
     // ═════════════════════════════════════════════════════════════
     function FridayReviewLauncher({ now, weeklyResets, onLaunch }) {
-      const isFriday = now.getDay() === 5;
       // Has the current week already been reset?
       const thisWeekStart = startOfWeek(now);
       const alreadyDone = (weeklyResets || []).some(r => {
@@ -5468,22 +6123,10 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         return startOfDay(new Date(r.weekStart)).getTime() === thisWeekStart.getTime();
       });
 
-      const hour = now.getHours();
-      const isReviewWindow = isFriday && hour >= 14 && hour < 18; // surface 14:00–18:00 Friday
-      const isOverdue = isFriday && hour >= 18 && !alreadyDone;
-
-      let label = 'Weekly Review';
-      let style = {};
-      if (alreadyDone) {
-        label = '✓ Reviewed this week';
-        style = { color: 'var(--teal)', borderColor: 'var(--teal)' };
-      } else if (isReviewWindow) {
-        label = '▶ Start Weekly Review';
-        style = { color: 'var(--gold)', borderColor: 'var(--gold)', background: 'rgba(201,168,76,0.1)' };
-      } else if (isOverdue) {
-        label = '⚠ Weekly Review (overdue)';
-        style = { color: 'var(--coral)', borderColor: 'var(--coral)' };
-      }
+      const label = alreadyDone ? '✓ Reviewed this week' : 'Weekly Review';
+      const style = alreadyDone
+        ? { color: 'var(--teal)', borderColor: 'var(--teal)' }
+        : {};
 
       return (
         <button
