@@ -616,7 +616,149 @@
       font-family: var(--mono);
     }
 
-    /* ───────── RIGHT NOW BANNER ───────── */
+    /* ───────── WEATHER STRIP (top of page, thin) ───────── */
+    .weather-strip {
+      background: var(--bg-card);
+      border-left: 2px solid var(--rule);
+      padding: 6px 10px 6px 12px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 48px;
+    }
+    .weather-strip-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex-shrink: 0;
+      padding-right: 10px;
+      border-right: 1px solid var(--rule);
+      min-width: 110px;
+    }
+    .weather-strip-eyebrow {
+      font-size: 9px;
+      letter-spacing: 0.25em;
+      color: var(--muted-3);
+      text-transform: uppercase;
+      font-family: var(--mono);
+    }
+    .weather-strip-location {
+      font-size: 11px;
+      color: var(--muted-1);
+      letter-spacing: 0.01em;
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .weather-strip-tabs {
+      display: flex;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+    .weather-strip-tab {
+      padding: 4px 9px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted-3);
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: var(--mono);
+    }
+    .weather-strip-tab:hover { border-color: var(--gold); color: var(--gold); }
+    .weather-strip-tab.active {
+      background: rgba(201, 168, 76, 0.12);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+    .weather-strip-cells {
+      flex: 1;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+      align-items: stretch;
+      scrollbar-width: thin;
+    }
+    .weather-strip-cells::-webkit-scrollbar { height: 4px; }
+    .weather-strip-cells::-webkit-scrollbar-thumb { background: var(--border); }
+    .weather-cell {
+      flex-shrink: 0;
+      width: 38px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 0;
+      border-right: 1px solid rgba(40, 38, 50, 0.5);
+      cursor: default;
+      transition: background 0.12s;
+      gap: 1px;
+    }
+    .weather-cell:hover { background: var(--bg-hover); }
+    .weather-cell.now { background: rgba(201, 168, 76, 0.08); }
+    .weather-cell-hour {
+      font-size: 8px;
+      color: var(--muted-4);
+      font-family: var(--mono);
+      letter-spacing: 0.02em;
+    }
+    .weather-cell.now .weather-cell-hour {
+      color: var(--gold);
+      font-weight: 600;
+    }
+    .weather-cell-icon {
+      font-size: 14px;
+      line-height: 1;
+    }
+    .weather-cell-temp {
+      font-size: 11px;
+      color: var(--text);
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+    }
+    .weather-cell-precip {
+      font-size: 8px;
+      color: #7896AF;
+      font-family: var(--mono);
+      min-height: 9px;
+    }
+    .weather-cell-precip.dry {
+      color: transparent;
+    }
+    .weather-strip-status {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: var(--muted-3);
+      font-size: 11px;
+      font-style: italic;
+    }
+    .weather-strip-status.error { color: var(--coral); }
+    .weather-strip-refresh {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted-3);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      font-family: var(--serif);
+      padding: 4px 8px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .weather-strip-refresh:hover { border-color: var(--gold); color: var(--gold); }
+    @media (max-width: 759px) {
+      .weather-strip { padding: 6px 8px; gap: 6px; }
+      .weather-strip-left { min-width: 80px; padding-right: 6px; }
+      .weather-strip-location { font-size: 10px; max-width: 90px; }
+    }
+
+
     .right-now {
       background: linear-gradient(135deg, rgba(201, 168, 76, 0.12) 0%, rgba(201, 168, 76, 0.04) 100%);
       border-left: 3px solid var(--gold);
@@ -1273,6 +1415,69 @@
     .cal-item-resize-handle:hover {
       background: rgba(201, 168, 76, 0.25);
     }
+
+    /* ───────── ROUTINE COMPLETE CHECKBOX (in calendar block) ───────── */
+    .cal-item-check {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1.5px solid var(--muted-3);
+      background: rgba(13, 13, 15, 0.5);
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      line-height: 1;
+      color: var(--teal);
+      font-weight: bold;
+      transition: border-color 0.12s, background 0.12s;
+      z-index: 4;
+    }
+    .cal-item-check:hover {
+      border-color: var(--teal);
+    }
+    .cal-item.routine-completed .cal-item-check {
+      border-color: var(--teal);
+      background: var(--teal);
+      color: var(--bg);
+    }
+    .cal-item.routine-completed .cal-item-title {
+      text-decoration: line-through;
+      opacity: 0.7;
+    }
+
+    /* Agenda view check button */
+    .agenda-item-check {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 1.5px solid var(--muted-3);
+      background: transparent;
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: var(--teal);
+      font-weight: bold;
+      flex-shrink: 0;
+      align-self: center;
+      transition: border-color 0.12s, background 0.12s;
+    }
+    .agenda-item-check:hover {
+      border-color: var(--teal);
+    }
+    .agenda-item.past .agenda-item-check {
+      border-color: var(--teal);
+      background: var(--teal);
+      color: var(--bg);
+    }
     .cal-item.resizing {
       filter: brightness(1.35);
       outline: 1px dashed var(--gold);
@@ -1644,7 +1849,206 @@
       color: var(--coral);
     }
 
-    /* ───────── ELSEWHERE SUGGESTIONS BANNER ───────── */
+    /* ───────── TODOS PANE ───────── */
+    .todos-pane {
+      margin-top: 18px;
+      padding: 16px;
+      background: var(--bg-card);
+      border-left: 2px solid var(--rule);
+    }
+    .todos-pane-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+    .todos-pane-eyebrow {
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      color: var(--muted-3);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .todos-pane-count {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      color: var(--muted-4);
+      font-family: var(--mono);
+    }
+    .todos-add-bar {
+      display: flex;
+      gap: 0;
+      margin-bottom: 10px;
+      background: var(--bg-card-deep);
+      border-left: 2px solid var(--border);
+      transition: border-color 0.15s;
+    }
+    .todos-add-bar:focus-within { border-left-color: var(--gold); }
+    .todos-add-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      padding: 9px 12px;
+      font-family: var(--serif);
+      font-size: 12px;
+      outline: none;
+    }
+    .todos-add-input::placeholder {
+      color: var(--muted-4);
+      font-style: italic;
+    }
+    .todos-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+    .todo-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 8px 10px;
+      background: var(--bg-card-deep);
+      border-left: 2px solid transparent;
+      transition: background 0.12s, border-color 0.12s;
+      cursor: grab;
+    }
+    .todo-item:hover {
+      background: var(--bg-hover);
+      border-left-color: #B8A082;
+    }
+    .todo-item:active { cursor: grabbing; }
+    .todo-item.scheduled {
+      border-left-color: #B8A082;
+      opacity: 0.85;
+    }
+    .todo-item.done {
+      opacity: 0.45;
+    }
+    .todo-item.done .todo-item-title {
+      text-decoration: line-through;
+    }
+    .todo-checkbox {
+      flex-shrink: 0;
+      width: 14px; height: 14px;
+      margin-top: 2px;
+      accent-color: #7EB8A4;
+      cursor: pointer;
+    }
+    .todo-item-title {
+      flex: 1;
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.5;
+      cursor: pointer;
+    }
+    .todo-item-badge {
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      color: #B8A082;
+      font-family: var(--mono);
+      text-transform: uppercase;
+      padding-top: 2px;
+      flex-shrink: 0;
+    }
+    .todo-item-delete {
+      background: none;
+      border: none;
+      color: var(--muted-4);
+      cursor: pointer;
+      font-size: 13px;
+      padding: 0 2px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .todo-item-delete:hover { color: var(--coral); }
+    .todos-empty {
+      padding: 20px 12px;
+      text-align: center;
+      color: var(--muted-4);
+      font-size: 11px;
+      font-style: italic;
+    }
+
+    /* Calendar block styled as a todo */
+    .cal-item.todo-block {
+      background: rgba(184, 160, 130, 0.18);
+      border-left-color: #B8A082;
+    }
+    .cal-item.todo-block.completed {
+      background: rgba(126, 184, 164, 0.18);
+      border-left-color: var(--teal);
+    }
+
+    /* Duration prompt overlay (small) */
+    .duration-prompt {
+      position: fixed;
+      z-index: 90;
+      background: var(--bg-card);
+      border: 1px solid var(--gold);
+      padding: 14px 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      max-width: 280px;
+    }
+    .duration-prompt-label {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .duration-prompt-title {
+      font-size: 13px;
+      color: var(--text);
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+    .duration-prompt-meta {
+      font-size: 11px;
+      color: var(--muted-3);
+      font-family: var(--mono);
+      margin-bottom: 12px;
+    }
+    .duration-prompt-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .duration-prompt-chip {
+      padding: 6px 10px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted-2);
+      font-family: var(--mono);
+      font-size: 11px;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+    }
+    .duration-prompt-chip:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+    .duration-prompt-input-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .duration-prompt-input {
+      flex: 1;
+      background: var(--bg-card-deep);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 10px;
+      font-family: var(--mono);
+      font-size: 12px;
+      box-sizing: border-box;
+    }
+    .duration-prompt-input:focus { outline: none; border-color: var(--gold); }
+
+
     .suggest-banner {
       margin-bottom: 16px;
       padding: 12px 16px;
@@ -2227,7 +2631,7 @@
     const CLIENT_ID = '25894919429-pbtl8l6nn23vnvc8c8cbhg5f3n8gepu6.apps.googleusercontent.com';
     const SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
     const FILE_NAME = 'my-planning-data.json';
-    const SCHEMA_VERSION = 7;
+    const SCHEMA_VERSION = 12;
 
     // Days: JS Date.getDay() — 0=Sun, 1=Mon ... 6=Sat. Visual columns are Mon-first.
     const VISUAL_TO_JS_DAY = [1, 2, 3, 4, 5, 6, 0];
@@ -2322,10 +2726,13 @@
       { id: 'prep-sun-winning', title: 'Define what winning looks like', days: [0], start: '21:25', duration: 15, category: 'planning',
         note: 'Set the bar for the upcoming week. Specific, measurable, ambitious.' },
 
-      // Hourly Micro-Strength — stored, not rendered as blocks. Surfaces in feature 2.
+      // Hourly Micro-Strength — special routine item with a top-of-hour recurrence.
+      // Stored, not rendered as calendar blocks. Surfaces in the Right Now banner
+      // during the configured window. Editable via Routine Manager.
       { id: 'micro-strength', title: 'Micro-Strength', days: [1,2,3,4,5], start: '09:00', duration: 1,
-        category: 'micro-strength', homeOnly: true, recurrence: 'top-of-hour-9-18',
-        note: 'Top of every hour, 9-18. ~60-80s: 10 air squats · 10 KB RDL · 10 push-ups · 6 KB row/side.' },
+        category: 'micro-strength', homeOnly: true,
+        recurrence: { kind: 'top-of-hour', startHour: 9, endHour: 18 },
+        note: '' },
     ];
 
     // ─────────────────────────────────────────────────────────────
@@ -2865,6 +3272,22 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       return `${formatDateShort(a)} – ${formatDateShort(b)}, ${b.getFullYear()}`;
     }
 
+    // Describe an array of JS day numbers (0=Sun..6=Sat) compactly:
+    //   [0,1,2,3,4,5,6] -> "Daily"
+    //   [1,2,3,4,5]     -> "Mon–Fri"
+    //   [0,6]           -> "Weekends"
+    //   [1,3,5]         -> "Mon · Wed · Fri"
+    function describeDays(days) {
+      if (!days || days.length === 0) return '';
+      const sorted = [...days].sort((a, b) => a - b);
+      const set = new Set(sorted);
+      if (sorted.length === 7) return 'Daily';
+      if (sorted.length === 5 && [1,2,3,4,5].every(d => set.has(d))) return 'Mon–Fri';
+      if (sorted.length === 2 && set.has(0) && set.has(6)) return 'Weekends';
+      const SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      return sorted.map(d => SHORT[d]).join(' · ');
+    }
+
     function hexToRgba(hex, alpha) {
       const h = hex.replace('#', '');
       const r = parseInt(h.substring(0, 2), 16);
@@ -3230,12 +3653,89 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       return parseICS(text);
     }
 
+    // ─────────────────────────────────────────────────────────────
+    // WEATHER — Open-Meteo, no API key, public CORS.
+    // Returns hourly forecast for the next 72 hours.
+    // ─────────────────────────────────────────────────────────────
+
+    // WMO weather codes → emoji icons. See https://open-meteo.com/en/docs (search "WMO Weather interpretation codes")
+    const WMO_ICONS = {
+      0: '☀️',  // Clear sky
+      1: '🌤️', // Mainly clear
+      2: '⛅',  // Partly cloudy
+      3: '☁️',  // Overcast
+      45: '🌫️', 48: '🌫️', // Fog
+      51: '🌦️', 53: '🌦️', 55: '🌦️', // Drizzle
+      56: '🌧️', 57: '🌧️', // Freezing drizzle
+      61: '🌧️', 63: '🌧️', 65: '🌧️', // Rain
+      66: '🌧️', 67: '🌧️', // Freezing rain
+      71: '🌨️', 73: '🌨️', 75: '🌨️', // Snowfall
+      77: '🌨️', // Snow grains
+      80: '🌦️', 81: '🌧️', 82: '⛈️', // Rain showers
+      85: '🌨️', 86: '🌨️', // Snow showers
+      95: '⛈️', 96: '⛈️', 99: '⛈️', // Thunderstorm
+    };
+    const wmoIcon = (code) => WMO_ICONS[code] || '·';
+
+    async function fetchWeather(lat, lon) {
+      if (lat == null || lon == null) throw new Error('Missing coordinates');
+      const params = new URLSearchParams({
+        latitude: String(lat),
+        longitude: String(lon),
+        hourly: 'temperature_2m,precipitation_probability,weather_code',
+        forecast_days: '4', // get 4 days to cover "now + 72h"
+        timezone: 'auto',
+      });
+      const url = `https://api.open-meteo.com/v1/forecast?${params}`;
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error(`Weather fetch failed (${resp.status})`);
+      const data = await resp.json();
+      if (!data.hourly || !Array.isArray(data.hourly.time)) {
+        throw new Error('Unexpected weather response');
+      }
+      // Build a list of { time: Date, temp: number, precip: number, code: number }
+      const hours = data.hourly.time.map((t, i) => ({
+        time: new Date(t),
+        temp: data.hourly.temperature_2m[i],
+        precip: data.hourly.precipitation_probability[i] ?? 0,
+        code: data.hourly.weather_code[i] ?? 0,
+      }));
+      return { hours, fetchedAt: new Date(), tz: data.timezone };
+    }
+
+    // Reverse-geocode a lat/lon to a city label using Open-Meteo's free geocoding API.
+    async function reverseGeocode(lat, lon) {
+      try {
+        const params = new URLSearchParams({
+          latitude: String(lat),
+          longitude: String(lon),
+          count: '1',
+          language: 'en',
+        });
+        // Open-Meteo's reverse geocoding is implicit in their geocoding search endpoint;
+        // for true reverse geocoding we use an unofficial path. Fall back gracefully.
+        const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(lat.toFixed(2) + ',' + lon.toFixed(2))}`;
+        // The above won't work for reverse geocoding; just return coords as label.
+        return `${lat.toFixed(2)}°, ${lon.toFixed(2)}°`;
+      } catch {
+        return `${lat.toFixed(2)}°, ${lon.toFixed(2)}°`;
+      }
+    }
+
     // Resolve which routine items render on a given date, applying overrides.
-    function resolvedRoutineForDate(routine, overrides, date) {
+    // Per-occurrence completion key: same shape as override key.
+    function makeCompletionKey(itemId, date) {
+      return `${itemId}:${startOfDay(date).toISOString()}`;
+    }
+
+    function resolvedRoutineForDate(routine, overrides, date, completions) {
       const dateKey = startOfDay(date).toISOString();
       const dateMs = startOfDay(date).getTime();
       const jsDay = date.getDay();
       const out = [];
+      const compMap = completions || {};
+
+      const isCompleted = (itemId) => !!compMap[`${itemId}:${dateKey}`];
 
       // 1. Items that normally occur on this day (with edit/skip overrides applied)
       routine.forEach(item => {
@@ -3244,7 +3744,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         const key = makeOverrideKey(item.id, date);
         const ov = overrides[key];
         if (!ov) {
-          out.push({ ...item, _kind: 'routine' });
+          out.push({ ...item, _kind: 'routine', _completed: isCompleted(item.id) });
           return;
         }
         if (ov.type === 'skip') return;
@@ -3264,6 +3764,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             duration: ov.duration != null ? ov.duration : item.duration,
             _kind: 'routine',
             _overridden: hasChange,
+            _completed: isCompleted(item.id),
           });
         }
       });
@@ -3285,6 +3786,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
           _moved: true,
           _movedFromDate: key.split(':').slice(1).join(':'), // original date ISO
           _overrideKey: key,
+          _completed: isCompleted(item.id),
         });
       });
 
@@ -3326,9 +3828,9 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
 
     // Combine routine items + project blocks + ICS imported events for a single day,
     // applying overrides + lane allocation.
-    function combinedDayItems(visualCol, routine, blocks, weekStart, overrides, elsewhereToggles, today, icsOccurrences) {
+    function combinedDayItems(visualCol, routine, blocks, weekStart, overrides, elsewhereToggles, today, icsOccurrences, completions) {
       const date = addDays(weekStart, visualCol);
-      let routineItems = resolvedRoutineForDate(routine, overrides || {}, date);
+      let routineItems = resolvedRoutineForDate(routine, overrides || {}, date, completions);
       routineItems = applyElsewhereFilter(routineItems, date, elsewhereToggles, today);
       const blockItems = blocksForDate(blocks, date).map(b => ({
         id: b.id,
@@ -3484,13 +3986,16 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         lastModified: now,
         routine: SEED_ROUTINE,
         overrides: {},
-        calendars: { workIcs: '', householdIcs: '', proxyUrl: '' },
+        calendars: { workIcs: '', householdIcs: '', proxyUrl: '', workColor: '#8C8C96', householdColor: '#7896AF' },
         weeklyResets: [],
         projects: SEED_PROJECTS,
         scheduledBlocks: [],
         referenceLibrary: SEED_REFERENCE_LIBRARY,
         inbox: [],
         elsewhereToggles: { morning: false, afternoon: false, allDay: false, date: null },
+        todos: [],
+        routineCompletions: {},
+        weather: { lat: null, lon: null, label: '', source: 'unset' }, // source: 'unset' | 'geolocation' | 'manual'
       };
     }
 
@@ -3533,11 +4038,42 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       }
       if (!Array.isArray(next.scheduledBlocks)) { next.scheduledBlocks = []; changed = true; }
       if (!next.overrides) { next.overrides = {}; changed = true; }
-      if (!next.calendars) { next.calendars = { workIcs: '', householdIcs: '', proxyUrl: '' }; changed = true; }
-      else if (next.calendars.proxyUrl === undefined) { next.calendars.proxyUrl = ''; changed = true; }
+      if (!next.calendars) { next.calendars = { workIcs: '', householdIcs: '', proxyUrl: '', workColor: '#8C8C96', householdColor: '#7896AF' }; changed = true; }
+      else {
+        if (next.calendars.proxyUrl === undefined) { next.calendars.proxyUrl = ''; changed = true; }
+        if (next.calendars.workColor === undefined) { next.calendars.workColor = '#8C8C96'; changed = true; }
+        if (next.calendars.householdColor === undefined) { next.calendars.householdColor = '#7896AF'; changed = true; }
+      }
       if (!next.weeklyResets) { next.weeklyResets = []; changed = true; }
       if (!next.inbox) { next.inbox = []; changed = true; }
       if (!next.elsewhereToggles) { next.elsewhereToggles = { morning: false, afternoon: false, allDay: false, date: null }; changed = true; }
+      if (!Array.isArray(next.todos)) { next.todos = []; changed = true; }
+      if (!next.routineCompletions || typeof next.routineCompletions !== 'object') {
+        next.routineCompletions = {};
+        changed = true;
+      }
+      if (!next.weather || typeof next.weather !== 'object') {
+        next.weather = { lat: null, lon: null, label: '', source: 'unset' };
+        changed = true;
+      }
+      // v11: routine items with string recurrence get structured form
+      if (Array.isArray(next.routine)) {
+        next.routine = next.routine.map(item => {
+          if (typeof item.recurrence === 'string') {
+            // Try to parse 'top-of-hour-9-18' style
+            const m = item.recurrence.match(/top-of-hour-(\d+)-(\d+)/);
+            if (m) {
+              changed = true;
+              return { ...item, recurrence: { kind: 'top-of-hour', startHour: +m[1], endHour: +m[2] } };
+            }
+            // Unknown string — clear it
+            changed = true;
+            const { recurrence, ...rest } = item;
+            return rest;
+          }
+          return item;
+        });
+      }
       if ('testCounter' in next) { delete next.testCounter; changed = true; }
       return { data: next, migrated: changed };
     }
@@ -3749,6 +4285,11 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       // Shape: { work: { events: [...], lastFetched: Date, error: '' }, household: { ... } }
       const [icsCache, setIcsCache] = useState({ work: null, household: null });
       const [icsRefreshing, setIcsRefreshing] = useState(false);
+      // Weather state (memory-only — like ICS, not synced to Drive)
+      const [weatherCache, setWeatherCache] = useState(null); // { hours, fetchedAt, tz }
+      const [weatherRefreshing, setWeatherRefreshing] = useState(false);
+      const [weatherError, setWeatherError] = useState('');
+      const [weatherDayTab, setWeatherDayTab] = useState(0); // 0=today, 1=tomorrow, 2=day-after
 
       const weekEnd = addDays(weekStart, 6);
       const isCurrentWeek = isSameDay(weekStart, startOfWeek(now));
@@ -3775,12 +4316,27 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       }, [persistData]);
 
       const updateBlock = useCallback((blockId, changes) => {
-        persistData(d => ({
-          ...d,
-          scheduledBlocks: (d.scheduledBlocks || []).map(b =>
-            b.id === blockId ? { ...b, ...changes } : b
-          ),
-        }));
+        persistData(d => {
+          const blocks = d.scheduledBlocks || [];
+          const block = blocks.find(b => b.id === blockId);
+          if (!block) return d;
+          const updated = { ...block, ...changes };
+          // If this block is tied to a todo and its status flipped to/from 'completed',
+          // propagate that to the todo.
+          let todos = d.todos || [];
+          if (block.todoId && changes.status !== undefined) {
+            const newDone = changes.status === 'completed';
+            const cur = todos.find(t => t.id === block.todoId);
+            if (cur && cur.done !== newDone) {
+              todos = todos.map(t => t.id === block.todoId ? { ...t, done: newDone } : t);
+            }
+          }
+          return {
+            ...d,
+            scheduledBlocks: blocks.map(b => b.id === blockId ? updated : b),
+            todos,
+          };
+        });
       }, [persistData]);
 
       const deleteBlock = useCallback((blockId) => {
@@ -3922,6 +4478,91 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         }));
       }, [persistData, weekStart]);
 
+      // ─── Routine completion handlers ───────────────
+      // Per-occurrence done state. Key shape: `${itemId}:${dateISO}`.
+      const toggleRoutineCompletion = useCallback((itemId, date) => {
+        const key = makeCompletionKey(itemId, date);
+        persistData(d => {
+          const next = { ...(d.routineCompletions || {}) };
+          if (next[key]) {
+            delete next[key];
+          } else {
+            next[key] = true;
+          }
+          return { ...d, routineCompletions: next };
+        });
+      }, [persistData]);
+
+      // ─── Todo handlers ──────────────────────────────
+      // Todos sit in their own list. A todo can be "scheduled" (a calendar block exists
+      // pointing back to it) or unscheduled. Marking a todo done also marks its scheduled
+      // block done; marking the block done flips the todo done. Done state is the source
+      // of truth on the todo itself.
+      const addTodo = useCallback((title) => {
+        const t = title.trim();
+        if (!t) return;
+        const todo = {
+          id: `todo-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          title: t,
+          note: '',
+          done: false,
+          createdAt: new Date().toISOString(),
+        };
+        persistData(d => ({ ...d, todos: [todo, ...(d.todos || [])] }));
+      }, [persistData]);
+
+      const updateTodo = useCallback((id, changes) => {
+        persistData(d => ({
+          ...d,
+          todos: (d.todos || []).map(t => t.id === id ? { ...t, ...changes } : t),
+          // Also propagate done-state to any scheduled block tied to this todo
+          scheduledBlocks: (d.scheduledBlocks || []).map(b => {
+            if (b.todoId !== id) return b;
+            if (changes.done === true) return { ...b, status: 'completed', completedAt: new Date().toISOString() };
+            if (changes.done === false) return { ...b, status: 'scheduled', completedAt: null };
+            return b;
+          }),
+        }));
+      }, [persistData]);
+
+      const deleteTodo = useCallback((id) => {
+        persistData(d => ({
+          ...d,
+          todos: (d.todos || []).filter(t => t.id !== id),
+          // Cascade: remove any scheduled blocks tied to this todo
+          scheduledBlocks: (d.scheduledBlocks || []).filter(b => b.todoId !== id),
+        }));
+      }, [persistData]);
+
+      // Drag-drop: pending drop captured by WeekGrid, then a duration prompt asks "how long".
+      // Shape: { todoId, date, start, dropX, dropY } | null
+      const [pendingTodoDrop, setPendingTodoDrop] = useState(null);
+
+      const confirmTodoDrop = useCallback((duration) => {
+        if (!pendingTodoDrop) return;
+        const todo = (data.todos || []).find(t => t.id === pendingTodoDrop.todoId);
+        if (!todo) { setPendingTodoDrop(null); return; }
+        const block = {
+          id: `block-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          title: todo.title,
+          date: pendingTodoDrop.date,
+          start: pendingTodoDrop.start,
+          duration,
+          todoId: todo.id,
+          status: 'scheduled',
+          actualMinutes: null,
+          completedAt: null,
+          createdAt: new Date().toISOString(),
+        };
+        persistData(d => ({
+          ...d,
+          scheduledBlocks: [...(d.scheduledBlocks || []), block],
+        }));
+        setPendingTodoDrop(null);
+      }, [pendingTodoDrop, persistData, data.todos]);
+
+      const cancelTodoDrop = useCallback(() => setPendingTodoDrop(null), []);
+
       // ─── ICS handlers ───────────────────────────────
       const calendarSettings = data.calendars || { workIcs: '', householdIcs: '', proxyUrl: '' };
 
@@ -3963,19 +4604,98 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         // eslint-disable-next-line
       }, [cfgKey]);
 
-      // Compute ICS occurrences for the visible week (memoized — recomputes only when week or cache changes)
+      // ─── Weather handlers ───────────────────────────
+      const weatherSettings = data.weather || { lat: null, lon: null, label: '', source: 'unset' };
+
+      const refreshWeather = useCallback(async (overrideLat, overrideLon) => {
+        const lat = overrideLat != null ? overrideLat : weatherSettings.lat;
+        const lon = overrideLon != null ? overrideLon : weatherSettings.lon;
+        if (lat == null || lon == null) return;
+        setWeatherRefreshing(true);
+        setWeatherError('');
+        try {
+          const result = await fetchWeather(lat, lon);
+          setWeatherCache(result);
+        } catch (e) {
+          setWeatherError(e.message || 'Weather fetch failed');
+        } finally {
+          setWeatherRefreshing(false);
+        }
+      }, [weatherSettings.lat, weatherSettings.lon]);
+
+      // Browser geolocation prompt — only triggered if we have no coords yet AND user hasn't declined manually.
+      const requestGeolocation = useCallback(() => {
+        if (!navigator.geolocation) {
+          setWeatherError('Geolocation not supported by your browser');
+          return;
+        }
+        setWeatherRefreshing(true);
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            const label = `${lat.toFixed(2)}°, ${lon.toFixed(2)}°`;
+            persistData(d => ({
+              ...d,
+              weather: { lat, lon, label, source: 'geolocation' },
+            }));
+            // Fetch immediately with the fresh coords
+            refreshWeather(lat, lon);
+          },
+          (err) => {
+            setWeatherRefreshing(false);
+            setWeatherError(`Location: ${err.message || 'permission denied'}`);
+            // Mark as user-declined so we don't re-prompt every load
+            persistData(d => ({
+              ...d,
+              weather: { ...(d.weather || {}), source: 'declined' },
+            }));
+          },
+          { timeout: 10000, maximumAge: 24 * 60 * 60 * 1000 } // accept up to 24h-old position
+        );
+      }, [persistData, refreshWeather]);
+
+      const updateWeatherLocation = useCallback((lat, lon, label) => {
+        persistData(d => ({
+          ...d,
+          weather: { lat, lon, label: label || `${lat.toFixed(2)}°, ${lon.toFixed(2)}°`, source: 'manual' },
+        }));
+      }, [persistData]);
+
+      // Auto-prompt geolocation on first load if we don't have coords + user hasn't declined
+      useEffect(() => {
+        if (weatherSettings.source === 'unset' && weatherSettings.lat == null) {
+          requestGeolocation();
+        }
+        // eslint-disable-next-line
+      }, []); // run once on mount
+
+      // Auto-fetch weather when coords are available (and on coord change)
+      useEffect(() => {
+        if (weatherSettings.lat != null && weatherSettings.lon != null && !weatherCache) {
+          refreshWeather();
+        }
+        // eslint-disable-next-line
+      }, [weatherSettings.lat, weatherSettings.lon]);
+
+      // Compute ICS occurrences for the visible week (memoized — recomputes when week, cache, or colors change)
       const icsOccurrences = useMemo(() => {
         const winStart = startOfDay(weekStart);
         const winEnd = startOfDay(addDays(weekStart, 7));
         const out = [];
+        const colorByKey = {
+          work: calendarSettings.workColor || '#8C8C96',
+          household: calendarSettings.householdColor || '#7896AF',
+        };
         ['work', 'household'].forEach(source => {
           const entry = icsCache[source];
           if (!entry || !entry.events) return;
           const occs = expandEventsForWindow(entry.events, winStart, winEnd, source);
+          occs.forEach(o => { o.color = colorByKey[source]; });
           out.push(...occs);
         });
         return out;
-      }, [weekStart, icsCache]);
+      }, [weekStart, icsCache, calendarSettings.workColor, calendarSettings.householdColor]);
 
       const goPrev = () => {
         if (dayView !== null) {
@@ -4026,6 +4746,18 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
 
       return (
         <div className={`wrap-wide screen-pad-top-sm fade-in ${dayView !== null ? 'day-view' : ''}`}>
+          <WeatherStrip
+            settings={weatherSettings}
+            cache={weatherCache}
+            refreshing={weatherRefreshing}
+            error={weatherError}
+            dayTab={weatherDayTab}
+            now={now}
+            onChangeDayTab={setWeatherDayTab}
+            onRefresh={() => refreshWeather()}
+            onRequestGeo={requestGeolocation}
+          />
+
           <RightNowBanner
             routine={data.routine}
             overrides={data.overrides || {}}
@@ -4035,6 +4767,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             now={now}
             onOpenReference={(id) => { setRefExpandedId(id); setRefLibraryOpen(true); }}
             elsewhereToggles={elsewhere}
+            completions={data.routineCompletions || {}}
           />
 
           <CaptureBar
@@ -4049,6 +4782,13 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                 projects={projects}
                 scheduledBlocks={blocks}
                 weekStart={weekStart}
+              />
+              <TodosPane
+                todos={data.todos || []}
+                scheduledBlocks={blocks}
+                onAdd={addTodo}
+                onUpdate={updateTodo}
+                onDelete={deleteTodo}
               />
             </div>
 
@@ -4103,6 +4843,8 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                   onRoutineClick={handleRoutineClick}
                   elsewhereToggles={elsewhere}
                   icsOccurrences={icsOccurrences}
+                  completions={data.routineCompletions || {}}
+                  onToggleComplete={toggleRoutineCompletion}
                 />
               ) : (
                 <WeekGrid
@@ -4120,6 +4862,9 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                   onUpdateBlock={updateBlock}
                   elsewhereToggles={elsewhere}
                   icsOccurrences={icsOccurrences}
+                  onTodoDrop={setPendingTodoDrop}
+                  completions={data.routineCompletions || {}}
+                  onToggleComplete={toggleRoutineCompletion}
                 />
               )}
 
@@ -4194,7 +4939,19 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
               icsRefreshing={icsRefreshing}
               onUpdate={updateCalendarSettings}
               onRefresh={refreshICS}
+              weather={weatherSettings}
+              onUpdateWeather={updateWeatherLocation}
+              onRequestGeo={requestGeolocation}
               onClose={() => setSettingsOpen(false)}
+            />
+          )}
+
+          {pendingTodoDrop && (
+            <TodoDurationPrompt
+              drop={pendingTodoDrop}
+              todo={(data.todos || []).find(t => t.id === pendingTodoDrop.todoId)}
+              onConfirm={confirmTodoDrop}
+              onCancel={cancelTodoDrop}
             />
           )}
 
@@ -4228,18 +4985,19 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
     // ═════════════════════════════════════════════════════════════
     // RIGHT NOW BANNER
     // ═════════════════════════════════════════════════════════════
-    function RightNowBanner({ routine, overrides, scheduledBlocks, projects, referenceLibrary, now, onOpenReference, elsewhereToggles }) {
+    function RightNowBanner({ routine, overrides, scheduledBlocks, projects, referenceLibrary, now, onOpenReference, elsewhereToggles, completions }) {
       const jsDay = now.getDay();
       const todayCol = jsDay === 0 ? 6 : jsDay - 1;
       const nowMin = now.getHours() * 60 + now.getMinutes();
 
-      // Routine items happening today (with overrides applied + elsewhere filter), sorted chronologically
+      // Routine items happening today (with overrides applied + elsewhere filter + skip completed), sorted chronologically
       const todayRoutine = applyElsewhereFilter(
-        resolvedRoutineForDate(routine, overrides || {}, now),
+        resolvedRoutineForDate(routine, overrides || {}, now, completions),
         now,
         elsewhereToggles,
         now
       )
+        .filter(it => !it._completed) // hide items already checked off today
         .map(it => ({
           source: 'routine',
           title: it.title,
@@ -4271,7 +5029,37 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       const next = upcoming[0];
 
       const isWeekday = jsDay >= 1 && jsDay <= 5;
-      const inMicroWindow = isWeekday && now.getHours() >= 9 && now.getHours() <= 18 && now.getMinutes() < 2;
+
+      // Find the micro-strength routine item (if any) and its configured window
+      const microItem = (routine || []).find(r => r.recurrence && r.recurrence.kind === 'top-of-hour');
+      let microWindow = null;
+      if (microItem) {
+        const days = microItem.days || [];
+        const startHour = (microItem.recurrence && microItem.recurrence.startHour) ?? 9;
+        const endHour = (microItem.recurrence && microItem.recurrence.endHour) ?? 18;
+        const inDayWindow = days.includes(jsDay);
+        const inHourWindow = now.getHours() >= startHour && now.getHours() <= endHour;
+        const inMinuteWindow = now.getMinutes() < 2; // first 2 min of the hour
+        if (inDayWindow && inHourWindow && inMinuteWindow) {
+          microWindow = { item: microItem };
+        }
+      }
+      const inMicroWindow = !!microWindow;
+
+      // Derive a one-line summary from the Reference Library entry's body.
+      // Strategy: prefer the first non-empty line that mentions reps; fall back to a generic line.
+      const microSummary = (() => {
+        const ref = (referenceLibrary || []).find(r => r.id === 'ref-micro-strength');
+        if (!ref || !ref.body) return '~60–80s · take a movement break';
+        // Find first line that looks like "1. Air squats — 10 reps" etc., concatenate into a compact list
+        const lines = ref.body.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        const moves = lines
+          .filter(l => /^\d+\./.test(l))
+          .map(l => l.replace(/^\d+\.\s*/, '').replace(/\s*—.*$/, '').trim())
+          .filter(Boolean);
+        if (moves.length === 0) return '~60–80s · take a movement break';
+        return `~60–80s · ${moves.join(' · ')}`;
+      })();
 
       const dayName = DAY_NAMES_LONG[todayCol];
       const dateStr = formatDateShort(now);
@@ -4281,9 +5069,9 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       if (inMicroWindow) {
         nowBlock = (
           <>
-            <div className="right-now-now">⚡ Micro-Strength · top of the hour</div>
+            <div className="right-now-now">⚡ {microItem.title} · top of the hour</div>
             <div className="right-now-next" style={{ color: 'var(--teal)' }}>
-              ~60–80s · 10 air squats · 10 KB RDL · 10 push-ups · 6 KB row/side
+              {microSummary}
             </div>
           </>
         );
@@ -4799,7 +5587,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
     const END_HOUR = 23;
     const HOURS_VISIBLE = END_HOUR - START_HOUR;
 
-    function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, now, singleCol, onDayClick, onCreateBlock, onBlockClick, onRoutineClick, onUpdateBlock, elsewhereToggles, icsOccurrences }) {
+    function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, now, singleCol, onDayClick, onCreateBlock, onBlockClick, onRoutineClick, onUpdateBlock, elsewhereToggles, icsOccurrences, onTodoDrop, completions, onToggleComplete }) {
       const isDayView = singleCol !== null && singleCol !== undefined;
       const HOUR_HEIGHT = isDayView ? HOUR_HEIGHT_DAY : HOUR_HEIGHT_WEEK;
       const totalHeight = HOURS_VISIBLE * HOUR_HEIGHT;
@@ -4852,19 +5640,28 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         try {
           payload = JSON.parse(e.dataTransfer.getData('application/json'));
         } catch { return; }
-        if (!payload || payload.type !== 'next-action') return;
         const rect = e.currentTarget.getBoundingClientRect();
         const y = e.clientY - rect.top;
         const startStr = yToTimeString(y);
         const date = startOfDay(addDays(weekStart, col)).toISOString();
-        onCreateBlock({
-          projectId: payload.projectId,
-          actionId: payload.actionId,
-          title: payload.title,
-          date,
-          start: startStr,
-          duration: payload.duration || 30,
-        });
+        if (payload.type === 'next-action') {
+          onCreateBlock({
+            projectId: payload.projectId,
+            actionId: payload.actionId,
+            title: payload.title,
+            date,
+            start: startStr,
+            duration: payload.duration || 30,
+          });
+        } else if (payload.type === 'todo' && onTodoDrop) {
+          onTodoDrop({
+            todoId: payload.todoId,
+            date,
+            start: startStr,
+            dropX: e.clientX,
+            dropY: e.clientY,
+          });
+        }
         dragPayloadRef.current = null;
       };
 
@@ -4927,7 +5724,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
               const date = addDays(weekStart, col);
               const isToday = isCurrentWeek && isSameDay(date, now);
               const isWeekend = col === 5 || col === 6;
-              const dayItems = combinedDayItems(col, routine, scheduledBlocks || [], weekStart, overrides, elsewhereToggles, now, icsOccurrences);
+              const dayItems = combinedDayItems(col, routine, scheduledBlocks || [], weekStart, overrides, elsewhereToggles, now, icsOccurrences, completions);
 
               return (
                 <div
@@ -4954,6 +5751,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                       onBlockClick={onBlockClick}
                       onRoutineClick={onRoutineClick}
                       onUpdateBlock={onUpdateBlock}
+                      onToggleComplete={onToggleComplete}
                     />
                   ))}
                   {isToday && <NowLine now={now} hourHeight={HOUR_HEIGHT} />}
@@ -4972,21 +5770,26 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       );
     }
 
-    function CalItem({ item, date, hourHeight, projects, onBlockClick, onRoutineClick, onUpdateBlock }) {
+    function CalItem({ item, date, hourHeight, projects, onBlockClick, onRoutineClick, onUpdateBlock, onToggleComplete }) {
       const isBlock = item._kind === 'block';
       const isRoutine = item._kind === 'routine';
       const isIcs = item._kind === 'ics';
       const block = isBlock ? item._block : null;
       const project = isBlock && projects ? projects.find(p => p.id === block.projectId) : null;
       const projectColor = (project && project.color) || 'var(--gold)';
+      const isTodoBlock = isBlock && !!block.todoId;
 
       // Style + colors
       let style;
       if (isBlock) {
-        style = { color: projectColor, bgAlpha: 0.18 };
+        if (isTodoBlock) {
+          style = { color: '#B8A082', bgAlpha: 0.18 };
+        } else {
+          style = { color: projectColor, bgAlpha: 0.18 };
+        }
       } else if (isIcs) {
-        const isWork = item._ics && item._ics.source === 'work';
-        style = { color: isWork ? '#8C8C96' : '#7896AF', bgAlpha: 0.16 };
+        const icsColor = (item._ics && item._ics.color) || (item._ics && item._ics.source === 'work' ? '#8C8C96' : '#7896AF');
+        style = { color: icsColor, bgAlpha: 0.16 };
       } else {
         style = (CATEGORY_STYLES[item.category] || CATEGORY_STYLES.supplement);
       }
@@ -5081,6 +5884,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         cls += ' routine-item';
         if (item._moved) cls += ' moved';
         else if (item._overridden) cls += ' overridden';
+        if (item._completed) cls += ' routine-completed';
       }
       if (isIcs) {
         cls += ' ics-event';
@@ -5089,12 +5893,21 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       }
 
       const onClick = (e) => {
-        // Don't trigger when the click was actually on the resize handle
-        if (e.target.classList && e.target.classList.contains('cal-item-resize-handle')) return;
+        // Don't trigger when the click was actually on the resize handle or completion checkbox
+        if (e.target.classList && (
+          e.target.classList.contains('cal-item-resize-handle') ||
+          e.target.classList.contains('cal-item-check') ||
+          e.target.closest('.cal-item-check')
+        )) return;
         if (isIcs) return; // ICS events are read-only
         e.stopPropagation();
         if (isBlock && onBlockClick) onBlockClick(block.id);
         else if (isRoutine && onRoutineClick && date) onRoutineClick(item.id, date);
+      };
+
+      const handleToggleComplete = (e) => {
+        e.stopPropagation();
+        if (onToggleComplete && date) onToggleComplete(item.id, date);
       };
 
       return (
@@ -5107,12 +5920,22 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             height,
             left: `calc(${leftPct}% + 2px)`,
             width: `calc(${widthPct}% - 4px)`,
-            background: hexToRgba(style.color, style.bgAlpha),
-            borderLeft: `3px solid ${style.color}`,
+            background: item._completed ? hexToRgba('#7EB8A4', 0.18) : hexToRgba(style.color, style.bgAlpha),
+            borderLeft: `3px solid ${item._completed ? '#7EB8A4' : style.color}`,
           }}
         >
+          {isRoutine && !isTiny && (
+            <button
+              className="cal-item-check"
+              onClick={handleToggleComplete}
+              title={item._completed ? 'Mark not done' : 'Mark done'}
+              aria-label={item._completed ? 'Mark not done' : 'Mark done'}
+            >
+              {item._completed ? '✓' : ''}
+            </button>
+          )}
           {!isTiny && (
-            <div className="cal-item-time" style={{ color: style.color }}>{item.start}–{endStr}</div>
+            <div className="cal-item-time" style={{ color: item._completed ? '#7EB8A4' : style.color }}>{item.start}–{endStr}</div>
           )}
           <div className="cal-item-title">
             {item.title}
@@ -5142,7 +5965,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
     // ═════════════════════════════════════════════════════════════
     // AGENDA VIEW (mobile)
     // ═════════════════════════════════════════════════════════════
-    function AgendaView({ routine, overrides, scheduledBlocks, projects, weekStart, now, onBlockClick, onRoutineClick, elsewhereToggles, icsOccurrences }) {
+    function AgendaView({ routine, overrides, scheduledBlocks, projects, weekStart, now, onBlockClick, onRoutineClick, elsewhereToggles, icsOccurrences, completions, onToggleComplete }) {
       const isCurrentWeek = isSameDay(weekStart, startOfWeek(now));
       const todayCol = isCurrentWeek
         ? (now.getDay() === 0 ? 6 : now.getDay() - 1)
@@ -5157,7 +5980,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       const isSelectedToday = isCurrentWeek && isSameDay(date, now);
 
       const routineItems = applyElsewhereFilter(
-        resolvedRoutineForDate(routine, overrides || {}, date),
+        resolvedRoutineForDate(routine, overrides || {}, date, completions),
         date,
         elsewhereToggles,
         now
@@ -5228,7 +6051,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                 const color = isBlock
                   ? ((project && project.color) || 'var(--gold)')
                   : isIcs
-                    ? (item._ics.source === 'work' ? '#8C8C96' : '#7896AF')
+                    ? ((item._ics && item._ics.color) || (item._ics.source === 'work' ? '#8C8C96' : '#7896AF'))
                     : (CATEGORY_STYLES[item.category] || CATEGORY_STYLES.supplement).color;
                 const startMin = toMinutes(item.start);
                 const endMin = startMin + item.duration;
@@ -5239,12 +6062,21 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                   else if (startMin <= nowMin && endMin >= nowMin) stateClass = 'now';
                 }
                 if (isBlock && block.status === 'completed') stateClass += ' past';
+                if (!isBlock && !isIcs && item._completed) stateClass += ' past';
+
+                const isRoutineItem = !isBlock && !isIcs;
+                const effectiveColor = isRoutineItem && item._completed ? '#7EB8A4' : color;
 
                 const handleClick = isBlock && onBlockClick
                   ? () => onBlockClick(block.id)
                   : (!isBlock && !isIcs && onRoutineClick
                       ? () => onRoutineClick(item.id, date)
                       : undefined);
+
+                const handleToggleCheck = (e) => {
+                  e.stopPropagation();
+                  if (onToggleComplete) onToggleComplete(item.id, date);
+                };
 
                 return (
                   <div
@@ -5253,7 +6085,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                     onClick={handleClick}
                     style={handleClick ? { cursor: 'pointer' } : (isIcs ? { opacity: 0.85 } : {})}
                   >
-                    <div className="agenda-item-stripe" style={{ background: color, ...(isIcs ? { opacity: 0.7 } : {}) }} />
+                    <div className="agenda-item-stripe" style={{ background: effectiveColor, ...(isIcs ? { opacity: 0.7 } : {}) }} />
                     <div className="agenda-item-time">
                       <span>{item.start}</span>
                       {item.duration >= 15 && <span className="agenda-item-time-end">→ {endStr}</span>}
@@ -5262,9 +6094,10 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                       <div className="agenda-item-title">
                         {isBlock && block.status === 'completed' && '✓ '}
                         {isBlock && block.status === 'partial' && '½ '}
+                        {isRoutineItem && item._completed && '✓ '}
                         {item.title}
                         {item.homeOnly && !isBlock && (
-                          <span style={{ color, marginLeft: 8, fontSize: 9, letterSpacing: '0.15em', fontFamily: 'var(--mono)', opacity: 0.7 }}>HOME</span>
+                          <span style={{ color: effectiveColor, marginLeft: 8, fontSize: 9, letterSpacing: '0.15em', fontFamily: 'var(--mono)', opacity: 0.7 }}>HOME</span>
                         )}
                         {isIcs && (
                           <span style={{ color, marginLeft: 8, fontSize: 9, letterSpacing: '0.15em', fontFamily: 'var(--mono)', opacity: 0.7 }}>
@@ -5282,7 +6115,17 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                         <div className="agenda-item-meta">{block.actualMinutes} min spent</div>
                       )}
                     </div>
-                    {stateClass.includes('now') && !isBlock && <span className="agenda-now-flag">NOW</span>}
+                    {isRoutineItem && onToggleComplete && (
+                      <button
+                        className="agenda-item-check"
+                        onClick={handleToggleCheck}
+                        title={item._completed ? 'Mark not done' : 'Mark done'}
+                        aria-label={item._completed ? 'Mark not done' : 'Mark done'}
+                      >
+                        {item._completed ? '✓' : ''}
+                      </button>
+                    )}
+                    {stateClass.includes('now') && !isBlock && !item._completed && <span className="agenda-now-flag">NOW</span>}
                   </div>
                 );
               })}
@@ -5326,6 +6169,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       const [editStart, setEditStart] = useState(effective.start);
       const [editDuration, setEditDuration] = useState(effective.duration);
       const [editNote, setEditNote] = useState(effective.note || '');
+      const [editHomeOnly, setEditHomeOnly] = useState(!!item.homeOnly);
 
       const isPast = startOfDay(date).getTime() < startOfDay(new Date()).getTime();
 
@@ -5345,7 +6189,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         const [h, m] = editStart.split(':').map(Number);
         const cleanStart = `${pad(h)}:${pad(m)}`;
         if (scope === 'thisWeek') {
-          // Store override
+          // Store override (homeOnly is a routine-shape change, not per-occurrence — ignored here)
           onSetOverride(item.id, date, {
             type: 'edit',
             title: editTitle !== item.title ? editTitle : undefined,
@@ -5360,6 +6204,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             start: cleanStart,
             duration: dur,
             note: editNote,
+            homeOnly: editHomeOnly,
           });
           if (existingOverride) onSetOverride(item.id, date, null);
         }
@@ -5488,6 +6333,26 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                           value={editNote}
                           onChange={e => setEditNote(e.target.value)}
                         />
+                      </div>
+                      <div className="routine-form-row">
+                        <label
+                          className="checkbox-row"
+                          style={scope === 'thisWeek' ? { opacity: 0.4, cursor: 'not-allowed' } : {}}
+                          title={scope === 'thisWeek' ? 'Home-only is a routine-shape setting — switch to "From now on" to change it' : ''}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={editHomeOnly}
+                            onChange={e => setEditHomeOnly(e.target.checked)}
+                            disabled={scope === 'thisWeek'}
+                          />
+                          <span>Home only — hide when working from elsewhere</span>
+                        </label>
+                        {scope === 'thisWeek' && (
+                          <div style={{ fontSize: 11, color: 'var(--muted-3)', fontStyle: 'italic', marginTop: 4 }}>
+                            Home-only is a routine-shape setting and applies to all weeks. Switch to "From now on" above to change it.
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
@@ -5627,19 +6492,30 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         if (e.target === e.currentTarget) onClose();
       };
 
-      // Group routine items by their primary day for display
-      // Items appearing on multiple days are shown under their first day with a "+N more" suffix
+      // Group routine items into three buckets:
+      //   1. Recurring (top-of-hour, etc.) — own section, special time semantics
+      //   2. Multi-day — items recurring on multiple days
+      //   3. Single-day — items specific to one day
+      const recurringItems = routine.filter(r => r.recurrence);
       const visible = routine.filter(r => !r.recurrence);
+      const multiDay = [];
       const grouped = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 0: [] };
       visible.forEach(item => {
-        const firstDay = item.days[0] != null ? item.days[0] : 1;
-        grouped[firstDay] = grouped[firstDay] || [];
-        grouped[firstDay].push(item);
+        if (item.days.length > 1) {
+          multiDay.push(item);
+        } else {
+          const d = item.days[0] != null ? item.days[0] : 1;
+          grouped[d] = grouped[d] || [];
+          grouped[d].push(item);
+        }
       });
-      // Sort each group by start time
+      recurringItems.sort((a, b) => a.title.localeCompare(b.title));
+      multiDay.sort((a, b) => toMinutes(a.start) - toMinutes(b.start));
       Object.keys(grouped).forEach(k => grouped[k].sort((a, b) => toMinutes(a.start) - toMinutes(b.start)));
 
       const dayOrder = [1, 2, 3, 4, 5, 6, 0];
+
+      const totalCount = visible.length + recurringItems.length;
 
       if (editingId === null) {
         return (
@@ -5650,7 +6526,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                 <div className="modal-eyebrow">Manage Routine</div>
                 <div className="modal-title">Your weekly routine</div>
                 <div className="modal-meta">
-                  <span>{visible.length} items</span>
+                  <span>{totalCount} items</span>
                   <span style={{ fontStyle: 'italic' }}>Click any item to edit · or add a new one below</span>
                 </div>
               </div>
@@ -5660,23 +6536,67 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                     <span>+ Add a new routine item</span>
                   </button>
                 </div>
+                {recurringItems.length > 0 && (
+                  <div className="routine-day-group">
+                    <div className="routine-day-group-label">Recurring (top of every hour)</div>
+                    {recurringItems.map(item => {
+                      const cat = CATEGORY_STYLES[item.category] || {};
+                      const r = item.recurrence || {};
+                      const window = (r.kind === 'top-of-hour' && r.startHour != null && r.endHour != null)
+                        ? `${pad(r.startHour)}:00–${pad(r.endHour)}:00`
+                        : '—';
+                      return (
+                        <div key={item.id} className="routine-item-row" onClick={() => setEditingId(item.id)}>
+                          <div className="routine-item-row-time">{window}</div>
+                          <div className="routine-item-row-title">
+                            {item.title}
+                            <span style={{ fontSize: 10, color: 'var(--muted-3)', marginLeft: 8, fontFamily: 'var(--mono)' }}>
+                              {describeDays(item.days)} · top of hour
+                            </span>
+                          </div>
+                          <div className="routine-item-row-cat" style={{ color: cat.color || 'var(--muted-3)' }}>
+                            {cat.label || item.category}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {multiDay.length > 0 && (
+                  <div className="routine-day-group">
+                    <div className="routine-day-group-label">Daily / multi-day</div>
+                    {multiDay.map(item => {
+                      const cat = CATEGORY_STYLES[item.category] || {};
+                      return (
+                        <div key={item.id} className="routine-item-row" onClick={() => setEditingId(item.id)}>
+                          <div className="routine-item-row-time">{item.start} · {item.duration}m</div>
+                          <div className="routine-item-row-title">
+                            {item.title}
+                            <span style={{ fontSize: 10, color: 'var(--muted-3)', marginLeft: 8, fontFamily: 'var(--mono)' }}>
+                              {describeDays(item.days)}
+                            </span>
+                          </div>
+                          <div className="routine-item-row-cat" style={{ color: cat.color || 'var(--muted-3)' }}>
+                            {cat.label || item.category}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
                 {dayOrder.map(jsDay => {
                   const items = grouped[jsDay] || [];
                   if (items.length === 0) return null;
                   const visualCol = jsDay === 0 ? 6 : jsDay - 1;
                   return (
                     <div key={jsDay} className="routine-day-group">
-                      <div className="routine-day-group-label">{DAY_NAMES_LONG[visualCol]}</div>
+                      <div className="routine-day-group-label">{DAY_NAMES_LONG[visualCol]} only</div>
                       {items.map(item => {
                         const cat = CATEGORY_STYLES[item.category] || {};
-                        const multiDay = item.days.length > 1;
                         return (
                           <div key={item.id} className="routine-item-row" onClick={() => setEditingId(item.id)}>
                             <div className="routine-item-row-time">{item.start} · {item.duration}m</div>
-                            <div className="routine-item-row-title">
-                              {item.title}
-                              {multiDay && <span style={{ fontSize: 10, color: 'var(--muted-3)', marginLeft: 8, fontFamily: 'var(--mono)' }}>+{item.days.length - 1} more day{item.days.length > 2 ? 's' : ''}</span>}
-                            </div>
+                            <div className="routine-item-row-title">{item.title}</div>
                             <div className="routine-item-row-cat" style={{ color: cat.color || 'var(--muted-3)' }}>
                               {cat.label || item.category}
                             </div>
@@ -5720,6 +6640,8 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
     }
 
     function RoutineEditForm({ item, isNew, onCancel, onSave, onDelete, onCloseModal }) {
+      const isRecurring = !!(item && item.recurrence);
+      const recur = (item && item.recurrence) || null;
       const [title, setTitle] = useState(item ? item.title : '');
       const [days, setDays] = useState(item ? [...item.days] : [1, 2, 3, 4, 5]);
       const [start, setStart] = useState(item ? item.start : '08:00');
@@ -5727,6 +6649,8 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       const [category, setCategory] = useState(item ? item.category : 'planning');
       const [note, setNote] = useState(item ? (item.note || '') : '');
       const [homeOnly, setHomeOnly] = useState(item ? !!item.homeOnly : false);
+      const [recurStartHour, setRecurStartHour] = useState(recur ? (recur.startHour ?? 9) : 9);
+      const [recurEndHour, setRecurEndHour] = useState(recur ? (recur.endHour ?? 18) : 18);
 
       const toggleDay = (d) => {
         setDays(days.includes(d) ? days.filter(x => x !== d) : [...days, d].sort());
@@ -5734,8 +6658,27 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
 
       const handleSave = () => {
         if (!title.trim()) { alert('Title is required.'); return; }
-        if (!start.match(/^\d{1,2}:\d{2}$/)) { alert('Start must be HH:MM.'); return; }
         if (days.length === 0) { alert('Select at least one day.'); return; }
+        if (isRecurring) {
+          const sh = Number(recurStartHour);
+          const eh = Number(recurEndHour);
+          if (isNaN(sh) || isNaN(eh) || sh < 0 || sh > 23 || eh < 0 || eh > 23) {
+            alert('Hours must be 0–23.'); return;
+          }
+          if (sh > eh) { alert('Start hour must be ≤ end hour.'); return; }
+          onSave({
+            title: title.trim(),
+            days: [...days].sort(),
+            start: `${pad(sh)}:00`, // keep start coherent for any code path that reads it
+            duration: 1,
+            category,
+            note: note.trim(),
+            homeOnly: !!homeOnly,
+            recurrence: { kind: 'top-of-hour', startHour: sh, endHour: eh },
+          });
+          return;
+        }
+        if (!start.match(/^\d{1,2}:\d{2}$/)) { alert('Start must be HH:MM.'); return; }
         const dur = Number(duration);
         if (isNaN(dur) || dur < 5) { alert('Duration must be at least 5 minutes.'); return; }
         const [h, m] = start.split(':').map(Number);
@@ -5747,7 +6690,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
           duration: dur,
           category,
           note: note.trim(),
-          ...(homeOnly ? { homeOnly: true } : {}),
+          homeOnly: !!homeOnly,
         });
       };
 
@@ -5763,7 +6706,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
           <div className="modal routine-modal">
             <button className="modal-close" onClick={onCloseModal} aria-label="Close">×</button>
             <div className="modal-header">
-              <div className="modal-eyebrow">{isNew ? 'New routine item' : 'Edit routine item'}</div>
+              <div className="modal-eyebrow">{isNew ? 'New routine item' : (isRecurring ? 'Edit recurring item · top of every hour' : 'Edit routine item')}</div>
               <div className="modal-title">{title || 'Untitled'}</div>
               <div className="modal-meta">
                 <span style={{ fontStyle: 'italic' }}>Changes apply to all weeks, past and future</span>
@@ -5798,26 +6741,58 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                   </div>
                 </div>
 
-                <div className="routine-form-row half">
-                  <div className="routine-form-label">Start time</div>
-                  <input
-                    type="text"
-                    className="routine-form-input mono"
-                    value={start}
-                    onChange={e => setStart(e.target.value)}
-                    placeholder="HH:MM"
-                  />
-                </div>
-                <div className="routine-form-row half">
-                  <div className="routine-form-label">Duration (min)</div>
-                  <input
-                    type="number"
-                    className="routine-form-input mono"
-                    value={duration}
-                    min="5" max="600" step="5"
-                    onChange={e => setDuration(e.target.value)}
-                  />
-                </div>
+                {isRecurring ? (
+                  <>
+                    <div className="routine-form-row half">
+                      <div className="routine-form-label">Window start (hour)</div>
+                      <input
+                        type="number"
+                        className="routine-form-input mono"
+                        value={recurStartHour}
+                        min="0" max="23" step="1"
+                        onChange={e => setRecurStartHour(e.target.value)}
+                      />
+                    </div>
+                    <div className="routine-form-row half">
+                      <div className="routine-form-label">Window end (hour)</div>
+                      <input
+                        type="number"
+                        className="routine-form-input mono"
+                        value={recurEndHour}
+                        min="0" max="23" step="1"
+                        onChange={e => setRecurEndHour(e.target.value)}
+                      />
+                    </div>
+                    <div className="routine-form-row">
+                      <div style={{ fontSize: 11, color: 'var(--muted-3)', fontStyle: 'italic', lineHeight: 1.5 }}>
+                        Triggers in the Right Now banner during the first 2 minutes of every hour from {pad(Number(recurStartHour) || 0)}:00 to {pad(Number(recurEndHour) || 0)}:00, on the selected days. The protocol shown is read from the "Micro-Strength Protocol" entry in your Reference Library — edit it there to change what the banner displays.
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="routine-form-row half">
+                      <div className="routine-form-label">Start time</div>
+                      <input
+                        type="text"
+                        className="routine-form-input mono"
+                        value={start}
+                        onChange={e => setStart(e.target.value)}
+                        placeholder="HH:MM"
+                      />
+                    </div>
+                    <div className="routine-form-row half">
+                      <div className="routine-form-label">Duration (min)</div>
+                      <input
+                        type="number"
+                        className="routine-form-input mono"
+                        value={duration}
+                        min="5" max="600" step="5"
+                        onChange={e => setDuration(e.target.value)}
+                      />
+                    </div>
+                  </>
+                )}
 
                 <div className="routine-form-row">
                   <div className="routine-form-label">Category</div>
@@ -5886,6 +6861,126 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
     // ═════════════════════════════════════════════════════════════
     // CAPTURE BAR — single text input for fleeting thoughts
     // ═════════════════════════════════════════════════════════════
+    // ═════════════════════════════════════════════════════════════
+    // WEATHER STRIP — thin top-of-page band, 24h with day tabs
+    // ═════════════════════════════════════════════════════════════
+    function WeatherStrip({ settings, cache, refreshing, error, dayTab, now, onChangeDayTab, onRefresh, onRequestGeo }) {
+      // Empty state: no coordinates yet
+      const hasCoords = settings && settings.lat != null && settings.lon != null;
+
+      if (!hasCoords) {
+        const declined = settings && settings.source === 'declined';
+        return (
+          <div className="weather-strip">
+            <div className="weather-strip-left">
+              <div className="weather-strip-eyebrow">Weather</div>
+              <div className="weather-strip-location">
+                {declined ? 'Location off' : 'Location needed'}
+              </div>
+            </div>
+            <div className="weather-strip-status">
+              {declined
+                ? 'Set your location in Settings to enable the forecast.'
+                : (refreshing ? 'Asking for location…' : 'Browser will prompt for location once.')}
+            </div>
+            {(declined || error) && (
+              <button className="weather-strip-refresh" onClick={onRequestGeo}>
+                Ask again
+              </button>
+            )}
+          </div>
+        );
+      }
+
+      // Build the cells for the selected day tab
+      const targetDate = addDays(startOfDay(now), dayTab);
+      const targetDateMs = targetDate.getTime();
+      const nextDayMs = targetDateMs + 24 * 60 * 60 * 1000;
+      const nowHour = now.getHours();
+      const nowDateMs = startOfDay(now).getTime();
+      const isToday = targetDateMs === nowDateMs;
+
+      let cells = [];
+      if (cache && Array.isArray(cache.hours)) {
+        cells = cache.hours.filter(h => {
+          const t = h.time.getTime();
+          return t >= targetDateMs && t < nextDayMs;
+        });
+      }
+
+      // For "today", trim past hours so we show forward-looking forecast only
+      if (isToday) {
+        cells = cells.filter(h => h.time.getHours() >= nowHour);
+      }
+
+      const tabs = [
+        { idx: 0, label: 'Today' },
+        { idx: 1, label: 'Tomorrow' },
+        { idx: 2, label: addDays(now, 2).toLocaleDateString(undefined, { weekday: 'short' }) },
+      ];
+
+      const renderTabBar = () => (
+        <div className="weather-strip-tabs">
+          {tabs.map(t => (
+            <button
+              key={t.idx}
+              className={`weather-strip-tab ${dayTab === t.idx ? 'active' : ''}`}
+              onClick={() => onChangeDayTab(t.idx)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      );
+
+      const locationDisplay = settings.label || `${(settings.lat || 0).toFixed(2)}°, ${(settings.lon || 0).toFixed(2)}°`;
+
+      return (
+        <div className="weather-strip">
+          <div className="weather-strip-left">
+            <div className="weather-strip-eyebrow">Weather</div>
+            <div className="weather-strip-location" title={locationDisplay}>{locationDisplay}</div>
+          </div>
+          {renderTabBar()}
+          {refreshing && cells.length === 0 ? (
+            <div className="weather-strip-status">Loading forecast…</div>
+          ) : error ? (
+            <div className="weather-strip-status error">{error}</div>
+          ) : cells.length === 0 ? (
+            <div className="weather-strip-status">No data for this day</div>
+          ) : (
+            <div className="weather-strip-cells">
+              {cells.map((h, i) => {
+                const hour = h.time.getHours();
+                const isNowCell = isToday && hour === nowHour;
+                const dry = (h.precip ?? 0) < 5;
+                return (
+                  <div
+                    key={i}
+                    className={`weather-cell ${isNowCell ? 'now' : ''}`}
+                    title={`${pad(hour)}:00 · ${h.temp != null ? Math.round(h.temp) + '°C' : '—'} · ${h.precip ?? 0}% precip`}
+                  >
+                    <div className="weather-cell-hour">{pad(hour)}</div>
+                    <div className="weather-cell-icon">{wmoIcon(h.code)}</div>
+                    <div className="weather-cell-temp">
+                      {h.temp != null ? Math.round(h.temp) + '°' : '—'}
+                    </div>
+                    <div className={`weather-cell-precip ${dry ? 'dry' : ''}`}>
+                      {dry ? '·' : (h.precip + '%')}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          <button className="weather-strip-refresh" onClick={onRefresh} disabled={refreshing} title="Refresh forecast">
+            {refreshing ? '↻…' : '↻'}
+          </button>
+        </div>
+      );
+    }
+
+
     function CaptureBar({ inbox, onAdd, onOpenInbox }) {
       const [value, setValue] = useState('');
       const submit = () => {
@@ -6131,12 +7226,226 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
     }
 
     // ═════════════════════════════════════════════════════════════
+    // TODOS PANE — vertical pane with add/edit/remove + drag onto calendar
+    // ═════════════════════════════════════════════════════════════
+    function TodosPane({ todos, scheduledBlocks, onAdd, onUpdate, onDelete }) {
+      const [value, setValue] = useState('');
+      // Build a quick lookup: todoId -> is it currently scheduled (has a non-completed block)?
+      const scheduledMap = {};
+      (scheduledBlocks || []).forEach(b => {
+        if (b.todoId && b.status !== 'completed') scheduledMap[b.todoId] = true;
+      });
+
+      const submit = () => {
+        if (!value.trim()) return;
+        onAdd(value);
+        setValue('');
+      };
+      const onKeyDown = (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); submit(); }
+      };
+
+      // Sort: open first (newest first), done at bottom
+      const sorted = [...todos].sort((a, b) => {
+        if (a.done !== b.done) return a.done ? 1 : -1;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+
+      const openCount = todos.filter(t => !t.done).length;
+
+      const onDragStart = (e, todo) => {
+        if (todo.done) { e.preventDefault(); return; }
+        const payload = { type: 'todo', todoId: todo.id, title: todo.title, duration: 30 };
+        e.dataTransfer.effectAllowed = 'copy';
+        e.dataTransfer.setData('application/json', JSON.stringify(payload));
+      };
+
+      return (
+        <div className="todos-pane">
+          <div className="todos-pane-header">
+            <div className="todos-pane-eyebrow">Todos</div>
+            <div className="todos-pane-count">{openCount} open · {todos.length} total</div>
+          </div>
+          <div className="todos-add-bar">
+            <input
+              type="text"
+              className="todos-add-input"
+              placeholder="Add a one-time todo — Enter to save"
+              value={value}
+              onChange={e => setValue(e.target.value)}
+              onKeyDown={onKeyDown}
+            />
+          </div>
+          {sorted.length === 0 ? (
+            <div className="todos-empty">No todos. Add one above, then drag it onto the calendar to schedule.</div>
+          ) : (
+            <div className="todos-list">
+              {sorted.map(todo => {
+                const isScheduled = !todo.done && scheduledMap[todo.id];
+                const cls = `todo-item ${todo.done ? 'done' : ''} ${isScheduled ? 'scheduled' : ''}`;
+                return (
+                  <div
+                    key={todo.id}
+                    className={cls}
+                    draggable={!todo.done}
+                    onDragStart={(e) => onDragStart(e, todo)}
+                    title={todo.done ? 'Done' : (isScheduled ? 'Scheduled · drag to reschedule' : 'Drag onto calendar to schedule')}
+                  >
+                    <input
+                      type="checkbox"
+                      className="todo-checkbox"
+                      checked={!!todo.done}
+                      onChange={() => onUpdate(todo.id, { done: !todo.done })}
+                    />
+                    <div className="todo-item-title">{todo.title}</div>
+                    {isScheduled && <div className="todo-item-badge">SCHED</div>}
+                    <button
+                      className="todo-item-delete"
+                      onClick={() => { if (confirm(`Delete "${todo.title}"?`)) onDelete(todo.id); }}
+                      title="Delete"
+                    >×</button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // TODO DURATION PROMPT — small popover after dropping a todo on calendar
+    // ═════════════════════════════════════════════════════════════
+    function TodoDurationPrompt({ drop, todo, onConfirm, onCancel }) {
+      const [duration, setDuration] = useState(30);
+      const inputRef = useRef(null);
+
+      useEffect(() => {
+        if (inputRef.current) inputRef.current.focus();
+      }, []);
+
+      // Backdrop dismiss + escape key
+      useEffect(() => {
+        const onKey = (e) => {
+          if (e.key === 'Escape') onCancel();
+          if (e.key === 'Enter') {
+            const dur = Number(duration);
+            if (!isNaN(dur) && dur >= 5) onConfirm(dur);
+          }
+        };
+        document.addEventListener('keydown', onKey);
+        return () => document.removeEventListener('keydown', onKey);
+      }, [duration, onConfirm, onCancel]);
+
+      // Position the prompt near the drop point, but keep it on screen
+      const winW = window.innerWidth;
+      const winH = window.innerHeight;
+      const promptW = 280;
+      const promptH = 200;
+      const left = Math.min(Math.max(12, drop.dropX + 12), winW - promptW - 12);
+      const top = Math.min(Math.max(12, drop.dropY + 12), winH - promptH - 12);
+
+      const date = new Date(drop.date);
+      const dayName = DAY_NAMES_LONG[(date.getDay() === 0 ? 6 : date.getDay() - 1)];
+
+      const handleChip = (mins) => onConfirm(mins);
+      const handleConfirm = () => {
+        const dur = Number(duration);
+        if (isNaN(dur) || dur < 5) return;
+        onConfirm(dur);
+      };
+
+      return (
+        <>
+          <div
+            style={{
+              position: 'fixed', inset: 0, zIndex: 80, background: 'rgba(0,0,0,0.2)',
+            }}
+            onClick={onCancel}
+          />
+          <div className="duration-prompt" style={{ left, top }} onClick={e => e.stopPropagation()}>
+            <div className="duration-prompt-label">Schedule todo</div>
+            <div className="duration-prompt-title">{todo ? todo.title : '(unknown todo)'}</div>
+            <div className="duration-prompt-meta">{dayName} · starts at {drop.start}</div>
+            <div className="duration-prompt-chips">
+              {[15, 30, 45, 60, 90].map(m => (
+                <button key={m} className="duration-prompt-chip" onClick={() => handleChip(m)}>
+                  {m < 60 ? `${m}m` : (m === 60 ? '1h' : '1h 30m')}
+                </button>
+              ))}
+            </div>
+            <div className="duration-prompt-input-row">
+              <input
+                ref={inputRef}
+                type="number"
+                className="duration-prompt-input"
+                value={duration}
+                min="5" max="600" step="5"
+                onChange={e => setDuration(e.target.value)}
+                placeholder="custom (min)"
+              />
+              <button className="modal-btn primary" onClick={handleConfirm}>
+                <span>OK</span>
+              </button>
+              <button className="modal-btn" onClick={onCancel}>
+                <span>Cancel</span>
+              </button>
+            </div>
+          </div>
+        </>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
     // SETTINGS MODAL — calendar feeds + proxy URL
     // ═════════════════════════════════════════════════════════════
-    function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh, onClose }) {
+    // Curated muted palette for calendar colors — matches the dark/serif aesthetic
+    const CALENDAR_COLORS = [
+      '#8C8C96', // slate
+      '#7896AF', // soft blue
+      '#7EB8A4', // muted teal
+      '#A78BCA', // muted violet
+      '#C9A84C', // gold
+      '#E07B6A', // coral
+      '#9C7B5C', // warm tan
+      '#5A8FA3', // cool steel
+    ];
+
+    function ColorSwatchPicker({ value, onChange, label }) {
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8 }}>
+          <div style={{ fontSize: 10, letterSpacing: '0.18em', color: 'var(--muted-3)', textTransform: 'uppercase', fontFamily: 'var(--mono)', minWidth: 60 }}>
+            {label}
+          </div>
+          <input
+            type="color"
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            style={{
+              width: 40,
+              height: 28,
+              border: '1px solid var(--border)',
+              background: 'transparent',
+              cursor: 'pointer',
+              padding: 2,
+            }}
+          />
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted-3)', letterSpacing: '0.05em' }}>
+            {value}
+          </span>
+        </div>
+      );
+    }
+
+    function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh, weather, onUpdateWeather, onRequestGeo, onClose }) {
       const [proxyUrl, setProxyUrl] = useState(calendars.proxyUrl || '');
       const [workIcs, setWorkIcs] = useState(calendars.workIcs || '');
       const [householdIcs, setHouseholdIcs] = useState(calendars.householdIcs || '');
+      const [workColor, setWorkColor] = useState(calendars.workColor || '#8C8C96');
+      const [householdColor, setHouseholdColor] = useState(calendars.householdColor || '#7896AF');
+      const [latInput, setLatInput] = useState(weather && weather.lat != null ? String(weather.lat) : '');
+      const [lonInput, setLonInput] = useState(weather && weather.lon != null ? String(weather.lon) : '');
+      const [labelInput, setLabelInput] = useState(weather && weather.label ? weather.label : '');
 
       const handleBackdropClick = (e) => {
         if (e.target === e.currentTarget) onClose();
@@ -6147,6 +7456,8 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
           proxyUrl: proxyUrl.trim(),
           workIcs: workIcs.trim(),
           householdIcs: householdIcs.trim(),
+          workColor,
+          householdColor,
         });
         // Don't close — let user trigger refresh first
       };
@@ -6156,6 +7467,8 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
           proxyUrl: proxyUrl.trim(),
           workIcs: workIcs.trim(),
           householdIcs: householdIcs.trim(),
+          workColor,
+          householdColor,
         });
         // Note: useEffect on cfgKey will trigger refresh automatically
         onClose();
@@ -6225,6 +7538,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                   <div className="settings-field-hint">
                     In Google Calendar: Settings → Integrate calendar → "Secret address in iCal format". Note: company-managed calendars often disallow ICS export.
                   </div>
+                  <ColorSwatchPicker value={workColor} onChange={setWorkColor} label="Color" />
                   {renderStatus('work', 'Work')}
                 </div>
                 <div className="settings-field">
@@ -6239,6 +7553,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                   <div className="settings-field-hint">
                     Same place: Settings → Integrate calendar → Secret iCal address.
                   </div>
+                  <ColorSwatchPicker value={householdColor} onChange={setHouseholdColor} label="Color" />
                   {renderStatus('household', 'Household')}
                 </div>
               </div>
@@ -6250,6 +7565,66 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                   </button>
                   <button className="modal-btn" onClick={handleSave}>
                     <span>Save without fetching</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="settings-section">
+                <div className="settings-field-label" style={{ marginBottom: 8 }}>Weather location</div>
+                <div className="settings-field-hint" style={{ marginBottom: 10 }}>
+                  Used for the forecast banner at the top. {weather && weather.source === 'geolocation' ? 'Currently set from browser geolocation.' : weather && weather.source === 'manual' ? 'Currently set manually.' : weather && weather.source === 'declined' ? 'You declined geolocation. Set manually below or click "Use my location".' : 'Not yet configured.'}
+                </div>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                  <button className="modal-btn" onClick={onRequestGeo}>
+                    <span>↻ Use my browser location</span>
+                  </button>
+                </div>
+                <div className="routine-form-grid">
+                  <div className="routine-form-row half">
+                    <div className="routine-form-label">Latitude</div>
+                    <input
+                      type="text"
+                      className="settings-input"
+                      value={latInput}
+                      placeholder="47.99"
+                      onChange={e => setLatInput(e.target.value)}
+                    />
+                  </div>
+                  <div className="routine-form-row half">
+                    <div className="routine-form-label">Longitude</div>
+                    <input
+                      type="text"
+                      className="settings-input"
+                      value={lonInput}
+                      placeholder="-4.49"
+                      onChange={e => setLonInput(e.target.value)}
+                    />
+                  </div>
+                  <div className="routine-form-row">
+                    <div className="routine-form-label">Label (optional)</div>
+                    <input
+                      type="text"
+                      className="settings-input"
+                      value={labelInput}
+                      placeholder="e.g. Plouhinec"
+                      onChange={e => setLabelInput(e.target.value)}
+                      style={{ fontFamily: 'var(--serif)' }}
+                    />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                  <button
+                    className="modal-btn primary"
+                    onClick={() => {
+                      const lat = parseFloat(latInput);
+                      const lon = parseFloat(lonInput);
+                      if (isNaN(lat) || isNaN(lon)) { alert('Latitude and longitude must be numbers.'); return; }
+                      if (lat < -90 || lat > 90) { alert('Latitude must be between -90 and 90.'); return; }
+                      if (lon < -180 || lon > 180) { alert('Longitude must be between -180 and 180.'); return; }
+                      onUpdateWeather(lat, lon, labelInput.trim());
+                    }}
+                  >
+                    <span>Save weather location</span>
                   </button>
                 </div>
               </div>
