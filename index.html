@@ -2148,6 +2148,91 @@
     /* ───────── ROUTINE EDIT FORMS ───────── */
     .routine-modal { max-width: 720px; }
     .routine-day-group { margin-bottom: 16px; }
+
+    /* ───────── CATEGORY COLORS PICKER (in routine manager) ───────── */
+    .category-colors-section {
+      margin-bottom: 24px;
+      padding: 14px 16px;
+      background: var(--bg-card-deep);
+      border-left: 2px solid var(--rule);
+    }
+    .category-colors-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .category-colors-eyebrow {
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      color: var(--muted-3);
+      text-transform: uppercase;
+      font-family: var(--mono);
+      font-weight: 600;
+    }
+    .category-colors-hint {
+      font-size: 11px;
+      color: var(--muted-3);
+      font-style: italic;
+    }
+    .category-colors-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 6px;
+    }
+    .category-color-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 8px;
+      background: var(--bg-card);
+      transition: background 0.12s;
+    }
+    .category-color-row:hover { background: var(--bg-hover); }
+    .category-color-swatch {
+      flex-shrink: 0;
+      width: 28px;
+      height: 22px;
+      border: 1px solid var(--border);
+      background: transparent;
+      cursor: pointer;
+      padding: 1px;
+    }
+    .category-color-label {
+      flex: 1;
+      font-size: 12px;
+      color: var(--text);
+      letter-spacing: 0.01em;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .category-color-hex {
+      font-size: 10px;
+      color: var(--muted-3);
+      font-family: var(--mono);
+      letter-spacing: 0.05em;
+    }
+    .category-color-reset {
+      flex-shrink: 0;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted-3);
+      width: 22px;
+      height: 22px;
+      cursor: pointer;
+      padding: 0;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .category-color-reset:hover { border-color: var(--gold); color: var(--gold); }
+
     .routine-day-group-label {
       font-size: 10px;
       letter-spacing: 0.25em;
@@ -3188,7 +3273,7 @@
     const CLIENT_ID = '25894919429-pbtl8l6nn23vnvc8c8cbhg5f3n8gepu6.apps.googleusercontent.com';
     const SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
     const FILE_NAME = 'my-planning-data.json';
-    const SCHEMA_VERSION = 13;
+    const SCHEMA_VERSION = 14;
 
     // Days: JS Date.getDay() — 0=Sun, 1=Mon ... 6=Sat. Visual columns are Mon-first.
     const VISUAL_TO_JS_DAY = [1, 2, 3, 4, 5, 6, 0];
@@ -3206,6 +3291,27 @@
       commute:    { color: '#B5896E', label: 'Commute',    bgAlpha: 0.10 },
       'micro-strength': { color: '#7EB8A4', label: 'Micro-strength', bgAlpha: 0.06 },
     };
+
+    // The user can override category colors. This helper reads from a user-supplied
+    // map (or returns null) so callers can fall back to CATEGORY_STYLES defaults.
+    function getCategoryColor(category, userColors) {
+      if (userColors && typeof userColors === 'object' && userColors[category]) {
+        return userColors[category];
+      }
+      return (CATEGORY_STYLES[category] || CATEGORY_STYLES.supplement).color;
+    }
+
+    // Build a "merged" CATEGORY_STYLES map for a given user color override map.
+    // Used at render time so existing code paths that read .color from the merged
+    // map continue working without per-call lookups.
+    function categoryStylesWith(userColors) {
+      const out = {};
+      Object.entries(CATEGORY_STYLES).forEach(([k, v]) => {
+        out[k] = { ...v, color: getCategoryColor(k, userColors) };
+      });
+      return out;
+    }
+
 
     // Standard contents for the gym bag — used as note text on every "pack gym bag" event.
     const GYM_BAG_CONTENTS = 'Shoes · socks · shorts/jogging · t-shirt · sweater · water bottle with electrolytes';
@@ -4553,7 +4659,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         todos: [],
         routineCompletions: {},
         weather: { lat: null, lon: null, label: '', source: 'unset' }, // source: 'unset' | 'geolocation' | 'manual'
-        prefs: { theme: 'light' }, // 'light' | 'dark'
+        prefs: { theme: 'light', categoryColors: {} }, // theme: 'light' | 'dark'; categoryColors: { [category]: '#hex' }
       };
     }
 
@@ -4616,11 +4722,15 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       }
       // v13: theme preference. Existing users get light by default (the new default surface).
       if (!next.prefs || typeof next.prefs !== 'object') {
-        next.prefs = { theme: 'light' };
+        next.prefs = { theme: 'light', categoryColors: {} };
         changed = true;
-      } else if (!next.prefs.theme) {
-        next.prefs.theme = 'light';
-        changed = true;
+      } else {
+        if (!next.prefs.theme) { next.prefs.theme = 'light'; changed = true; }
+        // v14: per-category color overrides
+        if (!next.prefs.categoryColors || typeof next.prefs.categoryColors !== 'object') {
+          next.prefs.categoryColors = {};
+          changed = true;
+        }
       }
       // v11: routine items with string recurrence get structured form
       if (Array.isArray(next.routine)) {
@@ -4857,7 +4967,9 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       onLaunchReview, onOpenInbox, onOpenSettings,
       inbox, weeklyResets,
       currentTheme, onSetTheme,
+      categoryStyles,
     }) {
+      const CATS = categoryStyles || CATEGORY_STYLES;
       const todos = data.todos || [];
       const completions = data.routineCompletions || {};
       const overrides = data.overrides || {};
@@ -5102,7 +5214,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         const isNow = it.startMin <= nowMin && (it.startMin + it.duration) > nowMin;
         const cls = `today-timeline-row ${isPast ? 'is-past' : ''} ${isNow && !it.completed ? 'is-now' : ''} ${it.completed ? 'is-completed' : ''}`;
         const stripeColor = it.kind === 'routine'
-          ? ((CATEGORY_STYLES[it.category] || CATEGORY_STYLES.supplement).color)
+          ? ((CATS[it.category] || CATS.supplement).color)
           : (it.color || 'var(--gold)');
         const tagText = it.kind === 'ics' ? it.note : (it.kind === 'block' ? it.note : null);
 
@@ -5409,6 +5521,26 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         persistData(d => ({ ...d, prefs: { ...(d.prefs || {}), theme } }));
       }, [persistData]);
       const currentTheme = (data.prefs && data.prefs.theme) || 'light';
+
+      // Per-category color overrides — read user prefs, build merged style map
+      const userCategoryColors = (data.prefs && data.prefs.categoryColors) || {};
+      const categoryStyles = useMemo(() => categoryStylesWith(userCategoryColors), [userCategoryColors]);
+      const setCategoryColor = useCallback((category, color) => {
+        persistData(d => ({
+          ...d,
+          prefs: {
+            ...(d.prefs || {}),
+            categoryColors: { ...((d.prefs && d.prefs.categoryColors) || {}), [category]: color },
+          },
+        }));
+      }, [persistData]);
+      const resetCategoryColor = useCallback((category) => {
+        persistData(d => {
+          const map = { ...((d.prefs && d.prefs.categoryColors) || {}) };
+          delete map[category];
+          return { ...d, prefs: { ...(d.prefs || {}), categoryColors: map } };
+        });
+      }, [persistData]);
 
       const createBlock = useCallback((block) => {
         const newBlock = {
@@ -5898,6 +6030,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             weeklyResets={data.weeklyResets || []}
             currentTheme={currentTheme}
             onSetTheme={setTheme}
+            categoryStyles={categoryStyles}
           />
         ) : (
         <div className={`wrap-wide screen-pad-top-sm fade-in ${dayView !== null ? 'day-view' : ''}`}>
@@ -6009,6 +6142,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                   icsOccurrences={icsOccurrences}
                   completions={data.routineCompletions || {}}
                   onToggleComplete={toggleRoutineCompletion}
+                  categoryStyles={categoryStyles}
                 />
               ) : (
                 <WeekGrid
@@ -6029,6 +6163,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                   onTodoDrop={setPendingTodoDrop}
                   completions={data.routineCompletions || {}}
                   onToggleComplete={toggleRoutineCompletion}
+                  categoryStyles={categoryStyles}
                 />
               )}
 
@@ -6089,6 +6224,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             onUpdateItem={updateRoutineItem}
             onDeleteItem={deleteRoutineItem}
             onSetOverride={setOverride}
+            categoryStyles={categoryStyles}
           />
         )}
 
@@ -6109,6 +6245,10 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             onUpdateItem={updateRoutineItem}
             onAddItem={addRoutineItem}
             onDeleteItem={deleteRoutineItem}
+            categoryStyles={categoryStyles}
+            onSetCategoryColor={setCategoryColor}
+            onResetCategoryColor={resetCategoryColor}
+            userCategoryColors={userCategoryColors}
           />
         )}
 
@@ -6761,7 +6901,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
     const END_HOUR = 23;
     const HOURS_VISIBLE = END_HOUR - START_HOUR;
 
-    function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, now, singleCol, onDayClick, onCreateBlock, onBlockClick, onRoutineClick, onUpdateBlock, elsewhereToggles, icsOccurrences, onTodoDrop, completions, onToggleComplete }) {
+    function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, now, singleCol, onDayClick, onCreateBlock, onBlockClick, onRoutineClick, onUpdateBlock, elsewhereToggles, icsOccurrences, onTodoDrop, completions, onToggleComplete, categoryStyles }) {
       const isDayView = singleCol !== null && singleCol !== undefined;
       const HOUR_HEIGHT = isDayView ? HOUR_HEIGHT_DAY : HOUR_HEIGHT_WEEK;
       const totalHeight = HOURS_VISIBLE * HOUR_HEIGHT;
@@ -6926,6 +7066,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                       onRoutineClick={onRoutineClick}
                       onUpdateBlock={onUpdateBlock}
                       onToggleComplete={onToggleComplete}
+                      categoryStyles={categoryStyles}
                     />
                   ))}
                   {isToday && <NowLine now={now} hourHeight={HOUR_HEIGHT} />}
@@ -6944,7 +7085,8 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       );
     }
 
-    function CalItem({ item, date, hourHeight, projects, onBlockClick, onRoutineClick, onUpdateBlock, onToggleComplete }) {
+    function CalItem({ item, date, hourHeight, projects, onBlockClick, onRoutineClick, onUpdateBlock, onToggleComplete, categoryStyles }) {
+      const CATS = categoryStyles || CATEGORY_STYLES;
       const isBlock = item._kind === 'block';
       const isRoutine = item._kind === 'routine';
       const isIcs = item._kind === 'ics';
@@ -6965,7 +7107,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         const icsColor = (item._ics && item._ics.color) || (item._ics && item._ics.source === 'work' ? '#8C8C96' : '#7896AF');
         style = { color: icsColor, bgAlpha: 0.16 };
       } else {
-        style = (CATEGORY_STYLES[item.category] || CATEGORY_STYLES.supplement);
+        style = (CATS[item.category] || CATS.supplement);
       }
 
       const startMin = toMinutes(item.start);
@@ -7139,7 +7281,8 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
     // ═════════════════════════════════════════════════════════════
     // AGENDA VIEW (mobile)
     // ═════════════════════════════════════════════════════════════
-    function AgendaView({ routine, overrides, scheduledBlocks, projects, weekStart, now, onBlockClick, onRoutineClick, elsewhereToggles, icsOccurrences, completions, onToggleComplete }) {
+    function AgendaView({ routine, overrides, scheduledBlocks, projects, weekStart, now, onBlockClick, onRoutineClick, elsewhereToggles, icsOccurrences, completions, onToggleComplete, categoryStyles }) {
+      const CATS = categoryStyles || CATEGORY_STYLES;
       const isCurrentWeek = isSameDay(weekStart, startOfWeek(now));
       const todayCol = isCurrentWeek
         ? (now.getDay() === 0 ? 6 : now.getDay() - 1)
@@ -7226,7 +7369,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                   ? ((project && project.color) || 'var(--gold)')
                   : isIcs
                     ? ((item._ics && item._ics.color) || (item._ics.source === 'work' ? '#8C8C96' : '#7896AF'))
-                    : (CATEGORY_STYLES[item.category] || CATEGORY_STYLES.supplement).color;
+                    : (CATS[item.category] || CATS.supplement).color;
                 const startMin = toMinutes(item.start);
                 const endMin = startMin + item.duration;
                 const endStr = `${pad(Math.floor(endMin / 60))}:${pad(endMin % 60)}`;
@@ -7312,7 +7455,8 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
     // ═════════════════════════════════════════════════════════════
     // ROUTINE ITEM POPOVER — click any routine block on the calendar
     // ═════════════════════════════════════════════════════════════
-    function RoutineItemPopover({ context, routine, overrides, onClose, onUpdateItem, onDeleteItem, onSetOverride }) {
+    function RoutineItemPopover({ context, routine, overrides, onClose, onUpdateItem, onDeleteItem, onSetOverride, categoryStyles }) {
+      const CATS = categoryStyles || CATEGORY_STYLES;
       const item = routine.find(r => r.id === context.itemId);
       if (!item) {
         return (
@@ -7413,7 +7557,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
 
       return (
         <div className="modal-backdrop" onClick={handleBackdropClick}>
-          <div className="modal" style={{ borderTopColor: (CATEGORY_STYLES[item.category] || {}).color || 'var(--gold)' }}>
+          <div className="modal" style={{ borderTopColor: (CATS[item.category] || {}).color || 'var(--gold)' }}>
             <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
             <div className="modal-header">
               <div className="modal-eyebrow">Routine · {categoryLabel}</div>
@@ -7658,7 +7802,8 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
     // ═════════════════════════════════════════════════════════════
     // ROUTINE MANAGER MODAL — full edit/add/delete of underlying routine
     // ═════════════════════════════════════════════════════════════
-    function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDeleteItem }) {
+    function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDeleteItem, categoryStyles, onSetCategoryColor, onResetCategoryColor, userCategoryColors }) {
+      const CATS = categoryStyles || CATEGORY_STYLES;
       // null = list view; 'new' = adding new; or itemId = editing existing
       const [editingId, setEditingId] = useState(null);
 
@@ -7705,6 +7850,43 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                 </div>
               </div>
               <div className="modal-body">
+                <div className="category-colors-section">
+                  <div className="category-colors-header">
+                    <div className="category-colors-eyebrow">Category colors</div>
+                    <div className="category-colors-hint">Each category has its own color. Click any swatch to customize.</div>
+                  </div>
+                  <div className="category-colors-grid">
+                    {Object.keys(CATEGORY_STYLES).map(cat => {
+                      const defaultColor = CATEGORY_STYLES[cat].color;
+                      const currentColor = (userCategoryColors && userCategoryColors[cat]) || defaultColor;
+                      const isOverridden = !!(userCategoryColors && userCategoryColors[cat]);
+                      const label = CATEGORY_STYLES[cat].label;
+                      return (
+                        <div key={cat} className="category-color-row">
+                          <input
+                            type="color"
+                            value={currentColor}
+                            onChange={e => onSetCategoryColor && onSetCategoryColor(cat, e.target.value)}
+                            className="category-color-swatch"
+                            title={`Pick color for ${label}`}
+                          />
+                          <div className="category-color-label">{label}</div>
+                          <div className="category-color-hex">{currentColor}</div>
+                          {isOverridden && (
+                            <button
+                              className="category-color-reset"
+                              onClick={() => onResetCategoryColor && onResetCategoryColor(cat)}
+                              title="Reset to default color"
+                            >
+                              ↺
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 <div style={{ marginBottom: 18 }}>
                   <button className="modal-btn primary" onClick={() => setEditingId('new')}>
                     <span>+ Add a new routine item</span>
@@ -7714,7 +7896,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                   <div className="routine-day-group">
                     <div className="routine-day-group-label">Recurring (top of every hour)</div>
                     {recurringItems.map(item => {
-                      const cat = CATEGORY_STYLES[item.category] || {};
+                      const cat = CATS[item.category] || {};
                       const r = item.recurrence || {};
                       const window = (r.kind === 'top-of-hour' && r.startHour != null && r.endHour != null)
                         ? `${pad(r.startHour)}:00–${pad(r.endHour)}:00`
@@ -7740,7 +7922,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                   <div className="routine-day-group">
                     <div className="routine-day-group-label">Daily / multi-day</div>
                     {multiDay.map(item => {
-                      const cat = CATEGORY_STYLES[item.category] || {};
+                      const cat = CATS[item.category] || {};
                       return (
                         <div key={item.id} className="routine-item-row" onClick={() => setEditingId(item.id)}>
                           <div className="routine-item-row-time">{item.start} · {item.duration}m</div>
@@ -7766,7 +7948,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                     <div key={jsDay} className="routine-day-group">
                       <div className="routine-day-group-label">{DAY_NAMES_LONG[visualCol]} only</div>
                       {items.map(item => {
-                        const cat = CATEGORY_STYLES[item.category] || {};
+                        const cat = CATS[item.category] || {};
                         return (
                           <div key={item.id} className="routine-item-row" onClick={() => setEditingId(item.id)}>
                             <div className="routine-item-row-time">{item.start} · {item.duration}m</div>
@@ -7972,7 +8154,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                   <div className="routine-form-label">Category</div>
                   <div className="cat-chips">
                     {CATEGORY_OPTIONS.map(c => {
-                      const cat = CATEGORY_STYLES[c] || {};
+                      const cat = CATS[c] || {};
                       const active = category === c;
                       return (
                         <button
