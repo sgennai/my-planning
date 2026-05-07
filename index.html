@@ -151,6 +151,45 @@
       --bg-error: #2A1A1A;
     }
     * { box-sizing: border-box; }
+
+    /* Global motion defaults — kill jank, respect user prefs.
+       Theme switches glide smoothly via short bg/color transitions on the body. */
+    html { scroll-behavior: smooth; }
+    body {
+      transition: background var(--duration-base) var(--ease-out),
+                  color var(--duration-base) var(--ease-out);
+    }
+
+    /* Respect users who've turned off motion in their OS.
+       Kills all animations + transitions, keeps everything functional. */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    /* Default button transition — replaces "transition: all 0.15s ease".
+       Animates only the properties that actually change on hover/active.
+       Compositor-friendly (color/border/opacity only). */
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      transition:
+        color var(--duration-fast) var(--ease-out),
+        background var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out),
+        opacity var(--duration-fast) var(--ease-out),
+        transform var(--duration-fast) var(--ease-out);
+    }
+    /* Press-slow / release-fast — the Emil signature.
+       Tappable elements feel intentional: slight scale-down on active. */
+    button:active:not(:disabled) {
+      transform: scale(0.97);
+      transition-duration: var(--duration-fast);
+    }
     html, body {
       margin: 0; padding: 0;
       background: var(--bg);
@@ -217,7 +256,7 @@
       font-style: italic;
     }
 
-    button { font-family: inherit; cursor: pointer; transition: all 0.15s ease; }
+    button { font-family: inherit; cursor: pointer; }
     button:disabled { opacity: 0.4; cursor: not-allowed; }
     .btn-primary {
       padding: 12px 28px;
@@ -290,10 +329,28 @@
       0%, 100% { opacity: 0.3; transform: scale(1); }
       50% { opacity: 1; transform: scale(1.2); }
     }
-    .fade-in { animation: fadeIn 0.6s ease-out; }
+    .fade-in { animation: fadeIn var(--duration-slow) var(--ease-out); }
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
+      from { opacity: 0; transform: translateY(6px); }
       to { opacity: 1; transform: translateY(0); }
+    }
+    /* Subtle entrance for stacked items — used on Today timeline rows + rail items.
+       Each child gets a tiny stagger delay set inline. */
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    /* Very slow ambient pulse for the current row indicator.
+       Slow enough to not be distracting (3s cycle), opacity-only (cheap). */
+    @keyframes nowPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.55; }
+    }
+    /* Checkbox tick — a brief check that scales in when item completes. */
+    @keyframes tickPop {
+      0% { transform: scale(0); }
+      60% { transform: scale(1.15); }
+      100% { transform: scale(1); }
     }
 
     /* ───────── CALENDAR HEADER ───────── */
@@ -382,7 +439,7 @@
       text-align: center;
       border-left: 2px solid var(--col-divider);
       cursor: pointer;
-      transition: background 0.15s;
+      transition: background var(--duration-fast) var(--ease-out);
     }
     .day-header:hover { background: rgba(201, 168, 76, 0.06); }
     .day-header.today { background: rgba(201, 168, 76, 0.05); }
@@ -445,7 +502,7 @@
       padding: 4px 7px 4px 9px;
       overflow: hidden;
       cursor: pointer;
-      transition: filter 0.15s ease, transform 0.15s ease;
+      transition: filter var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
       font-family: var(--serif);
     }
     .cal-item:hover {
@@ -620,7 +677,7 @@
       align-items: stretch;
       background: var(--bg-card);
       cursor: pointer;
-      transition: background 0.15s;
+      transition: background var(--duration-fast) var(--ease-out);
       position: relative;
     }
     .agenda-item:hover { background: var(--bg-hover); }
@@ -834,9 +891,15 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
+      transition:
+        color var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out),
+        transform var(--duration-fast) var(--ease-out);
     }
-    .today-theme-toggle:hover { border-color: var(--muted-2); color: var(--text); }
+    .today-theme-toggle:hover {
+      border-color: var(--muted-2);
+      color: var(--text);
+    }
     /* Plan-the-week is an outline button — does NOT compete with the date for attention */
     .today-plan-link {
       padding: var(--space-1) var(--space-3);
@@ -861,6 +924,8 @@
       padding: var(--space-6) var(--space-8);
       background: var(--bg-card);
       border-left: 2px solid var(--gold);
+      animation: riseIn var(--duration-slow) var(--ease-out) backwards;
+      animation-delay: 40ms;
     }
     .today-hero-eyebrow {
       font-size: var(--text-xs);
@@ -987,15 +1052,38 @@
       border-bottom: 1px solid var(--rule-faint);
       transition: background var(--duration-fast) var(--ease-out);
       cursor: pointer;
-      min-height: 44px; /* generous tap target */
+      min-height: 44px;
+      animation: riseIn var(--duration-base) var(--ease-out) backwards;
     }
+    /* Stagger up to 8 items — beyond that, fall back to non-staggered entrance.
+       7 rows max gives ~210ms total stagger which feels lively, not slow. */
+    .today-timeline-row:nth-child(1)  { animation-delay: 0ms; }
+    .today-timeline-row:nth-child(2)  { animation-delay: 30ms; }
+    .today-timeline-row:nth-child(3)  { animation-delay: 60ms; }
+    .today-timeline-row:nth-child(4)  { animation-delay: 90ms; }
+    .today-timeline-row:nth-child(5)  { animation-delay: 120ms; }
+    .today-timeline-row:nth-child(6)  { animation-delay: 150ms; }
+    .today-timeline-row:nth-child(7)  { animation-delay: 180ms; }
+    .today-timeline-row:nth-child(n+8) { animation-delay: 210ms; }
     .today-timeline-row:last-child { border-bottom: none; }
     .today-timeline-row:hover { background: var(--bg-hover); }
-    /* The current item gets a clear visual identity — left border, slight tint */
     .today-timeline-row.is-now {
       background: rgba(201, 168, 76, 0.04);
       box-shadow: inset 2px 0 0 var(--gold);
     }
+    /* Slow ambient pulse on the now-row's gold left bar — 3s cycle, opacity only.
+       Calibrated to hint "live" without distracting. */
+    .today-timeline-row.is-now::before {
+      content: '';
+      position: absolute;
+      width: 2px;
+      height: 100%;
+      left: 0; top: 0;
+      background: var(--gold);
+      animation: nowPulse 3s var(--ease-in-out) infinite;
+      pointer-events: none;
+    }
+    .today-timeline-row { position: relative; }
     .today-timeline-row.is-past { opacity: 0.45; }
     .today-timeline-row.is-completed { opacity: 0.55; }
     /* No strikethrough — kills the typography. Just dim the row.
@@ -1070,6 +1158,7 @@
       background: rgba(201, 168, 76, 0.06);
       color: var(--gold);
       border-color: var(--gold);
+      transform: translateY(-1px);
     }
     .today-timeline-check {
       flex-shrink: 0;
@@ -1086,13 +1175,21 @@
       font-size: var(--text-xs);
       line-height: 1;
       color: var(--teal);
-      transition: border-color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out);
+      transition:
+        border-color var(--duration-base) var(--ease-out),
+        background var(--duration-base) var(--ease-out),
+        transform var(--duration-fast) var(--ease-out);
     }
-    .today-timeline-check:hover { border-color: var(--teal); }
+    .today-timeline-check:hover {
+      border-color: var(--teal);
+      transform: scale(1.05);
+    }
+    .today-timeline-check:active { transform: scale(0.92); }
     .today-timeline-row.is-completed .today-timeline-check {
       border-color: var(--teal);
       background: var(--teal);
       color: var(--bg);
+      animation: tickPop 280ms var(--ease-out);
     }
 
     /* Right rail */
@@ -1101,7 +1198,10 @@
     .today-rail-section {
       background: var(--bg-card);
       border-left: 2px solid var(--rule);
+      animation: riseIn var(--duration-slow) var(--ease-out) backwards;
     }
+    .today-rail-section:nth-child(1) { animation-delay: 80ms; }
+    .today-rail-section:nth-child(2) { animation-delay: 140ms; }
     .today-rail-header {
       padding: var(--space-3) var(--space-4) var(--space-2);
       display: flex;
@@ -1374,7 +1474,7 @@
       padding: 2px 0;
       border-right: 1px solid var(--rule-faint);
       cursor: default;
-      transition: background 0.12s;
+      transition: background var(--duration-fast) var(--ease-out);
       gap: 1px;
     }
     .weather-cell:hover { background: var(--bg-hover); }
@@ -1540,7 +1640,7 @@
       font-size: 12px;
       text-align: left;
       cursor: pointer;
-      transition: color 0.12s;
+      transition: color var(--duration-fast) var(--ease-out);
       letter-spacing: 0.005em;
       line-height: 1.4;
       display: flex;
@@ -1551,7 +1651,7 @@
       content: '›';
       color: var(--muted-4);
       font-family: var(--mono);
-      transition: color 0.12s, transform 0.12s;
+      transition: color var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
     }
     .ref-quick-item:hover {
       color: var(--gold);
@@ -1622,7 +1722,7 @@
     .project-card {
       background: var(--bg-card);
       border-left: 3px solid var(--border);
-      transition: background 0.15s, border-color 0.15s;
+      transition: background var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
     }
     .project-card.master { border-left-width: 4px; }
     .project-card-header {
@@ -1693,7 +1793,7 @@
     .project-card-budget-bar-fill {
       position: absolute;
       left: 0; top: 0; bottom: 0;
-      transition: width 0.3s;
+      transition: width var(--duration-slow) var(--ease-out);
     }
     .project-card-budget-text b { color: var(--muted-1); font-weight: 500; }
     .project-card-effort { color: var(--muted-4); }
@@ -1722,7 +1822,7 @@
       border-left: 2px solid var(--border);
       margin-bottom: 4px;
       cursor: grab;
-      transition: background 0.12s, border-color 0.12s;
+      transition: background var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
       align-items: flex-start;
     }
     .next-action:hover {
@@ -1755,7 +1855,7 @@
       background: var(--bg-card);
       cursor: pointer;
       user-select: none;
-      transition: background 0.12s;
+      transition: background var(--duration-fast) var(--ease-out);
     }
     .module-row:hover { background: var(--bg-card-deep); }
     .module-row-header {
@@ -1930,7 +2030,7 @@
       align-items: center;
       justify-content: center;
       padding: 24px;
-      animation: fadeIn 0.15s ease-out;
+      animation: fadeIn var(--duration-fast) var(--ease-out);
     }
     .modal {
       background: var(--bg-card);
@@ -1939,10 +2039,10 @@
       max-height: 90vh;
       overflow-y: auto;
       border-top: 3px solid var(--gold);
-      animation: modalIn 0.18s ease-out;
+      animation: modalIn var(--duration-base) var(--ease-out);
     }
     @keyframes modalIn {
-      from { opacity: 0; transform: translateY(8px); }
+      from { opacity: 0; transform: translateY(6px); }
       to { opacity: 1; transform: translateY(0); }
     }
     .modal-header {
@@ -2032,7 +2132,7 @@
       justify-content: space-between;
       align-items: center;
       gap: 12px;
-      transition: all 0.12s;
+      transition: color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
     }
     .modal-btn:hover { border-color: var(--muted-3); background: var(--bg-hover); }
     .modal-btn-hint {
@@ -2115,7 +2215,7 @@
       line-height: 1;
       color: var(--teal);
       font-weight: bold;
-      transition: border-color 0.12s, background 0.12s;
+      transition: border-color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out);
       z-index: 4;
     }
     .cal-item-check:hover {
@@ -2148,7 +2248,7 @@
       font-weight: bold;
       flex-shrink: 0;
       align-self: center;
-      transition: border-color 0.12s, background 0.12s;
+      transition: border-color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out);
     }
     .agenda-item-check:hover {
       border-color: var(--teal);
@@ -2203,7 +2303,7 @@
       justify-content: space-between;
       align-items: center;
       gap: 10px;
-      transition: background 0.12s, border-color 0.12s;
+      transition: background var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
       user-select: none;
     }
     .ref-entry-header:hover {
@@ -2221,7 +2321,7 @@
       color: var(--muted-3);
       font-family: var(--mono);
       font-size: 14px;
-      transition: transform 0.15s, color 0.12s;
+      transition: transform var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
     }
     .ref-entry.expanded .ref-entry-chevron { transform: rotate(90deg); color: var(--gold); }
     .ref-entry-body {
@@ -2315,7 +2415,7 @@
       gap: 10px;
       padding: 6px 8px;
       background: var(--bg-card);
-      transition: background 0.12s;
+      transition: background var(--duration-fast) var(--ease-out);
     }
     .category-color-row:hover { background: var(--bg-hover); }
     .category-color-swatch {
@@ -2376,7 +2476,7 @@
       background: var(--bg-card-deep);
       border-left: 2px solid var(--border);
       cursor: pointer;
-      transition: background 0.12s, border-color 0.12s;
+      transition: background var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
       margin-bottom: 1px;
     }
     .routine-item-row:hover {
@@ -2602,7 +2702,7 @@
       text-transform: uppercase;
       cursor: pointer;
       font-family: var(--serif);
-      transition: all 0.15s;
+      transition: color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
     }
     .elsewhere-btn:hover {
       border-color: var(--coral);
@@ -2646,7 +2746,7 @@
       margin-bottom: 10px;
       background: var(--bg-card-deep);
       border-left: 2px solid var(--border);
-      transition: border-color 0.15s;
+      transition: border-color var(--duration-fast) var(--ease-out);
     }
     .todos-add-bar:focus-within { border-left-color: var(--gold); }
     .todos-add-input {
@@ -2677,7 +2777,7 @@
       padding: 8px 10px;
       background: var(--bg-card-deep);
       border-left: 2px solid transparent;
-      transition: background 0.12s, border-color 0.12s;
+      transition: background var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
       cursor: grab;
     }
     .todo-item:hover {
@@ -2854,7 +2954,7 @@
       letter-spacing: 0.12em;
       font-family: var(--mono);
       cursor: pointer;
-      transition: background 0.15s;
+      transition: background var(--duration-fast) var(--ease-out);
     }
     .suggest-chip:hover {
       background: rgba(201, 168, 76, 0.18);
@@ -2877,7 +2977,7 @@
       margin-bottom: 16px;
       background: var(--bg-card);
       border-left: 2px solid var(--border);
-      transition: border-color 0.15s;
+      transition: border-color var(--duration-fast) var(--ease-out);
     }
     .capture-bar:focus-within {
       border-left-color: var(--gold);
@@ -2924,7 +3024,7 @@
       padding: 10px 14px;
       background: var(--bg-card-deep);
       border-left: 2px solid var(--border);
-      transition: background 0.12s;
+      transition: background var(--duration-fast) var(--ease-out);
     }
     .inbox-item:hover { background: var(--bg-hover); }
     .inbox-item.actioned {
