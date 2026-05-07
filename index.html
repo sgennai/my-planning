@@ -9,6 +9,59 @@
   <title>My Planning</title>
   <style>
     /* ─────────────────────────────────────────────────────────────
+       STRUCTURAL TOKENS — type scale, spacing, motion.
+       These are theme-independent: same in light and dark.
+       ───────────────────────────────────────────────────────────── */
+    :root {
+      /* Type scale — 6 sizes, deliberately limited.
+         Most chrome uses sm/base. Eyebrows use xs.
+         Hero uses xl. Page anchor uses 2xl. */
+      --text-xs: 10px;       /* eyebrows, mono labels, micro-meta */
+      --text-sm: 12px;       /* secondary body, helper text, meta */
+      --text-base: 14px;     /* primary body, default */
+      --text-lg: 17px;       /* sub-titles, callouts */
+      --text-xl: 22px;       /* hero title (right now / next item) */
+      --text-2xl: 30px;      /* page anchor (the date) */
+
+      /* Line heights — paired with the scale */
+      --leading-tight: 1.25;
+      --leading-snug: 1.4;
+      --leading-base: 1.55;
+
+      /* Letter spacing tokens */
+      --tracking-tight: -0.01em;
+      --tracking-base: 0;
+      --tracking-wide: 0.05em;
+      --tracking-wider: 0.15em;
+      --tracking-widest: 0.25em;
+
+      /* Spacing — strict 4px grid */
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --space-10: 40px;
+      --space-12: 48px;
+
+      /* Border radius */
+      --radius-sm: 2px;
+      --radius-base: 4px;
+      --radius-lg: 8px;
+
+      /* Motion — Pass 2 will use these. Defining now so structural changes
+         resolve clean curves rather than browser defaults. */
+      --ease-out: cubic-bezier(0.23, 1, 0.32, 1);     /* gentle decel — for entrances */
+      --ease-in: cubic-bezier(0.7, 0, 0.84, 0);       /* sharp accel — for exits */
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);  /* both — for state transitions */
+      --duration-fast: 120ms;     /* hover, color changes */
+      --duration-base: 200ms;     /* state transitions, expanded panels */
+      --duration-slow: 320ms;     /* view transitions */
+    }
+
+    /* ─────────────────────────────────────────────────────────────
        THEME TOKENS — light is the default daily-use surface.
        Dark is preserved as an option (toggleable in Settings).
        Both themes share the same shape, so any styled rule resolves
@@ -686,71 +739,86 @@
 
     /* ───────── TODAY SCREEN (daily compass, default landing) ───────── */
     .today-wrap {
-      max-width: 1400px;
+      max-width: 1280px;
       margin: 0 auto;
-      padding: 24px 28px 60px;
+      padding: var(--space-8) var(--space-6) var(--space-12);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: var(--space-6);
     }
 
     .today-topbar {
       display: flex;
-      align-items: center;
+      align-items: baseline;
       justify-content: space-between;
-      gap: 16px;
-      padding-bottom: 14px;
+      gap: var(--space-5);
+      padding-bottom: var(--space-5);
       border-bottom: 1px solid var(--rule);
     }
     .today-topbar-left {
       display: flex;
       align-items: baseline;
-      gap: 14px;
+      gap: var(--space-4);
       flex: 1;
       min-width: 0;
     }
+    /* Date is THE anchor — only large element on the page besides the hero. */
     .today-date {
-      font-size: 22px;
-      letter-spacing: -0.01em;
+      font-size: var(--text-2xl);
+      letter-spacing: var(--tracking-tight);
       color: var(--text);
       font-weight: 400;
+      line-height: var(--leading-tight);
     }
     .today-date-day {
-      color: var(--gold);
+      color: var(--text);
+      font-weight: 500;
     }
-    .today-weather-inline {
-      font-size: 12px;
+    .today-date-rest {
       color: var(--muted-2);
-      letter-spacing: 0.02em;
-      display: flex;
+      font-weight: 400;
+      margin-left: var(--space-2);
+    }
+    /* Weather sits next to the date as quiet typographic detail, not a button. */
+    .today-weather-inline {
+      font-size: var(--text-sm);
+      color: var(--muted-3);
+      letter-spacing: var(--tracking-base);
+      display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: var(--space-1);
       font-family: var(--mono);
+      cursor: pointer;
+      transition: color var(--duration-fast) var(--ease-out);
+      padding: var(--space-1) var(--space-2);
+      margin-left: var(--space-2);
     }
+    .today-weather-inline:hover { color: var(--text); }
     .today-weather-inline-icon {
-      font-size: 14px;
+      font-size: var(--text-base);
     }
-    .today-weather-inline:hover { color: var(--text); cursor: default; }
+    /* Right-side utility cluster — all elements visually equivalent (quiet). */
     .today-topbar-right {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: var(--space-2);
     }
     .today-elsewhere-toggle {
-      padding: 6px 12px;
+      padding: var(--space-1) var(--space-3);
       background: transparent;
       border: 1px solid var(--border);
-      color: var(--muted-2);
-      font-size: 10px;
-      letter-spacing: 0.18em;
+      color: var(--muted-3);
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-wider);
       text-transform: uppercase;
       cursor: pointer;
       font-family: var(--mono);
+      transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
     }
-    .today-elsewhere-toggle:hover { border-color: var(--gold); color: var(--gold); }
+    .today-elsewhere-toggle:hover { border-color: var(--muted-2); color: var(--text); }
     .today-elsewhere-toggle.active {
-      background: rgba(168, 192, 167, 0.12);
+      background: transparent;
       border-color: var(--teal);
       color: var(--teal);
     }
@@ -759,118 +827,153 @@
       height: 28px;
       background: transparent;
       border: 1px solid var(--border);
-      color: var(--muted-2);
-      font-size: 14px;
+      color: var(--muted-3);
+      font-size: var(--text-base);
       cursor: pointer;
       padding: 0;
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
     }
-    .today-theme-toggle:hover { border-color: var(--gold); color: var(--gold); }
+    .today-theme-toggle:hover { border-color: var(--muted-2); color: var(--text); }
+    /* Plan-the-week is an outline button — does NOT compete with the date for attention */
     .today-plan-link {
-      padding: 6px 14px;
-      background: var(--gold);
-      color: var(--bg);
-      border: none;
+      padding: var(--space-1) var(--space-3);
+      background: transparent;
+      color: var(--muted-2);
+      border: 1px solid var(--border);
       cursor: pointer;
-      font-size: 11px;
-      letter-spacing: 0.18em;
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-wider);
       text-transform: uppercase;
       font-family: var(--mono);
-      font-weight: 600;
+      font-weight: 500;
+      transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
     }
-    .today-plan-link:hover { opacity: 0.9; }
+    .today-plan-link:hover {
+      border-color: var(--text);
+      color: var(--text);
+    }
 
     /* Right-now hero block */
     .today-hero {
-      padding: 20px 24px;
+      padding: var(--space-6) var(--space-8);
       background: var(--bg-card);
-      border-left: 3px solid var(--gold);
+      border-left: 2px solid var(--gold);
     }
     .today-hero-eyebrow {
-      font-size: 9px;
-      letter-spacing: 0.3em;
-      color: var(--gold);
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-widest);
+      color: var(--muted-3);
       text-transform: uppercase;
       font-family: var(--mono);
-      margin-bottom: 8px;
+      margin-bottom: var(--space-3);
+      font-weight: 500;
     }
+    /* The hero title — the most important thing on the page besides the date.
+       Uses lighter weight to feel calm, not loud. */
     .today-hero-now {
-      font-size: 22px;
+      font-size: var(--text-xl);
       color: var(--text);
-      letter-spacing: -0.01em;
-      line-height: 1.3;
+      letter-spacing: var(--tracking-tight);
+      line-height: var(--leading-tight);
+      font-weight: 400;
     }
     .today-hero-now-meta {
-      font-size: 12px;
+      font-size: var(--text-sm);
       color: var(--muted-3);
-      margin-top: 4px;
-      font-style: italic;
+      margin-top: var(--space-2);
+      font-family: var(--mono);
+      letter-spacing: var(--tracking-base);
+      /* No italic — italic on small mono is hard to read. */
     }
     .today-hero-next {
-      margin-top: 14px;
-      padding-top: 14px;
+      margin-top: var(--space-5);
+      padding-top: var(--space-4);
       border-top: 1px solid var(--rule);
-      font-size: 13px;
+      font-size: var(--text-base);
       color: var(--muted-2);
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-3);
     }
     .today-hero-next-label {
       color: var(--muted-3);
       font-family: var(--mono);
-      font-size: 9px;
-      letter-spacing: 0.3em;
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-widest);
       text-transform: uppercase;
-      margin-right: 10px;
+      flex-shrink: 0;
+    }
+    .today-hero-next-time {
+      font-family: var(--mono);
+      color: var(--muted-3);
+      font-size: var(--text-sm);
+      flex-shrink: 0;
     }
     .today-hero-micro {
-      margin-top: 10px;
-      padding: 10px 12px;
-      background: rgba(126, 184, 164, 0.08);
+      margin-top: var(--space-4);
+      padding: var(--space-3) var(--space-4);
+      background: transparent;
       border-left: 2px solid var(--teal);
-      font-size: 12px;
+      font-size: var(--text-sm);
       color: var(--teal);
+      letter-spacing: var(--tracking-base);
     }
 
     /* Body layout: timeline center + right rail */
     .today-body {
       display: grid;
-      grid-template-columns: 1fr 280px;
-      gap: 20px;
+      grid-template-columns: 1fr 320px;
+      gap: var(--space-6);
       align-items: start;
       flex: 1;
     }
     @media (max-width: 1100px) {
-      .today-body { grid-template-columns: 1fr 240px; gap: 16px; }
+      .today-body { grid-template-columns: 1fr 280px; gap: var(--space-5); }
     }
     @media (max-width: 759px) {
-      .today-body { grid-template-columns: 1fr; }
+      .today-body { grid-template-columns: 1fr; gap: var(--space-4); }
+    }
+    .today-rail {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+      position: sticky;
+      top: var(--space-6);
+      max-height: calc(100vh - var(--space-12));
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+    @media (max-width: 759px) {
+      .today-rail { position: static; max-height: none; }
     }
 
     /* Timeline */
     .today-timeline {
       background: var(--bg-card);
       border-left: 2px solid var(--rule);
-      padding: 4px 0;
     }
     .today-timeline-header {
-      padding: 12px 18px 10px;
+      padding: var(--space-4) var(--space-5) var(--space-3);
       display: flex;
       justify-content: space-between;
       align-items: baseline;
       border-bottom: 1px solid var(--rule);
     }
     .today-timeline-eyebrow {
-      font-size: 10px;
-      letter-spacing: 0.3em;
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-widest);
       color: var(--muted-3);
       text-transform: uppercase;
-      font-weight: 600;
+      font-weight: 500;
     }
     .today-timeline-meta {
-      font-size: 10px;
+      font-size: var(--text-xs);
       color: var(--muted-4);
       font-family: var(--mono);
+      letter-spacing: var(--tracking-wide);
     }
     .today-timeline-list {
       display: flex;
@@ -879,33 +982,37 @@
     .today-timeline-row {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 11px 18px;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-5);
       border-bottom: 1px solid var(--rule-faint);
-      transition: background 0.12s;
+      transition: background var(--duration-fast) var(--ease-out);
       cursor: pointer;
+      min-height: 44px; /* generous tap target */
     }
+    .today-timeline-row:last-child { border-bottom: none; }
     .today-timeline-row:hover { background: var(--bg-hover); }
+    /* The current item gets a clear visual identity — left border, slight tint */
     .today-timeline-row.is-now {
-      background: rgba(201, 168, 76, 0.06);
-      border-left: 2px solid var(--gold);
-      padding-left: 16px;
+      background: rgba(201, 168, 76, 0.04);
+      box-shadow: inset 2px 0 0 var(--gold);
     }
-    .today-timeline-row.is-past { opacity: 0.5; }
+    .today-timeline-row.is-past { opacity: 0.45; }
     .today-timeline-row.is-completed { opacity: 0.55; }
-    .today-timeline-row.is-completed .today-timeline-title { text-decoration: line-through; }
+    /* No strikethrough — kills the typography. Just dim the row.
+       The ✓ in the check button + the dim opacity tell the same story without disfigurement. */
     .today-timeline-time {
       flex-shrink: 0;
-      width: 86px;
+      width: 76px;
       font-family: var(--mono);
-      font-size: 11px;
+      font-size: var(--text-xs);
       color: var(--muted-3);
-      letter-spacing: 0.02em;
+      letter-spacing: var(--tracking-wide);
     }
-    .today-timeline-row.is-now .today-timeline-time { color: var(--gold); }
+    .today-timeline-row.is-now .today-timeline-time { color: var(--gold); font-weight: 500; }
+    /* Stripe thinner and shorter — visible but not loud */
     .today-timeline-stripe {
-      width: 3px;
-      height: 16px;
+      width: 2px;
+      height: 14px;
       flex-shrink: 0;
       border-radius: 1px;
     }
@@ -916,65 +1023,70 @@
       flex-direction: column;
       gap: 2px;
     }
+    /* TITLE is the hero of the row — readable size, primary weight */
     .today-timeline-title {
-      font-size: 13px;
+      font-size: var(--text-base);
       color: var(--text);
-      line-height: 1.4;
+      line-height: var(--leading-snug);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      font-weight: 400;
     }
+    .today-timeline-row.is-now .today-timeline-title { font-weight: 500; }
     .today-timeline-meta-line {
-      font-size: 10px;
+      font-size: var(--text-xs);
       color: var(--muted-4);
       font-family: var(--mono);
-      letter-spacing: 0.04em;
+      letter-spacing: var(--tracking-wide);
     }
     .today-timeline-tag {
-      font-size: 9px;
-      letter-spacing: 0.18em;
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-wider);
       text-transform: uppercase;
       font-family: var(--mono);
-      padding: 2px 6px;
       flex-shrink: 0;
+      opacity: 0.6;
     }
     .today-timeline-empty {
-      padding: 32px 18px;
+      padding: var(--space-10) var(--space-5);
       text-align: center;
-      color: var(--muted-4);
-      font-size: 12px;
-      font-style: italic;
+      color: var(--muted-3);
+      font-size: var(--text-sm);
+      line-height: var(--leading-base);
+      max-width: 340px;
+      margin: 0 auto;
     }
     .today-timeline-drop-hint {
-      padding: 14px 18px;
+      padding: var(--space-4) var(--space-5);
       text-align: center;
       color: var(--muted-4);
-      font-size: 11px;
-      font-style: italic;
+      font-size: var(--text-sm);
       border-top: 1px dashed var(--rule);
       cursor: default;
+      transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
     }
     .today-timeline-drop-hint.drag-over {
-      background: rgba(201, 168, 76, 0.08);
+      background: rgba(201, 168, 76, 0.06);
       color: var(--gold);
       border-color: var(--gold);
     }
     .today-timeline-check {
       flex-shrink: 0;
-      width: 18px;
-      height: 18px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
-      border: 1.5px solid var(--muted-3);
+      border: 1.5px solid var(--border);
       background: transparent;
       cursor: pointer;
       padding: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 10px;
+      font-size: var(--text-xs);
       line-height: 1;
       color: var(--teal);
-      transition: border-color 0.12s, background 0.12s;
+      transition: border-color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out);
     }
     .today-timeline-check:hover { border-color: var(--teal); }
     .today-timeline-row.is-completed .today-timeline-check {
@@ -984,190 +1096,205 @@
     }
 
     /* Right rail */
-    .today-rail {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      position: sticky;
-      top: 24px;
-      max-height: calc(100vh - 48px);
-      overflow-y: auto;
-      scrollbar-width: thin;
-    }
     .today-rail::-webkit-scrollbar { width: 4px; }
     .today-rail::-webkit-scrollbar-thumb { background: var(--border); }
-    @media (max-width: 759px) {
-      .today-rail { position: static; max-height: none; }
-    }
     .today-rail-section {
       background: var(--bg-card);
       border-left: 2px solid var(--rule);
     }
     .today-rail-header {
-      padding: 11px 14px 9px;
+      padding: var(--space-3) var(--space-4) var(--space-2);
       display: flex;
       justify-content: space-between;
       align-items: baseline;
       border-bottom: 1px solid var(--rule);
     }
     .today-rail-eyebrow {
-      font-size: 9px;
-      letter-spacing: 0.3em;
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-widest);
       color: var(--muted-3);
       text-transform: uppercase;
-      font-weight: 600;
+      font-weight: 500;
     }
     .today-rail-count {
-      font-size: 9px;
+      font-size: var(--text-xs);
       color: var(--muted-4);
       font-family: var(--mono);
+      letter-spacing: var(--tracking-wide);
     }
     .today-rail-list {
       display: flex;
       flex-direction: column;
     }
 
-    /* Compact project chip in rail */
+    /* Project chip in rail */
     .today-project-chip {
-      padding: 9px 14px;
+      padding: var(--space-3) var(--space-4);
       border-bottom: 1px solid var(--rule-faint);
       cursor: default;
-      transition: background 0.12s;
+      transition: background var(--duration-fast) var(--ease-out);
     }
+    .today-project-chip:last-child { border-bottom: none; }
     .today-project-chip:hover { background: var(--bg-hover); }
     .today-project-chip-header {
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-bottom: 4px;
+      gap: var(--space-2);
+      margin-bottom: var(--space-2);
     }
     .today-project-chip-dot {
-      width: 6px; height: 6px;
+      width: 7px; height: 7px;
       border-radius: 50%;
       flex-shrink: 0;
     }
     .today-project-chip-name {
-      font-size: 11px;
+      font-size: var(--text-sm);
       color: var(--text);
       flex: 1;
       min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      font-weight: 500;
+      letter-spacing: var(--tracking-base);
     }
     .today-project-chip-tier {
-      font-size: 8px;
+      font-size: var(--text-xs);
       color: var(--muted-4);
       font-family: var(--mono);
-      letter-spacing: 0.1em;
+      letter-spacing: var(--tracking-wide);
     }
     .today-project-chip-actions {
       display: flex;
       flex-direction: column;
-      gap: 2px;
-      padding-left: 14px;
-      margin-top: 4px;
+      gap: var(--space-1);
+      padding-left: var(--space-3);
     }
+    /* Action items — readable size, clear drag affordance, comfortable hit target */
     .today-project-action {
-      font-size: 10px;
+      font-size: var(--text-sm);
       color: var(--muted-2);
-      padding: 4px 6px;
+      padding: var(--space-2) var(--space-3);
       cursor: grab;
-      background: var(--bg-card-deep);
-      border-left: 2px solid transparent;
-      transition: border-color 0.12s, color 0.12s;
+      background: transparent;
+      border-left: 2px solid var(--rule);
+      transition: border-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      line-height: var(--leading-snug);
     }
     .today-project-action:hover {
       border-left-color: var(--gold);
       color: var(--text);
+      background: var(--bg-hover);
     }
     .today-project-action:active { cursor: grabbing; }
-    .today-project-action.scheduled { opacity: 0.5; }
+    .today-project-action.scheduled {
+      opacity: 0.45;
+      cursor: default;
+    }
 
-    /* Todos in rail */
+    /* Todo input row — quiet, becomes prominent on focus */
     .today-todo-add {
       display: flex;
       padding: 0;
       border-bottom: 1px solid var(--rule-faint);
+      transition: background var(--duration-fast) var(--ease-out);
     }
+    .today-todo-add:focus-within { background: var(--bg-hover); }
     .today-todo-add-input {
       flex: 1;
       background: transparent;
       border: none;
       color: var(--text);
-      padding: 9px 14px;
+      padding: var(--space-3) var(--space-4);
       font-family: var(--serif);
-      font-size: 11px;
+      font-size: var(--text-sm);
       outline: none;
+      letter-spacing: var(--tracking-base);
     }
-    .today-todo-add-input::placeholder { color: var(--muted-4); font-style: italic; }
+    .today-todo-add-input::placeholder {
+      color: var(--muted-4);
+      font-style: normal;
+      letter-spacing: var(--tracking-base);
+    }
+    /* Todo rows */
     .today-todo-row {
       display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      padding: 8px 14px;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-2) var(--space-4);
       border-bottom: 1px solid var(--rule-faint);
       cursor: grab;
-      transition: background 0.12s;
+      transition: background var(--duration-fast) var(--ease-out);
+      min-height: 36px;
     }
+    .today-todo-row:last-child { border-bottom: none; }
     .today-todo-row:hover { background: var(--bg-hover); }
     .today-todo-row.done { opacity: 0.45; }
-    .today-todo-row.done .today-todo-title { text-decoration: line-through; }
-    .today-todo-row.scheduled { opacity: 0.7; }
+    /* No strikethrough on done todos either — opacity tells the story */
+    .today-todo-row.scheduled { opacity: 0.65; }
     .today-todo-check {
       flex-shrink: 0;
-      width: 12px; height: 12px;
-      margin-top: 2px;
+      width: 14px; height: 14px;
       accent-color: var(--teal);
       cursor: pointer;
     }
     .today-todo-title {
       flex: 1;
-      font-size: 11px;
+      font-size: var(--text-sm);
       color: var(--text);
-      line-height: 1.4;
+      line-height: var(--leading-snug);
       min-width: 0;
       word-break: break-word;
     }
     .today-todo-badge {
-      font-size: 8px;
-      color: #B8A082;
+      font-size: var(--text-xs);
+      color: var(--muted-3);
       font-family: var(--mono);
-      letter-spacing: 0.18em;
+      letter-spacing: var(--tracking-wider);
       flex-shrink: 0;
     }
     .today-rail-empty {
-      padding: 14px;
-      font-size: 10px;
+      padding: var(--space-5) var(--space-4);
+      font-size: var(--text-sm);
       color: var(--muted-4);
-      font-style: italic;
       text-align: center;
+      line-height: var(--leading-snug);
     }
 
     /* Footer / utility row */
     .today-footer {
       display: flex;
-      gap: 8px;
+      gap: var(--space-2);
       flex-wrap: wrap;
       justify-content: flex-end;
-      padding-top: 14px;
+      align-items: center;
+      padding-top: var(--space-4);
       border-top: 1px solid var(--rule);
     }
     .today-footer-btn {
       background: none;
       border: 1px solid var(--border);
       color: var(--muted-3);
-      font-size: 10px;
-      letter-spacing: 0.18em;
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-wider);
       text-transform: uppercase;
       font-family: var(--mono);
-      padding: 5px 10px;
+      padding: var(--space-1) var(--space-3);
       cursor: pointer;
+      transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
     }
-    .today-footer-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .today-footer-btn:hover { border-color: var(--muted-2); color: var(--text); }
+    .today-footer-status {
+      font-size: var(--text-xs);
+      color: var(--muted-4);
+      font-family: var(--mono);
+      letter-spacing: var(--tracking-wide);
+      margin-left: auto;
+      margin-right: var(--space-2);
+    }
 
 
     .weather-strip {
@@ -5266,8 +5393,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             <div className="today-topbar-left">
               <div className="today-date">
                 <span className="today-date-day">{dateLabel.split(',')[0]}</span>
-                <span style={{ color: 'var(--muted-3)', marginLeft: 8 }}>·</span>
-                <span style={{ color: 'var(--muted-2)', marginLeft: 8, fontSize: 16 }}>{dateLabel.split(',').slice(1).join(',').trim()}</span>
+                <span className="today-date-rest">{dateLabel.split(',').slice(1).join(',').trim()}</span>
               </div>
               {weatherInline && (
                 <div
@@ -5316,8 +5442,8 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                 {nextItem && (
                   <div className="today-hero-next">
                     <span className="today-hero-next-label">Next</span>
-                    <span style={{ fontFamily: 'var(--mono)', color: 'var(--muted-3)', marginRight: 10 }}>{fmtTime(nextItem.startMin)}</span>
-                    {nextItem.title}
+                    <span className="today-hero-next-time">{fmtTime(nextItem.startMin)}</span>
+                    <span>{nextItem.title}</span>
                   </div>
                 )}
               </>
@@ -5325,7 +5451,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
               <>
                 <div className="today-hero-eyebrow">Next up</div>
                 <div className="today-hero-now">
-                  <span style={{ color: 'var(--gold)', fontFamily: 'var(--mono)', fontSize: 16, marginRight: 12 }}>{fmtTime(nextItem.startMin)}</span>
+                  <span className="today-hero-next-time" style={{ marginRight: 'var(--space-3)' }}>{fmtTime(nextItem.startMin)}</span>
                   {nextItem.title}
                 </div>
                 {nextItem.note && (
@@ -5335,8 +5461,8 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             ) : (
               <>
                 <div className="today-hero-eyebrow">Today</div>
-                <div className="today-hero-now" style={{ color: 'var(--muted-2)', fontSize: 16, fontStyle: 'italic' }}>
-                  Nothing else scheduled. The day is yours.
+                <div className="today-hero-now" style={{ color: 'var(--muted-3)' }}>
+                  Nothing else scheduled.
                 </div>
               </>
             )}
@@ -5363,7 +5489,9 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
               </div>
               {todayItems.length === 0 ? (
                 <div className="today-timeline-empty">
-                  Nothing on the calendar today. Drag a project action or todo from the right →
+                  No events scheduled yet.
+                  <br />
+                  Drag a project action or todo from the right to plan the day.
                 </div>
               ) : (
                 <div className="today-timeline-list">
@@ -5474,7 +5602,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
               <button className="today-footer-btn" onClick={onOpenInbox}>+ Inbox</button>
             )}
             <button className="today-footer-btn" onClick={onOpenSettings}>⚙ Settings</button>
-            <span style={{ fontSize: 9, color: 'var(--muted-4)', fontFamily: 'var(--mono)', alignSelf: 'center', marginLeft: 'auto', marginRight: 8, letterSpacing: '0.05em' }}>
+            <span className="today-footer-status">
               {saving ? 'Saving…' : (error ? 'Save error' : (lastSyncedAt ? `Synced ${new Date(lastSyncedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}` : ''))}
             </span>
           </div>
