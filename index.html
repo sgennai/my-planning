@@ -8,26 +8,94 @@
   <meta name="theme-color" content="#0D0D0F" />
   <title>My Planning</title>
   <style>
-    :root {
+    /* ─────────────────────────────────────────────────────────────
+       THEME TOKENS — light is the default daily-use surface.
+       Dark is preserved as an option (toggleable in Settings).
+       Both themes share the same shape, so any styled rule resolves
+       cleanly without per-theme rewrites.
+       ───────────────────────────────────────────────────────────── */
+
+    /* Light theme — warm, paper-like, editorial. Designed for daily use:
+       calm overall, low contrast for chrome, slight contrast for content.
+       Avoids pure white (#FFF reads clinical/harsh) and pure black. */
+    :root, :root[data-theme="light"] {
+      /* Surfaces */
+      --bg: #FAF7F2;            /* warm off-white, paper feel */
+      --bg-card: #FFFFFF;        /* clean card surface, slightly above page */
+      --bg-card-deep: #F4F0E8;   /* recessed surfaces (input wells, drop zones) */
+      --bg-hover: #F0EBE0;       /* subtle warm hover */
+
+      /* Lines */
+      --border: #E5DFD2;         /* hairline border, barely visible */
+      --rule: #EDE7DA;           /* even softer rule line */
+      --rule-faint: rgba(229, 223, 210, 0.7); /* very faint divider, used between dense list items */
+      --col-divider: #E0D9CA;    /* slightly more visible vertical divider in calendar grid */
+
+      /* Accents — same hues, shifted darker/desaturated for light contrast.
+         Gold needs to read warm-mustard, not flat-yellow.
+         Teal stays close to original; it works in both modes.
+         Violet shifts toward dusty plum to avoid feeling juvenile.
+         Coral muted slightly to avoid red-alert reading. */
+      --gold: #B8923D;           /* warm mustard, deliberate, not too brown */
+      --gold-dim: #C9A84C;       /* original — used for muted gold tints */
+      --teal: #4A8B7A;           /* deepened teal for legibility on white */
+      --violet: #7B5FA0;         /* dusty plum */
+      --coral: #C4583F;          /* clay-coral, less alarm-bell */
+
+      /* Text — dark warm slate, never pure black */
+      --text: #2A2620;           /* primary text */
+      --muted-1: #4A4338;        /* secondary text, rarely needed */
+      --muted-2: #6B6258;        /* meta text */
+      --muted-3: #948A7C;        /* labels, eyebrows */
+      --muted-4: #B8AE9E;        /* placeholder, faint */
+
+      /* Type */
+      --serif: 'Georgia', 'Times New Roman', serif;
+      --mono: 'SF Mono', 'Menlo', 'Consolas', monospace;
+
+      /* Effects */
+      --shadow-sm: 0 1px 2px rgba(42, 38, 32, 0.04);
+      --shadow-md: 0 2px 8px rgba(42, 38, 32, 0.08);
+      --shadow-lg: 0 8px 24px rgba(42, 38, 32, 0.12);
+      --modal-backdrop: rgba(42, 38, 32, 0.32);
+      --weekend-tint: rgba(42, 38, 32, 0.04);
+      --bg-error: rgba(196, 88, 63, 0.08);
+    }
+
+    /* Dark theme — preserved from earlier sessions, kept as an option.
+       Slight token additions (shadow-*) added for parity. */
+    :root[data-theme="dark"] {
       --bg: #0D0D0F;
       --bg-card: #1F1C26;
       --bg-card-deep: #16151A;
       --bg-hover: #2A2630;
+
       --border: #2A2830;
       --rule: #2A2630;
+      --rule-faint: var(--rule-faint);
       --col-divider: #3A3548;
+
       --gold: #C9A84C;
       --gold-dim: #9C8845;
       --teal: #7EB8A4;
       --violet: #A78BCA;
       --coral: #E07B6A;
+
       --text: #E8E0D0;
       --muted-1: #C8BFB0;
       --muted-2: #A09888;
       --muted-3: #7A7268;
       --muted-4: #5A5248;
+
       --serif: 'Georgia', 'Times New Roman', serif;
       --mono: 'SF Mono', 'Menlo', 'Consolas', monospace;
+
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+      --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.3);
+      --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+      --modal-backdrop: rgba(0, 0, 0, 0.6);
+      --weekend-tint: rgba(0, 0, 0, 0.18);
+      --bg-error: #2A1A1A;
     }
     * { box-sizing: border-box; }
     html, body {
@@ -106,7 +174,7 @@
       font-size: 13px;
       letter-spacing: 0.1em;
     }
-    .btn-primary:hover:not(:disabled) { background: #D9B85C; }
+    .btn-primary:hover:not(:disabled) { opacity: 0.88; }
     .btn-secondary {
       padding: 12px 20px;
       background: transparent;
@@ -132,7 +200,7 @@
     .error-box {
       margin-top: 20px;
       padding: 14px 18px;
-      background: #2A1A1A;
+      background: var(--bg-error);
       border-left: 2px solid var(--coral);
       color: var(--coral);
       font-size: 13px;
@@ -311,7 +379,7 @@
       min-height: 100%;
     }
     .day-column.today { background: rgba(201, 168, 76, 0.025); }
-    .day-column.weekend { background: rgba(0,0,0,0.18); }
+    .day-column.weekend { background: var(--weekend-tint); }
     .hour-line {
       position: absolute; left: 0; right: 0;
       border-top: 1px solid rgba(255,255,255,0.04);
@@ -686,6 +754,20 @@
       border-color: var(--teal);
       color: var(--teal);
     }
+    .today-theme-toggle {
+      width: 28px;
+      height: 28px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted-2);
+      font-size: 14px;
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .today-theme-toggle:hover { border-color: var(--gold); color: var(--gold); }
     .today-plan-link {
       padding: 6px 14px;
       background: var(--gold);
@@ -799,7 +881,7 @@
       align-items: center;
       gap: 12px;
       padding: 11px 18px;
-      border-bottom: 1px solid rgba(40, 38, 50, 0.5);
+      border-bottom: 1px solid var(--rule-faint);
       transition: background 0.12s;
       cursor: pointer;
     }
@@ -948,7 +1030,7 @@
     /* Compact project chip in rail */
     .today-project-chip {
       padding: 9px 14px;
-      border-bottom: 1px solid rgba(40, 38, 50, 0.5);
+      border-bottom: 1px solid var(--rule-faint);
       cursor: default;
       transition: background 0.12s;
     }
@@ -1009,7 +1091,7 @@
     .today-todo-add {
       display: flex;
       padding: 0;
-      border-bottom: 1px solid rgba(40, 38, 50, 0.5);
+      border-bottom: 1px solid var(--rule-faint);
     }
     .today-todo-add-input {
       flex: 1;
@@ -1027,7 +1109,7 @@
       align-items: flex-start;
       gap: 8px;
       padding: 8px 14px;
-      border-bottom: 1px solid rgba(40, 38, 50, 0.5);
+      border-bottom: 1px solid var(--rule-faint);
       cursor: grab;
       transition: background 0.12s;
     }
@@ -1163,7 +1245,7 @@
       align-items: center;
       justify-content: center;
       padding: 2px 0;
-      border-right: 1px solid rgba(40, 38, 50, 0.5);
+      border-right: 1px solid var(--rule-faint);
       cursor: default;
       transition: background 0.12s;
       gap: 1px;
@@ -1715,7 +1797,7 @@
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.6);
+      background: var(--modal-backdrop);
       z-index: 100;
       display: flex;
       align-items: center;
@@ -2460,7 +2542,7 @@
       background: var(--bg-card);
       border: 1px solid var(--gold);
       padding: 14px 18px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      box-shadow: var(--shadow-lg);
       max-width: 280px;
     }
     .duration-prompt-label {
@@ -3096,13 +3178,17 @@
   <script type="text/babel" data-presets="env,react">
     const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
+    // Apply theme attribute synchronously, before any render, to avoid a brief
+    // dark-flash on the boot screen for light-theme users.
+    document.documentElement.setAttribute('data-theme', 'light');
+
     // ═════════════════════════════════════════════════════════════
     // CONFIG
     // ═════════════════════════════════════════════════════════════
     const CLIENT_ID = '25894919429-pbtl8l6nn23vnvc8c8cbhg5f3n8gepu6.apps.googleusercontent.com';
     const SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
     const FILE_NAME = 'my-planning-data.json';
-    const SCHEMA_VERSION = 12;
+    const SCHEMA_VERSION = 13;
 
     // Days: JS Date.getDay() — 0=Sun, 1=Mon ... 6=Sat. Visual columns are Mon-first.
     const VISUAL_TO_JS_DAY = [1, 2, 3, 4, 5, 6, 0];
@@ -4467,6 +4553,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         todos: [],
         routineCompletions: {},
         weather: { lat: null, lon: null, label: '', source: 'unset' }, // source: 'unset' | 'geolocation' | 'manual'
+        prefs: { theme: 'light' }, // 'light' | 'dark'
       };
     }
 
@@ -4527,6 +4614,14 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         next.weather = { lat: null, lon: null, label: '', source: 'unset' };
         changed = true;
       }
+      // v13: theme preference. Existing users get light by default (the new default surface).
+      if (!next.prefs || typeof next.prefs !== 'object') {
+        next.prefs = { theme: 'light' };
+        changed = true;
+      } else if (!next.prefs.theme) {
+        next.prefs.theme = 'light';
+        changed = true;
+      }
       // v11: routine items with string recurrence get structured form
       if (Array.isArray(next.routine)) {
         next.routine = next.routine.map(item => {
@@ -4584,6 +4679,13 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       const [data, setData] = useState(null);
       const [saving, setSaving] = useState(false);
       const [lastSyncedAt, setLastSyncedAt] = useState(null);
+
+      // Apply theme to <html data-theme="..."> whenever data.prefs.theme changes.
+      // Default to 'light' before data loads so the boot/sign-in screens use the right palette.
+      useEffect(() => {
+        const theme = (data && data.prefs && data.prefs.theme) || 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+      }, [data]);
 
       const loadOrCreate = useCallback(async () => {
         setPhase('loading');
@@ -4754,6 +4856,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       onOpenReference, onOpenBlock, onRoutineClick, onTodoDrop,
       onLaunchReview, onOpenInbox, onOpenSettings,
       inbox, weeklyResets,
+      currentTheme, onSetTheme,
     }) {
       const todos = data.todos || [];
       const completions = data.routineCompletions || {};
@@ -5068,6 +5171,14 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             </div>
             <div className="today-topbar-right">
               <button
+                className="today-theme-toggle"
+                onClick={() => onSetTheme(currentTheme === 'light' ? 'dark' : 'light')}
+                title={currentTheme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'}
+                aria-label="Toggle theme"
+              >
+                {currentTheme === 'light' ? '◐' : '◑'}
+              </button>
+              <button
                 className={`today-elsewhere-toggle ${isWorkingAway ? 'active' : ''}`}
                 onClick={toggleWorkingAway}
                 title={isWorkingAway ? 'Working away — tap to switch back to home' : 'Tap if you\'re away from home today'}
@@ -5292,6 +5403,12 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         const withTimestamp = { ...nextData, lastModified: new Date().toISOString() };
         onPersist(withTimestamp);
       }, [data, onPersist]);
+
+      // Theme toggle — flips between light and dark, persists to data file
+      const setTheme = useCallback((theme) => {
+        persistData(d => ({ ...d, prefs: { ...(d.prefs || {}), theme } }));
+      }, [persistData]);
+      const currentTheme = (data.prefs && data.prefs.theme) || 'light';
 
       const createBlock = useCallback((block) => {
         const newBlock = {
@@ -5779,6 +5896,8 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             onOpenSettings={() => setSettingsOpen(true)}
             inbox={data.inbox || []}
             weeklyResets={data.weeklyResets || []}
+            currentTheme={currentTheme}
+            onSetTheme={setTheme}
           />
         ) : (
         <div className={`wrap-wide screen-pad-top-sm fade-in ${dayView !== null ? 'day-view' : ''}`}>
@@ -5935,6 +6054,13 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                   {icsRefreshing ? '↻ Refreshing…' : '↻ Calendars'}
                 </button>
               )}
+              <button
+                className="btn-tertiary"
+                onClick={() => setTheme(currentTheme === 'light' ? 'dark' : 'light')}
+                title={currentTheme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'}
+              >
+                {currentTheme === 'light' ? '◐ Dark' : '◑ Light'}
+              </button>
               <button className="btn-tertiary" onClick={() => setSettingsOpen(true)}>⚙ Settings</button>
               <button className="btn-tertiary" onClick={onReload}>↻ Reload</button>
               <button className="btn-tertiary" onClick={onSignOut}>Sign out</button>
@@ -8407,7 +8533,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         <>
           <div
             style={{
-              position: 'fixed', inset: 0, zIndex: 80, background: 'rgba(0,0,0,0.2)',
+              position: 'fixed', inset: 0, zIndex: 80, background: 'var(--modal-backdrop)',
             }}
             onClick={onCancel}
           />
