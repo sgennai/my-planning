@@ -47,9 +47,12 @@
       --space-12: 48px;
 
       /* Border radius */
-      --radius-sm: 2px;
-      --radius-base: 4px;
-      --radius-lg: 8px;
+      /* Border radius — generous, consistent. The new aesthetic is rounded everywhere. */
+      --radius-sm: 4px;     /* inline elements, badges */
+      --radius-base: 8px;   /* buttons, inputs */
+      --radius-lg: 12px;    /* cards, panels */
+      --radius-xl: 16px;    /* hero, prominent surfaces */
+      --radius-pill: 999px; /* pills (toggles, tags) */
 
       /* Motion — Pass 2 will use these. Defining now so structural changes
          resolve clean curves rather than browser defaults. */
@@ -68,51 +71,54 @@
        cleanly without per-theme rewrites.
        ───────────────────────────────────────────────────────────── */
 
-    /* Light theme — warm, paper-like, editorial. Designed for daily use:
-       calm overall, low contrast for chrome, slight contrast for content.
-       Avoids pure white (#FFF reads clinical/harsh) and pure black. */
+    /* Light theme — modern, aerial, Google-Calendar-flavored.
+       Cool off-white surfaces (not warm paper). Blue primary.
+       Shadows do the work that hairline borders used to. */
     :root, :root[data-theme="light"] {
       /* Surfaces */
-      --bg: #FAF7F2;            /* warm off-white, paper feel */
-      --bg-card: #FFFFFF;        /* clean card surface, slightly above page */
-      --bg-card-deep: #F4F0E8;   /* recessed surfaces (input wells, drop zones) */
-      --bg-hover: #F0EBE0;       /* subtle warm hover */
+      --bg: #F5F7FA;
+      --bg-card: #FFFFFF;
+      --bg-card-deep: #F0F3F7;
+      --bg-hover: #EDF1F6;
 
       /* Lines */
-      --border: #E5DFD2;         /* hairline border, barely visible */
-      --rule: #EDE7DA;           /* even softer rule line */
-      --rule-faint: rgba(229, 223, 210, 0.7); /* very faint divider, used between dense list items */
-      --col-divider: #E0D9CA;    /* slightly more visible vertical divider in calendar grid */
+      --border: #E2E8F0;
+      --rule: #EBEFF4;
+      --rule-faint: rgba(226, 232, 240, 0.6);
+      --col-divider: #E2E8F0;
 
-      /* Accents — same hues, shifted darker/desaturated for light contrast.
-         Gold needs to read warm-mustard, not flat-yellow.
-         Teal stays close to original; it works in both modes.
-         Violet shifts toward dusty plum to avoid feeling juvenile.
-         Coral muted slightly to avoid red-alert reading. */
-      --gold: #B8923D;           /* warm mustard, deliberate, not too brown */
-      --gold-dim: #C9A84C;       /* original — used for muted gold tints */
-      --teal: #4A8B7A;           /* deepened teal for legibility on white */
-      --violet: #7B5FA0;         /* dusty plum */
-      --coral: #C4583F;          /* clay-coral, less alarm-bell */
+      /* Primary — modern blue */
+      --primary: #3B82F6;
+      --primary-hover: #2563EB;
+      --primary-soft: #DBEAFE;
+      --primary-text: #FFFFFF;
 
-      /* Text — dark warm slate, never pure black */
-      --text: #2A2620;           /* primary text */
-      --muted-1: #4A4338;        /* secondary text, rarely needed */
-      --muted-2: #6B6258;        /* meta text */
-      --muted-3: #948A7C;        /* labels, eyebrows */
-      --muted-4: #B8AE9E;        /* placeholder, faint */
+      /* Accents — kept for category colors but no longer load-bearing */
+      --gold: #D97706;
+      --gold-dim: #F59E0B;
+      --teal: #14B8A6;
+      --violet: #8B5CF6;
+      --coral: #EF4444;
+
+      /* Text */
+      --text: #1F2937;
+      --muted-1: #374151;
+      --muted-2: #4B5563;
+      --muted-3: #6B7280;
+      --muted-4: #9CA3AF;
 
       /* Type */
-      --serif: 'Georgia', 'Times New Roman', serif;
-      --mono: 'SF Mono', 'Menlo', 'Consolas', monospace;
+      --serif: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      --mono: 'JetBrains Mono', 'SF Mono', 'Menlo', 'Consolas', monospace;
 
-      /* Effects */
-      --shadow-sm: 0 1px 2px rgba(42, 38, 32, 0.04);
-      --shadow-md: 0 2px 8px rgba(42, 38, 32, 0.08);
-      --shadow-lg: 0 8px 24px rgba(42, 38, 32, 0.12);
-      --modal-backdrop: rgba(42, 38, 32, 0.32);
-      --weekend-tint: rgba(42, 38, 32, 0.04);
-      --bg-error: rgba(196, 88, 63, 0.08);
+      /* Shadows */
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 2px 6px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+      --shadow-lg: 0 12px 24px rgba(15, 23, 42, 0.08), 0 4px 8px rgba(15, 23, 42, 0.04);
+      --shadow-primary: 0 4px 12px rgba(59, 130, 246, 0.16);
+      --modal-backdrop: rgba(15, 23, 42, 0.32);
+      --weekend-tint: rgba(15, 23, 42, 0.025);
+      --bg-error: rgba(239, 68, 68, 0.08);
     }
 
     /* Dark theme — preserved from earlier sessions, kept as an option.
