@@ -1147,6 +1147,44 @@
       color: var(--primary);
       letter-spacing: var(--tracking-wide);
     }
+    /* Inline composer for click-to-create */
+    .today-cal-composer {
+      position: absolute;
+      left: 64px; right: var(--space-3);
+      background: var(--bg-card);
+      border: 2px solid var(--primary);
+      border-radius: var(--radius-base);
+      box-shadow: var(--shadow-md);
+      z-index: 6;
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: 0 var(--space-3);
+      animation: fadeIn var(--duration-fast) var(--ease-out);
+    }
+    .today-cal-composer-time {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--primary);
+      letter-spacing: var(--tracking-wide);
+      flex-shrink: 0;
+    }
+    .today-cal-composer-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-family: var(--serif);
+      font-size: var(--text-base);
+      color: var(--text);
+      font-weight: 500;
+      padding: var(--space-2) 0;
+    }
+    .today-cal-composer-input::placeholder {
+      color: var(--muted-4);
+      font-weight: 400;
+    }
     .today-cal-hour-line {
       position: absolute;
       left: 0; right: 0;
@@ -5450,6 +5488,28 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       const HOUR_HEIGHT = 64;
       const totalHours = HOUR_END - HOUR_START;
       const gridRef = useRef(null);
+      // Inline composer for click-to-create: { startMin, top, x } | null
+      const [composer, setComposer] = useState(null);
+      const [composerTitle, setComposerTitle] = useState('');
+      const composerInputRef = useRef(null);
+
+      useEffect(() => {
+        if (composer && composerInputRef.current) composerInputRef.current.focus();
+      }, [composer]);
+      useEffect(() => {
+        if (!composer) return;
+        const onKey = (e) => { if (e.key === 'Escape') setComposer(null); };
+        document.addEventListener('keydown', onKey);
+        return () => document.removeEventListener('keydown', onKey);
+      }, [composer]);
+
+      const submitComposer = () => {
+        if (composerTitle.trim() && composer) {
+          onCreateAtTime(composer.startMin, composerTitle.trim());
+        }
+        setComposer(null);
+        setComposerTitle('');
+      };
 
       const minToY = (m) => ((m / 60) - HOUR_START) * HOUR_HEIGHT;
       // Convert a clientY position over the grid to a snapped time-string (15-min snap).
@@ -5493,11 +5553,12 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       // Click-to-create on empty grid space (only fires if click is on the grid itself,
       // not on an existing block — blocks have their own onClick which stops propagation).
       const onGridClick = (e) => {
-        // Only trigger when the click target is the grid background, not a block
         if (e.target !== gridRef.current && !e.target.classList.contains('today-cal-empty-zone')) return;
         const startMin = yToMin(e.clientY);
         if (startMin == null) return;
-        if (onCreateAtTime) onCreateAtTime(startMin);
+        const top = minToY(startMin);
+        setComposer({ startMin, top });
+        setComposerTitle('');
       };
 
       const lunchStartMin = toMinutes(lunchSlot.start || '12:30');
@@ -5572,6 +5633,30 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
               <span className="today-cal-now-dot" />
             </div>
           )}
+          {/* Inline composer */}
+          {composer && (
+            <div
+              className="today-cal-composer"
+              style={{ top: composer.top, height: HOUR_HEIGHT / 2 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <span className="today-cal-composer-time">{minToHHMM(composer.startMin)}</span>
+              <input
+                ref={composerInputRef}
+                type="text"
+                className="today-cal-composer-input"
+                placeholder="Add event…"
+                value={composerTitle}
+                onChange={(e) => setComposerTitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') { e.preventDefault(); submitComposer(); }
+                }}
+                onBlur={() => {
+                  if (!composerTitle.trim()) setComposer(null);
+                }}
+              />
+            </div>
+          )}
           {/* Items */}
           {positioned.map(it => {
             const top = minToY(it.startMin);
@@ -5581,6 +5666,10 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             const stripeColor = it.kind === 'routine'
               ? ((CATS[it.category] || CATS.supplement).color)
               : (it.color || 'var(--primary)');
+            // Resolve stripeColor to actual hex if it's a CSS var (for tint generation).
+            // For tints we need rgba; if it's a var, fall back to a sensible default tint via CSS class.
+            const isHex = stripeColor.startsWith('#');
+            const tintBg = isHex ? hexToRgba(stripeColor, 0.10) : 'var(--primary-soft)';
             const isNow = it.startMin <= nowMin && (it.startMin + it.duration) > nowMin;
             const cls = `today-cal-block ${it.completed ? 'is-completed' : ''} ${isNow && !it.completed ? 'is-now' : ''} ${it.kind === 'ics' ? 'is-ics' : ''}`;
             return (
@@ -5593,7 +5682,8 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                   left: `calc(64px + ${leftPct}% - ${64 * leftPct / 100}px + 4px)`,
                   width: `calc(${widthPct}% - ${64 / totalLanes}px - 8px)`,
                   borderLeft: `3px solid ${stripeColor}`,
-                  background: it.completed ? 'var(--bg-card-deep)' : 'var(--bg-card)',
+                  background: it.completed ? 'var(--bg-card-deep)' : tintBg,
+                  color: it.completed ? 'var(--muted-3)' : (isHex ? stripeColor : 'var(--text)'),
                 }}
                 title={`${it.title} · ${pad(Math.floor(it.startMin / 60))}:${pad(it.startMin % 60)}–${pad(Math.floor((it.startMin + it.duration) / 60))}:${pad((it.startMin + it.duration) % 60)}`}
               >
@@ -5604,8 +5694,8 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                     title={it.completed ? 'Mark not done' : 'Mark done'}
                   >{it.completed ? '✓' : ''}</button>
                 )}
-                <div className="today-cal-block-time">{pad(Math.floor(it.startMin / 60))}:{pad(it.startMin % 60)}</div>
-                <div className="today-cal-block-title">{it.title}</div>
+                <div className="today-cal-block-time" style={{ color: 'inherit', opacity: 0.7 }}>{pad(Math.floor(it.startMin / 60))}:{pad(it.startMin % 60)}</div>
+                <div className="today-cal-block-title" style={{ color: 'inherit' }}>{it.title}</div>
               </div>
             );
           })}
@@ -6072,10 +6162,9 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                       onTodoDrop({ todoId: payload.todoId, date: dateISO, start: startStr, dropX, dropY });
                     }
                   }}
-                  onCreateAtTime={(startMin) => {
-                    const startStr = `${pad(Math.floor(startMin / 60))}:${pad(startMin % 60)}`;
-                    const title = window.prompt(`New event at ${startStr}\nTitle:`);
+                  onCreateAtTime={(startMin, title) => {
                     if (!title || !title.trim()) return;
+                    const startStr = `${pad(Math.floor(startMin / 60))}:${pad(startMin % 60)}`;
                     onCreateBlock({
                       title: title.trim(),
                       date: startOfDay(now).toISOString(),
