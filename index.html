@@ -7,6 +7,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="theme-color" content="#0D0D0F" />
   <title>My Planning</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
   <style>
     /* ─────────────────────────────────────────────────────────────
        STRUCTURAL TOKENS — type scale, spacing, motion.
@@ -48,11 +51,11 @@
 
       /* Border radius */
       /* Border radius — generous, consistent. The new aesthetic is rounded everywhere. */
-      --radius-sm: 4px;     /* inline elements, badges */
-      --radius-base: 8px;   /* buttons, inputs */
-      --radius-lg: 12px;    /* cards, panels */
-      --radius-xl: 16px;    /* hero, prominent surfaces */
-      --radius-pill: 999px; /* pills (toggles, tags) */
+      --radius-sm: 6px;
+      --radius-base: 10px;
+      --radius-lg: 16px;
+      --radius-xl: 22px;
+      --radius-pill: 999px;
 
       /* Motion — Pass 2 will use these. Defining now so structural changes
          resolve clean curves rather than browser defaults. */
@@ -121,40 +124,45 @@
       --bg-error: rgba(239, 68, 68, 0.08);
     }
 
-    /* Dark theme — preserved from earlier sessions, kept as an option.
-       Slight token additions (shadow-*) added for parity. */
+    /* Dark theme — preserved as option, modernized to match new aesthetic. */
     :root[data-theme="dark"] {
-      --bg: #0D0D0F;
-      --bg-card: #1F1C26;
-      --bg-card-deep: #16151A;
-      --bg-hover: #2A2630;
+      --bg: #0F172A;
+      --bg-card: #1E293B;
+      --bg-card-deep: #0F172A;
+      --bg-hover: #334155;
 
-      --border: #2A2830;
-      --rule: #2A2630;
-      --rule-faint: var(--rule-faint);
-      --col-divider: #3A3548;
+      --border: #334155;
+      --rule: #1E293B;
+      --rule-faint: rgba(51, 65, 85, 0.4);
+      --col-divider: #334155;
 
-      --gold: #C9A84C;
-      --gold-dim: #9C8845;
-      --teal: #7EB8A4;
-      --violet: #A78BCA;
-      --coral: #E07B6A;
+      --primary: #60A5FA;
+      --primary-hover: #3B82F6;
+      --primary-soft: rgba(96, 165, 250, 0.15);
+      --primary-text: #0F172A;
 
-      --text: #E8E0D0;
-      --muted-1: #C8BFB0;
-      --muted-2: #A09888;
-      --muted-3: #7A7268;
-      --muted-4: #5A5248;
+      --gold: #F59E0B;
+      --gold-dim: #D97706;
+      --teal: #2DD4BF;
+      --violet: #A78BFA;
+      --coral: #F87171;
 
-      --serif: 'Georgia', 'Times New Roman', serif;
-      --mono: 'SF Mono', 'Menlo', 'Consolas', monospace;
+      --text: #F1F5F9;
+      --muted-1: #CBD5E1;
+      --muted-2: #94A3B8;
+      --muted-3: #64748B;
+      --muted-4: #475569;
 
-      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
-      --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.3);
-      --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+      --serif: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      --mono: 'JetBrains Mono', 'SF Mono', 'Menlo', 'Consolas', monospace;
+
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.5);
+      --shadow-primary: 0 4px 12px rgba(96, 165, 250, 0.2);
       --modal-backdrop: rgba(0, 0, 0, 0.6);
-      --weekend-tint: rgba(0, 0, 0, 0.18);
-      --bg-error: #2A1A1A;
+      --weekend-tint: rgba(255, 255, 255, 0.02);
+      --bg-error: rgba(248, 113, 113, 0.1);
     }
     * { box-sizing: border-box; }
 
@@ -205,16 +213,12 @@
       -webkit-font-smoothing: antialiased;
     }
     body { position: relative; overflow-x: hidden; }
+    /* Subtle ambient gradient — adds dimension to the page without noise.
+       Top edge gets a faint blue glow that fades out. */
     body::before {
-      content: ''; position: fixed; inset: 0;
-      pointer-events: none; z-index: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-      opacity: 0.6;
-    }
-    body::after {
       content: ''; position: fixed; top: 0; left: 0; right: 0;
-      height: 2px; z-index: 10;
-      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      height: 320px; pointer-events: none; z-index: 0;
+      background: radial-gradient(ellipse 80% 100% at 50% 0%, rgba(59, 130, 246, 0.04), transparent 70%);
     }
 
     .wrap, .wrap-wide {
@@ -804,7 +808,7 @@
     .today-wrap {
       max-width: 1280px;
       margin: 0 auto;
-      padding: var(--space-8) var(--space-6) var(--space-12);
+      padding: var(--space-10) var(--space-8) var(--space-12);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -816,8 +820,7 @@
       align-items: baseline;
       justify-content: space-between;
       gap: var(--space-5);
-      padding-bottom: var(--space-5);
-      border-bottom: 1px solid var(--rule);
+      padding-bottom: var(--space-2);
     }
     .today-topbar-left {
       display: flex;
@@ -826,22 +829,21 @@
       flex: 1;
       min-width: 0;
     }
-    /* Date is THE anchor — only large element on the page besides the hero. */
     .today-date {
       font-size: var(--text-2xl);
       letter-spacing: var(--tracking-tight);
       color: var(--text);
-      font-weight: 400;
+      font-weight: 600;
       line-height: var(--leading-tight);
     }
     .today-date-day {
       color: var(--text);
-      font-weight: 500;
+      font-weight: 700;
     }
     .today-date-rest {
-      color: var(--muted-2);
+      color: var(--muted-3);
       font-weight: 400;
-      margin-left: var(--space-2);
+      margin-left: var(--space-3);
     }
     /* Weather sits next to the date as quiet typographic detail, not a button. */
     .today-weather-inline {
@@ -868,28 +870,40 @@
       gap: var(--space-2);
     }
     .today-elsewhere-toggle {
-      padding: var(--space-1) var(--space-3);
-      background: transparent;
+      padding: var(--space-2) var(--space-4);
+      background: var(--bg-card);
       border: 1px solid var(--border);
-      color: var(--muted-3);
+      border-radius: var(--radius-pill);
+      color: var(--muted-2);
       font-size: var(--text-xs);
-      letter-spacing: var(--tracking-wider);
-      text-transform: uppercase;
+      letter-spacing: var(--tracking-wide);
+      text-transform: none;
       cursor: pointer;
-      font-family: var(--mono);
-      transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
+      font-family: var(--serif);
+      font-weight: 500;
+      box-shadow: var(--shadow-sm);
+      transition:
+        color var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out),
+        background var(--duration-fast) var(--ease-out),
+        box-shadow var(--duration-fast) var(--ease-out);
     }
-    .today-elsewhere-toggle:hover { border-color: var(--muted-2); color: var(--text); }
+    .today-elsewhere-toggle:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: var(--shadow-md);
+    }
     .today-elsewhere-toggle.active {
-      background: transparent;
-      border-color: var(--teal);
-      color: var(--teal);
+      background: var(--primary-soft);
+      border-color: var(--primary);
+      color: var(--primary-hover);
     }
     .today-theme-toggle {
-      width: 28px;
-      height: 28px;
-      background: transparent;
+      width: 36px;
+      height: 36px;
+      background: var(--bg-card);
       border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
       color: var(--muted-3);
       font-size: var(--text-base);
       cursor: pointer;
@@ -897,67 +911,86 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      box-shadow: var(--shadow-sm);
       transition:
         color var(--duration-fast) var(--ease-out),
         border-color var(--duration-fast) var(--ease-out),
+        box-shadow var(--duration-fast) var(--ease-out),
         transform var(--duration-fast) var(--ease-out);
     }
     .today-theme-toggle:hover {
-      border-color: var(--muted-2);
-      color: var(--text);
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: var(--shadow-md);
     }
-    /* Plan-the-week is an outline button — does NOT compete with the date for attention */
+    /* Primary CTA — modern blue, rounded, soft shadow */
     .today-plan-link {
-      padding: var(--space-1) var(--space-3);
-      background: transparent;
-      color: var(--muted-2);
-      border: 1px solid var(--border);
+      padding: var(--space-2) var(--space-4);
+      background: var(--primary);
+      color: var(--primary-text);
+      border: none;
+      border-radius: var(--radius-pill);
       cursor: pointer;
-      font-size: var(--text-xs);
-      letter-spacing: var(--tracking-wider);
-      text-transform: uppercase;
-      font-family: var(--mono);
-      font-weight: 500;
-      transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
+      font-size: var(--text-sm);
+      letter-spacing: var(--tracking-base);
+      text-transform: none;
+      font-family: var(--serif);
+      font-weight: 600;
+      box-shadow: var(--shadow-primary);
+      transition:
+        background var(--duration-fast) var(--ease-out),
+        box-shadow var(--duration-fast) var(--ease-out),
+        transform var(--duration-fast) var(--ease-out);
     }
     .today-plan-link:hover {
-      border-color: var(--text);
-      color: var(--text);
+      background: var(--primary-hover);
+      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.24);
     }
 
     /* Right-now hero block */
     .today-hero {
       padding: var(--space-6) var(--space-8);
       background: var(--bg-card);
-      border-left: 2px solid var(--gold);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      position: relative;
+      overflow: hidden;
       animation: riseIn var(--duration-slow) var(--ease-out) backwards;
       animation-delay: 40ms;
     }
+    .today-hero::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 50%;
+      transform: translateY(-50%);
+      width: 5px;
+      height: 60%;
+      background: var(--primary);
+      border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
+    }
     .today-hero-eyebrow {
       font-size: var(--text-xs);
-      letter-spacing: var(--tracking-widest);
-      color: var(--muted-3);
+      letter-spacing: var(--tracking-wider);
+      color: var(--primary);
       text-transform: uppercase;
-      font-family: var(--mono);
+      font-family: var(--serif);
       margin-bottom: var(--space-3);
-      font-weight: 500;
+      font-weight: 600;
     }
-    /* The hero title — the most important thing on the page besides the date.
-       Uses lighter weight to feel calm, not loud. */
     .today-hero-now {
       font-size: var(--text-xl);
       color: var(--text);
       letter-spacing: var(--tracking-tight);
       line-height: var(--leading-tight);
-      font-weight: 400;
+      font-weight: 600;
     }
     .today-hero-now-meta {
       font-size: var(--text-sm);
       color: var(--muted-3);
       margin-top: var(--space-2);
-      font-family: var(--mono);
       letter-spacing: var(--tracking-base);
-      /* No italic — italic on small mono is hard to read. */
+      font-weight: 400;
     }
     .today-hero-next {
       margin-top: var(--space-5);
@@ -968,29 +1001,32 @@
       display: flex;
       align-items: baseline;
       gap: var(--space-3);
+      font-weight: 400;
     }
     .today-hero-next-label {
       color: var(--muted-3);
-      font-family: var(--mono);
       font-size: var(--text-xs);
-      letter-spacing: var(--tracking-widest);
+      letter-spacing: var(--tracking-wider);
       text-transform: uppercase;
       flex-shrink: 0;
+      font-weight: 600;
     }
     .today-hero-next-time {
       font-family: var(--mono);
       color: var(--muted-3);
       font-size: var(--text-sm);
       flex-shrink: 0;
+      font-weight: 500;
     }
     .today-hero-micro {
       margin-top: var(--space-4);
       padding: var(--space-3) var(--space-4);
-      background: transparent;
-      border-left: 2px solid var(--teal);
+      background: var(--primary-soft);
+      border-radius: var(--radius-base);
       font-size: var(--text-sm);
-      color: var(--teal);
+      color: var(--primary-hover);
       letter-spacing: var(--tracking-base);
+      font-weight: 500;
     }
 
     /* Body layout: timeline center + right rail */
@@ -1024,7 +1060,10 @@
     /* Timeline */
     .today-timeline {
       background: var(--bg-card);
-      border-left: 2px solid var(--rule);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
     }
     .today-timeline-header {
       padding: var(--space-4) var(--space-5) var(--space-3);
@@ -1035,10 +1074,10 @@
     }
     .today-timeline-eyebrow {
       font-size: var(--text-xs);
-      letter-spacing: var(--tracking-widest);
+      letter-spacing: var(--tracking-wider);
       color: var(--muted-3);
       text-transform: uppercase;
-      font-weight: 500;
+      font-weight: 600;
     }
     .today-timeline-meta {
       font-size: var(--text-xs);
@@ -1074,26 +1113,25 @@
     .today-timeline-row:last-child { border-bottom: none; }
     .today-timeline-row:hover { background: var(--bg-hover); }
     .today-timeline-row.is-now {
-      background: rgba(201, 168, 76, 0.04);
-      box-shadow: inset 2px 0 0 var(--gold);
+      background: var(--primary-soft);
+      box-shadow: none;
     }
-    /* Slow ambient pulse on the now-row's gold left bar — 3s cycle, opacity only.
-       Calibrated to hint "live" without distracting. */
     .today-timeline-row.is-now::before {
       content: '';
       position: absolute;
-      width: 2px;
-      height: 100%;
-      left: 0; top: 0;
-      background: var(--gold);
+      width: 4px;
+      height: 60%;
+      left: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--primary);
+      border-radius: var(--radius-pill);
       animation: nowPulse 3s var(--ease-in-out) infinite;
       pointer-events: none;
     }
     .today-timeline-row { position: relative; }
     .today-timeline-row.is-past { opacity: 0.45; }
     .today-timeline-row.is-completed { opacity: 0.55; }
-    /* No strikethrough — kills the typography. Just dim the row.
-       The ✓ in the check button + the dim opacity tell the same story without disfigurement. */
     .today-timeline-time {
       flex-shrink: 0;
       width: 76px;
@@ -1101,14 +1139,14 @@
       font-size: var(--text-xs);
       color: var(--muted-3);
       letter-spacing: var(--tracking-wide);
+      font-weight: 500;
     }
-    .today-timeline-row.is-now .today-timeline-time { color: var(--gold); font-weight: 500; }
-    /* Stripe thinner and shorter — visible but not loud */
+    .today-timeline-row.is-now .today-timeline-time { color: var(--primary); font-weight: 600; }
     .today-timeline-stripe {
-      width: 2px;
-      height: 14px;
+      width: 8px;
+      height: 8px;
       flex-shrink: 0;
-      border-radius: 1px;
+      border-radius: 50%;
     }
     .today-timeline-content {
       flex: 1;
@@ -1117,7 +1155,6 @@
       flex-direction: column;
       gap: 2px;
     }
-    /* TITLE is the hero of the row — readable size, primary weight */
     .today-timeline-title {
       font-size: var(--text-base);
       color: var(--text);
@@ -1125,9 +1162,9 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      font-weight: 400;
+      font-weight: 500;
     }
-    .today-timeline-row.is-now .today-timeline-title { font-weight: 500; }
+    .today-timeline-row.is-now .today-timeline-title { font-weight: 600; }
     .today-timeline-meta-line {
       font-size: var(--text-xs);
       color: var(--muted-4);
@@ -1152,18 +1189,24 @@
       margin: 0 auto;
     }
     .today-timeline-drop-hint {
+      margin: var(--space-3) var(--space-4);
       padding: var(--space-4) var(--space-5);
       text-align: center;
       color: var(--muted-4);
       font-size: var(--text-sm);
-      border-top: 1px dashed var(--rule);
+      border: 1.5px dashed var(--border);
+      border-radius: var(--radius-lg);
       cursor: default;
-      transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
+      transition:
+        background var(--duration-fast) var(--ease-out),
+        color var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out),
+        transform var(--duration-fast) var(--ease-out);
     }
     .today-timeline-drop-hint.drag-over {
-      background: rgba(201, 168, 76, 0.06);
-      color: var(--gold);
-      border-color: var(--gold);
+      background: var(--primary-soft);
+      color: var(--primary);
+      border-color: var(--primary);
       transform: translateY(-1px);
     }
     .today-timeline-check {
@@ -1203,7 +1246,10 @@
     .today-rail::-webkit-scrollbar-thumb { background: var(--border); }
     .today-rail-section {
       background: var(--bg-card);
-      border-left: 2px solid var(--rule);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
       animation: riseIn var(--duration-slow) var(--ease-out) backwards;
     }
     .today-rail-section:nth-child(1) { animation-delay: 80ms; }
@@ -1217,10 +1263,10 @@
     }
     .today-rail-eyebrow {
       font-size: var(--text-xs);
-      letter-spacing: var(--tracking-widest);
+      letter-spacing: var(--tracking-wider);
       color: var(--muted-3);
       text-transform: uppercase;
-      font-weight: 500;
+      font-weight: 600;
     }
     .today-rail-count {
       font-size: var(--text-xs);
@@ -1261,7 +1307,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      font-weight: 500;
+      font-weight: 600;
       letter-spacing: var(--tracking-base);
     }
     .today-project-chip-tier {
@@ -1282,18 +1328,25 @@
       color: var(--muted-2);
       padding: var(--space-2) var(--space-3);
       cursor: grab;
-      background: transparent;
-      border-left: 2px solid var(--rule);
-      transition: border-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out);
+      background: var(--bg-card-deep);
+      border-left: 3px solid transparent;
+      border-radius: var(--radius-base);
+      transition:
+        border-color var(--duration-fast) var(--ease-out),
+        color var(--duration-fast) var(--ease-out),
+        background var(--duration-fast) var(--ease-out),
+        transform var(--duration-fast) var(--ease-out);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       line-height: var(--leading-snug);
+      font-weight: 500;
     }
     .today-project-action:hover {
-      border-left-color: var(--gold);
+      border-left-color: var(--primary);
       color: var(--text);
-      background: var(--bg-hover);
+      background: var(--primary-soft);
+      transform: translateX(2px);
     }
     .today-project-action:active { cursor: grabbing; }
     .today-project-action.scheduled {
@@ -1305,10 +1358,10 @@
     .today-todo-add {
       display: flex;
       padding: 0;
-      border-bottom: 1px solid var(--rule-faint);
+      border-bottom: 1px solid var(--rule);
       transition: background var(--duration-fast) var(--ease-out);
     }
-    .today-todo-add:focus-within { background: var(--bg-hover); }
+    .today-todo-add:focus-within { background: var(--primary-soft); }
     .today-todo-add-input {
       flex: 1;
       background: transparent;
@@ -1319,11 +1372,11 @@
       font-size: var(--text-sm);
       outline: none;
       letter-spacing: var(--tracking-base);
+      font-weight: 500;
     }
     .today-todo-add-input::placeholder {
       color: var(--muted-4);
-      font-style: normal;
-      letter-spacing: var(--tracking-base);
+      font-weight: 400;
     }
     /* Todo rows */
     .today-todo-row {
@@ -1377,29 +1430,39 @@
       flex-wrap: wrap;
       justify-content: flex-end;
       align-items: center;
-      padding-top: var(--space-4);
-      border-top: 1px solid var(--rule);
+      padding-top: var(--space-5);
     }
     .today-footer-btn {
-      background: none;
+      background: var(--bg-card);
       border: 1px solid var(--border);
-      color: var(--muted-3);
+      border-radius: var(--radius-pill);
+      color: var(--muted-2);
       font-size: var(--text-xs);
-      letter-spacing: var(--tracking-wider);
-      text-transform: uppercase;
-      font-family: var(--mono);
-      padding: var(--space-1) var(--space-3);
+      letter-spacing: var(--tracking-base);
+      text-transform: none;
+      font-family: var(--serif);
+      font-weight: 500;
+      padding: var(--space-2) var(--space-4);
       cursor: pointer;
-      transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
+      box-shadow: var(--shadow-sm);
+      transition:
+        color var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out),
+        box-shadow var(--duration-fast) var(--ease-out);
     }
-    .today-footer-btn:hover { border-color: var(--muted-2); color: var(--text); }
+    .today-footer-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: var(--shadow-md);
+    }
     .today-footer-status {
       font-size: var(--text-xs);
       color: var(--muted-4);
       font-family: var(--mono);
-      letter-spacing: var(--tracking-wide);
+      letter-spacing: var(--tracking-base);
       margin-left: auto;
-      margin-right: var(--space-2);
+      margin-right: var(--space-3);
+      font-weight: 500;
     }
 
 
