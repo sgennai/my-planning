@@ -1282,6 +1282,22 @@
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
     }
+    /* Short blocks (< ~30 min) — single row, vertically centered, time inline */
+    .today-cal-block.is-short {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--space-2);
+      padding: 0 var(--space-3);
+    }
+    .today-cal-block.is-short .today-cal-block-title {
+      -webkit-line-clamp: 1;
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+    }
+    .today-cal-block.is-short .today-cal-block-time {
+      flex-shrink: 0;
+    }
     .today-cal-block-check {
       position: absolute;
       top: 4px;
@@ -5672,10 +5688,11 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             const tintBg = isHex ? hexToRgba(stripeColor, 0.10) : 'var(--primary-soft)';
             const isNow = it.startMin <= nowMin && (it.startMin + it.duration) > nowMin;
             const cls = `today-cal-block ${it.completed ? 'is-completed' : ''} ${isNow && !it.completed ? 'is-now' : ''} ${it.kind === 'ics' ? 'is-ics' : ''}`;
+            const isShort = height < 36;
             return (
               <div
                 key={it.id}
-                className={cls}
+                className={`${cls} ${isShort ? 'is-short' : ''}`}
                 onClick={(e) => { e.stopPropagation(); onItemClick(it); }}
                 style={{
                   top, height,
@@ -5683,7 +5700,6 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                   width: `calc(${widthPct}% - ${64 / totalLanes}px - 8px)`,
                   borderLeft: `3px solid ${stripeColor}`,
                   background: it.completed ? 'var(--bg-card-deep)' : tintBg,
-                  color: it.completed ? 'var(--muted-3)' : (isHex ? stripeColor : 'var(--text)'),
                 }}
                 title={`${it.title} · ${pad(Math.floor(it.startMin / 60))}:${pad(it.startMin % 60)}–${pad(Math.floor((it.startMin + it.duration) / 60))}:${pad((it.startMin + it.duration) % 60)}`}
               >
@@ -5694,8 +5710,8 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                     title={it.completed ? 'Mark not done' : 'Mark done'}
                   >{it.completed ? '✓' : ''}</button>
                 )}
-                <div className="today-cal-block-time" style={{ color: 'inherit', opacity: 0.7 }}>{pad(Math.floor(it.startMin / 60))}:{pad(it.startMin % 60)}</div>
-                <div className="today-cal-block-title" style={{ color: 'inherit' }}>{it.title}</div>
+                <div className="today-cal-block-time" style={{ color: isHex ? stripeColor : 'var(--muted-2)' }}>{pad(Math.floor(it.startMin / 60))}:{pad(it.startMin % 60)}</div>
+                <div className="today-cal-block-title">{it.title}</div>
               </div>
             );
           })}
