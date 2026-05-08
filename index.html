@@ -1127,6 +1127,26 @@
       position: relative;
       padding: 0;
     }
+    .today-cal-grid:hover { cursor: cell; }
+    .today-cal-drag-ghost {
+      position: absolute;
+      left: 64px; right: var(--space-3);
+      background: var(--primary-soft);
+      border: 1.5px dashed var(--primary);
+      border-radius: var(--radius-base);
+      pointer-events: none;
+      z-index: 3;
+      display: flex;
+      align-items: flex-start;
+      padding: 4px 8px;
+    }
+    .today-cal-drag-ghost-time {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--primary);
+      letter-spacing: var(--tracking-wide);
+    }
     .today-cal-hour-line {
       position: absolute;
       left: 0; right: 0;
@@ -5424,15 +5444,63 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
     // ═════════════════════════════════════════════════════════════
     // TODAY CALENDAR VIEW — single-column hour grid for today
     // ═════════════════════════════════════════════════════════════
-    function TodayCalendarView({ items, now, lunchSlot, onItemClick, onToggleRoutineComplete, CATS }) {
+    function TodayCalendarView({ items, now, lunchSlot, onItemClick, onToggleRoutineComplete, CATS, onDrop, onCreateAtTime }) {
       const HOUR_START = 6;
       const HOUR_END = 23;
       const HOUR_HEIGHT = 64;
       const totalHours = HOUR_END - HOUR_START;
+      const gridRef = useRef(null);
 
       const minToY = (m) => ((m / 60) - HOUR_START) * HOUR_HEIGHT;
+      // Convert a clientY position over the grid to a snapped time-string (15-min snap).
+      const yToMin = (clientY) => {
+        if (!gridRef.current) return null;
+        const rect = gridRef.current.getBoundingClientRect();
+        const y = clientY - rect.top;
+        const totalMin = Math.round((y / HOUR_HEIGHT) * 60);
+        const snapped = Math.round(totalMin / 15) * 15;
+        return Math.max(0, snapped) + HOUR_START * 60;
+      };
+      const minToHHMM = (m) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
+
+      // Drag-over preview (ghost block)
+      const [dragGhost, setDragGhost] = useState(null); // { startMin, duration }
+      const onGridDragOver = (e) => {
+        if (!Array.from(e.dataTransfer.types).includes('application/json')) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+        const startMin = yToMin(e.clientY);
+        if (startMin == null) return;
+        setDragGhost({ startMin, duration: 30 });
+      };
+      const onGridDragLeave = (e) => {
+        // Only clear if leaving the grid root
+        if (e.currentTarget === e.target || !e.currentTarget.contains(e.relatedTarget)) {
+          setDragGhost(null);
+        }
+      };
+      const onGridDrop = (e) => {
+        e.preventDefault();
+        const startMin = yToMin(e.clientY);
+        setDragGhost(null);
+        if (startMin == null) return;
+        let payload;
+        try { payload = JSON.parse(e.dataTransfer.getData('application/json')); }
+        catch { return; }
+        if (onDrop) onDrop(payload, startMin, e.clientX, e.clientY);
+      };
+
+      // Click-to-create on empty grid space (only fires if click is on the grid itself,
+      // not on an existing block — blocks have their own onClick which stops propagation).
+      const onGridClick = (e) => {
+        // Only trigger when the click target is the grid background, not a block
+        if (e.target !== gridRef.current && !e.target.classList.contains('today-cal-empty-zone')) return;
+        const startMin = yToMin(e.clientY);
+        if (startMin == null) return;
+        if (onCreateAtTime) onCreateAtTime(startMin);
+      };
+
       const lunchStartMin = toMinutes(lunchSlot.start || '12:30');
-      const lunchEndMin = lunchStartMin + (lunchSlot.duration || 60);
       const lunchTop = minToY(lunchStartMin);
       const lunchHeight = (lunchSlot.duration || 60) / 60 * HOUR_HEIGHT;
 
@@ -5458,7 +5526,15 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       const totalLanes = Math.max(1, lanes.length);
 
       return (
-        <div className="today-cal-grid" style={{ height: totalHours * HOUR_HEIGHT }}>
+        <div
+          ref={gridRef}
+          className="today-cal-grid"
+          style={{ height: totalHours * HOUR_HEIGHT }}
+          onDragOver={onGridDragOver}
+          onDragLeave={onGridDragLeave}
+          onDrop={onGridDrop}
+          onClick={onGridClick}
+        >
           {/* Hour lines + labels */}
           {Array.from({ length: totalHours + 1 }, (_, i) => {
             const hour = HOUR_START + i;
@@ -5476,6 +5552,18 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
               title={`Lunch · ${lunchSlot.start} for ${lunchSlot.duration} min`}
             >
               <span className="today-cal-lunch-label">Lunch</span>
+            </div>
+          )}
+          {/* Drag ghost preview */}
+          {dragGhost && (
+            <div
+              className="today-cal-drag-ghost"
+              style={{
+                top: minToY(dragGhost.startMin),
+                height: dragGhost.duration / 60 * HOUR_HEIGHT,
+              }}
+            >
+              <span className="today-cal-drag-ghost-time">{minToHHMM(dragGhost.startMin)}</span>
             </div>
           )}
           {/* Now line */}
@@ -5499,7 +5587,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
               <div
                 key={it.id}
                 className={cls}
-                onClick={() => onItemClick(it)}
+                onClick={(e) => { e.stopPropagation(); onItemClick(it); }}
                 style={{
                   top, height,
                   left: `calc(64px + ${leftPct}% - ${64 * leftPct / 100}px + 4px)`,
@@ -5968,6 +6056,33 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                   }}
                   onToggleRoutineComplete={(itemId) => onToggleRoutineCompletion(itemId, now)}
                   CATS={CATS}
+                  onDrop={(payload, startMin, dropX, dropY) => {
+                    const startStr = `${pad(Math.floor(startMin / 60))}:${pad(startMin % 60)}`;
+                    const dateISO = startOfDay(now).toISOString();
+                    if (payload.type === 'next-action') {
+                      onCreateBlock({
+                        projectId: payload.projectId,
+                        actionId: payload.actionId,
+                        title: payload.title,
+                        date: dateISO,
+                        start: startStr,
+                        duration: payload.duration || 30,
+                      });
+                    } else if (payload.type === 'todo') {
+                      onTodoDrop({ todoId: payload.todoId, date: dateISO, start: startStr, dropX, dropY });
+                    }
+                  }}
+                  onCreateAtTime={(startMin) => {
+                    const startStr = `${pad(Math.floor(startMin / 60))}:${pad(startMin % 60)}`;
+                    const title = window.prompt(`New event at ${startStr}\nTitle:`);
+                    if (!title || !title.trim()) return;
+                    onCreateBlock({
+                      title: title.trim(),
+                      date: startOfDay(now).toISOString(),
+                      start: startStr,
+                      duration: 30,
+                    });
+                  }}
                 />
               ) : (
                 <div className="today-timeline-list">
