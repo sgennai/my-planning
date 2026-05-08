@@ -1085,6 +1085,170 @@
       font-family: var(--mono);
       letter-spacing: var(--tracking-wide);
     }
+
+    /* View toggle (timeline ↔ calendar) */
+    .today-timeline-header-right {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    .today-view-toggle {
+      display: inline-flex;
+      background: var(--bg-card-deep);
+      border-radius: var(--radius-pill);
+      padding: 2px;
+      gap: 2px;
+    }
+    .today-view-toggle-btn {
+      width: 28px;
+      height: 24px;
+      border: none;
+      background: transparent;
+      color: var(--muted-3);
+      border-radius: var(--radius-pill);
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition:
+        background var(--duration-fast) var(--ease-out),
+        color var(--duration-fast) var(--ease-out);
+    }
+    .today-view-toggle-btn:hover { color: var(--text); }
+    .today-view-toggle-btn.active {
+      background: var(--bg-card);
+      color: var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Calendar (hour grid) view for Today */
+    .today-cal-grid {
+      position: relative;
+      padding: 0;
+    }
+    .today-cal-hour-line {
+      position: absolute;
+      left: 0; right: 0;
+      height: 1px;
+      background: var(--rule-faint);
+      pointer-events: none;
+    }
+    .today-cal-hour-label {
+      position: absolute;
+      left: var(--space-3);
+      top: -7px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted-4);
+      background: var(--bg-card);
+      padding: 0 4px;
+      letter-spacing: var(--tracking-wide);
+      font-weight: 500;
+    }
+    /* Lunch slot — soft warm tint band */
+    .today-cal-lunch {
+      position: absolute;
+      left: 64px; right: var(--space-3);
+      background: rgba(245, 158, 11, 0.08);
+      border-radius: var(--radius-base);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: var(--space-3);
+    }
+    .today-cal-lunch-label {
+      font-size: 10px;
+      letter-spacing: var(--tracking-wider);
+      color: rgba(217, 119, 6, 0.7);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    /* Now line */
+    .today-cal-now-line {
+      position: absolute;
+      left: 64px; right: var(--space-3);
+      height: 2px;
+      background: var(--primary);
+      z-index: 5;
+      pointer-events: none;
+    }
+    .today-cal-now-dot {
+      position: absolute;
+      left: -5px;
+      top: -4px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+    /* Block */
+    .today-cal-block {
+      position: absolute;
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-base);
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      transition:
+        transform var(--duration-fast) var(--ease-out),
+        box-shadow var(--duration-fast) var(--ease-out);
+    }
+    .today-cal-block:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+      z-index: 4;
+    }
+    .today-cal-block.is-completed { opacity: 0.55; }
+    .today-cal-block.is-now { box-shadow: var(--shadow-md), 0 0 0 2px var(--primary-soft); }
+    .today-cal-block-time {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted-3);
+      font-weight: 600;
+      letter-spacing: var(--tracking-wide);
+    }
+    .today-cal-block-title {
+      font-size: 12px;
+      color: var(--text);
+      font-weight: 500;
+      line-height: var(--leading-tight);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .today-cal-block-check {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: var(--bg-card);
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      line-height: 1;
+      color: var(--teal);
+      transition: border-color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out);
+    }
+    .today-cal-block-check:hover { border-color: var(--teal); }
+    .today-cal-block.is-completed .today-cal-block-check {
+      border-color: var(--teal);
+      background: var(--teal);
+      color: var(--bg-card);
+    }
     .today-timeline-list {
       display: flex;
       flex-direction: column;
@@ -3569,7 +3733,7 @@
     const CLIENT_ID = '25894919429-pbtl8l6nn23vnvc8c8cbhg5f3n8gepu6.apps.googleusercontent.com';
     const SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
     const FILE_NAME = 'my-planning-data.json';
-    const SCHEMA_VERSION = 14;
+    const SCHEMA_VERSION = 15;
 
     // Days: JS Date.getDay() — 0=Sun, 1=Mon ... 6=Sat. Visual columns are Mon-first.
     const VISUAL_TO_JS_DAY = [1, 2, 3, 4, 5, 6, 0];
@@ -4955,7 +5119,12 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         todos: [],
         routineCompletions: {},
         weather: { lat: null, lon: null, label: '', source: 'unset' }, // source: 'unset' | 'geolocation' | 'manual'
-        prefs: { theme: 'light', categoryColors: {} }, // theme: 'light' | 'dark'; categoryColors: { [category]: '#hex' }
+        prefs: {
+          theme: 'light',
+          categoryColors: {},
+          todayView: 'timeline', // 'timeline' | 'calendar'
+          lunchSlot: { start: '12:30', duration: 60 },
+        },
       };
     }
 
@@ -5018,13 +5187,18 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       }
       // v13: theme preference. Existing users get light by default (the new default surface).
       if (!next.prefs || typeof next.prefs !== 'object') {
-        next.prefs = { theme: 'light', categoryColors: {} };
+        next.prefs = { theme: 'light', categoryColors: {}, todayView: 'timeline', lunchSlot: { start: '12:30', duration: 60 } };
         changed = true;
       } else {
         if (!next.prefs.theme) { next.prefs.theme = 'light'; changed = true; }
-        // v14: per-category color overrides
         if (!next.prefs.categoryColors || typeof next.prefs.categoryColors !== 'object') {
           next.prefs.categoryColors = {};
+          changed = true;
+        }
+        // v15: today view + lunch slot
+        if (!next.prefs.todayView) { next.prefs.todayView = 'timeline'; changed = true; }
+        if (!next.prefs.lunchSlot || typeof next.prefs.lunchSlot !== 'object') {
+          next.prefs.lunchSlot = { start: '12:30', duration: 60 };
           changed = true;
         }
       }
@@ -5248,6 +5422,110 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
     // CALENDAR SCREEN
     // ═════════════════════════════════════════════════════════════
     // ═════════════════════════════════════════════════════════════
+    // TODAY CALENDAR VIEW — single-column hour grid for today
+    // ═════════════════════════════════════════════════════════════
+    function TodayCalendarView({ items, now, lunchSlot, onItemClick, onToggleRoutineComplete, CATS }) {
+      const HOUR_START = 6;
+      const HOUR_END = 23;
+      const HOUR_HEIGHT = 64;
+      const totalHours = HOUR_END - HOUR_START;
+
+      const minToY = (m) => ((m / 60) - HOUR_START) * HOUR_HEIGHT;
+      const lunchStartMin = toMinutes(lunchSlot.start || '12:30');
+      const lunchEndMin = lunchStartMin + (lunchSlot.duration || 60);
+      const lunchTop = minToY(lunchStartMin);
+      const lunchHeight = (lunchSlot.duration || 60) / 60 * HOUR_HEIGHT;
+
+      const nowMin = now.getHours() * 60 + now.getMinutes();
+      const nowY = minToY(nowMin);
+      const inWindow = nowMin >= HOUR_START * 60 && nowMin < HOUR_END * 60;
+
+      // Lay out items into lanes for overlap handling
+      const sorted = [...items].sort((a, b) => a.startMin - b.startMin);
+      const lanes = [];
+      const positioned = sorted.map(it => {
+        let lane = 0;
+        while (true) {
+          const occupants = lanes[lane] || [];
+          const conflict = occupants.some(o => !(o.startMin + o.duration <= it.startMin || o.startMin >= it.startMin + it.duration));
+          if (!conflict) {
+            lanes[lane] = [...occupants, it];
+            return { ...it, _lane: lane };
+          }
+          lane++;
+        }
+      });
+      const totalLanes = Math.max(1, lanes.length);
+
+      return (
+        <div className="today-cal-grid" style={{ height: totalHours * HOUR_HEIGHT }}>
+          {/* Hour lines + labels */}
+          {Array.from({ length: totalHours + 1 }, (_, i) => {
+            const hour = HOUR_START + i;
+            return (
+              <div key={hour} className="today-cal-hour-line" style={{ top: i * HOUR_HEIGHT }}>
+                <span className="today-cal-hour-label">{pad(hour)}:00</span>
+              </div>
+            );
+          })}
+          {/* Lunch slot tint */}
+          {lunchHeight > 0 && (
+            <div
+              className="today-cal-lunch"
+              style={{ top: lunchTop, height: lunchHeight }}
+              title={`Lunch · ${lunchSlot.start} for ${lunchSlot.duration} min`}
+            >
+              <span className="today-cal-lunch-label">Lunch</span>
+            </div>
+          )}
+          {/* Now line */}
+          {inWindow && (
+            <div className="today-cal-now-line" style={{ top: nowY }}>
+              <span className="today-cal-now-dot" />
+            </div>
+          )}
+          {/* Items */}
+          {positioned.map(it => {
+            const top = minToY(it.startMin);
+            const height = Math.max(20, it.duration / 60 * HOUR_HEIGHT - 2);
+            const widthPct = 100 / totalLanes;
+            const leftPct = it._lane * widthPct;
+            const stripeColor = it.kind === 'routine'
+              ? ((CATS[it.category] || CATS.supplement).color)
+              : (it.color || 'var(--primary)');
+            const isNow = it.startMin <= nowMin && (it.startMin + it.duration) > nowMin;
+            const cls = `today-cal-block ${it.completed ? 'is-completed' : ''} ${isNow && !it.completed ? 'is-now' : ''} ${it.kind === 'ics' ? 'is-ics' : ''}`;
+            return (
+              <div
+                key={it.id}
+                className={cls}
+                onClick={() => onItemClick(it)}
+                style={{
+                  top, height,
+                  left: `calc(64px + ${leftPct}% - ${64 * leftPct / 100}px + 4px)`,
+                  width: `calc(${widthPct}% - ${64 / totalLanes}px - 8px)`,
+                  borderLeft: `3px solid ${stripeColor}`,
+                  background: it.completed ? 'var(--bg-card-deep)' : 'var(--bg-card)',
+                }}
+                title={`${it.title} · ${pad(Math.floor(it.startMin / 60))}:${pad(it.startMin % 60)}–${pad(Math.floor((it.startMin + it.duration) / 60))}:${pad((it.startMin + it.duration) % 60)}`}
+              >
+                {it.kind === 'routine' && (
+                  <button
+                    className="today-cal-block-check"
+                    onClick={(e) => { e.stopPropagation(); onToggleRoutineComplete(it.itemId); }}
+                    title={it.completed ? 'Mark not done' : 'Mark done'}
+                  >{it.completed ? '✓' : ''}</button>
+                )}
+                <div className="today-cal-block-time">{pad(Math.floor(it.startMin / 60))}:{pad(it.startMin % 60)}</div>
+                <div className="today-cal-block-title">{it.title}</div>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
     // TODAY SCREEN — daily compass (default landing surface)
     // ═════════════════════════════════════════════════════════════
     function TodayScreen({
@@ -5264,6 +5542,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       inbox, weeklyResets,
       currentTheme, onSetTheme,
       categoryStyles,
+      todayViewMode, onSetTodayView, lunchSlot,
     }) {
       const CATS = categoryStyles || CATEGORY_STYLES;
       const todos = data.todos || [];
@@ -5651,9 +5930,25 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
               onDrop={onTimelineDrop}
             >
               <div className="today-timeline-header">
-                <div className="today-timeline-eyebrow">Today's timeline</div>
-                <div className="today-timeline-meta">
-                  {todayItems.filter(i => !i.completed).length} open · {todayItems.length} total
+                <div className="today-timeline-eyebrow">Today</div>
+                <div className="today-timeline-header-right">
+                  <div className="today-view-toggle" role="group" aria-label="View mode">
+                    <button
+                      className={`today-view-toggle-btn ${todayViewMode === 'timeline' ? 'active' : ''}`}
+                      onClick={() => onSetTodayView('timeline')}
+                      title="List view"
+                      aria-label="List view"
+                    >☰</button>
+                    <button
+                      className={`today-view-toggle-btn ${todayViewMode === 'calendar' ? 'active' : ''}`}
+                      onClick={() => onSetTodayView('calendar')}
+                      title="Calendar view"
+                      aria-label="Calendar view"
+                    >▦</button>
+                  </div>
+                  <div className="today-timeline-meta">
+                    {todayItems.filter(i => !i.completed).length} open · {todayItems.length} total
+                  </div>
                 </div>
               </div>
               {todayItems.length === 0 ? (
@@ -5662,6 +5957,18 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                   <br />
                   Drag a project action or todo from the right to plan the day.
                 </div>
+              ) : todayViewMode === 'calendar' ? (
+                <TodayCalendarView
+                  items={todayItems}
+                  now={now}
+                  lunchSlot={lunchSlot}
+                  onItemClick={(it) => {
+                    if (it.kind === 'block') onOpenBlock(it.blockId);
+                    else if (it.kind === 'routine') onRoutineClick(it.itemId, now);
+                  }}
+                  onToggleRoutineComplete={(itemId) => onToggleRoutineCompletion(itemId, now)}
+                  CATS={CATS}
+                />
               ) : (
                 <div className="today-timeline-list">
                   {todayItems.map(renderTimelineItem)}
@@ -5837,6 +6144,16 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
           delete map[category];
           return { ...d, prefs: { ...(d.prefs || {}), categoryColors: map } };
         });
+      }, [persistData]);
+
+      const setTodayView = useCallback((view) => {
+        persistData(d => ({ ...d, prefs: { ...(d.prefs || {}), todayView: view } }));
+      }, [persistData]);
+      const todayViewMode = (data.prefs && data.prefs.todayView) || 'timeline';
+
+      const lunchSlot = (data.prefs && data.prefs.lunchSlot) || { start: '12:30', duration: 60 };
+      const setLunchSlot = useCallback((slot) => {
+        persistData(d => ({ ...d, prefs: { ...(d.prefs || {}), lunchSlot: slot } }));
       }, [persistData]);
 
       const createBlock = useCallback((block) => {
@@ -6328,6 +6645,9 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             currentTheme={currentTheme}
             onSetTheme={setTheme}
             categoryStyles={categoryStyles}
+            todayViewMode={todayViewMode}
+            onSetTodayView={setTodayView}
+            lunchSlot={lunchSlot}
           />
         ) : (
         <div className={`wrap-wide screen-pad-top-sm fade-in ${dayView !== null ? 'day-view' : ''}`}>
@@ -6577,6 +6897,8 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             weather={weatherSettings}
             onUpdateWeather={updateWeatherLocation}
             onRequestGeo={requestGeolocation}
+            lunchSlot={lunchSlot}
+            onSetLunchSlot={setLunchSlot}
             onClose={() => setSettingsOpen(false)}
           />
         )}
@@ -9090,7 +9412,9 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       );
     }
 
-    function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh, weather, onUpdateWeather, onRequestGeo, onClose }) {
+    function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh, weather, onUpdateWeather, onRequestGeo, lunchSlot, onSetLunchSlot, onClose }) {
+      const [lunchStart, setLunchStart] = useState((lunchSlot && lunchSlot.start) || '12:30');
+      const [lunchDuration, setLunchDuration] = useState((lunchSlot && lunchSlot.duration) || 60);
       const [proxyUrl, setProxyUrl] = useState(calendars.proxyUrl || '');
       const [workIcs, setWorkIcs] = useState(calendars.workIcs || '');
       const [householdIcs, setHouseholdIcs] = useState(calendars.householdIcs || '');
@@ -9278,6 +9602,50 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                     }}
                   >
                     <span>Save weather location</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="settings-section">
+                <div className="settings-field-label" style={{ marginBottom: 8 }}>Lunch slot</div>
+                <div className="settings-field-hint" style={{ marginBottom: 10 }}>
+                  Highlighted as a tinted band in the Today calendar view. Set the start time and how long it lasts.
+                </div>
+                <div className="routine-form-grid">
+                  <div className="routine-form-row half">
+                    <div className="routine-form-label">Start time</div>
+                    <input
+                      type="text"
+                      className="settings-input"
+                      value={lunchStart}
+                      placeholder="12:30"
+                      onChange={e => setLunchStart(e.target.value)}
+                      style={{ fontFamily: 'var(--mono)' }}
+                    />
+                  </div>
+                  <div className="routine-form-row half">
+                    <div className="routine-form-label">Duration (min)</div>
+                    <input
+                      type="number"
+                      className="settings-input"
+                      value={lunchDuration}
+                      min="15" max="240" step="5"
+                      onChange={e => setLunchDuration(e.target.value)}
+                      style={{ fontFamily: 'var(--mono)' }}
+                    />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                  <button
+                    className="modal-btn primary"
+                    onClick={() => {
+                      if (!/^\d{1,2}:\d{2}$/.test(lunchStart)) { alert('Start must be HH:MM.'); return; }
+                      const d = Number(lunchDuration);
+                      if (isNaN(d) || d < 15) { alert('Duration must be at least 15 minutes.'); return; }
+                      onSetLunchSlot({ start: lunchStart, duration: d });
+                    }}
+                  >
+                    <span>Save lunch slot</span>
                   </button>
                 </div>
               </div>
