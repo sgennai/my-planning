@@ -269,33 +269,60 @@
     button { font-family: inherit; cursor: pointer; }
     button:disabled { opacity: 0.4; cursor: not-allowed; }
     .btn-primary {
-      padding: 12px 28px;
+      padding: 10px 22px;
       background: var(--primary);
-      color: var(--bg);
+      color: #fff;
       border: none;
+      border-radius: var(--radius-pill);
       font-size: 13px;
-      letter-spacing: 0.1em;
+      letter-spacing: 0;
+      font-weight: 600;
+      box-shadow: var(--shadow-primary);
+      transition: background var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
     }
-    .btn-primary:hover:not(:disabled) { opacity: 0.88; }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.24);
+    }
     .btn-secondary {
-      padding: 12px 20px;
-      background: transparent;
+      padding: 10px 18px;
+      background: var(--bg-card);
       color: var(--muted-2);
       border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
       font-size: 13px;
-      letter-spacing: 0.05em;
+      letter-spacing: 0;
+      font-weight: 500;
+      box-shadow: var(--shadow-sm);
+      transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
     }
-    .btn-secondary:hover { border-color: var(--muted-3); color: var(--text); }
+    .btn-secondary:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: var(--shadow-md);
+    }
     .btn-tertiary {
-      padding: 8px 14px;
-      background: transparent;
-      color: var(--muted-3);
-      border: none;
-      font-size: 11px;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
+      padding: 8px 16px;
+      background: var(--bg-card);
+      color: var(--muted-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      font-size: 12px;
+      letter-spacing: 0.02em;
+      text-transform: none;
+      font-weight: 500;
+      box-shadow: var(--shadow-sm);
+      transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
     }
-    .btn-tertiary:hover { color: var(--muted-2); }
+    .btn-tertiary:hover {
+      color: var(--primary);
+      border-color: var(--primary);
+      box-shadow: var(--shadow-md);
+    }
+    .btn-tertiary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
 
     .center { display: flex; align-items: center; justify-content: center; min-height: 80vh; text-align: center; }
 
@@ -842,9 +869,8 @@
     }
 
     .footer {
-      margin-top: 56px;
-      padding-top: 24px;
-      border-top: 1px solid var(--rule);
+      margin-top: 32px;
+      padding-top: 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -852,11 +878,11 @@
       flex-wrap: wrap;
     }
     .footer-info {
-      font-size: 10px;
+      font-size: 11px;
       color: var(--muted-4);
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
+      letter-spacing: 0.02em;
       font-family: var(--mono);
+      font-weight: 500;
     }
 
     /* ───────── TODAY SCREEN (daily compass, default landing) ───────── */
@@ -879,10 +905,23 @@
     }
     .today-topbar-left {
       display: flex;
-      align-items: baseline;
-      gap: var(--space-4);
+      align-items: center;
+      gap: var(--space-3);
       flex: 1;
       min-width: 0;
+    }
+    .today-date-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .today-date-time {
+      font-size: var(--text-sm);
+      color: var(--muted-3);
+      font-family: var(--mono);
+      letter-spacing: var(--tracking-base);
+      font-weight: 500;
     }
     .today-date {
       font-size: var(--text-2xl);
@@ -1070,6 +1109,29 @@
       font-family: var(--mono);
       color: var(--muted-3);
       font-size: var(--text-sm);
+      flex-shrink: 0;
+      font-weight: 500;
+    }
+    .today-hero-then {
+      margin-top: var(--space-2);
+      font-size: var(--text-sm);
+      color: var(--muted-3);
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-3);
+    }
+    .today-hero-then-label {
+      color: var(--muted-4);
+      font-size: 10px;
+      letter-spacing: var(--tracking-wider);
+      text-transform: uppercase;
+      flex-shrink: 0;
+      font-weight: 600;
+    }
+    .today-hero-then-time {
+      font-family: var(--mono);
+      color: var(--muted-4);
+      font-size: 11px;
       flex-shrink: 0;
       font-weight: 500;
     }
@@ -1615,7 +1677,12 @@
     .today-rail-list {
       display: flex;
       flex-direction: column;
+      max-height: 60vh;
+      overflow-y: auto;
+      scrollbar-width: thin;
     }
+    .today-rail-list::-webkit-scrollbar { width: 4px; }
+    .today-rail-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: var(--radius-pill); }
 
     /* Project chip in rail */
     .today-project-chip {
@@ -1631,7 +1698,20 @@
       align-items: center;
       gap: var(--space-2);
       margin-bottom: var(--space-2);
+      cursor: pointer;
+      user-select: none;
     }
+    .today-project-chip.collapsed .today-project-chip-header { margin-bottom: 0; }
+    .today-project-chip-chevron {
+      font-size: 10px;
+      color: var(--muted-3);
+      transition: transform var(--duration-fast) var(--ease-out);
+      flex-shrink: 0;
+      width: 12px;
+      display: inline-flex;
+      justify-content: center;
+    }
+    .today-project-chip-chevron.collapsed { transform: rotate(-90deg); }
     .today-project-chip-dot {
       width: 7px; height: 7px;
       border-radius: 50%;
@@ -1863,58 +1943,53 @@
     }
     .weather-strip-cells {
       flex: 1;
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
       gap: 0;
-      overflow-x: auto;
       align-items: stretch;
-      scrollbar-width: thin;
     }
-    .weather-strip-cells::-webkit-scrollbar { height: 4px; }
-    .weather-strip-cells::-webkit-scrollbar-thumb { background: var(--border); }
     .weather-cell {
       flex-shrink: 0;
-      width: 38px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 2px 0;
+      padding: 4px 4px;
       border-right: 1px solid var(--rule-faint);
       cursor: default;
       transition: background var(--duration-fast) var(--ease-out);
-      gap: 1px;
+      gap: 2px;
     }
+    .weather-cell:last-child { border-right: none; }
     .weather-cell:hover { background: var(--bg-hover); }
-    .weather-cell.now { background: rgba(201, 168, 76, 0.08); }
+    .weather-cell.now { background: var(--primary-soft); }
     .weather-cell-hour {
-      font-size: 8px;
-      color: var(--muted-4);
+      font-size: 10px;
+      color: var(--muted-3);
       font-family: var(--mono);
       letter-spacing: 0.02em;
+      font-weight: 600;
     }
     .weather-cell.now .weather-cell-hour {
       color: var(--primary);
-      font-weight: 600;
     }
     .weather-cell-icon {
-      font-size: 14px;
+      font-size: 18px;
       line-height: 1;
     }
     .weather-cell-temp {
-      font-size: 11px;
+      font-size: 13px;
       color: var(--text);
-      font-weight: 500;
+      font-weight: 600;
       font-variant-numeric: tabular-nums;
     }
     .weather-cell-precip {
-      font-size: 8px;
-      color: #7896AF;
+      font-size: 10px;
+      color: #5B8DB3;
       font-family: var(--mono);
-      min-height: 9px;
+      font-weight: 500;
     }
-    .weather-cell-precip.dry {
-      color: transparent;
-    }
+    .weather-cell-precip.dry { color: var(--muted-4); }
     .weather-strip-status {
       flex: 1;
       display: flex;
@@ -2107,31 +2182,44 @@
       align-items: baseline;
       margin-bottom: 4px;
       padding-bottom: 12px;
-      border-bottom: 2px solid var(--col-divider);
+      border-bottom: 1px solid var(--rule);
     }
     .portfolio-eyebrow {
-      font-size: 10px;
-      letter-spacing: 0.3em;
+      font-size: 11px;
+      letter-spacing: 0.05em;
       color: var(--primary);
       text-transform: uppercase;
       font-weight: 600;
     }
     .portfolio-budget-summary {
-      font-size: 10px;
+      font-size: 11px;
       color: var(--muted-3);
       font-family: var(--mono);
-      letter-spacing: 0.05em;
+      letter-spacing: 0.02em;
+      font-weight: 500;
     }
-    .portfolio-budget-summary b { color: var(--muted-1); font-weight: 500; }
+    .portfolio-budget-summary b { color: var(--text); font-weight: 600; }
     .portfolio-budget-summary.over { color: var(--coral); }
     .portfolio-budget-summary.over b { color: var(--coral); }
 
     .project-card {
       background: var(--bg-card);
-      border-left: 3px solid var(--border);
-      transition: background var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius-base);
+      box-shadow: var(--shadow-sm);
+      transition: background var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+      overflow: hidden;
+      position: relative;
     }
-    .project-card.master { border-left-width: 4px; }
+    .project-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: var(--card-accent, var(--border));
+    }
+    .project-card.master::before { width: 4px; }
+    .project-card:hover { box-shadow: var(--shadow-md); }
     .project-card-header {
       padding: 14px 16px 12px;
       cursor: pointer;
@@ -2148,30 +2236,31 @@
     .project-card-name {
       font-size: 14px;
       color: var(--text);
-      font-weight: 500;
-      letter-spacing: 0.01em;
+      font-weight: 600;
+      letter-spacing: 0;
     }
     .project-card.master .project-card-name {
       font-size: 16px;
       letter-spacing: -0.01em;
+      font-weight: 700;
     }
     .project-card-tier {
-      font-size: 9px;
-      letter-spacing: 0.2em;
-      color: var(--muted-4);
+      font-size: 10px;
+      letter-spacing: 0.05em;
+      color: var(--muted-3);
       font-family: var(--mono);
       text-transform: uppercase;
       flex-shrink: 0;
+      font-weight: 600;
     }
     .project-card-subtitle {
-      font-size: 11px;
+      font-size: 12px;
       color: var(--muted-3);
-      font-style: italic;
       margin-bottom: 10px;
       line-height: 1.4;
     }
     .project-card-status {
-      font-size: 12px;
+      font-size: 13px;
       color: var(--muted-2);
       line-height: 1.5;
       margin-bottom: 10px;
@@ -2180,10 +2269,11 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 10px;
+      font-size: 11px;
       color: var(--muted-3);
       font-family: var(--mono);
-      letter-spacing: 0.05em;
+      letter-spacing: 0.02em;
+      font-weight: 500;
     }
     .project-card-budget {
       display: flex;
@@ -2224,31 +2314,33 @@
     .next-action {
       display: flex;
       gap: 8px;
-      padding: 8px 10px;
-      background: var(--bg-card);
-      border-left: 2px solid var(--border);
+      padding: 8px 12px;
+      background: var(--bg-card-deep);
+      border-radius: var(--radius-base);
       margin-bottom: 4px;
       cursor: grab;
-      transition: background var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
+      transition: background var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
       align-items: flex-start;
     }
     .next-action:hover {
-      background: var(--bg-card-deep);
-      border-left-color: var(--muted-3);
+      background: var(--primary-soft);
+      transform: translateX(2px);
     }
     .next-action-text {
       font-size: 12px;
-      color: var(--muted-1);
+      color: var(--text);
       line-height: 1.5;
       flex: 1;
+      font-weight: 500;
     }
     .next-action-time {
-      font-size: 9px;
-      color: var(--muted-4);
+      font-size: 10px;
+      color: var(--muted-3);
       font-family: var(--mono);
-      letter-spacing: 0.05em;
+      letter-spacing: 0.02em;
       flex-shrink: 0;
       padding-top: 1px;
+      font-weight: 500;
     }
 
     /* NEXT modules list — shown when NEXT card is expanded */
@@ -4687,20 +4779,26 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
     }
 
     function layoutDay(items) {
-      // Google-style packing: cluster overlapping events, assign each to leftmost
-      // free column, then extend each event rightward through any free columns.
+      // Visual minimum: very short events still render with a min height of 20px,
+      // which at 56px/hour ≈ 21 min. We treat that floor as the "visual end" so
+      // back-to-back 10-min events don't render stacked on top of each other.
+      const VISUAL_MIN_MIN = 22;
+      const visualEnd = (it) => {
+        const start = toMinutes(it.start);
+        return start + Math.max(it.duration, VISUAL_MIN_MIN);
+      };
       const sorted = [...items].sort((a, b) => {
         const sd = toMinutes(a.start) - toMinutes(b.start);
         if (sd !== 0) return sd;
-        return b.duration - a.duration; // longer first on ties
+        return b.duration - a.duration;
       });
       const annotated = sorted.map(item => ({ ...item }));
 
-      // Build clusters of transitively overlapping events
+      // Build clusters of events that visually overlap
       const clusters = [];
       annotated.forEach(it => {
         const start = toMinutes(it.start);
-        const end = start + it.duration;
+        const end = visualEnd(it);
         const c = clusters.find(c => c.maxEnd > start);
         if (c) {
           c.events.push(it);
@@ -4712,11 +4810,11 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
 
       clusters.forEach(cluster => {
         const evs = cluster.events;
-        const columns = []; // each column: array of {start, end, id}
+        const columns = [];
         const eventColumn = new Map();
         evs.forEach(it => {
           const start = toMinutes(it.start);
-          const end = start + it.duration;
+          const end = visualEnd(it);
           let col = 0;
           while (true) {
             const occupants = columns[col] || [];
@@ -4733,7 +4831,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         evs.forEach(it => {
           const myCol = eventColumn.get(it);
           const start = toMinutes(it.start);
-          const end = start + it.duration;
+          const end = visualEnd(it);
           let span = 1;
           for (let c = myCol + 1; c < totalCols; c++) {
             const conflict = (columns[c] || []).some(o => !(o.end <= start || o.start >= end));
@@ -6025,6 +6123,8 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       // viewDate: the day being shown. Defaults to today (now), can be navigated +/- 1 day.
       // MUST be declared before any memo that depends on viewDate.
       const [viewDayOffset, setViewDayOffset] = useState(0);
+      const [collapsedProjects, setCollapsedProjects] = useState({}); // { [projectId]: true } when collapsed
+      const toggleCollapse = (pid) => setCollapsedProjects(c => ({ ...c, [pid]: !c[pid] }));
       const viewDate = useMemo(() => {
         const d = new Date(now);
         d.setDate(d.getDate() + viewDayOffset);
@@ -6096,6 +6196,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       const current = todayItems.find(it => it.startMin <= nowMin && (it.startMin + it.duration) > nowMin && !it.completed);
       const upcoming = todayItems.filter(it => it.startMin > nowMin && !it.completed);
       const nextItem = upcoming[0];
+      const thenItem = upcoming[1];
 
       // Micro-strength banner detection
       const microItem = (data.routine || []).find(r => r.recurrence && r.recurrence.kind === 'top-of-hour');
@@ -6323,20 +6424,35 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
           {/* Top bar */}
           <div className="today-topbar">
             <div className="today-topbar-left">
-              <div className="today-date">
-                <span className="today-date-day">{dateLabel.split(',')[0]}</span>
-                <span className="today-date-rest">{dateLabel.split(',').slice(1).join(',').trim()}</span>
-              </div>
-              {weatherInline && (
-                <div
-                  className="today-weather-inline"
-                  title="Today's high/low — click to refresh"
-                  onClick={onRefreshWeather}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <span className="today-weather-inline-icon">{weatherInline.icon}</span>
-                  <span>{weatherInline.min}° / {weatherInline.max}°</span>
+              <button
+                className="today-day-nav-btn"
+                onClick={() => setViewDayOffset(o => o - 1)}
+                title="Previous day"
+                aria-label="Previous day"
+              >‹</button>
+              <div className="today-date-block">
+                <div className="today-date">
+                  <span className="today-date-day">{dateLabel.split(',')[0]}</span>
+                  <span className="today-date-rest">{dateLabel.split(',').slice(1).join(',').trim()}</span>
                 </div>
+                <div className="today-date-time">
+                  {isToday
+                    ? now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+                    : (viewDayOffset === 1 ? 'Tomorrow' : viewDayOffset === -1 ? 'Yesterday' : `${viewDayOffset > 0 ? '+' : ''}${viewDayOffset} days`)}
+                </div>
+              </div>
+              <button
+                className="today-day-nav-btn"
+                onClick={() => setViewDayOffset(o => o + 1)}
+                title="Next day"
+                aria-label="Next day"
+              >›</button>
+              {viewDayOffset !== 0 && (
+                <button
+                  className="today-day-nav-today"
+                  onClick={() => setViewDayOffset(0)}
+                  title="Jump to today"
+                >Today</button>
               )}
             </div>
             <div className="today-topbar-right">
@@ -6384,6 +6500,16 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                     </span>
                   </div>
                 )}
+                {thenItem && (
+                  <div className="today-hero-then">
+                    <span className="today-hero-then-label">Then</span>
+                    <span className="today-hero-then-time">{fmtTime(thenItem.startMin)}</span>
+                    <span>
+                      {thenItem.kind === 'routine' && CATS[thenItem.category] && CATS[thenItem.category].emoji ? `${CATS[thenItem.category].emoji} ` : ''}
+                      {thenItem.title}
+                    </span>
+                  </div>
+                )}
               </>
             ) : nextItem ? (
               <>
@@ -6395,6 +6521,16 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                 </div>
                 {nextItem.note && (
                   <div className="today-hero-now-meta">{nextItem.note}</div>
+                )}
+                {thenItem && (
+                  <div className="today-hero-then">
+                    <span className="today-hero-then-label">Then</span>
+                    <span className="today-hero-then-time">{fmtTime(thenItem.startMin)}</span>
+                    <span>
+                      {thenItem.kind === 'routine' && CATS[thenItem.category] && CATS[thenItem.category].emoji ? `${CATS[thenItem.category].emoji} ` : ''}
+                      {thenItem.title}
+                    </span>
+                  </div>
                 )}
               </>
             ) : (
@@ -6421,32 +6557,11 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
               onDrop={onTimelineDrop}
             >
               <div className="today-timeline-header">
-                <div className="today-timeline-header-left">
-                  <button
-                    className="today-day-nav-btn"
-                    onClick={() => setViewDayOffset(o => o - 1)}
-                    title="Previous day"
-                    aria-label="Previous day"
-                  >‹</button>
-                  <div className="today-timeline-eyebrow">
-                    {viewDayOffset === 0 ? 'Today'
-                      : viewDayOffset === 1 ? 'Tomorrow'
-                      : viewDayOffset === -1 ? 'Yesterday'
-                      : viewDate.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
-                  </div>
-                  <button
-                    className="today-day-nav-btn"
-                    onClick={() => setViewDayOffset(o => o + 1)}
-                    title="Next day"
-                    aria-label="Next day"
-                  >›</button>
-                  {viewDayOffset !== 0 && (
-                    <button
-                      className="today-day-nav-today"
-                      onClick={() => setViewDayOffset(0)}
-                      title="Jump to today"
-                    >Today</button>
-                  )}
+                <div className="today-timeline-eyebrow">
+                  {viewDayOffset === 0 ? 'Today'
+                    : viewDayOffset === 1 ? 'Tomorrow'
+                    : viewDayOffset === -1 ? 'Yesterday'
+                    : viewDate.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
                 </div>
                 <div className="today-timeline-header-right">
                   <div className="today-view-toggle" role="group" aria-label="View mode">
@@ -6534,30 +6649,34 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                 <div className="today-rail-list">
                   {railProjects.length === 0 ? (
                     <div className="today-rail-empty">No projects.</div>
-                  ) : railProjects.map(p => (
-                    <div key={p.id} className="today-project-chip">
-                      <div className="today-project-chip-header">
-                        <div className="today-project-chip-dot" style={{ background: p.color || 'var(--primary)' }} />
-                        <div className="today-project-chip-name" title={p.name}>{p.name.replace('APP - ', '')}</div>
-                        <div className="today-project-chip-tier">T{p.tier}</div>
-                      </div>
-                      {p._actions.length > 0 && (
-                        <div className="today-project-chip-actions">
-                          {p._actions.map(a => (
-                            <div
-                              key={a.id}
-                              className={`today-project-action ${a.scheduled ? 'scheduled' : ''}`}
-                              draggable={!a.scheduled}
-                              onDragStart={(e) => onProjectActionDragStart(e, p, a)}
-                              title={a.scheduled ? 'Already scheduled' : 'Drag onto timeline to schedule'}
-                            >
-                              {a.text}
-                            </div>
-                          ))}
+                  ) : railProjects.map(p => {
+                    const isCollapsed = !!collapsedProjects[p.id];
+                    return (
+                      <div key={p.id} className={`today-project-chip ${isCollapsed ? 'collapsed' : ''}`}>
+                        <div className="today-project-chip-header" onClick={() => toggleCollapse(p.id)}>
+                          <span className={`today-project-chip-chevron ${isCollapsed ? 'collapsed' : ''}`}>▾</span>
+                          <div className="today-project-chip-dot" style={{ background: p.color || 'var(--primary)' }} />
+                          <div className="today-project-chip-name" title={p.name}>{p.name.replace('APP - ', '')}</div>
+                          <div className="today-project-chip-tier">T{p.tier}</div>
                         </div>
-                      )}
-                    </div>
-                  ))}
+                        {!isCollapsed && p._actions.length > 0 && (
+                          <div className="today-project-chip-actions">
+                            {p._actions.map(a => (
+                              <div
+                                key={a.id}
+                                className={`today-project-action ${a.scheduled ? 'scheduled' : ''}`}
+                                draggable={!a.scheduled}
+                                onDragStart={(e) => onProjectActionDragStart(e, p, a)}
+                                title={a.scheduled ? 'Already scheduled' : 'Drag onto timeline to schedule'}
+                              >
+                                {a.text}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -7698,7 +7817,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       return (
         <div
           className={`project-card ${isMaster ? 'master' : ''} ${expanded ? 'expanded' : ''}`}
-          style={{ borderLeftColor: project.color || 'var(--border)' }}
+          style={{ '--card-accent': project.color || 'var(--border)' }}
         >
           <div className="project-card-header" onClick={onToggle}>
             <div className="project-card-top">
@@ -9522,18 +9641,26 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       const nowDateMs = startOfDay(now).getTime();
       const isToday = targetDateMs === nowDateMs;
 
-      let cells = [];
-      if (cache && Array.isArray(cache.hours)) {
-        cells = cache.hours.filter(h => {
-          const t = h.time.getTime();
-          return t >= targetDateMs && t < nextDayMs;
-        });
-      }
-
-      // For "today", trim past hours so we show forward-looking forecast only
-      if (isToday) {
-        cells = cells.filter(h => h.time.getHours() >= nowHour);
-      }
+      // Filter to the requested day's hours, then pick the cell closest to each checkpoint hour.
+      const allCells = (cache && Array.isArray(cache.hours))
+        ? cache.hours.filter(h => {
+            const t = h.time.getTime();
+            return t >= targetDateMs && t < nextDayMs;
+          })
+        : [];
+      const checkpointHours = [7, 12, 17, 22];
+      const checkpointLabels = ['Morning', 'Midday', 'Afternoon', 'Evening'];
+      const cells = checkpointHours.map(target => {
+        // Find exact match first; fall back to nearest non-past cell.
+        let cell = allCells.find(h => h.time.getHours() === target);
+        if (!cell && allCells.length) {
+          cell = allCells.reduce((best, c) => {
+            const dist = Math.abs(c.time.getHours() - target);
+            return (!best || dist < Math.abs(best.time.getHours() - target)) ? c : best;
+          }, null);
+        }
+        return cell;
+      });
 
       const tabs = [
         { idx: 0, label: 'Today' },
@@ -9568,27 +9695,39 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             <div className="weather-strip-status">Loading forecast…</div>
           ) : error ? (
             <div className="weather-strip-status error">{error}</div>
-          ) : cells.length === 0 ? (
+          ) : cells.every(c => !c) ? (
             <div className="weather-strip-status">No data for this day</div>
           ) : (
             <div className="weather-strip-cells">
               {cells.map((h, i) => {
+                if (!h) {
+                  return (
+                    <div key={i} className="weather-cell">
+                      <div className="weather-cell-hour">{checkpointLabels[i]}</div>
+                      <div className="weather-cell-icon" style={{ opacity: 0.3 }}>—</div>
+                      <div className="weather-cell-temp">—</div>
+                      <div className="weather-cell-precip dry">—</div>
+                    </div>
+                  );
+                }
                 const hour = h.time.getHours();
                 const isNowCell = isToday && hour === nowHour;
                 const dry = (h.precip ?? 0) < 5;
+                const checkpointHour = checkpointHours[i];
+                const fmtH = checkpointHour === 0 ? '12 AM' : checkpointHour < 12 ? `${checkpointHour} AM` : checkpointHour === 12 ? '12 PM' : `${checkpointHour - 12} PM`;
                 return (
                   <div
                     key={i}
                     className={`weather-cell ${isNowCell ? 'now' : ''}`}
-                    title={`${pad(hour)}:00 · ${h.temp != null ? Math.round(h.temp) + '°C' : '—'} · ${h.precip ?? 0}% precip`}
+                    title={`${checkpointLabels[i]} · ${fmtH} · ${h.temp != null ? Math.round(h.temp) + '°C' : '—'} · ${h.precip ?? 0}% precip`}
                   >
-                    <div className="weather-cell-hour">{pad(hour)}</div>
+                    <div className="weather-cell-hour">{fmtH}</div>
                     <div className="weather-cell-icon">{wmoIcon(h.code)}</div>
                     <div className="weather-cell-temp">
                       {h.temp != null ? Math.round(h.temp) + '°' : '—'}
                     </div>
                     <div className={`weather-cell-precip ${dry ? 'dry' : ''}`}>
-                      {dry ? '·' : (h.precip + '%')}
+                      💧 {h.precip ?? 0}%
                     </div>
                   </div>
                 );
