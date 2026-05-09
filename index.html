@@ -1245,58 +1245,61 @@
     /* Block */
     .today-cal-block {
       position: absolute;
-      padding: var(--space-2) var(--space-3);
-      border-radius: var(--radius-base);
-      box-shadow: var(--shadow-sm);
+      padding: 6px 10px;
+      border-radius: 6px;
       cursor: pointer;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 1px;
       transition:
         transform var(--duration-fast) var(--ease-out),
-        box-shadow var(--duration-fast) var(--ease-out);
+        filter var(--duration-fast) var(--ease-out);
     }
     .today-cal-block:hover {
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-md);
+      filter: brightness(0.92);
       z-index: 4;
     }
     .today-cal-block.is-completed { opacity: 0.55; }
-    .today-cal-block.is-now { box-shadow: var(--shadow-md), 0 0 0 2px var(--primary-soft); }
-    .today-cal-block-time {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--muted-3);
-      font-weight: 600;
-      letter-spacing: var(--tracking-wide);
-    }
+    .today-cal-block.is-now { box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 4px var(--primary); }
+    /* Title is the hero — sits on top, white, medium weight */
     .today-cal-block-title {
-      font-size: 12px;
-      color: var(--text);
-      font-weight: 500;
-      line-height: var(--leading-tight);
+      font-size: 13px;
+      color: #fff;
+      font-weight: 600;
+      line-height: 1.25;
       overflow: hidden;
       text-overflow: ellipsis;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
+      letter-spacing: 0.01em;
     }
-    /* Short blocks (< ~30 min) — single row, vertically centered, time inline */
+    /* Time on its own line, slightly faded white */
+    .today-cal-block-time {
+      font-family: var(--serif);
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.85);
+      font-weight: 400;
+      letter-spacing: 0.01em;
+    }
+    /* Short blocks — single row, time inline after title */
     .today-cal-block.is-short {
       flex-direction: row;
       align-items: center;
-      gap: var(--space-2);
-      padding: 0 var(--space-3);
+      gap: 6px;
+      padding: 0 10px;
     }
     .today-cal-block.is-short .today-cal-block-title {
       -webkit-line-clamp: 1;
-      flex: 1;
+      flex-shrink: 1;
       min-width: 0;
       white-space: nowrap;
+      font-size: 12px;
     }
     .today-cal-block.is-short .today-cal-block-time {
       flex-shrink: 0;
+      font-size: 11px;
     }
     .today-cal-block-check {
       position: absolute;
@@ -1305,8 +1308,8 @@
       width: 16px;
       height: 16px;
       border-radius: 50%;
-      border: 1.5px solid var(--border);
-      background: var(--bg-card);
+      border: 1.5px solid rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.15);
       cursor: pointer;
       padding: 0;
       display: flex;
@@ -1314,14 +1317,14 @@
       justify-content: center;
       font-size: 10px;
       line-height: 1;
-      color: var(--teal);
+      color: #fff;
       transition: border-color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out);
     }
-    .today-cal-block-check:hover { border-color: var(--teal); }
+    .today-cal-block-check:hover { border-color: #fff; background: rgba(255, 255, 255, 0.3); }
     .today-cal-block.is-completed .today-cal-block-check {
-      border-color: var(--teal);
-      background: var(--teal);
-      color: var(--bg-card);
+      border-color: #fff;
+      background: #fff;
+      color: var(--text);
     }
     .today-timeline-list {
       display: flex;
@@ -5676,12 +5679,17 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       const nowY = minToY(nowMin);
       const inWindow = nowMin >= HOUR_START * 60 && nowMin < HOUR_END * 60;
 
-      // Group overlapping events into clusters. Within a cluster, each event gets
-      // an "offset index" that pushes it right and narrows it slightly — Google-style cascade.
-      const sorted = [...items].sort((a, b) => a.startMin - b.startMin);
-      // First pass: compute cluster id (events that transitively overlap share a cluster).
-      // Second pass: within a cluster, sort by start asc and assign offset indices 0..n-1.
-      const clusters = []; // each: { events: [], maxEnd }
+      // Google-style packing algorithm:
+      // 1. Cluster events that transitively overlap.
+      // 2. Within a cluster, assign each event to the leftmost column where it doesn't conflict.
+      // 3. Width = column count to the right that the event can extend through without conflict.
+      const sorted = [...items].sort((a, b) => {
+        if (a.startMin !== b.startMin) return a.startMin - b.startMin;
+        return (b.duration - (b.startMin)) - (a.duration - (a.startMin)); // longer first when ties
+      });
+
+      // Build clusters
+      const clusters = [];
       sorted.forEach(it => {
         const end = it.startMin + it.duration;
         const c = clusters.find(c => c.maxEnd > it.startMin);
@@ -5692,11 +5700,44 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
           clusters.push({ events: [it], maxEnd: end });
         }
       });
+
       const positioned = [];
-      clusters.forEach(c => {
-        const n = c.events.length;
-        c.events.forEach((it, i) => {
-          positioned.push({ ...it, _offsetIdx: i, _clusterSize: n });
+      clusters.forEach(cluster => {
+        const evs = cluster.events;
+        // Assign each event to a column (lane) using leftmost-fit
+        const columns = []; // each column: array of {startMin, end}
+        const eventColumn = new Map();
+        evs.forEach(it => {
+          const end = it.startMin + it.duration;
+          let col = 0;
+          while (true) {
+            const occupants = columns[col] || [];
+            const conflict = occupants.some(o => !(o.end <= it.startMin || o.startMin >= end));
+            if (!conflict) {
+              columns[col] = [...occupants, { startMin: it.startMin, end, id: it.id }];
+              eventColumn.set(it.id, col);
+              break;
+            }
+            col++;
+          }
+        });
+        const totalCols = columns.length;
+        // For each event, find max colspan (how far right it can extend without conflict)
+        evs.forEach(it => {
+          const myCol = eventColumn.get(it.id);
+          const end = it.startMin + it.duration;
+          let span = 1;
+          for (let c = myCol + 1; c < totalCols; c++) {
+            const conflict = (columns[c] || []).some(o => !(o.end <= it.startMin || o.startMin >= end));
+            if (conflict) break;
+            span++;
+          }
+          positioned.push({
+            ...it,
+            _col: myCol,
+            _colspan: span,
+            _totalCols: totalCols,
+          });
         });
       });
 
@@ -5715,7 +5756,9 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             const hour = HOUR_START + i;
             return (
               <div key={hour} className="today-cal-hour-line" style={{ top: i * HOUR_HEIGHT }}>
-                <span className="today-cal-hour-label">{pad(hour)}:00</span>
+                <span className="today-cal-hour-label">
+                  {hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`}
+                </span>
               </div>
             );
           })}
@@ -5775,26 +5818,34 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
           {positioned.map(it => {
             const top = minToY(it.startMin);
             const height = Math.max(20, it.duration / 60 * HOUR_HEIGHT - 2);
-            // Cascade math (Google-style): cluster of n events; each subsequent event
-            // shifts right and shrinks. Later events render on top so leading edge is visible.
-            const offset = it._offsetIdx;
-            const total = it._clusterSize;
-            const stepPct = 22;       // horizontal shift per cascade step
-            const rightEdgePct = 92;  // where the rightmost event ends
-            const leftPct = offset * stepPct;
-            const widthPct = total === 1
-              ? rightEdgePct
-              : (offset === total - 1
-                  ? rightEdgePct - leftPct
-                  : Math.max(28, stepPct * 2.2));
+            const totalCols = it._totalCols;
+            const colWidth = (100 - 4) / totalCols;
+            const leftPct = it._col * colWidth;
+            const widthPct = colWidth * it._colspan;
             const stripeColor = it.kind === 'routine'
               ? ((CATS[it.category] || CATS.supplement).color)
               : (it.color || 'var(--primary)');
             const isHex = stripeColor.startsWith('#');
-            const tintBg = isHex ? hexToRgba(stripeColor, 0.10) : 'var(--primary-soft)';
             const isNow = it.startMin <= nowMin && (it.startMin + it.duration) > nowMin;
             const cls = `today-cal-block ${it.completed ? 'is-completed' : ''} ${isNow && !it.completed ? 'is-now' : ''} ${it.kind === 'ics' ? 'is-ics' : ''}`;
             const isShort = height < 36;
+            // 12-hour time format with am/pm: "2 – 3pm" style
+            const fmt12 = (m) => {
+              const h = Math.floor(m / 60);
+              const min = m % 60;
+              const period = h >= 12 ? 'pm' : 'am';
+              const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+              return min === 0 ? `${h12}` : `${h12}:${pad(min)}`;
+            };
+            const startStr = fmt12(it.startMin);
+            const endStr = fmt12(it.startMin + it.duration);
+            const period = (it.startMin + it.duration) % (24 * 60) >= 12 * 60 ? 'pm' : 'am';
+            const startPeriod = it.startMin >= 12 * 60 ? 'pm' : 'am';
+            // Show period only on the end if both are same period (e.g. "2 – 3pm");
+            // otherwise show on both ("11am – 1pm")
+            const timeLabel = startPeriod === period
+              ? `${startStr} – ${endStr}${period}`
+              : `${startStr}${startPeriod} – ${endStr}${period}`;
             return (
               <div
                 key={it.id}
@@ -5802,13 +5853,11 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                 onClick={(e) => { e.stopPropagation(); onItemClick(it); }}
                 style={{
                   top, height,
-                  left: `calc(64px + ${leftPct}% - ${64 * leftPct / 100}px + 4px)`,
-                  width: `calc(${widthPct}% - ${64 * widthPct / 100 / total}px)`,
-                  borderLeft: `3px solid ${stripeColor}`,
-                  background: it.completed ? 'var(--bg-card-deep)' : tintBg,
-                  zIndex: 2 + offset,
+                  left: `calc(64px + ${leftPct}% - ${64 * leftPct / 100}px + 2px)`,
+                  width: `calc(${widthPct}% - 4px)`,
+                  background: it.completed ? 'var(--bg-card-deep)' : stripeColor,
                 }}
-                title={`${it.title} · ${pad(Math.floor(it.startMin / 60))}:${pad(it.startMin % 60)}–${pad(Math.floor((it.startMin + it.duration) / 60))}:${pad((it.startMin + it.duration) % 60)}`}
+                title={`${it.title} · ${timeLabel}`}
               >
                 {it.kind === 'routine' && (
                   <button
@@ -5817,11 +5866,11 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                     title={it.completed ? 'Mark not done' : 'Mark done'}
                   >{it.completed ? '✓' : ''}</button>
                 )}
-                <div className="today-cal-block-time" style={{ color: isHex ? stripeColor : 'var(--muted-2)' }}>{pad(Math.floor(it.startMin / 60))}:{pad(it.startMin % 60)}</div>
                 <div className="today-cal-block-title">
                   {it.kind === 'routine' && CATS[it.category] && CATS[it.category].emoji ? `${CATS[it.category].emoji} ` : ''}
                   {it.title}
                 </div>
+                <div className="today-cal-block-time">{timeLabel}</div>
               </div>
             );
           })}
