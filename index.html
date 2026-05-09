@@ -370,108 +370,146 @@
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 16px;
-      margin-bottom: 28px;
+      margin-bottom: 24px;
     }
     .cal-title-block { display: flex; flex-direction: column; min-width: 0; }
     .cal-eyebrow {
       font-size: 10px;
-      letter-spacing: 0.3em;
-      color: var(--gold);
+      letter-spacing: 0.2em;
+      color: var(--primary);
       text-transform: uppercase;
+      font-weight: 600;
       margin-bottom: 6px;
     }
     .cal-week-label {
-      font-size: clamp(22px, 3vw, 28px);
-      font-weight: 400;
+      font-size: clamp(22px, 3vw, 30px);
+      font-weight: 600;
       letter-spacing: -0.01em;
       color: var(--text);
+      line-height: 1.2;
     }
     .cal-week-range {
       font-size: 12px;
       color: var(--muted-3);
       font-family: var(--mono);
-      letter-spacing: 0.05em;
+      letter-spacing: 0.02em;
       margin-top: 4px;
+      font-weight: 500;
     }
-    .cal-controls { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .cal-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .cal-nav-btn {
-      width: 38px; height: 38px;
-      background: transparent;
+      width: 36px; height: 36px;
+      background: var(--bg-card);
       border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
       color: var(--muted-2);
       display: flex; align-items: center; justify-content: center;
       font-family: var(--serif); font-size: 18px;
+      box-shadow: var(--shadow-sm);
+      transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+      padding: 0 0 2px 0;
+      line-height: 1;
     }
-    .cal-nav-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .cal-nav-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: var(--shadow-md);
+    }
     .cal-today-btn {
-      padding: 0 16px; height: 38px;
-      background: transparent;
+      padding: 0 16px; height: 36px;
+      background: var(--bg-card);
       border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
       color: var(--muted-2);
-      font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 0.02em;
+      text-transform: none;
+      font-weight: 500;
+      box-shadow: var(--shadow-sm);
+      transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
     }
-    .cal-today-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .cal-today-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: var(--shadow-md);
+    }
     .cal-today-btn.active {
-      border-color: var(--gold);
-      color: var(--gold);
-      background: rgba(201, 168, 76, 0.06);
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-soft);
     }
     .sync-pill {
       display: inline-flex; align-items: center; gap: 8px;
-      font-size: 10px; letter-spacing: 0.15em;
-      color: var(--muted-4); text-transform: uppercase;
+      font-size: 11px;
+      color: var(--muted-3);
       font-family: var(--mono);
+      letter-spacing: 0.02em;
+      font-weight: 500;
     }
     .sync-pill::before {
-      content: ''; width: 5px; height: 5px;
+      content: ''; width: 6px; height: 6px;
       background: var(--teal); border-radius: 50%;
-      box-shadow: 0 0 8px var(--teal);
     }
-    .sync-pill.saving::before { background: var(--gold); animation: pulse 1.2s ease-in-out infinite; }
+    .sync-pill.saving::before { background: var(--primary); animation: pulse 1.2s ease-in-out infinite; }
     .sync-pill.error::before { background: var(--coral); }
 
     /* ───────── WEEK GRID (desktop) ───────── */
     .week-grid {
       background: var(--bg-card);
-      border-top: 1px solid var(--col-divider);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
       overflow: hidden;
     }
     .week-grid-header {
       display: grid;
       grid-template-columns: 64px repeat(7, 1fr);
-      border-bottom: 2px solid var(--col-divider);
+      border-bottom: 1px solid var(--rule);
       position: sticky; top: 0; z-index: 4;
-      background: var(--bg-card-deep);
+      background: var(--bg-card);
     }
-    .time-gutter-header { border-right: 2px solid var(--col-divider); }
+    .time-gutter-header { border-right: 1px solid var(--rule); }
     .day-header {
-      padding: 14px 8px;
+      padding: 12px 8px;
       text-align: center;
-      border-left: 2px solid var(--col-divider);
+      border-left: 1px solid var(--rule);
       cursor: pointer;
       transition: background var(--duration-fast) var(--ease-out);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
     }
-    .day-header:hover { background: rgba(201, 168, 76, 0.06); }
-    .day-header.today { background: rgba(201, 168, 76, 0.05); }
+    .day-header:hover { background: var(--bg-hover); }
     .day-header-name {
       font-size: 11px;
-      letter-spacing: 0.22em;
-      color: var(--muted-1);
+      letter-spacing: 0.05em;
+      color: var(--muted-3);
       text-transform: uppercase;
       font-weight: 600;
     }
-    .day-header.today .day-header-name { color: var(--gold); }
-    .day-header.weekend .day-header-name { color: var(--muted-3); }
+    .day-header.today .day-header-name { color: var(--primary); }
+    .day-header.weekend .day-header-name { color: var(--muted-4); }
     .day-header-date {
-      font-size: 19px;
+      font-size: 22px;
       color: var(--text);
-      margin-top: 5px;
       font-variant-numeric: tabular-nums;
-      font-family: var(--serif);
       font-weight: 500;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background var(--duration-fast) var(--ease-out);
+      line-height: 1;
     }
-    .day-header.today .day-header-date { color: var(--gold); font-weight: 600; }
-    .day-header.weekend .day-header-date { color: var(--muted-2); }
+    .day-header.today .day-header-date {
+      color: #fff;
+      background: var(--primary);
+      font-weight: 600;
+    }
+    .day-header.weekend .day-header-date { color: var(--muted-3); }
 
     .week-grid-body {
       display: grid;
@@ -486,10 +524,10 @@
       position: absolute;
       right: 10px;
       font-size: 11px;
-      color: var(--muted-1);
+      color: var(--muted-2);
       font-family: var(--mono);
       font-weight: 600;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.02em;
       transform: translateY(-50%);
       pointer-events: none;
     }
@@ -502,28 +540,31 @@
     .day-column.weekend { background: var(--weekend-tint); }
     .hour-line {
       position: absolute; left: 0; right: 0;
-      border-top: 1px solid rgba(255,255,255,0.04);
+      border-top: 1px solid var(--rule);
       pointer-events: none;
     }
 
     .cal-item {
       position: absolute;
-      border-radius: 3px;
-      padding: 4px 7px 4px 9px;
+      border-radius: 6px;
+      padding: 5px 8px;
       overflow: hidden;
       cursor: pointer;
-      transition: filter var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
+      transition: filter var(--duration-fast) var(--ease-out);
       font-family: var(--serif);
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
     }
-    .cal-item:hover {
-      filter: brightness(1.3);
-      transform: translateX(1px);
-    }
+    .cal-item:hover { filter: brightness(0.92); z-index: 4; }
+    /* Solid-color blocks: white text on the category color */
     .cal-item-title {
-      color: var(--text);
+      color: #fff;
       font-size: 12px;
-      line-height: 1.3;
+      line-height: 1.25;
       overflow: hidden;
+      font-weight: 600;
+      letter-spacing: 0.01em;
     }
     .cal-item:not(.tiny):not(.short) .cal-item-title {
       display: -webkit-box;
@@ -535,19 +576,24 @@
       white-space: nowrap; text-overflow: ellipsis;
     }
     .cal-item-time {
-      font-size: 10px;
-      color: var(--muted-1);
-      font-family: var(--mono);
-      letter-spacing: 0.04em;
-      margin-bottom: 2px;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.85);
+      letter-spacing: 0.01em;
       white-space: nowrap; overflow: hidden;
+      font-weight: 400;
+    }
+    .cal-item-project {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.75);
+      letter-spacing: 0.02em;
+      margin-top: 2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       font-weight: 500;
     }
     .cal-item-note {
       font-size: 10px;
-      color: var(--muted-2);
-      font-style: italic;
-      margin-top: 3px;
+      color: rgba(255, 255, 255, 0.85);
+      margin-top: 2px;
       line-height: 1.4;
       display: -webkit-box;
       -webkit-line-clamp: 3;
@@ -558,22 +604,23 @@
       display: inline-block;
       width: 5px; height: 5px;
       border-radius: 50%;
-      background: currentColor;
-      opacity: 0.5;
+      background: rgba(255, 255, 255, 0.7);
       margin-left: 5px;
       vertical-align: middle;
     }
-    .cal-item.tiny { padding: 2px 5px 2px 7px; }
+    .cal-item.tiny { padding: 2px 7px; }
     .cal-item.tiny .cal-item-time { display: none; }
     .cal-item.tiny .cal-item-note { display: none; }
+    .cal-item.tiny .cal-item-project { display: none; }
     .cal-item.tiny .cal-item-title { font-size: 10px; }
     .cal-item.short .cal-item-note { display: none; }
+    .cal-item.short .cal-item-project { display: none; }
 
     /* Day-view items can show more */
     .day-view .cal-item-title { font-size: 14px; line-height: 1.35; }
     .day-view .cal-item:not(.tiny):not(.short) .cal-item-title { -webkit-line-clamp: 3; }
-    .day-view .cal-item-time { font-size: 11px; margin-bottom: 4px; }
-    .day-view .cal-item-note { font-size: 12px; -webkit-line-clamp: 4; margin-top: 5px; }
+    .day-view .cal-item-time { font-size: 12px; }
+    .day-view .cal-item-note { font-size: 12px; -webkit-line-clamp: 4; }
 
     .now-line {
       position: absolute;
@@ -2268,7 +2315,6 @@
 
     /* ───────── SCHEDULED PROJECT BLOCKS ───────── */
     .cal-item.project-block {
-      border-left-width: 3px;
       cursor: pointer;
     }
     .cal-item.project-block .cal-item-project {
@@ -2276,8 +2322,7 @@
       letter-spacing: 0.15em;
       text-transform: uppercase;
       font-family: var(--mono);
-      margin-top: 2px;
-      opacity: 0.8;
+      opacity: 0.85;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -2287,20 +2332,20 @@
     }
     .cal-item.project-block.completed .cal-item-title {
       text-decoration: line-through;
-      text-decoration-color: rgba(255,255,255,0.35);
+      text-decoration-color: rgba(255,255,255,0.5);
     }
     .cal-item.project-block.completed::after {
       content: '✓';
       position: absolute;
       top: 4px; right: 6px;
       font-size: 11px;
-      color: var(--teal);
+      color: #fff;
     }
     .cal-item.project-block.partial {
       background-image: repeating-linear-gradient(
         135deg,
         transparent 0px, transparent 6px,
-        rgba(255,255,255,0.04) 6px, rgba(255,255,255,0.04) 12px
+        rgba(255,255,255,0.15) 6px, rgba(255,255,255,0.15) 12px
       );
     }
     .cal-item.project-block.partial::after {
@@ -2308,7 +2353,7 @@
       position: absolute;
       top: 2px; right: 6px;
       font-size: 12px;
-      color: var(--coral);
+      color: #fff;
       font-family: var(--serif);
     }
 
@@ -2556,8 +2601,8 @@
       width: 16px;
       height: 16px;
       border-radius: 50%;
-      border: 1.5px solid var(--muted-3);
-      background: rgba(13, 13, 15, 0.5);
+      border: 1.5px solid rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.15);
       cursor: pointer;
       padding: 0;
       display: flex;
@@ -2565,21 +2610,21 @@
       justify-content: center;
       font-size: 10px;
       line-height: 1;
-      color: var(--teal);
+      color: #fff;
       font-weight: bold;
       transition: border-color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out);
       z-index: 4;
     }
     .cal-item-check:hover {
-      border-color: var(--teal);
+      border-color: #fff;
+      background: rgba(255, 255, 255, 0.3);
     }
     .cal-item.routine-completed .cal-item-check {
-      border-color: var(--teal);
-      background: var(--teal);
-      color: var(--bg);
+      border-color: #fff;
+      background: #fff;
+      color: var(--text);
     }
     .cal-item.routine-completed .cal-item-title {
-      text-decoration: line-through;
       opacity: 0.7;
     }
 
@@ -4634,41 +4679,65 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
     }
 
     function layoutDay(items) {
-      const sorted = [...items].sort((a, b) => toMinutes(a.start) - toMinutes(b.start));
+      // Google-style packing: cluster overlapping events, assign each to leftmost
+      // free column, then extend each event rightward through any free columns.
+      const sorted = [...items].sort((a, b) => {
+        const sd = toMinutes(a.start) - toMinutes(b.start);
+        if (sd !== 0) return sd;
+        return b.duration - a.duration; // longer first on ties
+      });
       const annotated = sorted.map(item => ({ ...item }));
-      const lanes = [];
-      annotated.forEach(item => {
-        const itemStart = toMinutes(item.start);
-        let placed = false;
-        for (let li = 0; li < lanes.length; li++) {
-          const last = lanes[li][lanes[li].length - 1];
-          const lastEnd = toMinutes(last.start) + last.duration;
-          if (itemStart >= lastEnd) {
-            lanes[li].push(item);
-            item._lane = li;
-            placed = true;
-            break;
-          }
-        }
-        if (!placed) {
-          lanes.push([item]);
-          item._lane = lanes.length - 1;
+
+      // Build clusters of transitively overlapping events
+      const clusters = [];
+      annotated.forEach(it => {
+        const start = toMinutes(it.start);
+        const end = start + it.duration;
+        const c = clusters.find(c => c.maxEnd > start);
+        if (c) {
+          c.events.push(it);
+          c.maxEnd = Math.max(c.maxEnd, end);
+        } else {
+          clusters.push({ events: [it], maxEnd: end });
         }
       });
-      annotated.forEach(item => {
-        const aStart = toMinutes(item.start);
-        const aEnd = aStart + item.duration;
-        let maxLane = item._lane;
-        annotated.forEach(other => {
-          if (other === item) return;
-          const oStart = toMinutes(other.start);
-          const oEnd = oStart + other.duration;
-          if (oStart < aEnd && oEnd > aStart) {
-            maxLane = Math.max(maxLane, other._lane);
+
+      clusters.forEach(cluster => {
+        const evs = cluster.events;
+        const columns = []; // each column: array of {start, end, id}
+        const eventColumn = new Map();
+        evs.forEach(it => {
+          const start = toMinutes(it.start);
+          const end = start + it.duration;
+          let col = 0;
+          while (true) {
+            const occupants = columns[col] || [];
+            const conflict = occupants.some(o => !(o.end <= start || o.start >= end));
+            if (!conflict) {
+              columns[col] = [...occupants, { start, end, id: it.id || it._key }];
+              eventColumn.set(it, col);
+              break;
+            }
+            col++;
           }
         });
-        item._totalLanes = maxLane + 1;
+        const totalCols = columns.length;
+        evs.forEach(it => {
+          const myCol = eventColumn.get(it);
+          const start = toMinutes(it.start);
+          const end = start + it.duration;
+          let span = 1;
+          for (let c = myCol + 1; c < totalCols; c++) {
+            const conflict = (columns[c] || []).some(o => !(o.end <= start || o.start >= end));
+            if (conflict) break;
+            span++;
+          }
+          it._lane = myCol;
+          it._totalLanes = totalCols;
+          it._colspan = span;
+        });
       });
+
       return annotated;
     }
 
@@ -8132,13 +8201,17 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
 
           <div className="week-grid-body" style={{ height: totalHeight }}>
             <div className="time-gutter">
-              {Array.from({ length: HOURS_VISIBLE + 1 }, (_, i) => (
-                <div
-                  key={i}
-                  className="hour-label"
-                  style={{ top: i * HOUR_HEIGHT }}
-                >{pad(START_HOUR + i)}:00</div>
-              ))}
+              {Array.from({ length: HOURS_VISIBLE + 1 }, (_, i) => {
+                const h = START_HOUR + i;
+                const label = h === 0 ? '12 AM' : h < 12 ? `${h} AM` : h === 12 ? '12 PM' : `${h - 12} PM`;
+                return (
+                  <div
+                    key={i}
+                    className="hour-label"
+                    style={{ top: i * HOUR_HEIGHT }}
+                  >{label}</div>
+                );
+              })}
             </div>
 
             {cols.map(col => {
@@ -8231,8 +8304,9 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
 
       const lane = item._lane || 0;
       const totalLanes = item._totalLanes || 1;
-      const widthPct = 100 / totalLanes;
-      const leftPct = widthPct * lane;
+      const colspan = item._colspan || 1;
+      const widthPct = (100 / totalLanes) * colspan;
+      const leftPct = (100 / totalLanes) * lane;
 
       const endMin = startMin + effectiveDuration;
       const endStr = `${pad(Math.floor(endMin / 60))}:${pad(endMin % 60)}`;
@@ -8333,6 +8407,24 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         if (onToggleComplete && date) onToggleComplete(item.id, date);
       };
 
+      // 12-hour time format with am/pm
+      const fmt12 = (m) => {
+        const h = Math.floor(m / 60);
+        const min = m % 60;
+        const period = h >= 12 ? 'pm' : 'am';
+        const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+        return min === 0 ? `${h12}` : `${h12}:${pad(min)}`;
+      };
+      const startPeriod = startMin >= 12 * 60 ? 'pm' : 'am';
+      const endPeriod = endMin >= 12 * 60 ? 'pm' : 'am';
+      const timeLabel = startPeriod === endPeriod
+        ? `${fmt12(startMin)} – ${fmt12(endMin)}${endPeriod}`
+        : `${fmt12(startMin)}${startPeriod} – ${fmt12(endMin)}${endPeriod}`;
+
+      // Solid color fill for non-completed items; soft tint for completed.
+      const blockColor = item._completed ? '#7EB8A4' : (isBlock ? (project?.color || style.color) : style.color);
+      const isHexColor = typeof blockColor === 'string' && blockColor.startsWith('#');
+
       return (
         <div
           className={cls}
@@ -8343,8 +8435,9 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             height,
             left: `calc(${leftPct}% + 2px)`,
             width: `calc(${widthPct}% - 4px)`,
-            background: item._completed ? hexToRgba('#7EB8A4', 0.18) : hexToRgba(style.color, style.bgAlpha),
-            borderLeft: `3px solid ${item._completed ? '#7EB8A4' : style.color}`,
+            background: item._completed
+              ? hexToRgba('#7EB8A4', 0.25)
+              : (isHexColor ? blockColor : style.color),
           }}
         >
           {isRoutine && !isTiny && (
@@ -8357,16 +8450,16 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
               {item._completed ? '✓' : ''}
             </button>
           )}
-          {!isTiny && (
-            <div className="cal-item-time" style={{ color: item._completed ? '#7EB8A4' : style.color }}>{item.start}–{endStr}</div>
-          )}
           <div className="cal-item-title">
             {!isBlock && style && style.emoji ? `${style.emoji} ` : ''}
             {item.title}
-            {item.homeOnly && !isBlock && <span className="cal-item-home-flag" style={{ color: style.color }} />}
+            {item.homeOnly && !isBlock && <span className="cal-item-home-flag" />}
           </div>
-          {isBlock && project && !isTiny && (
-            <div className="cal-item-project" style={{ color: style.color }}>{project.name}</div>
+          {!isTiny && (
+            <div className="cal-item-time">{timeLabel}</div>
+          )}
+          {isBlock && project && !isTiny && !isShort && (
+            <div className="cal-item-project">{project.name}</div>
           )}
           {item.note && !isTiny && !isShort && !isBlock && (
             <div className="cal-item-note">{item.note}</div>
