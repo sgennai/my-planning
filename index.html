@@ -1092,6 +1092,48 @@
       align-items: center;
       gap: var(--space-3);
     }
+    .today-timeline-header-left {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .today-day-nav-btn {
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      border-radius: var(--radius-pill);
+      color: var(--muted-2);
+      font-size: 16px;
+      line-height: 1;
+      padding: 0 0 2px 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
+    }
+    .today-day-nav-btn:hover {
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+    .today-day-nav-today {
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--muted-2);
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      font-size: var(--text-xs);
+      font-family: var(--mono);
+      letter-spacing: var(--tracking-wide);
+      font-weight: 500;
+      transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
+    }
+    .today-day-nav-today:hover {
+      color: var(--primary);
+      border-color: var(--primary);
+    }
     .today-view-toggle {
       display: inline-flex;
       background: var(--bg-card-deep);
@@ -5592,7 +5634,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
     // ═════════════════════════════════════════════════════════════
     // TODAY CALENDAR VIEW — single-column hour grid for today
     // ═════════════════════════════════════════════════════════════
-    function TodayCalendarView({ items, now, lunchSlot, onItemClick, onToggleRoutineComplete, CATS, onDrop, onCreateAtTime }) {
+    function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemClick, onToggleRoutineComplete, CATS, onDrop, onCreateAtTime }) {
       const HOUR_START = 6;
       const HOUR_END = 23;
       const HOUR_HEIGHT = 64;
@@ -5677,7 +5719,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
 
       const nowMin = now.getHours() * 60 + now.getMinutes();
       const nowY = minToY(nowMin);
-      const inWindow = nowMin >= HOUR_START * 60 && nowMin < HOUR_END * 60;
+      const inWindow = isToday && nowMin >= HOUR_START * 60 && nowMin < HOUR_END * 60;
 
       // Google-style packing algorithm:
       // 1. Cluster events that transitively overlap.
@@ -5819,14 +5861,14 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             const top = minToY(it.startMin);
             const height = Math.max(20, it.duration / 60 * HOUR_HEIGHT - 2);
             const totalCols = it._totalCols;
-            const colWidth = (100 - 4) / totalCols;
+            const colWidth = (100 - 8) / totalCols; // wider right gutter so blocks don't kiss the edge
             const leftPct = it._col * colWidth;
             const widthPct = colWidth * it._colspan;
             const stripeColor = it.kind === 'routine'
               ? ((CATS[it.category] || CATS.supplement).color)
               : (it.color || 'var(--primary)');
             const isHex = stripeColor.startsWith('#');
-            const isNow = it.startMin <= nowMin && (it.startMin + it.duration) > nowMin;
+            const isNow = isToday && it.startMin <= nowMin && (it.startMin + it.duration) > nowMin;
             const cls = `today-cal-block ${it.completed ? 'is-completed' : ''} ${isNow && !it.completed ? 'is-now' : ''} ${it.kind === 'ics' ? 'is-ics' : ''}`;
             const isShort = height < 36;
             // 12-hour time format with am/pm: "2 – 3pm" style
@@ -5905,10 +5947,10 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       // Build today's timeline: routine + scheduled blocks + ICS, sorted, with completion state
       const todayItems = useMemo(() => {
         const items = [];
-        // Routine items happening today
+        // Routine items happening on the viewed date
         const routineToday = applyElsewhereFilter(
-          resolvedRoutineForDate(data.routine || [], overrides, now, completions),
-          now,
+          resolvedRoutineForDate(data.routine || [], overrides, viewDate, completions),
+          viewDate,
           elsewhere,
           now
         );
@@ -5927,7 +5969,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
           });
         });
         // Scheduled project blocks today
-        blocksForDate(blocks || [], now).forEach(b => {
+        blocksForDate(blocks || [], viewDate).forEach(b => {
           const proj = (projects || []).find(p => p.id === b.projectId);
           items.push({
             kind: 'block',
@@ -5945,7 +5987,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         });
         // ICS events today
         (icsOccurrences || []).forEach(occ => {
-          if (!isSameDay(occ.start, now)) return;
+          if (!isSameDay(occ.start, viewDate)) return;
           const startMin = occ.start.getHours() * 60 + occ.start.getMinutes();
           const dur = Math.max(1, Math.round((occ.end - occ.start) / 60000));
           items.push({
@@ -5961,7 +6003,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         });
         items.sort((a, b) => a.startMin - b.startMin);
         return items;
-      }, [data.routine, overrides, completions, elsewhere, now, blocks, projects, icsOccurrences]);
+      }, [data.routine, overrides, completions, elsewhere, now, viewDate, blocks, projects, icsOccurrences]);
 
       const nowMin = now.getHours() * 60 + now.getMinutes();
       const current = todayItems.find(it => it.startMin <= nowMin && (it.startMin + it.duration) > nowMin && !it.completed);
@@ -6020,6 +6062,16 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         }
       };
 
+      // viewDate: the day being shown. Defaults to today (now), can be navigated +/- 1 day.
+      // Reset to today when the underlying date changes (e.g. midnight rollover).
+      const [viewDayOffset, setViewDayOffset] = useState(0);
+      const viewDate = useMemo(() => {
+        const d = new Date(now);
+        d.setDate(d.getDate() + viewDayOffset);
+        return d;
+      }, [now, viewDayOffset]);
+      const isToday = viewDayOffset === 0;
+
       // Drag handlers for the timeline drop zone (project actions or todos)
       const [dragOver, setDragOver] = useState(false);
       const onTimelineDragOver = (e) => {
@@ -6041,7 +6093,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
           ? Math.min(current.startMin + current.duration, 23 * 60 + 45)
           : Math.round(nowMin / 15) * 15;
         const startStr = `${pad(Math.floor(dropMin / 60))}:${pad(dropMin % 60)}`;
-        const dateISO = startOfDay(now).toISOString();
+        const dateISO = startOfDay(viewDate).toISOString();
         if (payload.type === 'next-action') {
           onCreateBlock({
             projectId: payload.projectId,
@@ -6062,7 +6114,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         }
       };
 
-      const dateLabel = now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+      const dateLabel = viewDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
       const openInboxCount = (inbox || []).filter(i => !i.actioned).length;
 
       const fmtTime = (m) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
@@ -6292,7 +6344,33 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
               onDrop={onTimelineDrop}
             >
               <div className="today-timeline-header">
-                <div className="today-timeline-eyebrow">Today</div>
+                <div className="today-timeline-header-left">
+                  <button
+                    className="today-day-nav-btn"
+                    onClick={() => setViewDayOffset(o => o - 1)}
+                    title="Previous day"
+                    aria-label="Previous day"
+                  >‹</button>
+                  <div className="today-timeline-eyebrow">
+                    {viewDayOffset === 0 ? 'Today'
+                      : viewDayOffset === 1 ? 'Tomorrow'
+                      : viewDayOffset === -1 ? 'Yesterday'
+                      : viewDate.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
+                  </div>
+                  <button
+                    className="today-day-nav-btn"
+                    onClick={() => setViewDayOffset(o => o + 1)}
+                    title="Next day"
+                    aria-label="Next day"
+                  >›</button>
+                  {viewDayOffset !== 0 && (
+                    <button
+                      className="today-day-nav-today"
+                      onClick={() => setViewDayOffset(0)}
+                      title="Jump to today"
+                    >Today</button>
+                  )}
+                </div>
                 <div className="today-timeline-header-right">
                   <div className="today-view-toggle" role="group" aria-label="View mode">
                     <button
@@ -6323,6 +6401,8 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                 <TodayCalendarView
                   items={todayItems}
                   now={now}
+                  viewDate={viewDate}
+                  isToday={isToday}
                   lunchSlot={lunchSlot}
                   onItemClick={(it) => {
                     if (it.kind === 'block') onOpenBlock(it.blockId);
@@ -6332,7 +6412,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                   CATS={CATS}
                   onDrop={(payload, startMin, dropX, dropY) => {
                     const startStr = `${pad(Math.floor(startMin / 60))}:${pad(startMin % 60)}`;
-                    const dateISO = startOfDay(now).toISOString();
+                    const dateISO = startOfDay(viewDate).toISOString();
                     if (payload.type === 'next-action') {
                       onCreateBlock({
                         projectId: payload.projectId,
@@ -6351,7 +6431,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                     const startStr = `${pad(Math.floor(startMin / 60))}:${pad(startMin % 60)}`;
                     onCreateBlock({
                       title: title.trim(),
-                      date: startOfDay(now).toISOString(),
+                      date: startOfDay(viewDate).toISOString(),
                       start: startStr,
                       duration: 30,
                     });
