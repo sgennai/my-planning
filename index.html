@@ -234,7 +234,7 @@
     .eyebrow {
       font-size: 11px;
       letter-spacing: 0.3em;
-      color: var(--gold);
+      color: var(--primary);
       text-transform: uppercase;
       margin-bottom: 8px;
     }
@@ -254,7 +254,7 @@
     }
     .rule {
       width: 60px; height: 1px;
-      background: var(--gold);
+      background: var(--primary);
       margin: 20px 0 28px;
     }
     p.lede {
@@ -270,7 +270,7 @@
     button:disabled { opacity: 0.4; cursor: not-allowed; }
     .btn-primary {
       padding: 12px 28px;
-      background: var(--gold);
+      background: var(--primary);
       color: var(--bg);
       border: none;
       font-size: 13px;
@@ -328,7 +328,7 @@
 
     .pulse {
       width: 8px; height: 8px;
-      background: var(--gold);
+      background: var(--primary);
       border-radius: 50%;
       animation: pulse 1.4s ease-in-out infinite;
       display: inline-block;
@@ -518,7 +518,7 @@
     }
     .time-gutter {
       position: relative;
-      border-right: 2px solid var(--col-divider);
+      border-right: 1px solid var(--rule);
     }
     .hour-label {
       position: absolute;
@@ -533,10 +533,10 @@
     }
     .day-column {
       position: relative;
-      border-left: 2px solid var(--col-divider);
+      border-left: 1px solid var(--rule);
       min-height: 100%;
     }
-    .day-column.today { background: rgba(201, 168, 76, 0.025); }
+    .day-column.today { background: rgba(59, 130, 246, 0.025); }
     .day-column.weekend { background: var(--weekend-tint); }
     .hour-line {
       position: absolute; left: 0; right: 0;
@@ -626,19 +626,18 @@
       position: absolute;
       left: 0; right: 0;
       height: 0;
-      border-top: 1px solid var(--gold);
+      border-top: 2px solid var(--primary);
       pointer-events: none;
       z-index: 5;
-      box-shadow: 0 0 8px rgba(201, 168, 76, 0.5);
     }
     .now-line::before {
       content: '';
       position: absolute;
-      left: -4px; top: -3.5px;
-      width: 7px; height: 7px;
-      background: var(--gold);
+      left: -5px; top: -5px;
+      width: 10px; height: 10px;
+      background: var(--primary);
       border-radius: 50%;
-      box-shadow: 0 0 8px var(--gold);
+      box-shadow: 0 0 0 3px var(--primary-soft);
     }
 
     /* Day view (single-column zoom) */
@@ -656,7 +655,7 @@
       font-family: var(--serif);
       margin-bottom: 16px;
     }
-    .day-view-back:hover { border-color: var(--gold); color: var(--gold); }
+    .day-view-back:hover { border-color: var(--primary); color: var(--primary); }
     .day-view .week-grid-header {
       grid-template-columns: 80px 1fr;
     }
@@ -704,12 +703,12 @@
       font-variant-numeric: tabular-nums;
     }
     .agenda-day-chip.today { border-color: var(--muted-3); }
-    .agenda-day-chip.today .agenda-day-chip-name { color: var(--gold); }
+    .agenda-day-chip.today .agenda-day-chip-name { color: var(--primary); }
     .agenda-day-chip.selected {
-      border-color: var(--gold);
+      border-color: var(--primary);
       background: rgba(201, 168, 76, 0.06);
     }
-    .agenda-day-chip.selected .agenda-day-chip-name { color: var(--gold); }
+    .agenda-day-chip.selected .agenda-day-chip-name { color: var(--primary); }
     .agenda-day-chip.selected .agenda-day-chip-date { color: var(--text); }
 
     .agenda-header {
@@ -728,17 +727,24 @@
       letter-spacing: 0.1em;
     }
 
-    .agenda-list { display: flex; flex-direction: column; gap: 3px; }
+    .agenda-list { display: flex; flex-direction: column; gap: 6px; }
     .agenda-item {
       display: flex;
       align-items: stretch;
       background: var(--bg-card);
       cursor: pointer;
-      transition: background var(--duration-fast) var(--ease-out);
+      transition: background var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
       position: relative;
+      border: 1px solid var(--rule);
+      border-radius: var(--radius-base);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
     }
-    .agenda-item:hover { background: var(--bg-hover); }
-    .agenda-item-stripe { width: 3px; flex-shrink: 0; }
+    .agenda-item:hover {
+      background: var(--bg-hover);
+      box-shadow: var(--shadow-md);
+    }
+    .agenda-item-stripe { width: 4px; flex-shrink: 0; }
     .agenda-item-time {
       width: 70px;
       padding: 14px 10px;
@@ -746,34 +752,36 @@
       font-family: var(--mono);
       font-size: 11px;
       color: var(--muted-2);
-      letter-spacing: 0.05em;
+      letter-spacing: 0.02em;
+      font-weight: 600;
       border-right: 1px solid var(--rule);
       display: flex; flex-direction: column; gap: 2px;
     }
-    .agenda-item-time-end { color: var(--muted-4); font-size: 9px; }
+    .agenda-item-time-end { color: var(--muted-4); font-size: 10px; font-weight: 500; }
     .agenda-item-content { padding: 14px 16px; flex: 1; min-width: 0; }
     .agenda-item-title {
       font-size: 14px;
       color: var(--text);
       line-height: 1.4;
+      font-weight: 500;
     }
     .agenda-item-meta {
-      font-size: 11px;
+      font-size: 12px;
       color: var(--muted-3);
       margin-top: 4px;
-      font-style: italic;
       line-height: 1.5;
     }
     .agenda-item.past .agenda-item-time,
     .agenda-item.past .agenda-item-title,
-    .agenda-item.past .agenda-item-meta { opacity: 0.4; }
-    .agenda-item.now { background: rgba(201, 168, 76, 0.07); }
+    .agenda-item.past .agenda-item-meta { opacity: 0.45; }
+    .agenda-item.now { background: var(--primary-soft); }
+    .agenda-item.now .agenda-item-stripe { background: var(--primary) !important; }
     .agenda-now-flag {
       position: absolute;
       right: 14px; top: 14px;
-      font-size: 9px; letter-spacing: 0.25em;
-      color: var(--gold);
-      font-family: var(--mono);
+      font-size: 10px; letter-spacing: 0.05em;
+      color: var(--primary);
+      font-weight: 600;
     }
     .agenda-empty {
       padding: 60px 20px;
@@ -1847,11 +1855,11 @@
       cursor: pointer;
       font-family: var(--mono);
     }
-    .weather-strip-tab:hover { border-color: var(--gold); color: var(--gold); }
+    .weather-strip-tab:hover { border-color: var(--primary); color: var(--primary); }
     .weather-strip-tab.active {
       background: rgba(201, 168, 76, 0.12);
-      border-color: var(--gold);
-      color: var(--gold);
+      border-color: var(--primary);
+      color: var(--primary);
     }
     .weather-strip-cells {
       flex: 1;
@@ -1885,7 +1893,7 @@
       letter-spacing: 0.02em;
     }
     .weather-cell.now .weather-cell-hour {
-      color: var(--gold);
+      color: var(--primary);
       font-weight: 600;
     }
     .weather-cell-icon {
@@ -1930,7 +1938,7 @@
       cursor: pointer;
       flex-shrink: 0;
     }
-    .weather-strip-refresh:hover { border-color: var(--gold); color: var(--gold); }
+    .weather-strip-refresh:hover { border-color: var(--primary); color: var(--primary); }
     @media (max-width: 759px) {
       .weather-strip { padding: 6px 8px; gap: 6px; }
       .weather-strip-left { min-width: 80px; padding-right: 6px; }
@@ -1940,7 +1948,7 @@
 
     .right-now {
       background: linear-gradient(135deg, rgba(201, 168, 76, 0.12) 0%, rgba(201, 168, 76, 0.04) 100%);
-      border-left: 3px solid var(--gold);
+      border-left: 3px solid var(--primary);
       padding: 18px 24px;
       margin-bottom: 24px;
       display: grid;
@@ -1951,7 +1959,7 @@
     .right-now-label {
       font-size: 10px;
       letter-spacing: 0.3em;
-      color: var(--gold);
+      color: var(--primary);
       text-transform: uppercase;
       margin-bottom: 6px;
       display: flex;
@@ -1962,9 +1970,9 @@
       content: '';
       width: 6px; height: 6px;
       border-radius: 50%;
-      background: var(--gold);
+      background: var(--primary);
       animation: pulse 1.4s ease-in-out infinite;
-      box-shadow: 0 0 6px var(--gold);
+      box-shadow: 0 0 6px var(--primary);
     }
     .right-now-now {
       font-size: 17px;
@@ -2020,7 +2028,7 @@
     .right-now-reference-label {
       font-size: 10px;
       letter-spacing: 0.3em;
-      color: var(--gold);
+      color: var(--primary);
       text-transform: uppercase;
       font-weight: 500;
       opacity: 0.85;
@@ -2053,10 +2061,10 @@
       transition: color var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
     }
     .ref-quick-item:hover {
-      color: var(--gold);
+      color: var(--primary);
     }
     .ref-quick-item:hover::before {
-      color: var(--gold);
+      color: var(--primary);
       transform: translateX(2px);
     }
     .ref-quick-more {
@@ -2071,7 +2079,7 @@
       cursor: pointer;
       text-align: left;
     }
-    .ref-quick-more:hover { color: var(--gold); }
+    .ref-quick-more:hover { color: var(--primary); }
 
     /* ───────── MAIN GRID LAYOUT (portfolio + calendar) ───────── */
     .main-layout {
@@ -2104,7 +2112,7 @@
     .portfolio-eyebrow {
       font-size: 10px;
       letter-spacing: 0.3em;
-      color: var(--gold);
+      color: var(--primary);
       text-transform: uppercase;
       font-weight: 600;
     }
@@ -2272,7 +2280,7 @@
       letter-spacing: 0.05em;
     }
     .module-row-priority.top {
-      color: var(--gold);
+      color: var(--primary);
       font-weight: 600;
     }
     .module-row-name {
@@ -2359,8 +2367,8 @@
 
     /* Drop target highlight */
     .day-column.drop-active {
-      background: rgba(201, 168, 76, 0.06) !important;
-      box-shadow: inset 0 0 0 1px var(--gold);
+      background: var(--primary-soft) !important;
+      box-shadow: inset 0 0 0 1px var(--primary);
     }
     .day-column.drop-active::before {
       content: '';
@@ -2370,7 +2378,7 @@
       background: linear-gradient(
         to bottom,
         transparent 0%,
-        rgba(201, 168, 76, 0.04) 50%,
+        rgba(59, 130, 246, 0.06) 50%,
         transparent 100%
       );
       animation: shimmer 1.6s ease-in-out infinite;
@@ -2385,7 +2393,7 @@
       position: absolute;
       left: 2px; right: 2px;
       pointer-events: none;
-      border: 1px dashed var(--gold);
+      border: 1px dashed var(--primary);
       background: rgba(201, 168, 76, 0.08);
       border-radius: 2px;
       z-index: 6;
@@ -2413,7 +2421,7 @@
     }
     .next-action-badge.scheduled {
       background: rgba(201, 168, 76, 0.15);
-      color: var(--gold);
+      color: var(--primary);
     }
     .next-action-dragging { opacity: 0.4; }
 
@@ -2435,7 +2443,7 @@
       width: 100%;
       max-height: 90vh;
       overflow-y: auto;
-      border-top: 3px solid var(--gold);
+      border-top: 3px solid var(--primary);
       animation: modalIn var(--duration-base) var(--ease-out);
     }
     @keyframes modalIn {
@@ -2449,7 +2457,7 @@
     .modal-eyebrow {
       font-size: 10px;
       letter-spacing: 0.3em;
-      color: var(--gold);
+      color: var(--primary);
       text-transform: uppercase;
       margin-bottom: 6px;
     }
@@ -2470,7 +2478,7 @@
       letter-spacing: 0.05em;
       flex-wrap: wrap;
     }
-    .modal-meta-project { color: var(--gold); }
+    .modal-meta-project { color: var(--primary); }
     .modal-body {
       padding: 18px 24px 22px;
     }
@@ -2503,7 +2511,7 @@
     }
     .modal-input:focus {
       outline: none;
-      border-color: var(--gold);
+      border-color: var(--primary);
     }
     .modal-input.wide { width: 110px; }
     .modal-input-suffix {
@@ -2539,8 +2547,8 @@
       letter-spacing: 0.05em;
     }
     .modal-btn.primary {
-      border-color: var(--gold);
-      color: var(--gold);
+      border-color: var(--primary);
+      color: var(--primary);
     }
     .modal-btn.primary:hover {
       background: rgba(201, 168, 76, 0.08);
@@ -2657,20 +2665,20 @@
     }
     .cal-item.resizing {
       filter: brightness(1.35);
-      outline: 1px dashed var(--gold);
+      outline: 1px dashed var(--primary);
       outline-offset: -1px;
     }
     /* Routine items: cursor pointer to telegraph "click to edit" */
     .cal-item.routine-item { cursor: pointer; }
     .cal-item.moved {
-      box-shadow: inset 2px 0 0 var(--gold);
+      box-shadow: inset 2px 0 0 var(--primary);
     }
     .cal-item.moved::before {
       content: '↪';
       position: absolute;
       top: 1px; right: 4px;
       font-size: 12px;
-      color: var(--gold);
+      color: var(--primary);
       line-height: 1;
     }
     .cal-item.overridden::before {
@@ -2678,7 +2686,7 @@
       position: absolute;
       top: 2px; right: 4px;
       font-size: 10px;
-      color: var(--gold);
+      color: var(--primary);
       opacity: 0.6;
     }
 
@@ -2707,7 +2715,7 @@
       background: var(--bg-hover);
     }
     .ref-entry.expanded {
-      border-left-color: var(--gold);
+      border-left-color: var(--primary);
     }
     .ref-entry-title {
       font-size: 14px;
@@ -2720,7 +2728,7 @@
       font-size: 14px;
       transition: transform var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
     }
-    .ref-entry.expanded .ref-entry-chevron { transform: rotate(90deg); color: var(--gold); }
+    .ref-entry.expanded .ref-entry-chevron { transform: rotate(90deg); color: var(--primary); }
     .ref-entry-body {
       padding: 6px 22px 18px;
       display: none;
@@ -2745,7 +2753,7 @@
       padding: 6px 0;
       margin-top: 8px;
     }
-    .ref-entry-edit-btn:hover { color: var(--gold); }
+    .ref-entry-edit-btn:hover { color: var(--primary); }
     .ref-entry-edit textarea {
       width: 100%;
       min-height: 220px;
@@ -2761,7 +2769,7 @@
     }
     .ref-entry-edit textarea:focus {
       outline: none;
-      border-color: var(--gold);
+      border-color: var(--primary);
     }
     .ref-entry-edit-actions {
       display: flex;
@@ -2925,12 +2933,12 @@
       justify-content: center;
       line-height: 1;
     }
-    .category-color-reset:hover { border-color: var(--gold); color: var(--gold); }
+    .category-color-reset:hover { border-color: var(--primary); color: var(--primary); }
 
     .routine-day-group-label {
       font-size: 10px;
       letter-spacing: 0.25em;
-      color: var(--gold);
+      color: var(--primary);
       text-transform: uppercase;
       margin-bottom: 8px;
       font-weight: 600;
@@ -2948,7 +2956,7 @@
     }
     .routine-item-row:hover {
       background: var(--bg-hover);
-      border-left-color: var(--gold);
+      border-left-color: var(--primary);
     }
     .routine-item-row-time {
       font-family: var(--mono);
@@ -2997,7 +3005,7 @@
       font-size: 14px;
       box-sizing: border-box;
     }
-    .routine-form-input:focus { outline: none; border-color: var(--gold); }
+    .routine-form-input:focus { outline: none; border-color: var(--primary); }
     .routine-form-input.mono { font-family: var(--mono); font-size: 13px; }
     .routine-form-textarea {
       background: var(--bg-card-deep);
@@ -3011,7 +3019,7 @@
       resize: vertical;
       box-sizing: border-box;
     }
-    .routine-form-textarea:focus { outline: none; border-color: var(--gold); }
+    .routine-form-textarea:focus { outline: none; border-color: var(--primary); }
     .day-chips {
       display: flex;
       gap: 4px;
@@ -3031,8 +3039,8 @@
       text-align: center;
     }
     .day-chip.active {
-      border-color: var(--gold);
-      color: var(--gold);
+      border-color: var(--primary);
+      color: var(--primary);
       background: rgba(201, 168, 76, 0.06);
     }
     .cat-chips {
@@ -3064,7 +3072,7 @@
     }
     .checkbox-row input[type="checkbox"] {
       width: 16px; height: 16px;
-      accent-color: var(--gold);
+      accent-color: var(--primary);
       cursor: pointer;
     }
     .checkbox-row span {
@@ -3092,7 +3100,7 @@
     }
     .scope-toggle-btn.active {
       background: rgba(201, 168, 76, 0.14);
-      color: var(--gold);
+      color: var(--primary);
     }
     .scope-hint {
       font-size: 11px;
@@ -3115,7 +3123,7 @@
       font-family: var(--serif);
       cursor: pointer;
     }
-    .manage-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .manage-btn:hover { border-color: var(--primary); color: var(--primary); }
 
     /* Mobile adjustments: stack everything */
     @media (max-width: 1023px) {
@@ -3215,7 +3223,7 @@
       border-left: 2px solid var(--border);
       transition: border-color var(--duration-fast) var(--ease-out);
     }
-    .todos-add-bar:focus-within { border-left-color: var(--gold); }
+    .todos-add-bar:focus-within { border-left-color: var(--primary); }
     .todos-add-input {
       flex: 1;
       background: transparent;
@@ -3319,7 +3327,7 @@
       position: fixed;
       z-index: 90;
       background: var(--bg-card);
-      border: 1px solid var(--gold);
+      border: 1px solid var(--primary);
       padding: 14px 18px;
       box-shadow: var(--shadow-lg);
       max-width: 280px;
@@ -3327,7 +3335,7 @@
     .duration-prompt-label {
       font-size: 10px;
       letter-spacing: 0.2em;
-      color: var(--gold);
+      color: var(--primary);
       text-transform: uppercase;
       margin-bottom: 6px;
     }
@@ -3360,8 +3368,8 @@
       letter-spacing: 0.04em;
     }
     .duration-prompt-chip:hover {
-      border-color: var(--gold);
-      color: var(--gold);
+      border-color: var(--primary);
+      color: var(--primary);
     }
     .duration-prompt-input-row {
       display: flex;
@@ -3378,21 +3386,21 @@
       font-size: 12px;
       box-sizing: border-box;
     }
-    .duration-prompt-input:focus { outline: none; border-color: var(--gold); }
+    .duration-prompt-input:focus { outline: none; border-color: var(--primary); }
 
 
     .suggest-banner {
       margin-bottom: 16px;
       padding: 12px 16px;
       background: rgba(201, 168, 76, 0.08);
-      border-left: 3px solid var(--gold);
+      border-left: 3px solid var(--primary);
       display: flex;
       align-items: center;
       gap: 12px;
       flex-wrap: wrap;
     }
     .suggest-banner-icon {
-      color: var(--gold);
+      color: var(--primary);
       font-size: 14px;
       flex-shrink: 0;
     }
@@ -3415,8 +3423,8 @@
     .suggest-chip {
       padding: 6px 12px;
       background: transparent;
-      border: 1px solid var(--gold);
-      color: var(--gold);
+      border: 1px solid var(--primary);
+      color: var(--primary);
       font-size: 11px;
       letter-spacing: 0.12em;
       font-family: var(--mono);
@@ -3447,7 +3455,7 @@
       transition: border-color var(--duration-fast) var(--ease-out);
     }
     .capture-bar:focus-within {
-      border-left-color: var(--gold);
+      border-left-color: var(--primary);
     }
     .capture-input {
       flex: 1;
@@ -3475,8 +3483,8 @@
       text-transform: uppercase;
       cursor: pointer;
     }
-    .capture-count:hover { color: var(--gold); }
-    .capture-count.has-items { color: var(--gold); }
+    .capture-count:hover { color: var(--primary); }
+    .capture-count.has-items { color: var(--primary); }
 
     .inbox-modal { max-width: 640px; }
     .inbox-list {
@@ -3504,7 +3512,7 @@
       flex-shrink: 0;
       width: 16px; height: 16px;
       margin-top: 1px;
-      accent-color: var(--gold);
+      accent-color: var(--primary);
       cursor: pointer;
     }
     .inbox-item-text {
@@ -3562,7 +3570,7 @@
       position: absolute;
       top: 0; left: 0; right: 0;
       height: 2px;
-      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
     }
     .reset-wrap {
       position: relative;
@@ -3580,7 +3588,7 @@
     .reset-eyebrow {
       font-size: 11px;
       letter-spacing: 0.3em;
-      color: var(--gold);
+      color: var(--primary);
       text-transform: uppercase;
     }
     .reset-exit {
@@ -3592,7 +3600,7 @@
       letter-spacing: 0.1em;
       font-family: var(--serif);
     }
-    .reset-exit:hover { color: var(--gold); }
+    .reset-exit:hover { color: var(--primary); }
     .reset-progress-total {
       height: 2px;
       background: var(--rule);
@@ -3602,7 +3610,7 @@
     .reset-progress-total-fill {
       position: absolute;
       left: 0; top: 0; bottom: 0;
-      background: var(--gold);
+      background: var(--primary);
       transition: width 1s linear;
     }
     .reset-phase-tabs {
@@ -3690,7 +3698,7 @@
       font-style: italic;
     }
     .reset-prompt-num {
-      color: var(--gold);
+      color: var(--primary);
       margin-right: 6px;
       font-style: normal;
       font-family: var(--mono);
@@ -3708,7 +3716,7 @@
       box-sizing: border-box;
       line-height: 1.7;
     }
-    .reset-input:focus { border-color: var(--gold); }
+    .reset-input:focus { border-color: var(--primary); }
     .reset-textarea {
       min-height: 90px;
       resize: vertical;
@@ -3790,7 +3798,7 @@
       box-sizing: border-box;
       outline: none;
     }
-    .reset-story-input:focus { border-bottom-color: var(--gold); }
+    .reset-story-input:focus { border-bottom-color: var(--primary); }
     .reset-nav {
       display: flex;
       justify-content: space-between;
@@ -3803,13 +3811,13 @@
       margin-top: 40px;
       padding: 32px;
       background: var(--bg-card);
-      border-top: 2px solid var(--gold);
+      border-top: 2px solid var(--primary);
       text-align: center;
     }
     .reset-saved-eyebrow {
       font-size: 11px;
       letter-spacing: 0.3em;
-      color: var(--gold);
+      color: var(--primary);
       text-transform: uppercase;
       margin-bottom: 16px;
     }
@@ -3900,7 +3908,7 @@
       box-sizing: border-box;
       letter-spacing: 0.02em;
     }
-    .settings-input:focus { outline: none; border-color: var(--gold); }
+    .settings-input:focus { outline: none; border-color: var(--primary); }
     .settings-input.placeholder {
       color: var(--muted-4);
       font-style: italic;
@@ -3923,12 +3931,12 @@
     }
     .calendar-status.ok .dot { background: var(--teal); }
     .calendar-status.error .dot { background: var(--coral); }
-    .calendar-status.loading .dot { background: var(--gold); animation: pulse 1.2s ease-in-out infinite; }
+    .calendar-status.loading .dot { background: var(--primary); animation: pulse 1.2s ease-in-out infinite; }
 
 
     .cal-item.friday-review-active {
       background: rgba(201, 168, 76, 0.25) !important;
-      box-shadow: 0 0 0 1px var(--gold), 0 0 12px rgba(201, 168, 76, 0.4);
+      box-shadow: 0 0 0 1px var(--primary), 0 0 12px rgba(201, 168, 76, 0.4);
     }
 
   </style>
@@ -6060,7 +6068,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             duration: b.duration,
             completed: b.status === 'completed',
             partial: b.status === 'partial',
-            color: (proj && proj.color) || 'var(--gold)',
+            color: (proj && proj.color) || 'var(--primary)',
             isTodo: !!b.todoId,
           });
         });
@@ -6264,7 +6272,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         const cls = `today-timeline-row ${isPast ? 'is-past' : ''} ${isNow && !it.completed ? 'is-now' : ''} ${it.completed ? 'is-completed' : ''}`;
         const stripeColor = it.kind === 'routine'
           ? ((CATS[it.category] || CATS.supplement).color)
-          : (it.color || 'var(--gold)');
+          : (it.color || 'var(--primary)');
         const tagText = it.kind === 'ics' ? it.note : (it.kind === 'block' ? it.note : null);
 
         const handleRowClick = () => {
@@ -6529,7 +6537,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                   ) : railProjects.map(p => (
                     <div key={p.id} className="today-project-chip">
                       <div className="today-project-chip-header">
-                        <div className="today-project-chip-dot" style={{ background: p.color || 'var(--gold)' }} />
+                        <div className="today-project-chip-dot" style={{ background: p.color || 'var(--primary)' }} />
                         <div className="today-project-chip-name" title={p.name}>{p.name.replace('APP - ', '')}</div>
                         <div className="today-project-chip-tier">T{p.tier}</div>
                       </div>
@@ -7869,7 +7877,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
     // ═════════════════════════════════════════════════════════════
     function BlockPopover({ block, projects, onClose, onUpdate, onDelete }) {
       const project = projects.find(p => p.id === block.projectId);
-      const projectColor = (project && project.color) || 'var(--gold)';
+      const projectColor = (project && project.color) || 'var(--primary)';
       const dateObj = new Date(block.date);
       const dayName = DAY_NAMES_LONG[(dateObj.getDay() === 0 ? 6 : dateObj.getDay() - 1)];
       const startMin = toMinutes(block.start);
@@ -8252,7 +8260,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                   {isToday && <NowLine now={now} hourHeight={HOUR_HEIGHT} />}
                   {dropPreview && dropPreview.col === col && (
                     <div className="drop-ghost" style={{ top: dropPreview.top, height: dropPreview.height }}>
-                      <div style={{ padding: 4, fontSize: 10, color: 'var(--gold)', fontFamily: 'var(--mono)', letterSpacing: '0.05em' }}>
+                      <div style={{ padding: 4, fontSize: 10, color: 'var(--primary)', fontFamily: 'var(--mono)', letterSpacing: '0.05em' }}>
                         {dropPreview.start}
                       </div>
                     </div>
@@ -8272,7 +8280,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       const isIcs = item._kind === 'ics';
       const block = isBlock ? item._block : null;
       const project = isBlock && projects ? projects.find(p => p.id === block.projectId) : null;
-      const projectColor = (project && project.color) || 'var(--gold)';
+      const projectColor = (project && project.color) || 'var(--primary)';
       const isTodoBlock = isBlock && !!block.todoId;
 
       // Style + colors
@@ -8567,7 +8575,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                 const block = isBlock ? item._block : null;
                 const project = isBlock ? item._project : null;
                 const color = isBlock
-                  ? ((project && project.color) || 'var(--gold)')
+                  ? ((project && project.color) || 'var(--primary)')
                   : isIcs
                     ? ((item._ics && item._ics.color) || (item._ics.source === 'work' ? '#8C8C96' : '#7896AF'))
                     : (CATS[item.category] || CATS.supplement).color;
@@ -8759,7 +8767,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
 
       return (
         <div className="modal-backdrop" onClick={handleBackdropClick}>
-          <div className="modal" style={{ borderTopColor: (CATS[item.category] || {}).color || 'var(--gold)' }}>
+          <div className="modal" style={{ borderTopColor: (CATS[item.category] || {}).color || 'var(--primary)' }}>
             <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
             <div className="modal-header">
               <div className="modal-eyebrow">Routine · {categoryLabel}</div>
@@ -8767,7 +8775,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
               <div className="modal-meta">
                 <span>{dayName} · {formatDateShort(date)}</span>
                 <span>{effective.start} · {effective.duration} min</span>
-                {existingOverride && existingOverride.type === 'edit' && <span style={{ color: 'var(--gold)' }}>Edited this week</span>}
+                {existingOverride && existingOverride.type === 'edit' && <span style={{ color: 'var(--primary)' }}>Edited this week</span>}
               </div>
             </div>
 
@@ -10476,7 +10484,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                 <button
                   className="btn-primary"
                   onClick={handleSave}
-                  style={{ background: saved ? 'var(--teal)' : 'var(--gold)' }}
+                  style={{ background: saved ? 'var(--teal)' : 'var(--primary)' }}
                   disabled={saved}
                 >{saved ? '✓ Saved' : 'Save & Sync'}</button>
               )}
