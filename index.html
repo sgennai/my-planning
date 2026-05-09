@@ -5945,6 +5945,16 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       const overrides = data.overrides || {};
 
       // Build today's timeline: routine + scheduled blocks + ICS, sorted, with completion state
+      // viewDate: the day being shown. Defaults to today (now), can be navigated +/- 1 day.
+      // MUST be declared before any memo that depends on viewDate.
+      const [viewDayOffset, setViewDayOffset] = useState(0);
+      const viewDate = useMemo(() => {
+        const d = new Date(now);
+        d.setDate(d.getDate() + viewDayOffset);
+        return d;
+      }, [now, viewDayOffset]);
+      const isToday = viewDayOffset === 0;
+
       const todayItems = useMemo(() => {
         const items = [];
         // Routine items happening on the viewed date
@@ -6061,16 +6071,6 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
           onSetElsewhere({ allDay: true });
         }
       };
-
-      // viewDate: the day being shown. Defaults to today (now), can be navigated +/- 1 day.
-      // Reset to today when the underlying date changes (e.g. midnight rollover).
-      const [viewDayOffset, setViewDayOffset] = useState(0);
-      const viewDate = useMemo(() => {
-        const d = new Date(now);
-        d.setDate(d.getDate() + viewDayOffset);
-        return d;
-      }, [now, viewDayOffset]);
-      const isToday = viewDayOffset === 0;
 
       // Drag handlers for the timeline drop zone (project actions or todos)
       const [dragOver, setDragOver] = useState(false);
