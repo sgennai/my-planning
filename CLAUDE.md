@@ -25,8 +25,8 @@ Schema migrations are non-destructive at every version bump.
 
 ## Two main views
 
-1. **Today view** (default landing): daily compass — "what do I do now?" Hero "Right Now" banner, weather strip with 4 fixed checkpoints (7am/12pm/5pm/10pm), timeline OR calendar toggle, mini-month picker + collapsible projects + todos in right rail.
-2. **Plan view**: full week grid for drag-drop scheduling, portfolio panel on left.
+1. **Daily view** (default landing, "Today" button): daily compass — "what do I do now?" Hero "Right Now" banner, weather strip with 4 fixed checkpoints (7am/12pm/5pm/10pm), timeline OR calendar toggle, mini-month picker + collapsible projects + todos in right rail.
+2. **Weekly view** ("Plan the week" button): full week grid for drag-drop scheduling, portfolio panel on left.
 
 ## Visual language
 
@@ -56,7 +56,7 @@ Stephane edits via Claude Code. Deploy: `git add`, `git commit`, `git push` — 
 
 ## Pending UX backlog
 
-- Cache-control meta tag (deploys require hard-reload — friction)
+- ~~Cache-control meta tag (deploys require hard-reload — friction)~~ COMPLETED
 - Persistent Google sign-in
 - Past weekly resets browser
 - Story Vault
