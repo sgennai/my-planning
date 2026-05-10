@@ -1,1 +1,1 @@
-# my-planning
+MY PLANNING — personal scheduling app
