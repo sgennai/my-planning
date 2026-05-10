@@ -2451,13 +2451,32 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
+      position: sticky;
+      top: var(--space-6);
+      max-height: calc(100vh - var(--space-12));
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+    .portfolio::-webkit-scrollbar { width: 4px; }
+    .portfolio::-webkit-scrollbar-thumb { background: var(--border); border-radius: var(--radius-pill); }
+    .portfolio-section {
+      background: var(--bg-card);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .portfolio-list {
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
     .portfolio-header {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
-      margin-bottom: 4px;
-      padding-bottom: 12px;
+      padding: var(--space-3) var(--space-4) var(--space-2);
       border-bottom: 1px solid var(--rule);
     }
     .portfolio-eyebrow {
@@ -3559,16 +3578,18 @@
 
     /* ───────── TODOS PANE ───────── */
     .todos-pane {
-      margin-top: 18px;
-      padding: 16px;
       background: var(--bg-card);
-      border-left: 2px solid var(--rule);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
     }
     .todos-pane-header {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
-      margin-bottom: 10px;
+      padding: var(--space-3) var(--space-4) var(--space-2);
+      border-bottom: 1px solid var(--rule);
     }
     .todos-pane-eyebrow {
       font-size: 10px;
@@ -3586,7 +3607,7 @@
     .todos-add-bar {
       display: flex;
       gap: 0;
-      margin-bottom: 10px;
+      margin: 12px 12px 10px;
       background: var(--bg-card-deep);
       border-left: 2px solid var(--border);
       transition: border-color var(--duration-fast) var(--ease-out);
@@ -3612,6 +3633,7 @@
       gap: 1px;
       max-height: 320px;
       overflow-y: auto;
+      padding-bottom: 10px;
     }
     .todo-item {
       display: flex;
@@ -8176,25 +8198,27 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       const actionStates = useMemo(() => actionStateMap(scheduledBlocks), [scheduledBlocks]);
 
       return (
-        <>
+        <div className="portfolio-section">
           <div className="portfolio-header">
             <div className="portfolio-eyebrow">Portfolio</div>
             <div className={`portfolio-budget-summary ${overBudget ? 'over' : ''}`}>
               <b>{minutesToHrLabel(totalScheduledMin)}</b> / {minutesToHrLabel(totalBudgetMin)} this week
             </div>
           </div>
-          {projects.map(project => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              expanded={expandedId === project.id}
-              onToggle={() => setExpandedId(expandedId === project.id ? null : project.id)}
-              scheduledBlocks={scheduledBlocks}
-              weekStart={weekStart}
-              actionStates={actionStates}
-            />
-          ))}
-        </>
+          <div className="portfolio-list">
+            {projects.map(project => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                expanded={expandedId === project.id}
+                onToggle={() => setExpandedId(expandedId === project.id ? null : project.id)}
+                scheduledBlocks={scheduledBlocks}
+                weekStart={weekStart}
+                actionStates={actionStates}
+              />
+            ))}
+          </div>
+        </div>
       );
     }
 
