@@ -423,6 +423,45 @@
       margin-top: 4px;
       font-weight: 500;
     }
+    .cal-week-time {
+      font-size: 15px;
+      color: var(--muted-2);
+      font-family: var(--mono);
+      letter-spacing: 0;
+      margin-top: 6px;
+      font-weight: 500;
+    }
+    .cal-away-pill {
+      padding: 0 14px; height: 36px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      color: var(--muted-2);
+      font-size: 12px;
+      letter-spacing: 0.02em;
+      font-weight: 500;
+      box-shadow: var(--shadow-sm);
+      transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out);
+    }
+    .cal-away-pill:hover { border-color: var(--primary); color: var(--primary); box-shadow: var(--shadow-md); }
+    .cal-away-pill.active {
+      background: var(--primary-soft);
+      border-color: var(--primary);
+      color: var(--primary-hover);
+    }
+    .cal-routine-pill {
+      padding: 0 14px; height: 36px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      color: var(--muted-2);
+      font-size: 12px;
+      letter-spacing: 0.02em;
+      font-weight: 500;
+      box-shadow: var(--shadow-sm);
+      transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+    }
+    .cal-routine-pill:hover { border-color: var(--primary); color: var(--primary); box-shadow: var(--shadow-md); }
     .cal-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .cal-nav-btn {
       width: 36px; height: 36px;
@@ -917,8 +956,8 @@
       min-width: 0;
     }
     .today-date-time {
-      font-size: var(--text-sm);
-      color: var(--muted-3);
+      font-size: 15px;
+      color: var(--muted-2);
       font-family: var(--mono);
       letter-spacing: var(--tracking-base);
       font-weight: 500;
@@ -1644,6 +1683,100 @@
     /* Right rail */
     .today-rail::-webkit-scrollbar { width: 4px; }
     .today-rail::-webkit-scrollbar-thumb { background: var(--border); }
+
+    /* ───────── MINI MONTH PICKER ───────── */
+    .mini-month {
+      background: var(--bg-card);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      padding: 12px;
+      animation: riseIn var(--duration-slow) var(--ease-out) backwards;
+      animation-delay: 60ms;
+    }
+    .mini-month-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .mini-month-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+    .mini-month-nav {
+      display: flex;
+      gap: 2px;
+    }
+    .mini-month-nav-btn {
+      width: 22px;
+      height: 22px;
+      background: transparent;
+      border: none;
+      border-radius: 50%;
+      color: var(--muted-3);
+      font-size: 14px;
+      line-height: 1;
+      padding: 0 0 1px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+    }
+    .mini-month-nav-btn:hover {
+      background: var(--bg-hover);
+      color: var(--text);
+    }
+    .mini-month-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      margin-bottom: 4px;
+    }
+    .mini-month-weekday {
+      text-align: center;
+      font-size: 10px;
+      color: var(--muted-3);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      padding: 2px 0;
+    }
+    .mini-month-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+    }
+    .mini-month-day {
+      aspect-ratio: 1;
+      background: transparent;
+      border: none;
+      border-radius: 50%;
+      font-size: 12px;
+      color: var(--text);
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--serif);
+      font-weight: 400;
+      transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+    }
+    .mini-month-day:hover { background: var(--bg-hover); }
+    .mini-month-day.out { color: var(--muted-4); }
+    .mini-month-day.today {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 600;
+    }
+    .mini-month-day.today:hover { background: var(--primary-hover); }
+    .mini-month-day.selected {
+      background: var(--primary-soft);
+      color: var(--primary-hover);
+      font-weight: 600;
+    }
+    .mini-month-day.selected:hover { background: var(--primary-soft); }
     .today-rail-section {
       background: var(--bg-card);
       border: 1px solid var(--rule);
@@ -1684,24 +1817,37 @@
     .today-rail-list::-webkit-scrollbar { width: 4px; }
     .today-rail-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: var(--radius-pill); }
 
-    /* Project chip in rail */
+    /* Project chip in rail — card style with colored accent bar */
     .today-project-chip {
-      padding: var(--space-3) var(--space-4);
-      border-bottom: 1px solid var(--rule-faint);
+      padding: 0;
+      margin-bottom: var(--space-2);
+      background: var(--bg-card);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius-base);
+      box-shadow: var(--shadow-sm);
       cursor: default;
-      transition: background var(--duration-fast) var(--ease-out);
+      transition: box-shadow var(--duration-fast) var(--ease-out);
+      overflow: hidden;
+      position: relative;
     }
-    .today-project-chip:last-child { border-bottom: none; }
-    .today-project-chip:hover { background: var(--bg-hover); }
+    .today-project-chip::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: var(--card-accent, var(--border));
+    }
+    .today-project-chip:last-child { margin-bottom: 0; }
+    .today-project-chip:hover { box-shadow: var(--shadow-md); }
     .today-project-chip-header {
       display: flex;
       align-items: center;
       gap: var(--space-2);
-      margin-bottom: var(--space-2);
+      padding: 10px 12px 10px 14px;
       cursor: pointer;
       user-select: none;
     }
-    .today-project-chip.collapsed .today-project-chip-header { margin-bottom: 0; }
+    .today-project-chip.collapsed .today-project-chip-header { padding-bottom: 10px; }
     .today-project-chip-chevron {
       font-size: 10px;
       color: var(--muted-3);
@@ -1738,13 +1884,107 @@
       display: flex;
       flex-direction: column;
       gap: var(--space-1);
-      padding-left: var(--space-3);
+      padding: 0 12px 12px 30px;
+    }
+
+    /* ───────── MASTER PROJECT — MODULES (two-level expand) ───────── */
+    .today-project-modules {
+      padding: 0 12px 10px 14px;
+      display: flex;
+      flex-direction: column;
+    }
+    .today-project-modules-eyebrow {
+      font-size: 9px;
+      letter-spacing: 0.05em;
+      color: var(--muted-3);
+      text-transform: uppercase;
+      font-weight: 600;
+      padding: 6px 6px 8px;
+    }
+    .today-module {
+      border-top: 1px solid var(--rule-faint);
+      transition: background var(--duration-fast) var(--ease-out);
+    }
+    .today-module:first-of-type { border-top: none; }
+    .today-module.expanded { background: var(--bg-card-deep); }
+    .today-module.done { opacity: 0.55; }
+    .today-module-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .today-module-row:hover { background: var(--bg-hover); }
+    .today-module-num {
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--muted-3);
+      font-weight: 600;
+      min-width: 24px;
+      flex-shrink: 0;
+    }
+    .today-module-num.expanded { color: var(--primary); }
+    .today-module-title {
+      font-size: 13px;
+      color: var(--text);
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 400;
+    }
+    .today-module.expanded .today-module-title { white-space: normal; font-weight: 500; }
+    .today-module.done .today-module-title { text-decoration: line-through; }
+    .today-module-time {
+      font-size: 10px;
+      font-family: var(--mono);
+      color: var(--muted-3);
+      letter-spacing: 0.02em;
+      flex-shrink: 0;
+      font-weight: 500;
+    }
+    .today-module-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--muted-4);
+      flex-shrink: 0;
+    }
+    .today-module-dot.active { background: var(--primary); }
+    .today-module-dot.done { background: var(--teal); }
+    .today-module-body {
+      padding: 0 8px 12px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .today-module-desc {
+      font-size: 12px;
+      color: var(--muted-2);
+      font-style: italic;
+      line-height: 1.5;
+      padding: 4px 6px 8px;
+    }
+    .today-module-actions-eyebrow {
+      font-size: 9px;
+      letter-spacing: 0.05em;
+      color: var(--muted-3);
+      text-transform: uppercase;
+      font-weight: 600;
+      padding: 0 6px 4px;
+    }
+    .today-module-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
     /* Action items — readable size, clear drag affordance, comfortable hit target */
     .today-project-action {
       font-size: var(--text-sm);
-      color: var(--muted-2);
-      padding: var(--space-2) var(--space-3);
+      color: var(--text);
+      padding: 8px 10px;
       cursor: grab;
       background: var(--bg-card-deep);
       border-left: 3px solid transparent;
@@ -1754,15 +1994,29 @@
         color var(--duration-fast) var(--ease-out),
         background var(--duration-fast) var(--ease-out),
         transform var(--duration-fast) var(--ease-out);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
       line-height: var(--leading-snug);
+      font-weight: 500;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .today-project-action-text {
+      flex: 1;
+      min-width: 0;
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+    .today-project-action-time {
+      font-size: 10px;
+      font-family: var(--mono);
+      color: var(--muted-3);
+      letter-spacing: 0.02em;
+      flex-shrink: 0;
+      padding-top: 2px;
       font-weight: 500;
     }
     .today-project-action:hover {
       border-left-color: var(--primary);
-      color: var(--text);
       background: var(--primary-soft);
       transform: translateX(2px);
     }
@@ -1886,60 +2140,68 @@
 
     .weather-strip {
       background: var(--bg-card);
-      border-left: 2px solid var(--rule);
-      padding: 6px 10px 6px 12px;
-      margin-bottom: 12px;
+      border: 1px solid var(--rule);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      padding: 10px 14px;
       display: flex;
       align-items: center;
-      gap: 10px;
-      min-height: 48px;
+      gap: 14px;
+      min-height: 60px;
     }
     .weather-strip-left {
       display: flex;
       flex-direction: column;
       gap: 2px;
       flex-shrink: 0;
-      padding-right: 10px;
+      padding-right: 14px;
       border-right: 1px solid var(--rule);
-      min-width: 110px;
+      min-width: 120px;
     }
     .weather-strip-eyebrow {
-      font-size: 9px;
-      letter-spacing: 0.25em;
+      font-size: 10px;
+      letter-spacing: 0.05em;
       color: var(--muted-3);
       text-transform: uppercase;
-      font-family: var(--mono);
+      font-weight: 600;
     }
     .weather-strip-location {
-      font-size: 11px;
-      color: var(--muted-1);
-      letter-spacing: 0.01em;
-      max-width: 180px;
+      font-size: 12px;
+      color: var(--text);
+      letter-spacing: 0;
+      max-width: 200px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      font-weight: 500;
     }
     .weather-strip-tabs {
-      display: flex;
+      display: inline-flex;
       gap: 2px;
+      padding: 2px;
+      background: var(--bg-card-deep);
+      border-radius: var(--radius-pill);
       flex-shrink: 0;
     }
     .weather-strip-tab {
-      padding: 4px 9px;
+      padding: 4px 10px;
       background: transparent;
-      border: 1px solid var(--border);
+      border: none;
+      border-radius: var(--radius-pill);
       color: var(--muted-3);
-      font-size: 9px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0;
+      text-transform: none;
       cursor: pointer;
-      font-family: var(--mono);
+      font-weight: 500;
+      transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
     }
-    .weather-strip-tab:hover { border-color: var(--primary); color: var(--primary); }
+    .weather-strip-tab:hover { color: var(--text); }
     .weather-strip-tab.active {
-      background: rgba(201, 168, 76, 0.12);
-      border-color: var(--primary);
+      background: var(--bg-card);
       color: var(--primary);
+      box-shadow: var(--shadow-sm);
+      font-weight: 600;
     }
     .weather-strip-cells {
       flex: 1;
@@ -1997,21 +2259,24 @@
       justify-content: center;
       gap: 8px;
       color: var(--muted-3);
-      font-size: 11px;
-      font-style: italic;
+      font-size: 12px;
     }
     .weather-strip-status.error { color: var(--coral); }
     .weather-strip-refresh {
-      background: none;
+      background: var(--bg-card);
       border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
       color: var(--muted-3);
-      font-size: 10px;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      font-family: var(--serif);
-      padding: 4px 8px;
+      font-size: 14px;
+      width: 28px;
+      height: 28px;
+      padding: 0;
       cursor: pointer;
       flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
     }
     .weather-strip-refresh:hover { border-color: var(--primary); color: var(--primary); }
     @media (max-width: 759px) {
@@ -5809,6 +6074,84 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
     // ═════════════════════════════════════════════════════════════
     // TODAY CALENDAR VIEW — single-column hour grid for today
     // ═════════════════════════════════════════════════════════════
+    // ═════════════════════════════════════════════════════════════
+    // TODAY MINI-MONTH — small month picker (Google-Cal style)
+    // ═════════════════════════════════════════════════════════════
+    function TodayMiniMonth({ viewDate, now, onSelectDate }) {
+      const [shownMonth, setShownMonth] = useState(() => {
+        const d = new Date(viewDate);
+        d.setDate(1);
+        d.setHours(0, 0, 0, 0);
+        return d;
+      });
+
+      // Re-anchor when the viewDate jumps to a different month externally
+      useEffect(() => {
+        const vm = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getTime();
+        const sm = new Date(shownMonth.getFullYear(), shownMonth.getMonth(), 1).getTime();
+        if (vm !== sm) {
+          const d = new Date(viewDate);
+          d.setDate(1);
+          d.setHours(0, 0, 0, 0);
+          setShownMonth(d);
+        }
+      }, [viewDate]);
+
+      const monthLabel = shownMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+      const year = shownMonth.getFullYear();
+      const month = shownMonth.getMonth();
+
+      // Build the 6×7 grid: start from the Monday on or before day 1.
+      const firstOfMonth = new Date(year, month, 1);
+      const jsDay = firstOfMonth.getDay(); // 0=Sun..6=Sat
+      const offsetToMonday = (jsDay + 6) % 7;
+      const gridStart = new Date(year, month, 1 - offsetToMonday);
+      const cells = Array.from({ length: 42 }, (_, i) => {
+        const d = new Date(gridStart);
+        d.setDate(gridStart.getDate() + i);
+        return d;
+      });
+
+      const isSameDay = (a, b) =>
+        a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+
+      const goPrev = () => setShownMonth(d => new Date(d.getFullYear(), d.getMonth() - 1, 1));
+      const goNext = () => setShownMonth(d => new Date(d.getFullYear(), d.getMonth() + 1, 1));
+
+      return (
+        <div className="mini-month">
+          <div className="mini-month-header">
+            <div className="mini-month-label">{monthLabel}</div>
+            <div className="mini-month-nav">
+              <button className="mini-month-nav-btn" onClick={goPrev} aria-label="Previous month">‹</button>
+              <button className="mini-month-nav-btn" onClick={goNext} aria-label="Next month">›</button>
+            </div>
+          </div>
+          <div className="mini-month-weekdays">
+            {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((wd, i) => (
+              <div key={i} className="mini-month-weekday">{wd}</div>
+            ))}
+          </div>
+          <div className="mini-month-grid">
+            {cells.map((d, i) => {
+              const inMonth = d.getMonth() === month;
+              const isNow = isSameDay(d, now);
+              const isSelected = isSameDay(d, viewDate);
+              const cls = `mini-month-day ${inMonth ? '' : 'out'} ${isNow ? 'today' : ''} ${isSelected && !isNow ? 'selected' : ''}`;
+              return (
+                <button key={i} className={cls} onClick={() => onSelectDate(d)}>
+                  {d.getDate()}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // TODAY CALENDAR VIEW — single-column hour grid for today
+    // ═════════════════════════════════════════════════════════════
     function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemClick, onToggleRoutineComplete, CATS, onDrop, onCreateAtTime }) {
       const HOUR_START = 6;
       const HOUR_END = 23;
@@ -6102,9 +6445,9 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       data, now, isMobile, saving, error, lastSyncedAt,
       onSwitchToPlan,
       projects, blocks, refLibrary, elsewhere,
-      weatherSettings, weatherCache,
+      weatherSettings, weatherCache, weatherRefreshing, weatherError,
       icsOccurrences,
-      onRefreshWeather,
+      onRefreshWeather, onRequestGeo,
       onCreateBlock, onAddTodo, onUpdateTodo, onDeleteTodo,
       onToggleRoutineCompletion, onSetElsewhere,
       onOpenReference, onOpenBlock, onRoutineClick, onTodoDrop,
@@ -6114,6 +6457,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       categoryStyles,
       todayViewMode, onSetTodayView, lunchSlot,
     }) {
+      const [weatherDayTab, setWeatherDayTab] = useState(0);
       const CATS = categoryStyles || CATEGORY_STYLES;
       const todos = data.todos || [];
       const completions = data.routineCompletions || {};
@@ -6123,8 +6467,21 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       // viewDate: the day being shown. Defaults to today (now), can be navigated +/- 1 day.
       // MUST be declared before any memo that depends on viewDate.
       const [viewDayOffset, setViewDayOffset] = useState(0);
-      const [collapsedProjects, setCollapsedProjects] = useState({}); // { [projectId]: true } when collapsed
-      const toggleCollapse = (pid) => setCollapsedProjects(c => ({ ...c, [pid]: !c[pid] }));
+      const [collapsedProjects, setCollapsedProjects] = useState(null);
+      const [expandedModules, setExpandedModules] = useState({}); // { `${pid}:${moduleId}`: true }
+      // Default: all projects collapsed on first mount.
+      useEffect(() => {
+        if (collapsedProjects !== null) return;
+        const init = {};
+        (projects || []).forEach(p => { init[p.id] = true; });
+        setCollapsedProjects(init);
+      }, [projects, collapsedProjects]);
+      const collapsedMap = collapsedProjects || {};
+      const toggleCollapse = (pid) => setCollapsedProjects(c => ({ ...(c || {}), [pid]: !(c || {})[pid] }));
+      const toggleModule = (pid, mid) => {
+        const k = `${pid}:${mid}`;
+        setExpandedModules(m => ({ ...m, [k]: !m[k] }));
+      };
       const viewDate = useMemo(() => {
         const d = new Date(now);
         d.setDate(d.getDate() + viewDayOffset);
@@ -6305,27 +6662,25 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
           .filter(p => p.tier <= 5)
           .sort((a, b) => a.tier - b.tier)
           .map(p => {
-            // Master project (NEXT): flatten actions from the current priority module
-            let actions = [];
+            // Master project (NEXT): expose modules in priority order, each with its actions
             if (p.isMaster && Array.isArray(p.modules) && Array.isArray(p.prioritySequence)) {
-              // Find first module in priority sequence that's not 'done'
               const seq = p.prioritySequence;
-              for (const num of seq) {
-                const mod = p.modules.find(m => m.number === num);
-                if (!mod) continue;
-                if (mod.status === 'done') continue;
-                actions = (mod.nextActions || []).slice(0, 3).map(a => ({ ...a, _module: mod.name }));
-                break;
-              }
-            } else if (Array.isArray(p.nextActions)) {
-              actions = p.nextActions.slice(0, 4);
+              const orderedModules = seq
+                .map(num => p.modules.find(m => m.number === num))
+                .filter(Boolean)
+                .map(m => ({
+                  ...m,
+                  nextActions: (m.nextActions || []).map(a => ({ ...a, scheduled: scheduledIds.has(a.id) })),
+                }));
+              return { ...p, _isMaster: true, _modules: orderedModules, _actions: [] };
             }
+            // Regular project: flat next-actions
+            const actions = Array.isArray(p.nextActions) ? p.nextActions.slice(0, 4) : [];
             return {
               ...p,
-              _actions: actions.map(a => ({
-                ...a,
-                scheduled: scheduledIds.has(a.id),
-              })),
+              _isMaster: false,
+              _modules: [],
+              _actions: actions.map(a => ({ ...a, scheduled: scheduledIds.has(a.id) })),
             };
           });
       }, [projects, blocks]);
@@ -6476,6 +6831,18 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
               </button>
             </div>
           </div>
+
+          <WeatherStrip
+            settings={weatherSettings}
+            cache={weatherCache}
+            refreshing={weatherRefreshing}
+            error={weatherError}
+            dayTab={weatherDayTab}
+            now={now}
+            onChangeDayTab={setWeatherDayTab}
+            onRefresh={onRefreshWeather}
+            onRequestGeo={onRequestGeo}
+          />
 
           {/* Right Now hero */}
           <div className="today-hero">
@@ -6640,6 +7007,16 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             </div>
 
             <div className="today-rail">
+              <TodayMiniMonth
+                viewDate={viewDate}
+                now={now}
+                onSelectDate={(d) => {
+                  const start = startOfDay(d).getTime();
+                  const today0 = startOfDay(now).getTime();
+                  const offset = Math.round((start - today0) / (24 * 60 * 60 * 1000));
+                  setViewDayOffset(offset);
+                }}
+              />
               {/* Portfolio */}
               <div className="today-rail-section">
                 <div className="today-rail-header">
@@ -6650,16 +7027,65 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                   {railProjects.length === 0 ? (
                     <div className="today-rail-empty">No projects.</div>
                   ) : railProjects.map(p => {
-                    const isCollapsed = !!collapsedProjects[p.id];
+                    const isCollapsed = !!collapsedMap[p.id];
                     return (
-                      <div key={p.id} className={`today-project-chip ${isCollapsed ? 'collapsed' : ''}`}>
+                      <div key={p.id} className={`today-project-chip ${isCollapsed ? 'collapsed' : ''}`} style={{ '--card-accent': p.color || 'var(--primary)' }}>
                         <div className="today-project-chip-header" onClick={() => toggleCollapse(p.id)}>
                           <span className={`today-project-chip-chevron ${isCollapsed ? 'collapsed' : ''}`}>▾</span>
-                          <div className="today-project-chip-dot" style={{ background: p.color || 'var(--primary)' }} />
                           <div className="today-project-chip-name" title={p.name}>{p.name.replace('APP - ', '')}</div>
                           <div className="today-project-chip-tier">T{p.tier}</div>
                         </div>
-                        {!isCollapsed && p._actions.length > 0 && (
+                        {!isCollapsed && p._isMaster && p._modules.length > 0 && (
+                          <div className="today-project-modules">
+                            <div className="today-project-modules-eyebrow">Modules · Priority</div>
+                            {p._modules.map(m => {
+                              const mKey = `${p.id}:${m.id || m.number}`;
+                              const mExpanded = !!expandedModules[mKey];
+                              const isDone = m.status === 'done';
+                              return (
+                                <div key={mKey} className={`today-module ${mExpanded ? 'expanded' : ''} ${isDone ? 'done' : ''}`}>
+                                  <div className="today-module-row" onClick={() => toggleModule(p.id, m.id || m.number)}>
+                                    <span className={`today-module-num ${mExpanded ? 'expanded' : ''}`}>#{m.number}</span>
+                                    <span className="today-module-title">{m.name || m.title}</span>
+                                    {m.estimateHours != null && (
+                                      <span className="today-module-time">~{m.estimateHours}h</span>
+                                    )}
+                                    <span className={`today-module-dot ${isDone ? 'done' : (mExpanded ? 'active' : '')}`} />
+                                  </div>
+                                  {mExpanded && (
+                                    <div className="today-module-body">
+                                      {m.description && (
+                                        <div className="today-module-desc">{m.description}</div>
+                                      )}
+                                      {m.nextActions && m.nextActions.length > 0 && (
+                                        <>
+                                          <div className="today-module-actions-eyebrow">Next actions</div>
+                                          <div className="today-module-actions">
+                                            {m.nextActions.map(a => (
+                                              <div
+                                                key={a.id}
+                                                className={`today-project-action ${a.scheduled ? 'scheduled' : ''}`}
+                                                draggable={!a.scheduled}
+                                                onDragStart={(e) => onProjectActionDragStart(e, p, a)}
+                                                title={a.scheduled ? 'Already scheduled' : 'Drag onto timeline to schedule'}
+                                              >
+                                                <span className="today-project-action-text">{a.text}</span>
+                                                {a.estimatedMin != null && (
+                                                  <span className="today-project-action-time">~{a.estimatedMin}m</span>
+                                                )}
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                        {!isCollapsed && !p._isMaster && p._actions.length > 0 && (
                           <div className="today-project-chip-actions">
                             {p._actions.map(a => (
                               <div
@@ -7353,24 +7779,6 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             onRequestGeo={requestGeolocation}
           />
 
-          <RightNowBanner
-            routine={data.routine}
-            overrides={data.overrides || {}}
-            scheduledBlocks={blocks}
-            projects={projects}
-            referenceLibrary={refLibrary}
-            now={now}
-            onOpenReference={(id) => { setRefExpandedId(id); setRefLibraryOpen(true); }}
-            elsewhereToggles={elsewhere}
-            completions={data.routineCompletions || {}}
-          />
-
-          <CaptureBar
-            inbox={data.inbox || []}
-            onAdd={addInboxItem}
-            onOpenInbox={() => setInboxOpen(true)}
-          />
-
           <div className="main-layout">
             <div className="portfolio">
               <PortfolioPanel
@@ -7400,25 +7808,13 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                 error={error}
                 lastSyncedAt={lastSyncedAt}
                 onManageRoutine={() => setRoutineManagerOpen(true)}
+                now={now}
+                isWorkingAway={!!(elsewhere && (elsewhere.allDay || elsewhere.morning || elsewhere.afternoon))}
+                onToggleWorkingAway={() => {
+                  const isAway = !!(elsewhere && (elsewhere.allDay || elsewhere.morning || elsewhere.afternoon));
+                  toggleElsewhere({ morning: false, afternoon: false, allDay: !isAway });
+                }}
               />
-
-              {!isMobile && (
-                <ElsewhereToggles
-                  elsewhere={elsewhere}
-                  onToggle={toggleElsewhere}
-                />
-              )}
-
-              {!isMobile && (
-                <ElsewhereSuggestions
-                  routine={data.routine || []}
-                  overrides={data.overrides || {}}
-                  elsewhere={elsewhere}
-                  today={now}
-                  onMove={(itemId, newStart) => setOverride(itemId, now, { type: 'edit', start: newStart })}
-                  onDismiss={(itemId) => setOverride(itemId, now, { type: 'edit', _dismissedSuggestion: true })}
-                />
-              )}
 
               {dayView !== null && !isMobile && (
                 <button className="day-view-back" onClick={() => setDayView(null)}>
@@ -8137,7 +8533,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       );
     }
 
-    function CalendarHeader({ weekStart, weekEnd, isCurrentWeek, dayView, onPrev, onNext, onToday, saving, error, lastSyncedAt, onManageRoutine }) {
+    function CalendarHeader({ weekStart, weekEnd, isCurrentWeek, dayView, onPrev, onNext, onToday, saving, error, lastSyncedAt, onManageRoutine, now, isWorkingAway, onToggleWorkingAway }) {
       const synced = lastSyncedAt
         ? lastSyncedAt.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
         : '—';
@@ -8147,6 +8543,8 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       const isDayView = dayView !== null;
       const focusedDate = isDayView ? addDays(weekStart, dayView) : null;
       const focusedIsToday = isDayView && isSameDay(focusedDate, new Date());
+
+      const timeLabel = (now || new Date()).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
 
       return (
         <div className="cal-header">
@@ -8160,12 +8558,21 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
             <div className="cal-week-range">
               {isDayView ? formatDateShort(focusedDate) + ', ' + focusedDate.getFullYear() : formatRange(weekStart, weekEnd)}
             </div>
+            <div className="cal-week-time">{timeLabel}</div>
           </div>
           <div className="cal-controls">
             <span className={`sync-pill ${status}`}>{statusText}</span>
-            <div style={{ width: 12 }} />
+            {onToggleWorkingAway && (
+              <button
+                className={`cal-away-pill ${isWorkingAway ? 'active' : ''}`}
+                onClick={onToggleWorkingAway}
+                title={isWorkingAway ? 'Working away — tap to switch back to home' : 'Tap if you\'re away from home today'}
+              >
+                {isWorkingAway ? 'Away' : 'At home'}
+              </button>
+            )}
             {onManageRoutine && (
-              <button className="manage-btn" onClick={onManageRoutine} title="Manage your routine items">⚙ Routine</button>
+              <button className="cal-routine-pill" onClick={onManageRoutine} title="Manage your routine items">⚙ Routines</button>
             )}
             <button className="cal-nav-btn" onClick={onPrev} aria-label={isDayView ? 'Previous day' : 'Previous week'}>‹</button>
             <button
