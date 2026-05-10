@@ -6190,6 +6190,8 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       const HOUR_END = 23;
       const HOUR_HEIGHT = 64;
       const totalHours = HOUR_END - HOUR_START;
+      // Visual minimum: 20px min block height ≈ 20 min at 64px/hr. Use same floor as weekly view.
+      const VISUAL_MIN_MIN = Math.ceil(22 / HOUR_HEIGHT * 60); // ~21 min
       const gridRef = useRef(null);
       // Inline composer for click-to-create: { startMin, top, x } | null
       const [composer, setComposer] = useState(null);
@@ -6281,10 +6283,11 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         return (b.duration - (b.startMin)) - (a.duration - (a.startMin)); // longer first when ties
       });
 
-      // Build clusters
+      // Build clusters using visual end (accounts for 20px minimum block height)
+      const visualEnd = (it) => it.startMin + Math.max(it.duration, VISUAL_MIN_MIN);
       const clusters = [];
       sorted.forEach(it => {
-        const end = it.startMin + it.duration;
+        const end = visualEnd(it);
         const c = clusters.find(c => c.maxEnd > it.startMin);
         if (c) {
           c.events.push(it);
@@ -6301,7 +6304,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         const columns = []; // each column: array of {startMin, end}
         const eventColumn = new Map();
         evs.forEach(it => {
-          const end = it.startMin + it.duration;
+          const end = visualEnd(it);
           let col = 0;
           while (true) {
             const occupants = columns[col] || [];
@@ -6318,7 +6321,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         // For each event, find max colspan (how far right it can extend without conflict)
         evs.forEach(it => {
           const myCol = eventColumn.get(it.id);
-          const end = it.startMin + it.duration;
+          const end = visualEnd(it);
           let span = 1;
           for (let c = myCol + 1; c < totalCols; c++) {
             const conflict = (columns[c] || []).some(o => !(o.end <= it.startMin || o.startMin >= end));
