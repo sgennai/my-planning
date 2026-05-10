@@ -6500,21 +6500,6 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       // viewDate: the day being shown. Defaults to today (now), can be navigated +/- 1 day.
       // MUST be declared before any memo that depends on viewDate.
       const [viewDayOffset, setViewDayOffset] = useState(0);
-      const [collapsedProjects, setCollapsedProjects] = useState(null);
-      const [expandedModules, setExpandedModules] = useState({}); // { `${pid}:${moduleId}`: true }
-      // Default: all projects collapsed on first mount.
-      useEffect(() => {
-        if (collapsedProjects !== null) return;
-        const init = {};
-        (projects || []).forEach(p => { init[p.id] = true; });
-        setCollapsedProjects(init);
-      }, [projects, collapsedProjects]);
-      const collapsedMap = collapsedProjects || {};
-      const toggleCollapse = (pid) => setCollapsedProjects(c => ({ ...(c || {}), [pid]: !(c || {})[pid] }));
-      const toggleModule = (pid, mid) => {
-        const k = `${pid}:${mid}`;
-        setExpandedModules(m => ({ ...m, [k]: !m[k] }));
-      };
       const viewDate = useMemo(() => {
         const d = new Date(now);
         d.setDate(d.getDate() + viewDayOffset);
@@ -6687,37 +6672,6 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
 
       const fmtTime = (m) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
 
-      // Build a flat list of unscheduled next-actions per project for drag from rail
-      const railProjects = useMemo(() => {
-        const scheduledIds = new Set((blocks || []).filter(b => b.status !== 'completed').map(b => b.actionId).filter(Boolean));
-
-        return (projects || [])
-          .filter(p => p.tier <= 5)
-          .sort((a, b) => a.tier - b.tier)
-          .map(p => {
-            // Master project (NEXT): expose modules in priority order, each with its actions
-            if (p.isMaster && Array.isArray(p.modules) && Array.isArray(p.prioritySequence)) {
-              const seq = p.prioritySequence;
-              const orderedModules = seq
-                .map(num => p.modules.find(m => m.number === num))
-                .filter(Boolean)
-                .map(m => ({
-                  ...m,
-                  nextActions: (m.nextActions || []).map(a => ({ ...a, scheduled: scheduledIds.has(a.id) })),
-                }));
-              return { ...p, _isMaster: true, _modules: orderedModules, _actions: [] };
-            }
-            // Regular project: flat next-actions
-            const actions = Array.isArray(p.nextActions) ? p.nextActions.slice(0, 4) : [];
-            return {
-              ...p,
-              _isMaster: false,
-              _modules: [],
-              _actions: actions.map(a => ({ ...a, scheduled: scheduledIds.has(a.id) })),
-            };
-          });
-      }, [projects, blocks]);
-
       const [todoInput, setTodoInput] = useState('');
       const submitTodo = () => {
         if (!todoInput.trim()) return;
@@ -6734,19 +6688,6 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
         if (aSched !== bSched) return aSched ? 1 : -1;
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       });
-
-      const onProjectActionDragStart = (e, project, action) => {
-        if (action.scheduled) { e.preventDefault(); return; }
-        const payload = {
-          type: 'next-action',
-          projectId: project.id,
-          actionId: action.id,
-          title: action.text,
-          duration: action.duration || 30,
-        };
-        e.dataTransfer.effectAllowed = 'copy';
-        e.dataTransfer.setData('application/json', JSON.stringify(payload));
-      };
 
       const onTodoRailDragStart = (e, todo) => {
         if (todo.done) { e.preventDefault(); return; }
@@ -7051,93 +6992,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                 }}
               />
               {/* Portfolio */}
-              <div className="today-rail-section today-projects-section">
-                <div className="today-rail-header">
-                  <div className="today-rail-eyebrow">Projects</div>
-                  <div className="today-rail-count">{railProjects.length}</div>
-                </div>
-                <div className="today-rail-list">
-                  {railProjects.length === 0 ? (
-                    <div className="today-rail-empty">No projects.</div>
-                  ) : railProjects.map(p => {
-                    const isCollapsed = !!collapsedMap[p.id];
-                    return (
-                      <div key={p.id} className={`today-project-chip ${isCollapsed ? 'collapsed' : ''}`} style={{ '--card-accent': p.color || 'var(--primary)' }}>
-                        <div className="today-project-chip-header" onClick={() => toggleCollapse(p.id)}>
-                          <span className={`today-project-chip-chevron ${isCollapsed ? 'collapsed' : ''}`}>▾</span>
-                          <div className="today-project-chip-name" title={p.name}>{p.name.replace('APP - ', '')}</div>
-                          <div className="today-project-chip-tier">T{p.tier}</div>
-                        </div>
-                        {!isCollapsed && p._isMaster && p._modules.length > 0 && (
-                          <div className="today-project-modules">
-                            <div className="today-project-modules-eyebrow">Modules · Priority</div>
-                            {p._modules.map(m => {
-                              const mKey = `${p.id}:${m.id || m.number}`;
-                              const mExpanded = !!expandedModules[mKey];
-                              const isDone = m.status === 'done';
-                              return (
-                                <div key={mKey} className={`today-module ${mExpanded ? 'expanded' : ''} ${isDone ? 'done' : ''}`}>
-                                  <div className="today-module-row" onClick={() => toggleModule(p.id, m.id || m.number)}>
-                                    <span className={`today-module-num ${mExpanded ? 'expanded' : ''}`}>#{m.number}</span>
-                                    <span className="today-module-title">{m.name || m.title}</span>
-                                    {m.estimateHours != null && (
-                                      <span className="today-module-time">~{m.estimateHours}h</span>
-                                    )}
-                                    <span className={`today-module-dot ${isDone ? 'done' : (mExpanded ? 'active' : '')}`} />
-                                  </div>
-                                  {mExpanded && (
-                                    <div className="today-module-body">
-                                      {m.description && (
-                                        <div className="today-module-desc">{m.description}</div>
-                                      )}
-                                      {m.nextActions && m.nextActions.length > 0 && (
-                                        <>
-                                          <div className="today-module-actions-eyebrow">Next actions</div>
-                                          <div className="today-module-actions">
-                                            {m.nextActions.map(a => (
-                                              <div
-                                                key={a.id}
-                                                className={`today-project-action ${a.scheduled ? 'scheduled' : ''}`}
-                                                draggable={!a.scheduled}
-                                                onDragStart={(e) => onProjectActionDragStart(e, p, a)}
-                                                title={a.scheduled ? 'Already scheduled' : 'Drag onto timeline to schedule'}
-                                              >
-                                                <span className="today-project-action-text">{a.text}</span>
-                                                {a.estimatedMin != null && (
-                                                  <span className="today-project-action-time">~{a.estimatedMin}m</span>
-                                                )}
-                                              </div>
-                                            ))}
-                                          </div>
-                                        </>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                        {!isCollapsed && !p._isMaster && p._actions.length > 0 && (
-                          <div className="today-project-chip-actions">
-                            {p._actions.map(a => (
-                              <div
-                                key={a.id}
-                                className={`today-project-action ${a.scheduled ? 'scheduled' : ''}`}
-                                draggable={!a.scheduled}
-                                onDragStart={(e) => onProjectActionDragStart(e, p, a)}
-                                title={a.scheduled ? 'Already scheduled' : 'Drag onto timeline to schedule'}
-                              >
-                                {a.text}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+              <ProjectsRailPanel projects={projects} scheduledBlocks={blocks} />
 
               {/* Todos */}
               <div className="today-rail-section">
@@ -7814,11 +7669,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
 
           <div className="main-layout">
             <div className="portfolio">
-              <PortfolioPanel
-                projects={projects}
-                scheduledBlocks={blocks}
-                weekStart={weekStart}
-              />
+              <ProjectsRailPanel projects={projects} scheduledBlocks={blocks} />
               <TodosPane
                 todos={data.todos || []}
                 scheduledBlocks={blocks}
@@ -8186,6 +8037,155 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
     // ═════════════════════════════════════════════════════════════
     // PORTFOLIO PANEL
     // ═════════════════════════════════════════════════════════════
+    function ProjectsRailPanel({ projects, scheduledBlocks }) {
+      const [collapsedProjects, setCollapsedProjects] = useState(null);
+      const [expandedModules, setExpandedModules] = useState({});
+
+      useEffect(() => {
+        if (collapsedProjects !== null) return;
+        const init = {};
+        (projects || []).forEach(p => { init[p.id] = true; });
+        setCollapsedProjects(init);
+      }, [projects, collapsedProjects]);
+
+      const collapsedMap = collapsedProjects || {};
+      const toggleCollapse = (pid) => setCollapsedProjects(c => ({ ...(c || {}), [pid]: !(c || {})[pid] }));
+      const toggleModule = (pid, mid) => {
+        const k = `${pid}:${mid}`;
+        setExpandedModules(m => ({ ...m, [k]: !m[k] }));
+      };
+
+      const railProjects = useMemo(() => {
+        const scheduledIds = new Set((scheduledBlocks || []).filter(b => b.status !== 'completed').map(b => b.actionId).filter(Boolean));
+        return (projects || [])
+          .filter(p => p.tier <= 5)
+          .sort((a, b) => a.tier - b.tier)
+          .map(p => {
+            if (p.isMaster && Array.isArray(p.modules) && Array.isArray(p.prioritySequence)) {
+              const seq = p.prioritySequence;
+              const orderedModules = seq
+                .map(num => p.modules.find(m => m.number === num))
+                .filter(Boolean)
+                .map(m => ({
+                  ...m,
+                  nextActions: (m.nextActions || []).map(a => ({ ...a, scheduled: scheduledIds.has(a.id) })),
+                }));
+              return { ...p, _isMaster: true, _modules: orderedModules, _actions: [] };
+            }
+            const actions = Array.isArray(p.nextActions) ? p.nextActions.slice(0, 4) : [];
+            return {
+              ...p,
+              _isMaster: false,
+              _modules: [],
+              _actions: actions.map(a => ({ ...a, scheduled: scheduledIds.has(a.id) })),
+            };
+          });
+      }, [projects, scheduledBlocks]);
+
+      const onProjectActionDragStart = (e, project, action) => {
+        if (action.scheduled) { e.preventDefault(); return; }
+        const payload = {
+          type: 'next-action',
+          projectId: project.id,
+          actionId: action.id,
+          title: action.text,
+          duration: action.duration || 30,
+        };
+        e.dataTransfer.effectAllowed = 'copy';
+        e.dataTransfer.setData('application/json', JSON.stringify(payload));
+      };
+
+      return (
+        <div className="today-rail-section today-projects-section">
+          <div className="today-rail-header">
+            <div className="today-rail-eyebrow">Projects</div>
+            <div className="today-rail-count">{railProjects.length}</div>
+          </div>
+          <div className="today-rail-list">
+            {railProjects.length === 0 ? (
+              <div className="today-rail-empty">No projects.</div>
+            ) : railProjects.map(p => {
+              const isCollapsed = !!collapsedMap[p.id];
+              return (
+                <div key={p.id} className={`today-project-chip ${isCollapsed ? 'collapsed' : ''}`} style={{ '--card-accent': p.color || 'var(--primary)' }}>
+                  <div className="today-project-chip-header" onClick={() => toggleCollapse(p.id)}>
+                    <span className={`today-project-chip-chevron ${isCollapsed ? 'collapsed' : ''}`}>▾</span>
+                    <div className="today-project-chip-name" title={p.name}>{p.name.replace('APP - ', '')}</div>
+                    <div className="today-project-chip-tier">T{p.tier}</div>
+                  </div>
+                  {!isCollapsed && p._isMaster && p._modules.length > 0 && (
+                    <div className="today-project-modules">
+                      <div className="today-project-modules-eyebrow">Modules · Priority</div>
+                      {p._modules.map(m => {
+                        const mKey = `${p.id}:${m.id || m.number}`;
+                        const mExpanded = !!expandedModules[mKey];
+                        const isDone = m.status === 'done';
+                        return (
+                          <div key={mKey} className={`today-module ${mExpanded ? 'expanded' : ''} ${isDone ? 'done' : ''}`}>
+                            <div className="today-module-row" onClick={() => toggleModule(p.id, m.id || m.number)}>
+                              <span className={`today-module-num ${mExpanded ? 'expanded' : ''}`}>#{m.number}</span>
+                              <span className="today-module-title">{m.name || m.title}</span>
+                              {m.estimateHours != null && (
+                                <span className="today-module-time">~{m.estimateHours}h</span>
+                              )}
+                              <span className={`today-module-dot ${isDone ? 'done' : (mExpanded ? 'active' : '')}`} />
+                            </div>
+                            {mExpanded && (
+                              <div className="today-module-body">
+                                {m.description && (
+                                  <div className="today-module-desc">{m.description}</div>
+                                )}
+                                {m.nextActions && m.nextActions.length > 0 && (
+                                  <>
+                                    <div className="today-module-actions-eyebrow">Next actions</div>
+                                    <div className="today-module-actions">
+                                      {m.nextActions.map(a => (
+                                        <div
+                                          key={a.id}
+                                          className={`today-project-action ${a.scheduled ? 'scheduled' : ''}`}
+                                          draggable={!a.scheduled}
+                                          onDragStart={(e) => onProjectActionDragStart(e, p, a)}
+                                          title={a.scheduled ? 'Already scheduled' : 'Drag to schedule'}
+                                        >
+                                          <span className="today-project-action-text">{a.text}</span>
+                                          {a.estimatedMin != null && (
+                                            <span className="today-project-action-time">~{a.estimatedMin}m</span>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  {!isCollapsed && !p._isMaster && p._actions.length > 0 && (
+                    <div className="today-project-chip-actions">
+                      {p._actions.map(a => (
+                        <div
+                          key={a.id}
+                          className={`today-project-action ${a.scheduled ? 'scheduled' : ''}`}
+                          draggable={!a.scheduled}
+                          onDragStart={(e) => onProjectActionDragStart(e, p, a)}
+                          title={a.scheduled ? 'Already scheduled' : 'Drag to schedule'}
+                        >
+                          {a.text}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
     function PortfolioPanel({ projects, scheduledBlocks, weekStart }) {
       const [expandedId, setExpandedId] = useState('next'); // NEXT expanded by default
 
