@@ -7646,14 +7646,29 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
           />
         ) : (
         <div className={`wrap-wide screen-pad-top-sm fade-in ${dayView !== null ? 'day-view' : ''}`}>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
-            <button
-              className="modal-btn"
-              onClick={() => setMainView('today')}
-              style={{ fontSize: 11, letterSpacing: '0.18em' }}
-            >
-              <span>← Today</span>
-            </button>
+          <div className="today-topbar">
+            <div className="today-topbar-left">
+              <div className="today-date-block">
+                <div className="today-date">
+                  <span className="today-date-day">
+                    {dayView !== null
+                      ? (isSameDay(addDays(weekStart, dayView), now) ? 'Today' : DAY_NAMES_LONG[dayView])
+                      : (isCurrentWeek ? 'This week' : `Week of ${formatDateShort(weekStart)}`)}
+                  </span>
+                  <span className="today-date-rest">
+                    {dayView !== null
+                      ? `${formatDateShort(addDays(weekStart, dayView))}, ${addDays(weekStart, dayView).getFullYear()}`
+                      : formatRange(weekStart, weekEnd)}
+                  </span>
+                </div>
+                <div className="today-date-time">
+                  {now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
+                </div>
+              </div>
+            </div>
+            <div className="today-topbar-right">
+              <button className="today-plan-link" onClick={() => setMainView('today')}>← Today</button>
+            </div>
           </div>
           <WeatherStrip
             settings={weatherSettings}
@@ -7698,6 +7713,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
                   const isAway = !!(elsewhere && (elsewhere.allDay || elsewhere.morning || elsewhere.afternoon));
                   toggleElsewhere({ morning: false, afternoon: false, allDay: !isAway });
                 }}
+                hideTitle={true}
               />
 
               {dayView !== null && !isMobile && (
@@ -8568,7 +8584,7 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
       );
     }
 
-    function CalendarHeader({ weekStart, weekEnd, isCurrentWeek, dayView, onPrev, onNext, onToday, saving, error, lastSyncedAt, onManageRoutine, now, isWorkingAway, onToggleWorkingAway }) {
+    function CalendarHeader({ weekStart, weekEnd, isCurrentWeek, dayView, onPrev, onNext, onToday, saving, error, lastSyncedAt, onManageRoutine, now, isWorkingAway, onToggleWorkingAway, hideTitle }) {
       const synced = lastSyncedAt
         ? lastSyncedAt.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
         : '—';
@@ -8583,18 +8599,20 @@ MY APPROACH TO CHALLENGES: Stay neutral. Altitude. System, not ego. No rush.`,
 
       return (
         <div className="cal-header">
-          <div className="cal-title-block">
-            <div className="cal-eyebrow">My Planning</div>
-            <div className="cal-week-label">
-              {isDayView
-                ? (focusedIsToday ? 'Today' : DAY_NAMES_LONG[dayView])
-                : (isCurrentWeek ? 'This week' : `Week of ${formatDateShort(weekStart)}`)}
+          {!hideTitle && (
+            <div className="cal-title-block">
+              <div className="cal-eyebrow">My Planning</div>
+              <div className="cal-week-label">
+                {isDayView
+                  ? (focusedIsToday ? 'Today' : DAY_NAMES_LONG[dayView])
+                  : (isCurrentWeek ? 'This week' : `Week of ${formatDateShort(weekStart)}`)}
+              </div>
+              <div className="cal-week-range">
+                {isDayView ? formatDateShort(focusedDate) + ', ' + focusedDate.getFullYear() : formatRange(weekStart, weekEnd)}
+              </div>
+              <div className="cal-week-time">{timeLabel}</div>
             </div>
-            <div className="cal-week-range">
-              {isDayView ? formatDateShort(focusedDate) + ', ' + focusedDate.getFullYear() : formatRange(weekStart, weekEnd)}
-            </div>
-            <div className="cal-week-time">{timeLabel}</div>
-          </div>
+          )}
           <div className="cal-controls">
             <span className={`sync-pill ${status}`}>{statusText}</span>
             {onToggleWorkingAway && (
