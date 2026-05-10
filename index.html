@@ -2175,20 +2175,19 @@
       border: 1px solid var(--rule);
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-sm);
-      padding: 10px 14px;
+      padding: 5px 12px;
       display: flex;
       align-items: center;
-      gap: 14px;
-      min-height: 60px;
+      gap: 10px;
     }
     .weather-strip-left {
       display: flex;
-      flex-direction: column;
-      gap: 2px;
+      flex-direction: row;
+      align-items: center;
+      gap: 6px;
       flex-shrink: 0;
-      padding-right: 14px;
+      padding-right: 10px;
       border-right: 1px solid var(--rule);
-      min-width: 120px;
     }
     .weather-strip-eyebrow {
       font-size: 10px;
@@ -2245,14 +2244,14 @@
     .weather-cell {
       flex-shrink: 0;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
       justify-content: center;
-      padding: 4px 4px;
+      padding: 4px 6px;
       border-right: 1px solid var(--rule-faint);
       cursor: default;
       transition: background var(--duration-fast) var(--ease-out);
-      gap: 2px;
+      gap: 5px;
     }
     .weather-cell:last-child { border-right: none; }
     .weather-cell:hover { background: var(--bg-hover); }
@@ -2263,16 +2262,17 @@
       font-family: var(--mono);
       letter-spacing: 0.02em;
       font-weight: 600;
+      white-space: nowrap;
     }
     .weather-cell.now .weather-cell-hour {
       color: var(--primary);
     }
     .weather-cell-icon {
-      font-size: 18px;
+      font-size: 14px;
       line-height: 1;
     }
     .weather-cell-temp {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--text);
       font-weight: 600;
       font-variant-numeric: tabular-nums;
@@ -2282,6 +2282,7 @@
       color: #5B8DB3;
       font-family: var(--mono);
       font-weight: 500;
+      white-space: nowrap;
     }
     .weather-cell-precip.dry { color: var(--muted-4); }
     .weather-strip-status {
@@ -2312,9 +2313,11 @@
     }
     .weather-strip-refresh:hover { border-color: var(--primary); color: var(--primary); }
     @media (max-width: 759px) {
-      .weather-strip { padding: 6px 8px; gap: 6px; }
-      .weather-strip-left { min-width: 80px; padding-right: 6px; }
-      .weather-strip-location { font-size: 10px; max-width: 90px; }
+      .weather-strip { padding: 4px 8px; gap: 6px; }
+      .weather-strip-left { padding-right: 6px; }
+      .weather-strip-location { font-size: 10px; max-width: 80px; }
+      .weather-strip-eyebrow { display: none; }
+      .weather-cell { padding: 3px 4px; gap: 3px; }
     }
 
 
