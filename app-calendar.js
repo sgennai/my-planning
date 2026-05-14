@@ -40,6 +40,13 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   }, [persistData]);
   const currentTheme = (data.prefs && data.prefs.theme) || 'light';
 
+  // Keep <meta name="theme-color"> in sync with the JS-toggled theme
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', currentTheme === 'dark' ? '#0C0C0E' : '#F9F9F7');
+    document.documentElement.setAttribute('data-theme', currentTheme);
+  }, [currentTheme]);
+
   // Per-category color overrides — read user prefs, build merged style map
   const userCategoryColors = (data.prefs && data.prefs.categoryColors) || {};
   const userCategoryEmojis = (data.prefs && data.prefs.categoryEmojis) || {};
@@ -713,8 +720,8 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     <div className="app-topbar">
       <div className="app-topbar-left">
         <button className="app-topbar-btn" onClick={mainView === 'today' ? () => setViewDayOffset(0) : goToday}>Today</button>
-        <button className="app-topbar-nav-btn" onClick={mainView === 'today' ? () => setViewDayOffset(o => o - 1) : goPrev}>‹</button>
-        <button className="app-topbar-nav-btn" onClick={mainView === 'today' ? () => setViewDayOffset(o => o + 1) : goNext}>›</button>
+        <button className="app-topbar-nav-btn" onClick={mainView === 'today' ? () => setViewDayOffset(o => o - 1) : goPrev} aria-label="Previous">‹</button>
+        <button className="app-topbar-nav-btn" onClick={mainView === 'today' ? () => setViewDayOffset(o => o + 1) : goNext} aria-label="Next">›</button>
         <span className="app-topbar-date">
           {mainView === 'today'
             ? viewDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })
@@ -728,8 +735,8 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         <ViewSwitcher view={mainView} onSwitchView={setMainView} />
       </div>
       <div className="app-topbar-right">
-        <button className="app-topbar-btn app-topbar-btn-icon" onClick={() => setTheme(currentTheme === 'light' ? 'dark' : 'light')} title="Toggle theme">{currentTheme === 'light' ? '◐' : '◑'}</button>
-        <button className="app-topbar-btn app-topbar-btn-icon" style={{ opacity: weatherVisible ? 1 : 0.4 }} onClick={() => setWeatherVisible(v => !v)} title={weatherVisible ? 'Hide weather' : 'Show weather'}>☁</button>
+        <button className="app-topbar-btn app-topbar-btn-icon" onClick={() => setTheme(currentTheme === 'light' ? 'dark' : 'light')} title="Toggle theme" aria-label="Toggle theme">{currentTheme === 'light' ? '◐' : '◑'}</button>
+        <button className="app-topbar-btn app-topbar-btn-icon" style={{ opacity: weatherVisible ? 1 : 0.4 }} onClick={() => setWeatherVisible(v => !v)} title={weatherVisible ? 'Hide weather' : 'Show weather'} aria-label={weatherVisible ? 'Hide weather' : 'Show weather'}>☁</button>
         <button className={`app-topbar-btn ${isWorkingAway ? 'active' : ''}`} onClick={toggleWorkingAway}>{isWorkingAway ? 'Away' : 'At home'}</button>
         <button className="app-topbar-btn" onClick={() => setPracticeOpen(true)}>Practice</button>
         <button className="app-topbar-btn" onClick={() => setInboxOpen(true)}>{openInboxCount > 0 ? `Inbox · ${openInboxCount}` : 'Inbox'}</button>

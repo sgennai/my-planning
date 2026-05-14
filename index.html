@@ -83,6 +83,7 @@
     /* Light theme — luxury minimal. Near-paper surfaces, ink-black text.
        Borders do the structural work; shadows are near-zero. */
     :root, :root[data-theme="light"] {
+      color-scheme: light;
       /* Surfaces */
       --bg: #F9F9F7;
       --bg-card: #FFFFFF;
@@ -131,6 +132,7 @@
 
     /* Dark theme — luxury: near-pure black, precise hairlines, no glow. */
     :root[data-theme="dark"] {
+      color-scheme: dark;
       --bg: #0C0C0E;
       --bg-card: #141418;
       --bg-card-deep: #0C0C0E;
@@ -197,6 +199,7 @@
     button {
       font-family: inherit;
       cursor: pointer;
+      touch-action: manipulation;
       transition:
         color var(--duration-fast) var(--ease-out),
         background var(--duration-fast) var(--ease-out),
@@ -217,6 +220,7 @@
       font-family: var(--serif);
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
     }
     body { position: relative; overflow-x: hidden; }
 
@@ -276,12 +280,14 @@
       line-height: 1.05;
       margin: 0 0 8px;
       letter-spacing: -0.02em;
+      text-wrap: balance;
     }
     h2.title {
       font-size: 28px;
       font-weight: 400;
       margin: 0 0 8px;
       letter-spacing: -0.01em;
+      text-wrap: balance;
     }
     .rule {
       width: 60px; height: 1px;
@@ -1550,6 +1556,11 @@
       color: var(--text-1);
       font-family: var(--serif);
       outline: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color var(--duration-fast) var(--ease-out);
+    }
+    .practice-bullet-input:focus {
+      border-bottom-color: var(--primary);
     }
     .practice-bullet-delete {
       background: transparent;
@@ -1701,6 +1712,7 @@
       letter-spacing: var(--tracking-tight);
       line-height: var(--leading-tight);
       font-weight: 600;
+      text-wrap: balance;
     }
     .today-hero-now-meta {
       font-size: var(--text-sm);
