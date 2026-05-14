@@ -941,11 +941,114 @@
       font-weight: 500;
     }
 
+    /* ───────── FIXED APP TOPBAR ───────── */
+    .app-topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 200;
+      height: 52px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 var(--space-6);
+      gap: var(--space-4);
+    }
+    .app-topbar-left {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      flex: 1;
+    }
+    .app-topbar-center {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .app-topbar-right {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      flex: 1;
+      justify-content: flex-end;
+    }
+    .app-topbar-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      color: var(--muted-2);
+      font-size: var(--text-xs);
+      letter-spacing: var(--tracking-base);
+      font-family: var(--serif);
+      font-weight: 500;
+      padding: 5px var(--space-3);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out);
+    }
+    .app-topbar-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .app-topbar-btn.active {
+      background: var(--primary-soft);
+      border-color: var(--primary);
+      color: var(--primary-hover);
+    }
+    .app-topbar-btn-icon {
+      width: 28px;
+      padding: 5px 0;
+      text-align: center;
+    }
+    .app-topbar-nav-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted-2);
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: color var(--duration-fast) var(--ease-out);
+    }
+    .app-topbar-nav-btn:hover { color: var(--text); }
+    .app-topbar-date {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      padding-left: var(--space-1);
+    }
+
+    /* ───────── SETTINGS TABS ───────── */
+    .settings-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin: 0 0 var(--space-5);
+    }
+    .settings-tab-btn {
+      padding: var(--space-3) var(--space-5);
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--muted-2);
+      font-size: var(--text-sm);
+      font-family: var(--serif);
+      font-weight: 500;
+      cursor: pointer;
+      margin-bottom: -1px;
+      transition: color var(--duration-fast) var(--ease-out);
+    }
+    .settings-tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
     /* ───────── TODAY SCREEN (daily compass, default landing) ───────── */
     .today-wrap {
-      max-width: 1500px;
+      max-width: none;
       margin: 0 auto;
-      padding: var(--space-10) var(--space-8) var(--space-12);
+      padding: 60px var(--space-6) var(--space-12);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -1537,7 +1640,7 @@
 
     /* Right-now hero block */
     .today-hero {
-      padding: var(--space-6) var(--space-8);
+      padding: var(--space-3) var(--space-6);
       background: var(--bg-card);
       border: 1px solid var(--rule);
       border-radius: var(--radius-xl);

@@ -554,7 +554,7 @@ function EmojiPickerPopover({ currentEmoji, onPick, onClose }) {
   );
 }
 
-function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDeleteItem, categoryStyles, onSetCategoryColor, onResetCategoryColor, userCategoryColors, onSetCategoryEmoji, onResetCategoryEmoji, userCategoryEmojis }) {
+function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDeleteItem, categoryStyles, onSetCategoryColor, onResetCategoryColor, userCategoryColors, onSetCategoryEmoji, onResetCategoryEmoji, userCategoryEmojis, embedded = false }) {
   const CATS = categoryStyles || CATEGORY_STYLES;
   const [emojiPickerCat, setEmojiPickerCat] = useState(null); // which category's picker is open
   // null = list view; 'new' = adding new; or itemId = editing existing
@@ -589,156 +589,165 @@ function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDele
 
   const totalCount = visible.length + recurringItems.length;
 
-  if (editingId === null) {
-    return (
-      <div className="modal-backdrop" onClick={handleBackdropClick}>
-        <div className="modal routine-modal">
-          <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
-          <div className="modal-header">
-            <div className="modal-eyebrow">Manage Routine</div>
-            <div className="modal-title">Your weekly routine</div>
-            <div className="modal-meta">
-              <span>{totalCount} items</span>
-              <span style={{ fontStyle: 'italic' }}>Click any item to edit · or add a new one below</span>
-            </div>
+  const listContent = (
+    <>
+      <div className="modal-header" style={embedded ? { paddingLeft: 0 } : {}}>
+        {!embedded && <div className="modal-eyebrow">Manage Routine</div>}
+        <div className="modal-title">Your weekly routine</div>
+        <div className="modal-meta">
+          <span>{totalCount} items</span>
+          <span style={{ fontStyle: 'italic' }}>Click any item to edit · or add a new one below</span>
+        </div>
+      </div>
+      <div className="modal-body" style={embedded ? { maxHeight: 'none', overflow: 'visible' } : {}}>
+        <div className="category-colors-section">
+          <div className="category-colors-header">
+            <div className="category-colors-eyebrow">Category colors</div>
+            <div className="category-colors-hint">Each category has its own color. Click any swatch to customize.</div>
           </div>
-          <div className="modal-body">
-            <div className="category-colors-section">
-              <div className="category-colors-header">
-                <div className="category-colors-eyebrow">Category colors</div>
-                <div className="category-colors-hint">Each category has its own color. Click any swatch to customize.</div>
-              </div>
-              <div className="category-colors-grid">
-                {Object.keys(CATEGORY_STYLES).map(cat => {
-                  const defaultColor = CATEGORY_STYLES[cat].color;
-                  const currentColor = (userCategoryColors && userCategoryColors[cat]) || defaultColor;
-                  const colorOverridden = !!(userCategoryColors && userCategoryColors[cat]);
-                  const defaultEmoji = CATEGORY_STYLES[cat].emoji;
-                  const currentEmoji = (userCategoryEmojis && userCategoryEmojis[cat]) || defaultEmoji;
-                  const emojiOverridden = !!(userCategoryEmojis && userCategoryEmojis[cat]);
-                  const label = CATEGORY_STYLES[cat].label;
-                  return (
-                    <div key={cat} className="category-color-row">
-                      <input
-                        type="color"
-                        value={currentColor}
-                        onChange={e => onSetCategoryColor && onSetCategoryColor(cat, e.target.value)}
-                        className="category-color-swatch"
-                        title={`Pick color for ${label}`}
-                      />
-                      <button
-                        className="category-emoji-btn"
-                        onClick={() => setEmojiPickerCat(emojiPickerCat === cat ? null : cat)}
-                        title={`Pick emoji for ${label}`}
-                      >
-                        {currentEmoji}
-                      </button>
-                      <div className="category-color-label">{label}</div>
-                      <div className="category-color-hex">{currentColor}</div>
-                      {(colorOverridden || emojiOverridden) && (
-                        <button
-                          className="category-color-reset"
-                          onClick={() => {
-                            if (colorOverridden) onResetCategoryColor && onResetCategoryColor(cat);
-                            if (emojiOverridden) onResetCategoryEmoji && onResetCategoryEmoji(cat);
-                          }}
-                          title="Reset color and emoji to defaults"
-                        >
-                          ↺
-                        </button>
-                      )}
-                      {emojiPickerCat === cat && (
-                        <EmojiPickerPopover
-                          currentEmoji={currentEmoji}
-                          onPick={(e) => {
-                            onSetCategoryEmoji && onSetCategoryEmoji(cat, e);
-                            setEmojiPickerCat(null);
-                          }}
-                          onClose={() => setEmojiPickerCat(null)}
-                        />
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div style={{ marginBottom: 18 }}>
-              <button className="modal-btn primary" onClick={() => setEditingId('new')}>
-                <span>+ Add a new routine item</span>
-              </button>
-            </div>
-            {recurringItems.length > 0 && (
-              <div className="routine-day-group">
-                <div className="routine-day-group-label">Recurring (top of every hour)</div>
-                {recurringItems.map(item => {
-                  const cat = CATS[item.category] || {};
-                  const r = item.recurrence || {};
-                  const window = (r.kind === 'top-of-hour' && r.startHour != null && r.endHour != null)
-                    ? `${pad(r.startHour)}:00–${pad(r.endHour)}:00`
-                    : '—';
-                  return (
-                    <div key={item.id} className="routine-item-row" onClick={() => setEditingId(item.id)}>
-                      <div className="routine-item-row-time">{window}</div>
-                      <div className="routine-item-row-title">
-                        {item.title}
-                        <span style={{ fontSize: 10, color: 'var(--muted-3)', marginLeft: 8, fontFamily: 'var(--mono)' }}>
-                          {describeDays(item.days)} · top of hour
-                        </span>
-                      </div>
-                      <div className="routine-item-row-cat" style={{ color: cat.color || 'var(--muted-3)' }}>
-                        {cat.label || item.category}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-            {multiDay.length > 0 && (
-              <div className="routine-day-group">
-                <div className="routine-day-group-label">Daily / multi-day</div>
-                {multiDay.map(item => {
-                  const cat = CATS[item.category] || {};
-                  return (
-                    <div key={item.id} className="routine-item-row" onClick={() => setEditingId(item.id)}>
-                      <div className="routine-item-row-time">{item.start} · {item.duration}m</div>
-                      <div className="routine-item-row-title">
-                        {item.title}
-                        <span style={{ fontSize: 10, color: 'var(--muted-3)', marginLeft: 8, fontFamily: 'var(--mono)' }}>
-                          {describeDays(item.days)}
-                        </span>
-                      </div>
-                      <div className="routine-item-row-cat" style={{ color: cat.color || 'var(--muted-3)' }}>
-                        {cat.label || item.category}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-            {dayOrder.map(jsDay => {
-              const items = grouped[jsDay] || [];
-              if (items.length === 0) return null;
-              const visualCol = jsDay === 0 ? 6 : jsDay - 1;
+          <div className="category-colors-grid">
+            {Object.keys(CATEGORY_STYLES).map(cat => {
+              const defaultColor = CATEGORY_STYLES[cat].color;
+              const currentColor = (userCategoryColors && userCategoryColors[cat]) || defaultColor;
+              const colorOverridden = !!(userCategoryColors && userCategoryColors[cat]);
+              const defaultEmoji = CATEGORY_STYLES[cat].emoji;
+              const currentEmoji = (userCategoryEmojis && userCategoryEmojis[cat]) || defaultEmoji;
+              const emojiOverridden = !!(userCategoryEmojis && userCategoryEmojis[cat]);
+              const label = CATEGORY_STYLES[cat].label;
               return (
-                <div key={jsDay} className="routine-day-group">
-                  <div className="routine-day-group-label">{DAY_NAMES_LONG[visualCol]} only</div>
-                  {items.map(item => {
-                    const cat = CATS[item.category] || {};
-                    return (
-                      <div key={item.id} className="routine-item-row" onClick={() => setEditingId(item.id)}>
-                        <div className="routine-item-row-time">{item.start} · {item.duration}m</div>
-                        <div className="routine-item-row-title">{item.title}</div>
-                        <div className="routine-item-row-cat" style={{ color: cat.color || 'var(--muted-3)' }}>
-                          {cat.label || item.category}
-                        </div>
-                      </div>
-                    );
-                  })}
+                <div key={cat} className="category-color-row">
+                  <input
+                    type="color"
+                    value={currentColor}
+                    onChange={e => onSetCategoryColor && onSetCategoryColor(cat, e.target.value)}
+                    className="category-color-swatch"
+                    title={`Pick color for ${label}`}
+                  />
+                  <button
+                    className="category-emoji-btn"
+                    onClick={() => setEmojiPickerCat(emojiPickerCat === cat ? null : cat)}
+                    title={`Pick emoji for ${label}`}
+                  >
+                    {currentEmoji}
+                  </button>
+                  <div className="category-color-label">{label}</div>
+                  <div className="category-color-hex">{currentColor}</div>
+                  {(colorOverridden || emojiOverridden) && (
+                    <button
+                      className="category-color-reset"
+                      onClick={() => {
+                        if (colorOverridden) onResetCategoryColor && onResetCategoryColor(cat);
+                        if (emojiOverridden) onResetCategoryEmoji && onResetCategoryEmoji(cat);
+                      }}
+                      title="Reset color and emoji to defaults"
+                    >
+                      ↺
+                    </button>
+                  )}
+                  {emojiPickerCat === cat && (
+                    <EmojiPickerPopover
+                      currentEmoji={currentEmoji}
+                      onPick={(e) => {
+                        onSetCategoryEmoji && onSetCategoryEmoji(cat, e);
+                        setEmojiPickerCat(null);
+                      }}
+                      onClose={() => setEmojiPickerCat(null)}
+                    />
+                  )}
                 </div>
               );
             })}
           </div>
+        </div>
+
+        <div style={{ marginBottom: 18 }}>
+          <button className="modal-btn primary" onClick={() => setEditingId('new')}>
+            <span>+ Add a new routine item</span>
+          </button>
+        </div>
+        {recurringItems.length > 0 && (
+          <div className="routine-day-group">
+            <div className="routine-day-group-label">Recurring (top of every hour)</div>
+            {recurringItems.map(item => {
+              const cat = CATS[item.category] || {};
+              const r = item.recurrence || {};
+              const window = (r.kind === 'top-of-hour' && r.startHour != null && r.endHour != null)
+                ? `${pad(r.startHour)}:00–${pad(r.endHour)}:00`
+                : '—';
+              return (
+                <div key={item.id} className="routine-item-row" onClick={() => setEditingId(item.id)}>
+                  <div className="routine-item-row-time">{window}</div>
+                  <div className="routine-item-row-title">
+                    {item.title}
+                    <span style={{ fontSize: 10, color: 'var(--muted-3)', marginLeft: 8, fontFamily: 'var(--mono)' }}>
+                      {describeDays(item.days)} · top of hour
+                    </span>
+                  </div>
+                  <div className="routine-item-row-cat" style={{ color: cat.color || 'var(--muted-3)' }}>
+                    {cat.label || item.category}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {multiDay.length > 0 && (
+          <div className="routine-day-group">
+            <div className="routine-day-group-label">Daily / multi-day</div>
+            {multiDay.map(item => {
+              const cat = CATS[item.category] || {};
+              return (
+                <div key={item.id} className="routine-item-row" onClick={() => setEditingId(item.id)}>
+                  <div className="routine-item-row-time">{item.start} · {item.duration}m</div>
+                  <div className="routine-item-row-title">
+                    {item.title}
+                    <span style={{ fontSize: 10, color: 'var(--muted-3)', marginLeft: 8, fontFamily: 'var(--mono)' }}>
+                      {describeDays(item.days)}
+                    </span>
+                  </div>
+                  <div className="routine-item-row-cat" style={{ color: cat.color || 'var(--muted-3)' }}>
+                    {cat.label || item.category}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {dayOrder.map(jsDay => {
+          const items = grouped[jsDay] || [];
+          if (items.length === 0) return null;
+          const visualCol = jsDay === 0 ? 6 : jsDay - 1;
+          return (
+            <div key={jsDay} className="routine-day-group">
+              <div className="routine-day-group-label">{DAY_NAMES_LONG[visualCol]} only</div>
+              {items.map(item => {
+                const cat = CATS[item.category] || {};
+                return (
+                  <div key={item.id} className="routine-item-row" onClick={() => setEditingId(item.id)}>
+                    <div className="routine-item-row-time">{item.start} · {item.duration}m</div>
+                    <div className="routine-item-row-title">{item.title}</div>
+                    <div className="routine-item-row-cat" style={{ color: cat.color || 'var(--muted-3)' }}>
+                      {cat.label || item.category}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+
+  if (editingId === null) {
+    if (embedded) {
+      return <div>{listContent}</div>;
+    }
+    return (
+      <div className="modal-backdrop" onClick={handleBackdropClick}>
+        <div className="modal routine-modal">
+          <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+          {listContent}
         </div>
       </div>
     );
@@ -752,6 +761,7 @@ function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDele
     <RoutineEditForm
       item={editingItem}
       isNew={isNew}
+      embedded={embedded}
       onCancel={() => setEditingId(null)}
       onSave={(values) => {
         if (isNew) {
@@ -771,7 +781,7 @@ function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDele
   );
 }
 
-function RoutineEditForm({ item, isNew, onCancel, onSave, onDelete, onCloseModal }) {
+function RoutineEditForm({ item, isNew, onCancel, onSave, onDelete, onCloseModal, embedded = false }) {
   const isRecurring = !!(item && item.recurrence);
   const recur = (item && item.recurrence) || null;
   const [title, setTitle] = useState(item ? item.title : '');
@@ -833,158 +843,168 @@ function RoutineEditForm({ item, isNew, onCancel, onSave, onDelete, onCloseModal
   // Day chip ordering: Mon-first
   const dayPicker = [1, 2, 3, 4, 5, 6, 0];
 
+  const formContent = (
+    <>
+      <div className="modal-header">
+        <div className="modal-eyebrow">{isNew ? 'New routine item' : (isRecurring ? 'Edit recurring item · top of every hour' : 'Edit routine item')}</div>
+        <div className="modal-title">{title || 'Untitled'}</div>
+        <div className="modal-meta">
+          <span style={{ fontStyle: 'italic' }}>Changes apply to all weeks, past and future</span>
+        </div>
+      </div>
+      <div className="modal-body">
+        <div className="routine-form-grid">
+          <div className="routine-form-row">
+            <div className="routine-form-label">Title</div>
+            <input
+              type="text"
+              className="routine-form-input"
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              autoFocus
+            />
+          </div>
+
+          <div className="routine-form-row">
+            <div className="routine-form-label">Days of week</div>
+            <div className="day-chips">
+              {dayPicker.map(jsDay => {
+                const visualCol = jsDay === 0 ? 6 : jsDay - 1;
+                return (
+                  <button
+                    key={jsDay}
+                    className={`day-chip ${days.includes(jsDay) ? 'active' : ''}`}
+                    onClick={() => toggleDay(jsDay)}
+                  >{DAY_NAMES_SHORT[visualCol]}</button>
+                );
+              })}
+            </div>
+          </div>
+
+          {isRecurring ? (
+            <>
+              <div className="routine-form-row half">
+                <div className="routine-form-label">Window start (hour)</div>
+                <input
+                  type="number"
+                  className="routine-form-input mono"
+                  value={recurStartHour}
+                  min="0" max="23" step="1"
+                  onChange={e => setRecurStartHour(e.target.value)}
+                />
+              </div>
+              <div className="routine-form-row half">
+                <div className="routine-form-label">Window end (hour)</div>
+                <input
+                  type="number"
+                  className="routine-form-input mono"
+                  value={recurEndHour}
+                  min="0" max="23" step="1"
+                  onChange={e => setRecurEndHour(e.target.value)}
+                />
+              </div>
+              <div className="routine-form-row">
+                <div style={{ fontSize: 11, color: 'var(--muted-3)', fontStyle: 'italic', lineHeight: 1.5 }}>
+                  Triggers in the Right Now banner during the first 2 minutes of every hour from {pad(Number(recurStartHour) || 0)}:00 to {pad(Number(recurEndHour) || 0)}:00, on the selected days. The protocol shown is read from the "Micro-Strength Protocol" entry in your Reference Library — edit it there to change what the banner displays.
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="routine-form-row half">
+                <div className="routine-form-label">Start time</div>
+                <input
+                  type="text"
+                  className="routine-form-input mono"
+                  value={start}
+                  onChange={e => setStart(e.target.value)}
+                  placeholder="HH:MM"
+                />
+              </div>
+              <div className="routine-form-row half">
+                <div className="routine-form-label">Duration (min)</div>
+                <input
+                  type="number"
+                  className="routine-form-input mono"
+                  value={duration}
+                  min="5" max="600" step="5"
+                  onChange={e => setDuration(e.target.value)}
+                />
+              </div>
+            </>
+          )}
+
+          <div className="routine-form-row">
+            <div className="routine-form-label">Category</div>
+            <div className="cat-chips">
+              {CATEGORY_OPTIONS.map(c => {
+                const cat = CATS[c] || {};
+                const active = category === c;
+                return (
+                  <button
+                    key={c}
+                    className={`cat-chip ${active ? 'active' : ''}`}
+                    style={{
+                      color: active ? cat.color : 'var(--muted-3)',
+                      borderColor: active ? cat.color : 'var(--border)',
+                    }}
+                    onClick={() => setCategory(c)}
+                  >{cat.label || c}</button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="routine-form-row">
+            <div className="routine-form-label">Note (optional)</div>
+            <textarea
+              className="routine-form-textarea"
+              value={note}
+              onChange={e => setNote(e.target.value)}
+            />
+          </div>
+
+          <div className="routine-form-row">
+            <label className="checkbox-row">
+              <input
+                type="checkbox"
+                checked={homeOnly}
+                onChange={e => setHomeOnly(e.target.checked)}
+              />
+              <span>Home only — hide when working from elsewhere</span>
+            </label>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, marginTop: 18 }}>
+          <button className="modal-btn primary" style={{ flex: 1 }} onClick={handleSave}>
+            <span>{isNew ? 'Add to routine' : 'Save changes'}</span>
+          </button>
+          <button className="modal-btn" onClick={onCancel}>
+            <span>Cancel</span>
+          </button>
+        </div>
+
+        {!isNew && onDelete && (
+          <div style={{ marginTop: 12 }}>
+            <button className="modal-btn danger" onClick={onDelete}>
+              <span>✕ Delete this routine item permanently</span>
+            </button>
+          </div>
+        )}
+      </div>
+    </>
+  );
+
+  if (embedded) {
+    return <div>{formContent}</div>;
+  }
+
   return (
     <div className="modal-backdrop" onClick={handleBackdropClick}>
       <div className="modal routine-modal">
         <button className="modal-close" onClick={onCloseModal} aria-label="Close">×</button>
-        <div className="modal-header">
-          <div className="modal-eyebrow">{isNew ? 'New routine item' : (isRecurring ? 'Edit recurring item · top of every hour' : 'Edit routine item')}</div>
-          <div className="modal-title">{title || 'Untitled'}</div>
-          <div className="modal-meta">
-            <span style={{ fontStyle: 'italic' }}>Changes apply to all weeks, past and future</span>
-          </div>
-        </div>
-        <div className="modal-body">
-          <div className="routine-form-grid">
-            <div className="routine-form-row">
-              <div className="routine-form-label">Title</div>
-              <input
-                type="text"
-                className="routine-form-input"
-                value={title}
-                onChange={e => setTitle(e.target.value)}
-                autoFocus
-              />
-            </div>
-
-            <div className="routine-form-row">
-              <div className="routine-form-label">Days of week</div>
-              <div className="day-chips">
-                {dayPicker.map(jsDay => {
-                  const visualCol = jsDay === 0 ? 6 : jsDay - 1;
-                  return (
-                    <button
-                      key={jsDay}
-                      className={`day-chip ${days.includes(jsDay) ? 'active' : ''}`}
-                      onClick={() => toggleDay(jsDay)}
-                    >{DAY_NAMES_SHORT[visualCol]}</button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {isRecurring ? (
-              <>
-                <div className="routine-form-row half">
-                  <div className="routine-form-label">Window start (hour)</div>
-                  <input
-                    type="number"
-                    className="routine-form-input mono"
-                    value={recurStartHour}
-                    min="0" max="23" step="1"
-                    onChange={e => setRecurStartHour(e.target.value)}
-                  />
-                </div>
-                <div className="routine-form-row half">
-                  <div className="routine-form-label">Window end (hour)</div>
-                  <input
-                    type="number"
-                    className="routine-form-input mono"
-                    value={recurEndHour}
-                    min="0" max="23" step="1"
-                    onChange={e => setRecurEndHour(e.target.value)}
-                  />
-                </div>
-                <div className="routine-form-row">
-                  <div style={{ fontSize: 11, color: 'var(--muted-3)', fontStyle: 'italic', lineHeight: 1.5 }}>
-                    Triggers in the Right Now banner during the first 2 minutes of every hour from {pad(Number(recurStartHour) || 0)}:00 to {pad(Number(recurEndHour) || 0)}:00, on the selected days. The protocol shown is read from the "Micro-Strength Protocol" entry in your Reference Library — edit it there to change what the banner displays.
-                  </div>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="routine-form-row half">
-                  <div className="routine-form-label">Start time</div>
-                  <input
-                    type="text"
-                    className="routine-form-input mono"
-                    value={start}
-                    onChange={e => setStart(e.target.value)}
-                    placeholder="HH:MM"
-                  />
-                </div>
-                <div className="routine-form-row half">
-                  <div className="routine-form-label">Duration (min)</div>
-                  <input
-                    type="number"
-                    className="routine-form-input mono"
-                    value={duration}
-                    min="5" max="600" step="5"
-                    onChange={e => setDuration(e.target.value)}
-                  />
-                </div>
-              </>
-            )}
-
-            <div className="routine-form-row">
-              <div className="routine-form-label">Category</div>
-              <div className="cat-chips">
-                {CATEGORY_OPTIONS.map(c => {
-                  const cat = CATS[c] || {};
-                  const active = category === c;
-                  return (
-                    <button
-                      key={c}
-                      className={`cat-chip ${active ? 'active' : ''}`}
-                      style={{
-                        color: active ? cat.color : 'var(--muted-3)',
-                        borderColor: active ? cat.color : 'var(--border)',
-                      }}
-                      onClick={() => setCategory(c)}
-                    >{cat.label || c}</button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="routine-form-row">
-              <div className="routine-form-label">Note (optional)</div>
-              <textarea
-                className="routine-form-textarea"
-                value={note}
-                onChange={e => setNote(e.target.value)}
-              />
-            </div>
-
-            <div className="routine-form-row">
-              <label className="checkbox-row">
-                <input
-                  type="checkbox"
-                  checked={homeOnly}
-                  onChange={e => setHomeOnly(e.target.checked)}
-                />
-                <span>Home only — hide when working from elsewhere</span>
-              </label>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: 8, marginTop: 18 }}>
-            <button className="modal-btn primary" style={{ flex: 1 }} onClick={handleSave}>
-              <span>{isNew ? 'Add to routine' : 'Save changes'}</span>
-            </button>
-            <button className="modal-btn" onClick={onCancel}>
-              <span>Cancel</span>
-            </button>
-          </div>
-
-          {!isNew && onDelete && (
-            <div style={{ marginTop: 12 }}>
-              <button className="modal-btn danger" onClick={onDelete}>
-                <span>✕ Delete this routine item permanently</span>
-              </button>
-            </div>
-          )}
-        </div>
+        {formContent}
       </div>
     </div>
   );

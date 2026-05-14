@@ -9,7 +9,6 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   const [openRoutineEdit, setOpenRoutineEdit] = useState(null); // { itemId, date } for routine click popover
   const [refLibraryOpen, setRefLibraryOpen] = useState(false);
   const [refExpandedId, setRefExpandedId] = useState(null);
-  const [routineManagerOpen, setRoutineManagerOpen] = useState(false);
   const [inboxOpen, setInboxOpen] = useState(false);
   const [resetOverlayOpen, setResetOverlayOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -701,77 +700,34 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
 
   return (
     <>
-    <div className="view-switcher-bar">
-      <ViewSwitcher view={mainView} onSwitchView={setMainView} />
-    </div>
-    <div className={`today-wrap fade-in${mainView === 'plan' && dayView !== null ? ' day-view' : ''}`}>
-
-      {/* ── TOPBAR (identical in both views) ── */}
-      <div className="today-topbar">
-        <div className="today-topbar-left">
-          <button
-            className="today-day-nav-today"
-            onClick={mainView === 'today' ? () => setViewDayOffset(0) : goToday}
-            aria-label="Go to today"
-          >Today</button>
-          <div className="today-topbar-nav-row">
-            <button
-              className="today-day-nav-btn"
-              onClick={mainView === 'today' ? () => setViewDayOffset(o => o - 1) : goPrev}
-              aria-label="Previous"
-            >‹</button>
-            <div className="today-date-block">
-              <div className="today-date">
-                <span className="today-date-day">
-                  {mainView === 'today'
-                    ? viewDate.toLocaleDateString(undefined, { weekday: 'long' })
-                    : (dayView !== null
-                        ? (isSameDay(addDays(weekStart, dayView), now) ? 'Today' : DAY_NAMES_LONG[dayView])
-                        : (isCurrentWeek ? 'This week' : `Week of ${formatDateShort(weekStart)}`))
-                  }
-                </span>
-                <span className="today-date-rest">
-                  {mainView === 'today'
-                    ? viewDate.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })
-                    : (dayView !== null
-                        ? `${formatDateShort(addDays(weekStart, dayView))}, ${addDays(weekStart, dayView).getFullYear()}`
-                        : formatRange(weekStart, weekEnd))
-                  }
-                </span>
-              </div>
-              <div className="today-date-time">
-                {mainView === 'today' && viewDayOffset !== 0
-                  ? (viewDayOffset === 1 ? 'Tomorrow' : viewDayOffset === -1 ? 'Yesterday' : `${viewDayOffset > 0 ? '+' : ''}${viewDayOffset} days`)
-                  : now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
-                }
-              </div>
-            </div>
-            <button
-              className="today-day-nav-btn"
-              onClick={mainView === 'today' ? () => setViewDayOffset(o => o + 1) : goNext}
-              aria-label="Next"
-            >›</button>
-          </div>
-        </div>
-        <div className="today-topbar-right">
-          <button
-            className="today-theme-toggle"
-            onClick={() => setTheme(currentTheme === 'light' ? 'dark' : 'light')}
-            title={currentTheme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'}
-            aria-label="Toggle theme"
-          >{currentTheme === 'light' ? '◐' : '◑'}</button>
-          <button
-            className={`today-elsewhere-toggle ${isWorkingAway ? 'active' : ''}`}
-            onClick={toggleWorkingAway}
-            title={isWorkingAway ? 'Working away — tap to switch back to home' : "Tap if you're away from home today"}
-          >{isWorkingAway ? 'Away' : 'At home'}</button>
-          <button className="today-practice-btn" onClick={() => setPracticeOpen(true)}>Practice</button>
-          <button className="today-footer-btn" onClick={() => setInboxOpen(true)}>
-            {openInboxCount > 0 ? `Inbox · ${openInboxCount}` : '+ Inbox'}
-          </button>
-          <button className="today-footer-btn" onClick={() => setSettingsOpen(true)}>⚙ Settings</button>
-        </div>
+    {/* ── FIXED APP TOPBAR ── */}
+    <div className="app-topbar">
+      <div className="app-topbar-left">
+        <button className="app-topbar-btn" onClick={mainView === 'today' ? () => setViewDayOffset(0) : goToday}>Today</button>
+        <button className="app-topbar-nav-btn" onClick={mainView === 'today' ? () => setViewDayOffset(o => o - 1) : goPrev}>‹</button>
+        <button className="app-topbar-nav-btn" onClick={mainView === 'today' ? () => setViewDayOffset(o => o + 1) : goNext}>›</button>
+        <span className="app-topbar-date">
+          {mainView === 'today'
+            ? viewDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })
+            : (dayView !== null
+                ? (isSameDay(addDays(weekStart, dayView), now) ? 'Today' : `${DAY_NAMES_LONG[dayView]}, ${formatDateShort(addDays(weekStart, dayView))}`)
+                : (isCurrentWeek ? 'This week' : formatRange(weekStart, weekEnd)))
+          }
+        </span>
       </div>
+      <div className="app-topbar-center">
+        <ViewSwitcher view={mainView} onSwitchView={setMainView} />
+      </div>
+      <div className="app-topbar-right">
+        <button className="app-topbar-btn app-topbar-btn-icon" onClick={() => setTheme(currentTheme === 'light' ? 'dark' : 'light')} title="Toggle theme">{currentTheme === 'light' ? '◐' : '◑'}</button>
+        <button className={`app-topbar-btn ${isWorkingAway ? 'active' : ''}`} onClick={toggleWorkingAway}>{isWorkingAway ? 'Away' : 'At home'}</button>
+        <button className="app-topbar-btn" onClick={() => setPracticeOpen(true)}>Practice</button>
+        <button className="app-topbar-btn" onClick={() => setInboxOpen(true)}>{openInboxCount > 0 ? `Inbox · ${openInboxCount}` : 'Inbox'}</button>
+        <button className="app-topbar-btn" onClick={() => setSettingsOpen(true)}>Settings</button>
+      </div>
+    </div>
+
+    <div className={`today-wrap fade-in${mainView === 'plan' && dayView !== null ? ' day-view' : ''}`}>
 
       {/* ── WEATHER (identical in both views) ── */}
       <WeatherStrip
@@ -846,6 +802,16 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
 
         {/* LEFT RAIL — same in both views */}
         <div className="today-rail">
+          <TodayMiniMonth
+            viewDate={viewDate}
+            now={now}
+            onSelectDate={(d) => {
+              const start = startOfDay(d).getTime();
+              const today0 = startOfDay(now).getTime();
+              const offset = Math.round((start - today0) / (24 * 60 * 60 * 1000));
+              setViewDayOffset(offset);
+            }}
+          />
           <ProjectsRailPanel
             projects={projects}
             scheduledBlocks={blocks}
@@ -895,16 +861,6 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
               })}
             </div>
           </div>
-          <TodayMiniMonth
-            viewDate={viewDate}
-            now={now}
-            onSelectDate={(d) => {
-              const start = startOfDay(d).getTime();
-              const today0 = startOfDay(now).getTime();
-              const offset = Math.round((start - today0) / (24 * 60 * 60 * 1000));
-              setViewDayOffset(offset);
-            }}
-          />
         </div>
 
         {/* RIGHT PANE — today timeline OR week grid */}
@@ -979,7 +935,6 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
       {/* ── FOOTER (identical in both views) ── */}
       <div className="today-footer">
         <FridayReviewLauncher now={now} weeklyResets={data.weeklyResets || []} onLaunch={() => setResetOverlayOpen(true)} />
-        <button className="today-footer-btn" onClick={() => setRoutineManagerOpen(true)}>⚙ Routines</button>
         <span className="today-footer-status">
           {saving ? 'Saving…' : (error ? 'Save error' : (lastSyncedAt ? `Synced ${new Date(lastSyncedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}` : ''))}
         </span>
@@ -1018,23 +973,6 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         onChangeExpanded={setRefExpandedId}
         onClose={() => setRefLibraryOpen(false)}
         onUpdate={updateRefEntry}
-      />
-    )}
-
-    {routineManagerOpen && (
-      <RoutineManagerModal
-        routine={data.routine || []}
-        onClose={() => setRoutineManagerOpen(false)}
-        onUpdateItem={updateRoutineItem}
-        onAddItem={addRoutineItem}
-        onDeleteItem={deleteRoutineItem}
-        categoryStyles={categoryStyles}
-        onSetCategoryColor={setCategoryColor}
-        onResetCategoryColor={resetCategoryColor}
-        userCategoryColors={userCategoryColors}
-        onSetCategoryEmoji={setCategoryEmoji}
-        onResetCategoryEmoji={resetCategoryEmoji}
-        userCategoryEmojis={userCategoryEmojis}
       />
     )}
 
@@ -1077,6 +1015,17 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         lunchSlot={lunchSlot}
         onSetLunchSlot={setLunchSlot}
         onClose={() => setSettingsOpen(false)}
+        routine={data.routine || []}
+        onUpdateRoutineItem={updateRoutineItem}
+        onAddRoutineItem={addRoutineItem}
+        onDeleteRoutineItem={deleteRoutineItem}
+        categoryStyles={categoryStyles}
+        onSetCategoryColor={setCategoryColor}
+        onResetCategoryColor={resetCategoryColor}
+        userCategoryColors={userCategoryColors}
+        onSetCategoryEmoji={setCategoryEmoji}
+        onResetCategoryEmoji={resetCategoryEmoji}
+        userCategoryEmojis={userCategoryEmojis}
       />
     )}
 

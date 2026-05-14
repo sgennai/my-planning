@@ -596,7 +596,10 @@ function ColorSwatchPicker({ value, onChange, label }) {
   );
 }
 
-function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh, weather, onUpdateWeather, onRequestGeo, lunchSlot, onSetLunchSlot, onClose }) {
+function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh, weather, onUpdateWeather, onRequestGeo, lunchSlot, onSetLunchSlot, onClose,
+  routine, onUpdateRoutineItem, onAddRoutineItem, onDeleteRoutineItem, categoryStyles, onSetCategoryColor, onResetCategoryColor, userCategoryColors, onSetCategoryEmoji, onResetCategoryEmoji, userCategoryEmojis
+}) {
+  const [activeTab, setActiveTab] = useState('calendars');
   const [lunchStart, setLunchStart] = useState((lunchSlot && lunchSlot.start) || '12:30');
   const [lunchDuration, setLunchDuration] = useState((lunchSlot && lunchSlot.duration) || 60);
   const [proxyUrl, setProxyUrl] = useState(calendars.proxyUrl || '');
@@ -664,11 +667,29 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
         <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
         <div className="modal-header">
           <div className="modal-eyebrow">Settings</div>
-          <div className="modal-title">External calendar feeds</div>
-          <div className="modal-meta">
-            <span style={{ fontStyle: 'italic' }}>Imported events appear read-only — edit them in the source calendar</span>
-          </div>
+          <div className="modal-title">App settings</div>
         </div>
+        <div className="settings-tabs">
+          <button className={`settings-tab-btn ${activeTab === 'calendars' ? 'active' : ''}`} onClick={() => setActiveTab('calendars')}>Calendars & Settings</button>
+          <button className={`settings-tab-btn ${activeTab === 'routines' ? 'active' : ''}`} onClick={() => setActiveTab('routines')}>Routines</button>
+        </div>
+        {activeTab === 'routines' ? (
+          <RoutineManagerModal
+            embedded={true}
+            routine={routine || []}
+            onClose={() => setActiveTab('calendars')}
+            onUpdateItem={onUpdateRoutineItem}
+            onAddItem={onAddRoutineItem}
+            onDeleteItem={onDeleteRoutineItem}
+            categoryStyles={categoryStyles}
+            onSetCategoryColor={onSetCategoryColor}
+            onResetCategoryColor={onResetCategoryColor}
+            userCategoryColors={userCategoryColors}
+            onSetCategoryEmoji={onSetCategoryEmoji}
+            onResetCategoryEmoji={onResetCategoryEmoji}
+            userCategoryEmojis={userCategoryEmojis}
+          />
+        ) : (
         <div className="modal-body">
           <div className="settings-section">
             <div className="settings-field">
@@ -847,6 +868,7 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
             </div>
           </div>
         </div>
+        )}
       </div>
     </div>
   );
