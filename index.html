@@ -12,7 +12,7 @@
   <title>My Planning</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap" />
   <style>
     /* ─────────────────────────────────────────────────────────────
        STRUCTURAL TOKENS — type scale, spacing, motion.
@@ -60,6 +60,9 @@
       --radius-xl: 16px;
       --radius-pill: 999px;
 
+      /* Type families — display is for eyebrows/labels, sans is the UI workhorse */
+      --display: 'Cormorant Garamond', 'Palatino Linotype', Georgia, serif;
+
       /* Motion — Pass 2 will use these. Defining now so structural changes
          resolve clean curves rather than browser defaults. */
       --ease-out: cubic-bezier(0.23, 1, 0.32, 1);     /* gentle decel — for entrances */
@@ -77,95 +80,95 @@
        cleanly without per-theme rewrites.
        ───────────────────────────────────────────────────────────── */
 
-    /* Light theme — modern, aerial, Google-Calendar-flavored.
-       Cool off-white surfaces (not warm paper). Blue primary.
-       Shadows do the work that hairline borders used to. */
+    /* Light theme — luxury minimal. Near-paper surfaces, ink-black text.
+       Borders do the structural work; shadows are near-zero. */
     :root, :root[data-theme="light"] {
       /* Surfaces */
-      --bg: #F8FAFD;
+      --bg: #F9F9F7;
       --bg-card: #FFFFFF;
-      --bg-card-deep: #F0F3F7;
-      --bg-hover: #EDF1F6;
+      --bg-card-deep: #F4F4F2;
+      --bg-hover: #EFEFED;
 
-      /* Lines */
-      --border: #E2E8F0;
-      --rule: rgba(218, 228, 242, 0.55);
-      --rule-faint: rgba(226, 232, 240, 0.6);
-      --col-divider: #E2E8F0;
+      /* Lines — single-tone, no blue tint */
+      --border: #E4E4E0;
+      --rule: rgba(0, 0, 0, 0.07);
+      --rule-faint: rgba(0, 0, 0, 0.04);
+      --col-divider: #E4E4E0;
 
-      /* Primary — modern blue */
-      --primary: #3B82F6;
-      --primary-hover: #2563EB;
-      --primary-soft: #DBEAFE;
+      /* Primary — authoritative blue */
+      --primary: #2563EB;
+      --primary-hover: #1D4ED8;
+      --primary-soft: #EFF6FF;
       --primary-text: #FFFFFF;
 
-      /* Accents — kept for category colors but no longer load-bearing */
-      --gold: #D97706;
-      --gold-dim: #F59E0B;
-      --teal: #14B8A6;
-      --violet: #8B5CF6;
-      --coral: #EF4444;
+      /* Accents — category colors, not chrome */
+      --gold: #C97A10;
+      --gold-dim: #E08C20;
+      --teal: #0D9488;
+      --violet: #7C3AED;
+      --coral: #DC2626;
 
-      /* Text */
-      --text: #1F2937;
-      --muted-1: #374151;
-      --muted-2: #4B5563;
-      --muted-3: #6B7280;
-      --muted-4: #9CA3AF;
+      /* Text — 3 decisive tones: ink, mid, ghost */
+      --text: #111110;
+      --muted-1: #333330;
+      --muted-2: #555550;
+      --muted-3: #888880;
+      --muted-4: #AAAAAA;
 
       /* Type */
-      --serif: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      --serif: 'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
       --mono: 'JetBrains Mono', 'SF Mono', 'Menlo', 'Consolas', monospace;
 
-      /* Shadows */
-      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
-      --shadow-md: 0 2px 6px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
-      --shadow-lg: 0 12px 24px rgba(15, 23, 42, 0.08), 0 4px 8px rgba(15, 23, 42, 0.04);
-      --shadow-primary: 0 4px 12px rgba(59, 130, 246, 0.16);
-      --modal-backdrop: rgba(15, 23, 42, 0.32);
-      --weekend-tint: rgba(15, 23, 42, 0.025);
-      --bg-error: rgba(239, 68, 68, 0.08);
+      /* Shadows — near-zero; borders carry structure */
+      --shadow-sm: 0 1px 0 rgba(0, 0, 0, 0.06);
+      --shadow-md: 0 1px 3px rgba(0, 0, 0, 0.07), 0 1px 0 rgba(0, 0, 0, 0.04);
+      --shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.09), 0 1px 3px rgba(0, 0, 0, 0.05);
+      --shadow-primary: 0 2px 8px rgba(37, 99, 235, 0.20);
+      --modal-backdrop: rgba(0, 0, 0, 0.28);
+      --weekend-tint: rgba(0, 0, 0, 0.02);
+      --bg-error: rgba(220, 38, 38, 0.07);
     }
 
-    /* Dark theme — preserved as option, modernized to match new aesthetic. */
+    /* Dark theme — luxury: near-pure black, precise hairlines, no glow. */
     :root[data-theme="dark"] {
-      --bg: #0F172A;
-      --bg-card: #1E293B;
-      --bg-card-deep: #0F172A;
-      --bg-hover: #334155;
+      --bg: #0C0C0E;
+      --bg-card: #141418;
+      --bg-card-deep: #0C0C0E;
+      --bg-hover: #1E1E24;
 
-      --border: #334155;
-      --rule: rgba(30, 41, 59, 0.65);
-      --rule-faint: rgba(51, 65, 85, 0.4);
-      --col-divider: #334155;
+      --border: #2A2A32;
+      --rule: rgba(255, 255, 255, 0.06);
+      --rule-faint: rgba(255, 255, 255, 0.03);
+      --col-divider: #2A2A32;
 
-      --primary: #60A5FA;
+      --primary: #4F8EF7;
       --primary-hover: #3B82F6;
-      --primary-soft: rgba(96, 165, 250, 0.15);
-      --primary-text: #0F172A;
+      --primary-soft: rgba(79, 142, 247, 0.12);
+      --primary-text: #0C0C0E;
 
-      --gold: #F59E0B;
-      --gold-dim: #D97706;
-      --teal: #2DD4BF;
-      --violet: #A78BFA;
+      --gold: #E09020;
+      --gold-dim: #C97A10;
+      --teal: #14B8A6;
+      --violet: #8B5CF6;
       --coral: #F87171;
 
-      --text: #F1F5F9;
-      --muted-1: #CBD5E1;
-      --muted-2: #94A3B8;
-      --muted-3: #64748B;
-      --muted-4: #475569;
+      /* Text — 3 decisive tones: ghost-white, mid, faded */
+      --text: #EDECF0;
+      --muted-1: #C0BFCA;
+      --muted-2: #8A899A;
+      --muted-3: #5C5B6A;
+      --muted-4: #404050;
 
-      --serif: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      --serif: 'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
       --mono: 'JetBrains Mono', 'SF Mono', 'Menlo', 'Consolas', monospace;
 
-      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-      --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.4);
-      --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.5);
-      --shadow-primary: 0 4px 12px rgba(96, 165, 250, 0.2);
-      --modal-backdrop: rgba(0, 0, 0, 0.6);
-      --weekend-tint: rgba(255, 255, 255, 0.02);
-      --bg-error: rgba(248, 113, 113, 0.1);
+      --shadow-sm: 0 1px 0 rgba(255, 255, 255, 0.03);
+      --shadow-md: 0 1px 3px rgba(0, 0, 0, 0.45), 0 1px 0 rgba(255, 255, 255, 0.02);
+      --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.55), 0 1px 3px rgba(0, 0, 0, 0.35);
+      --shadow-primary: 0 2px 8px rgba(79, 142, 247, 0.22);
+      --modal-backdrop: rgba(0, 0, 0, 0.65);
+      --weekend-tint: rgba(255, 255, 255, 0.015);
+      --bg-error: rgba(248, 113, 113, 0.10);
     }
     * { box-sizing: border-box; }
 
@@ -216,13 +219,6 @@
       -webkit-font-smoothing: antialiased;
     }
     body { position: relative; overflow-x: hidden; }
-    /* Subtle ambient gradient — adds dimension to the page without noise.
-       Top edge gets a faint blue glow that fades out. */
-    body::before {
-      content: ''; position: fixed; top: 0; left: 0; right: 0;
-      height: 320px; pointer-events: none; z-index: 0;
-      background: radial-gradient(ellipse 80% 100% at 50% 0%, rgba(59, 130, 246, 0.04), transparent 70%);
-    }
 
     .wrap, .wrap-wide {
       position: relative; z-index: 1;
@@ -256,6 +252,24 @@
       margin-bottom: 8px;
     }
     .eyebrow.danger { color: var(--coral); }
+
+    /* ── Cormorant Garamond on all eyebrow / section-label elements.
+       The display font is the typographic signature of this app. ── */
+    .eyebrow,
+    .cal-eyebrow,
+    .today-hero-eyebrow,
+    .today-hero-next-label,
+    .today-hero-then-label,
+    .today-rail-eyebrow,
+    .today-timeline-eyebrow,
+    .todos-pane-eyebrow,
+    .todos-pane-eyebrow,
+    .week-col-date-label {
+      font-family: var(--display);
+      font-weight: 600;
+      letter-spacing: 0.18em;
+    }
+
     h1.title {
       font-size: clamp(36px, 6vw, 64px);
       font-weight: 400;
@@ -5030,24 +5044,24 @@
       box-shadow: 0 0 0 1px var(--primary), 0 0 12px rgba(201, 168, 76, 0.4);
     }
 
-    /* ───────── INTEGRATED PANEL STYLE — lighter borders, softer shadows ───────── */
+    /* ───────── INTEGRATED PANEL STYLE — borderline-only, near-zero shadow ───────── */
     .mini-month,
     .today-rail-section,
     .today-timeline,
     .week-grid,
     .weather-strip {
-      background: rgba(255, 255, 255, 0.72);
-      border-color: rgba(210, 222, 240, 0.5);
-      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+      background: rgba(255, 255, 255, 0.82);
+      border-color: rgba(0, 0, 0, 0.08);
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
     }
     :root[data-theme="dark"] .mini-month,
     :root[data-theme="dark"] .today-rail-section,
     :root[data-theme="dark"] .today-timeline,
     :root[data-theme="dark"] .week-grid,
     :root[data-theme="dark"] .weather-strip {
-      background: rgba(30, 41, 59, 0.78);
-      border-color: rgba(51, 65, 85, 0.45);
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+      background: rgba(20, 20, 24, 0.88);
+      border-color: rgba(255, 255, 255, 0.07);
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02);
     }
     /* week-grid header stays solid so sticky scrolling looks clean */
     .week-grid-header {
