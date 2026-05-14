@@ -966,13 +966,11 @@ function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, no
             }
             return true;
           });
-          const supplementItems = dayItems.filter(it => it._kind === 'routine' && it.category === 'supplement');
-          const mainItems = dayItems.filter(it => !(it._kind === 'routine' && it.category === 'supplement'));
 
           return (
             <div
               key={col}
-              className={`day-column ${isToday ? 'today' : ''} ${isWeekend ? 'weekend' : ''} ${activeDropCol === col ? 'drop-active' : ''} ${supplementItems.length ? 'has-supplements' : ''}`}
+              className={`day-column ${isToday ? 'today' : ''} ${isWeekend ? 'weekend' : ''} ${activeDropCol === col ? 'drop-active' : ''}`}
               onDragOver={(e) => onColDragOver(e, col)}
               onDragLeave={onColDragLeave}
               onDrop={(e) => onColDrop(e, col)}
@@ -984,7 +982,7 @@ function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, no
                   style={{ top: (i + 1) * HOUR_HEIGHT }}
                 />
               ))}
-              {mainItems.map(item => (
+              {dayItems.map(item => (
                 <CalItem
                   key={item.id + ':' + col}
                   item={item}
@@ -999,18 +997,6 @@ function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, no
                   now={now}
                 />
               ))}
-              {supplementItems.length > 0 && (
-                <SupplementStrip
-                  items={supplementItems}
-                  hourHeight={HOUR_HEIGHT}
-                  startHour={START_HOUR}
-                  date={date}
-                  now={now}
-                  onItemClick={(id, d) => onRoutineClick && onRoutineClick(id, d)}
-                  categoryStyles={categoryStyles}
-                  stripWidth={isDayView ? 56 : 40}
-                />
-              )}
               {isToday && <NowLine now={now} hourHeight={HOUR_HEIGHT} />}
               {dropPreview && dropPreview.col === col && (
                 <div className="drop-ghost" style={{ top: dropPreview.top, height: dropPreview.height }}>

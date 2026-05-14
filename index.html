@@ -2195,58 +2195,6 @@
     .today-timeline-row.is-past { opacity: 0.45; filter: saturate(0.3); }
     .today-cal-block.is-past { opacity: 0.45; filter: saturate(0.25); }
     .cal-item.is-past { opacity: 0.4; filter: saturate(0.2); }
-    /* ── Supplement right-side strip ──────────────────────── */
-    .supp-strip {
-      position: absolute;
-      top: 0; bottom: 0; right: 0;
-      border-left: 1px dashed var(--border);
-      background: transparent;
-      z-index: 3;
-      overflow: hidden;
-      pointer-events: none;
-    }
-    .supp-strip-cluster {
-      position: absolute;
-      left: 0; right: 0;
-      display: flex;
-      flex-direction: column;
-      pointer-events: none;
-    }
-    .supp-strip-cluster.is-past { opacity: 0.35; filter: saturate(0.2); }
-    .supp-strip-item {
-      display: flex;
-      align-items: center;
-      gap: 2px;
-      height: 16px;
-      padding: 0 3px 0 4px;
-      background: none;
-      border: none;
-      border-left: 2px solid transparent;
-      cursor: pointer;
-      width: 100%;
-      text-align: left;
-      overflow: hidden;
-      pointer-events: auto;
-    }
-    .supp-strip-item:hover { background: var(--bg-card-deep); }
-    .supp-strip-item.completed { opacity: 0.4; }
-    .supp-strip-label {
-      font-size: 9px;
-      font-family: var(--mono);
-      color: var(--text-muted);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      flex: 1;
-      min-width: 0;
-      line-height: 1;
-      letter-spacing: 0.02em;
-    }
-    .supp-strip-check { font-size: 8px; color: var(--teal); flex-shrink: 0; }
-    /* Narrow main blocks so they don't extend under the supplement strip */
-    .day-column.has-supplements .cal-item { max-width: calc(100% - 42px); }
-    .today-cal-grid.has-supplements .today-cal-block { max-width: calc(100% - 74px); }
-    /* ── End supplement strip ─────────────────────────────── */
     .today-timeline-row.is-completed { opacity: 0.55; }
     .today-timeline-time {
       flex-shrink: 0;
