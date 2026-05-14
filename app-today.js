@@ -334,7 +334,11 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
           : (it.color || 'var(--primary)');
         const isHex = stripeColor.startsWith('#');
         const isNow = isToday && it.startMin <= nowMin && (it.startMin + it.duration) > nowMin;
-        const cls = `today-cal-block ${it.completed ? 'is-completed' : ''} ${isNow && !it.completed ? 'is-now' : ''} ${it.kind === 'ics' ? 'is-ics' : ''}`;
+        const isPast = !it.completed && (
+          startOfDay(viewDate).getTime() < startOfDay(now).getTime() ||
+          (isToday && (it.startMin + it.duration) <= nowMin)
+        );
+        const cls = `today-cal-block ${it.completed ? 'is-completed' : ''} ${isNow && !it.completed ? 'is-now' : ''} ${isPast ? 'is-past' : ''} ${it.kind === 'ics' ? 'is-ics' : ''}`;
         const isShort = height < 36;
         // 12-hour time format with am/pm: "2 – 3pm" style
         const fmt12 = (m) => {

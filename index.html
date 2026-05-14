@@ -2192,7 +2192,9 @@
       pointer-events: none;
     }
     .today-timeline-row { position: relative; }
-    .today-timeline-row.is-past { opacity: 0.45; }
+    .today-timeline-row.is-past { opacity: 0.45; filter: saturate(0.3); }
+    .today-cal-block.is-past { opacity: 0.45; filter: saturate(0.25); }
+    .cal-item.is-past { opacity: 0.4; filter: saturate(0.2); }
     .today-timeline-row.is-completed { opacity: 0.55; }
     .today-timeline-time {
       flex-shrink: 0;

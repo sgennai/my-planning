@@ -994,6 +994,7 @@ function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, no
                   onUpdateBlock={onUpdateBlock}
                   onToggleComplete={onToggleComplete}
                   categoryStyles={categoryStyles}
+                  now={now}
                 />
               ))}
               {isToday && <NowLine now={now} hourHeight={HOUR_HEIGHT} />}
@@ -1012,7 +1013,7 @@ function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, no
   );
 }
 
-function CalItem({ item, date, hourHeight, projects, onBlockClick, onRoutineClick, onUpdateBlock, onToggleComplete, categoryStyles }) {
+function CalItem({ item, date, hourHeight, projects, onBlockClick, onRoutineClick, onUpdateBlock, onToggleComplete, categoryStyles, now }) {
   const CATS = categoryStyles || CATEGORY_STYLES;
   const isBlock = item._kind === 'block';
   const isRoutine = item._kind === 'routine';
@@ -1134,6 +1135,17 @@ function CalItem({ item, date, hourHeight, projects, onBlockClick, onRoutineClic
     cls += ' ics-event';
     cls += item._ics.source === 'work' ? ' ics-work' : ' ics-household';
     if (item._ics.allDay) cls += ' all-day';
+  }
+  if (now) {
+    const isCompleted = item._completed || (isBlock && block.status === 'completed');
+    const dateDay = startOfDay(date).getTime();
+    const todayDay = startOfDay(now).getTime();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    const isPast = !isCompleted && (
+      dateDay < todayDay ||
+      (dateDay === todayDay && (startMin + effectiveDuration) <= nowMin)
+    );
+    if (isPast) cls += ' is-past';
   }
 
   const onClick = (e) => {
