@@ -769,40 +769,6 @@ async function updateFile(fileId, data) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// SUPPLEMENT DOT CLUSTER — compact dot markers replacing full blocks
-// ─────────────────────────────────────────────────────────────
-function SupplementDotCluster({ startMin, items, hourHeight, startHour, date, now, onDotClick, categoryStyles }) {
-  const CATS = categoryStyles || CATEGORY_STYLES;
-  const suppColor = (CATS.supplement || {}).color || '#9C8845';
-  const SH = startHour !== undefined ? startHour : 6;
-  const top = ((startMin - SH * 60) / 60) * hourHeight;
-
-  const isPast = now ? (() => {
-    const dateDay = startOfDay(date).getTime();
-    const todayDay = startOfDay(now).getTime();
-    const nowMin = now.getHours() * 60 + now.getMinutes();
-    return dateDay < todayDay || (dateDay === todayDay && startMin <= nowMin);
-  })() : false;
-
-  return (
-    <div className={`supplement-dot-cluster${isPast ? ' is-past' : ''}`} style={{ top }}>
-      {items.map(it => (
-        <button
-          key={it.id}
-          className={`supplement-dot-item${it.completed ? ' completed' : ''}`}
-          onClick={(e) => { e.stopPropagation(); onDotClick && onDotClick(it.id, date); }}
-          title={`${it.title} · ${pad(Math.floor(startMin / 60))}:${pad(startMin % 60)}`}
-        >
-          <span className="supplement-dot" style={{ background: suppColor }} />
-          <span className="supplement-dot-label">{it.title}</span>
-          {it.completed && <span className="supplement-dot-check">✓</span>}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
 // VIEW SWITCHER — Apple Calendar-style Today / Week toggle
 // ─────────────────────────────────────────────────────────────
 function ViewSwitcher({ view, onSwitchView }) {

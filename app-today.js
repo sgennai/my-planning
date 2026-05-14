@@ -189,9 +189,7 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
   // 1. Cluster events that transitively overlap.
   // 2. Within a cluster, assign each event to the leftmost column where it doesn't conflict.
   // 3. Width = column count to the right that the event can extend through without conflict.
-  const supplementItems = items.filter(it => it.kind === 'routine' && it.category === 'supplement');
-  const nonSupplementItems = items.filter(it => !(it.kind === 'routine' && it.category === 'supplement'));
-  const sorted = [...nonSupplementItems].sort((a, b) => {
+  const sorted = [...items].sort((a, b) => {
     if (a.startMin !== b.startMin) return a.startMin - b.startMin;
     return (b.duration - (b.startMin)) - (a.duration - (a.startMin)); // longer first when ties
   });
@@ -387,29 +385,6 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
           </div>
         );
       })}
-      {(() => {
-        const byTime = {};
-        supplementItems.forEach(it => {
-          if (!byTime[it.startMin]) byTime[it.startMin] = [];
-          byTime[it.startMin].push({ id: it.itemId || it.id, title: it.title, completed: it.completed });
-        });
-        return Object.entries(byTime).map(([minStr, group]) => (
-          <SupplementDotCluster
-            key={`sup-today-${minStr}`}
-            startMin={Number(minStr)}
-            items={group}
-            hourHeight={HOUR_HEIGHT}
-            startHour={HOUR_START}
-            date={viewDate}
-            now={now}
-            onDotClick={(id) => {
-              const found = supplementItems.find(s => (s.itemId || s.id) === id);
-              if (found) onItemClick(found);
-            }}
-            categoryStyles={CATS}
-          />
-        ));
-      })()}
     </div>
   );
 }

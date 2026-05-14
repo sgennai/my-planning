@@ -982,46 +982,21 @@ function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, no
                   style={{ top: (i + 1) * HOUR_HEIGHT }}
                 />
               ))}
-              {dayItems
-                .filter(it => !(it._kind === 'routine' && it.category === 'supplement'))
-                .map(item => (
-                  <CalItem
-                    key={item.id + ':' + col}
-                    item={item}
-                    date={date}
-                    hourHeight={HOUR_HEIGHT}
-                    projects={projects}
-                    onBlockClick={onBlockClick}
-                    onRoutineClick={onRoutineClick}
-                    onUpdateBlock={onUpdateBlock}
-                    onToggleComplete={onToggleComplete}
-                    categoryStyles={categoryStyles}
-                    now={now}
-                  />
-                ))}
-              {(() => {
-                const byTime = {};
-                dayItems
-                  .filter(it => it._kind === 'routine' && it.category === 'supplement')
-                  .forEach(it => {
-                    const min = toMinutes(it.start);
-                    if (!byTime[min]) byTime[min] = [];
-                    byTime[min].push({ id: it.id, title: it.title, completed: it._completed });
-                  });
-                return Object.entries(byTime).map(([minStr, group]) => (
-                  <SupplementDotCluster
-                    key={`sup-${col}-${minStr}`}
-                    startMin={Number(minStr)}
-                    items={group}
-                    hourHeight={HOUR_HEIGHT}
-                    startHour={START_HOUR}
-                    date={date}
-                    now={now}
-                    onDotClick={(id, d) => onRoutineClick && onRoutineClick(id, d)}
-                    categoryStyles={categoryStyles}
-                  />
-                ));
-              })()}
+              {dayItems.map(item => (
+                <CalItem
+                  key={item.id + ':' + col}
+                  item={item}
+                  date={date}
+                  hourHeight={HOUR_HEIGHT}
+                  projects={projects}
+                  onBlockClick={onBlockClick}
+                  onRoutineClick={onRoutineClick}
+                  onUpdateBlock={onUpdateBlock}
+                  onToggleComplete={onToggleComplete}
+                  categoryStyles={categoryStyles}
+                  now={now}
+                />
+              ))}
               {isToday && <NowLine now={now} hourHeight={HOUR_HEIGHT} />}
               {dropPreview && dropPreview.col === col && (
                 <div className="drop-ghost" style={{ top: dropPreview.top, height: dropPreview.height }}>
