@@ -1,0 +1,3059 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "label": "app-core.js",
+      "file_type": "code",
+      "source_file": "app-core.js",
+      "source_location": "L1",
+      "id": "app_core_js",
+      "community": 3,
+      "norm_label": "app-core.js"
+    },
+    {
+      "label": "makeDefaultData()",
+      "file_type": "code",
+      "source_file": "app-core.js",
+      "source_location": "L3",
+      "id": "my_planning_app_core_makedefaultdata",
+      "community": 3,
+      "norm_label": "makedefaultdata()"
+    },
+    {
+      "label": "migrate()",
+      "file_type": "code",
+      "source_file": "app-core.js",
+      "source_location": "L32",
+      "id": "my_planning_app_core_migrate",
+      "community": 3,
+      "norm_label": "migrate()"
+    },
+    {
+      "label": "useMediaQuery()",
+      "file_type": "code",
+      "source_file": "app-core.js",
+      "source_location": "L137",
+      "id": "my_planning_app_core_usemediaquery",
+      "community": 3,
+      "norm_label": "usemediaquery()"
+    },
+    {
+      "label": "useTickingClock()",
+      "file_type": "code",
+      "source_file": "app-core.js",
+      "source_location": "L150",
+      "id": "my_planning_app_core_usetickingclock",
+      "community": 3,
+      "norm_label": "usetickingclock()"
+    },
+    {
+      "label": "App()",
+      "file_type": "code",
+      "source_file": "app-core.js",
+      "source_location": "L162",
+      "id": "my_planning_app_core_app",
+      "community": 3,
+      "norm_label": "app()"
+    },
+    {
+      "label": "Centered()",
+      "file_type": "code",
+      "source_file": "app-core.js",
+      "source_location": "L281",
+      "id": "my_planning_app_core_centered",
+      "community": 3,
+      "norm_label": "centered()"
+    },
+    {
+      "label": "SignInScreen()",
+      "file_type": "code",
+      "source_file": "app-core.js",
+      "source_location": "L291",
+      "id": "my_planning_app_core_signinscreen",
+      "community": 3,
+      "norm_label": "signinscreen()"
+    },
+    {
+      "label": "ErrorScreen()",
+      "file_type": "code",
+      "source_file": "app-core.js",
+      "source_location": "L314",
+      "id": "my_planning_app_core_errorscreen",
+      "community": 3,
+      "norm_label": "errorscreen()"
+    },
+    {
+      "label": "app-routine.js",
+      "file_type": "code",
+      "source_file": "app-routine.js",
+      "source_location": "L1",
+      "id": "app_routine_js",
+      "community": 4,
+      "norm_label": "app-routine.js"
+    },
+    {
+      "label": "AgendaView()",
+      "file_type": "code",
+      "source_file": "app-routine.js",
+      "source_location": "L3",
+      "id": "my_planning_app_routine_agendaview",
+      "community": 1,
+      "norm_label": "agendaview()"
+    },
+    {
+      "label": "RoutineItemPopover()",
+      "file_type": "code",
+      "source_file": "app-routine.js",
+      "source_location": "L178",
+      "id": "my_planning_app_routine_routineitempopover",
+      "community": 1,
+      "norm_label": "routineitempopover()"
+    },
+    {
+      "label": "ReferenceLibraryModal()",
+      "file_type": "code",
+      "source_file": "app-routine.js",
+      "source_location": "L448",
+      "id": "my_planning_app_routine_referencelibrarymodal",
+      "community": 4,
+      "norm_label": "referencelibrarymodal()"
+    },
+    {
+      "label": "EmojiPickerPopover()",
+      "file_type": "code",
+      "source_file": "app-routine.js",
+      "source_location": "L525",
+      "id": "my_planning_app_routine_emojipickerpopover",
+      "community": 4,
+      "norm_label": "emojipickerpopover()"
+    },
+    {
+      "label": "RoutineManagerModal()",
+      "file_type": "code",
+      "source_file": "app-routine.js",
+      "source_location": "L557",
+      "id": "my_planning_app_routine_routinemanagermodal",
+      "community": 4,
+      "norm_label": "routinemanagermodal()"
+    },
+    {
+      "label": "RoutineEditForm()",
+      "file_type": "code",
+      "source_file": "app-routine.js",
+      "source_location": "L774",
+      "id": "my_planning_app_routine_routineeditform",
+      "community": 4,
+      "norm_label": "routineeditform()"
+    },
+    {
+      "label": "app-today.js",
+      "file_type": "code",
+      "source_file": "app-today.js",
+      "source_location": "L1",
+      "id": "app_today_js",
+      "community": 4,
+      "norm_label": "app-today.js"
+    },
+    {
+      "label": "TodayMiniMonth()",
+      "file_type": "code",
+      "source_file": "app-today.js",
+      "source_location": "L10",
+      "id": "my_planning_app_today_todayminimonth",
+      "community": 4,
+      "norm_label": "todayminimonth()"
+    },
+    {
+      "label": "TodayCalendarView()",
+      "file_type": "code",
+      "source_file": "app-today.js",
+      "source_location": "L85",
+      "id": "my_planning_app_today_todaycalendarview",
+      "community": 4,
+      "norm_label": "todaycalendarview()"
+    },
+    {
+      "label": "TodayScreen()",
+      "file_type": "code",
+      "source_file": "app-today.js",
+      "source_location": "L377",
+      "id": "my_planning_app_today_todayscreen",
+      "community": 4,
+      "norm_label": "todayscreen()"
+    },
+    {
+      "label": "app-data.js",
+      "file_type": "code",
+      "source_file": "app-data.js",
+      "source_location": "L1",
+      "id": "app_data_js",
+      "community": 2,
+      "norm_label": "app-data.js"
+    },
+    {
+      "label": "VISUAL_TO_JS_DAY",
+      "file_type": "code",
+      "source_file": "app-data.js",
+      "source_location": "L16",
+      "id": "my_planning_app_data_visual_to_js_day",
+      "community": 2,
+      "norm_label": "visual_to_js_day"
+    },
+    {
+      "label": "DAY_NAMES_SHORT",
+      "file_type": "code",
+      "source_file": "app-data.js",
+      "source_location": "L17",
+      "id": "my_planning_app_data_day_names_short",
+      "community": 2,
+      "norm_label": "day_names_short"
+    },
+    {
+      "label": "DAY_NAMES_LONG",
+      "file_type": "code",
+      "source_file": "app-data.js",
+      "source_location": "L18",
+      "id": "my_planning_app_data_day_names_long",
+      "community": 2,
+      "norm_label": "day_names_long"
+    },
+    {
+      "label": "CATEGORY_STYLES",
+      "file_type": "code",
+      "source_file": "app-data.js",
+      "source_location": "L20",
+      "id": "my_planning_app_data_category_styles",
+      "community": 2,
+      "norm_label": "category_styles"
+    },
+    {
+      "label": "getCategoryColor()",
+      "file_type": "code",
+      "source_file": "app-data.js",
+      "source_location": "L32",
+      "id": "my_planning_app_data_getcategorycolor",
+      "community": 2,
+      "norm_label": "getcategorycolor()"
+    },
+    {
+      "label": "getCategoryEmoji()",
+      "file_type": "code",
+      "source_file": "app-data.js",
+      "source_location": "L39",
+      "id": "my_planning_app_data_getcategoryemoji",
+      "community": 2,
+      "norm_label": "getcategoryemoji()"
+    },
+    {
+      "label": "categoryStylesWith()",
+      "file_type": "code",
+      "source_file": "app-data.js",
+      "source_location": "L46",
+      "id": "my_planning_app_data_categorystyleswith",
+      "community": 2,
+      "norm_label": "categorystyleswith()"
+    },
+    {
+      "label": "EMOJI_LIBRARY",
+      "file_type": "code",
+      "source_file": "app-data.js",
+      "source_location": "L55",
+      "id": "my_planning_app_data_emoji_library",
+      "community": 2,
+      "norm_label": "emoji_library"
+    },
+    {
+      "label": "SEED_ROUTINE",
+      "file_type": "code",
+      "source_file": "app-data.js",
+      "source_location": "L76",
+      "id": "my_planning_app_data_seed_routine",
+      "community": 2,
+      "norm_label": "seed_routine"
+    },
+    {
+      "label": "SEED_PROJECTS",
+      "file_type": "code",
+      "source_file": "app-data.js",
+      "source_location": "L161",
+      "id": "my_planning_app_data_seed_projects",
+      "community": 2,
+      "norm_label": "seed_projects"
+    },
+    {
+      "label": "MODULE_STATUS_STYLE",
+      "file_type": "code",
+      "source_file": "app-data.js",
+      "source_location": "L359",
+      "id": "my_planning_app_data_module_status_style",
+      "community": 2,
+      "norm_label": "module_status_style"
+    },
+    {
+      "label": "CATEGORY_OPTIONS",
+      "file_type": "code",
+      "source_file": "app-data.js",
+      "source_location": "L367",
+      "id": "my_planning_app_data_category_options",
+      "community": 2,
+      "norm_label": "category_options"
+    },
+    {
+      "label": "WEEKLY_RESET_PHASES",
+      "file_type": "code",
+      "source_file": "app-data.js",
+      "source_location": "L373",
+      "id": "my_planning_app_data_weekly_reset_phases",
+      "community": 2,
+      "norm_label": "weekly_reset_phases"
+    },
+    {
+      "label": "WEEKLY_RESET_TOTAL_SECONDS",
+      "file_type": "code",
+      "source_file": "app-data.js",
+      "source_location": "L434",
+      "id": "my_planning_app_data_weekly_reset_total_seconds",
+      "community": 2,
+      "norm_label": "weekly_reset_total_seconds"
+    },
+    {
+      "label": "SEED_REFERENCE_LIBRARY",
+      "file_type": "code",
+      "source_file": "app-data.js",
+      "source_location": "L440",
+      "id": "my_planning_app_data_seed_reference_library",
+      "community": 2,
+      "norm_label": "seed_reference_library"
+    },
+    {
+      "label": "app-calendar.js",
+      "file_type": "code",
+      "source_file": "app-calendar.js",
+      "source_location": "L1",
+      "id": "app_calendar_js",
+      "community": 3,
+      "norm_label": "app-calendar.js"
+    },
+    {
+      "label": "CalendarScreen()",
+      "file_type": "code",
+      "source_file": "app-calendar.js",
+      "source_location": "L1",
+      "id": "my_planning_app_calendar_calendarscreen",
+      "community": 3,
+      "norm_label": "calendarscreen()"
+    },
+    {
+      "label": "app-widgets.js",
+      "file_type": "code",
+      "source_file": "app-widgets.js",
+      "source_location": "L1",
+      "id": "app_widgets_js",
+      "community": 5,
+      "norm_label": "app-widgets.js"
+    },
+    {
+      "label": "WeatherStrip()",
+      "file_type": "code",
+      "source_file": "app-widgets.js",
+      "source_location": "L6",
+      "id": "my_planning_app_widgets_weatherstrip",
+      "community": 1,
+      "norm_label": "weatherstrip()"
+    },
+    {
+      "label": "CaptureBar()",
+      "file_type": "code",
+      "source_file": "app-widgets.js",
+      "source_location": "L143",
+      "id": "my_planning_app_widgets_capturebar",
+      "community": 5,
+      "norm_label": "capturebar()"
+    },
+    {
+      "label": "InboxModal()",
+      "file_type": "code",
+      "source_file": "app-widgets.js",
+      "source_location": "L181",
+      "id": "my_planning_app_widgets_inboxmodal",
+      "community": 5,
+      "norm_label": "inboxmodal()"
+    },
+    {
+      "label": "ElsewhereToggles()",
+      "file_type": "code",
+      "source_file": "app-widgets.js",
+      "source_location": "L274",
+      "id": "my_planning_app_widgets_elsewheretoggles",
+      "community": 5,
+      "norm_label": "elsewheretoggles()"
+    },
+    {
+      "label": "ElsewhereSuggestions()",
+      "file_type": "code",
+      "source_file": "app-widgets.js",
+      "source_location": "L305",
+      "id": "my_planning_app_widgets_elsewheresuggestions",
+      "community": 5,
+      "norm_label": "elsewheresuggestions()"
+    },
+    {
+      "label": "TodosPane()",
+      "file_type": "code",
+      "source_file": "app-widgets.js",
+      "source_location": "L390",
+      "id": "my_planning_app_widgets_todospane",
+      "community": 5,
+      "norm_label": "todospane()"
+    },
+    {
+      "label": "TodoDurationPrompt()",
+      "file_type": "code",
+      "source_file": "app-widgets.js",
+      "source_location": "L478",
+      "id": "my_planning_app_widgets_tododurationprompt",
+      "community": 5,
+      "norm_label": "tododurationprompt()"
+    },
+    {
+      "label": "CALENDAR_COLORS",
+      "file_type": "code",
+      "source_file": "app-widgets.js",
+      "source_location": "L562",
+      "id": "my_planning_app_widgets_calendar_colors",
+      "community": 5,
+      "norm_label": "calendar_colors"
+    },
+    {
+      "label": "ColorSwatchPicker()",
+      "file_type": "code",
+      "source_file": "app-widgets.js",
+      "source_location": "L573",
+      "id": "my_planning_app_widgets_colorswatchpicker",
+      "community": 5,
+      "norm_label": "colorswatchpicker()"
+    },
+    {
+      "label": "SettingsModal()",
+      "file_type": "code",
+      "source_file": "app-widgets.js",
+      "source_location": "L599",
+      "id": "my_planning_app_widgets_settingsmodal",
+      "community": 5,
+      "norm_label": "settingsmodal()"
+    },
+    {
+      "label": "FridayReviewLauncher()",
+      "file_type": "code",
+      "source_file": "app-widgets.js",
+      "source_location": "L858",
+      "id": "my_planning_app_widgets_fridayreviewlauncher",
+      "community": 5,
+      "norm_label": "fridayreviewlauncher()"
+    },
+    {
+      "label": "WeeklyResetOverlay()",
+      "file_type": "code",
+      "source_file": "app-widgets.js",
+      "source_location": "L883",
+      "id": "my_planning_app_widgets_weeklyresetoverlay",
+      "community": 3,
+      "norm_label": "weeklyresetoverlay()"
+    },
+    {
+      "label": "ResetPrompt()",
+      "file_type": "code",
+      "source_file": "app-widgets.js",
+      "source_location": "L1047",
+      "id": "my_planning_app_widgets_resetprompt",
+      "community": 5,
+      "norm_label": "resetprompt()"
+    },
+    {
+      "label": "app-week.js",
+      "file_type": "code",
+      "source_file": "app-week.js",
+      "source_location": "L1",
+      "id": "app_week_js",
+      "community": 6,
+      "norm_label": "app-week.js"
+    },
+    {
+      "label": "RightNowBanner()",
+      "file_type": "code",
+      "source_file": "app-week.js",
+      "source_location": "L3",
+      "id": "my_planning_app_week_rightnowbanner",
+      "community": 1,
+      "norm_label": "rightnowbanner()"
+    },
+    {
+      "label": "ProjectsRailPanel()",
+      "file_type": "code",
+      "source_file": "app-week.js",
+      "source_location": "L158",
+      "id": "my_planning_app_week_projectsrailpanel",
+      "community": 6,
+      "norm_label": "projectsrailpanel()"
+    },
+    {
+      "label": "PortfolioPanel()",
+      "file_type": "code",
+      "source_file": "app-week.js",
+      "source_location": "L365",
+      "id": "my_planning_app_week_portfoliopanel",
+      "community": 6,
+      "norm_label": "portfoliopanel()"
+    },
+    {
+      "label": "minutesToHrLabel()",
+      "file_type": "code",
+      "source_file": "app-week.js",
+      "source_location": "L401",
+      "id": "my_planning_app_week_minutestohrlabel",
+      "community": 6,
+      "norm_label": "minutestohrlabel()"
+    },
+    {
+      "label": "ProjectCard()",
+      "file_type": "code",
+      "source_file": "app-week.js",
+      "source_location": "L410",
+      "id": "my_planning_app_week_projectcard",
+      "community": 6,
+      "norm_label": "projectcard()"
+    },
+    {
+      "label": "ActionChip()",
+      "file_type": "code",
+      "source_file": "app-week.js",
+      "source_location": "L479",
+      "id": "my_planning_app_week_actionchip",
+      "community": 6,
+      "norm_label": "actionchip()"
+    },
+    {
+      "label": "ProjectNextActions()",
+      "file_type": "code",
+      "source_file": "app-week.js",
+      "source_location": "L529",
+      "id": "my_planning_app_week_projectnextactions",
+      "community": 6,
+      "norm_label": "projectnextactions()"
+    },
+    {
+      "label": "NextModulesList()",
+      "file_type": "code",
+      "source_file": "app-week.js",
+      "source_location": "L547",
+      "id": "my_planning_app_week_nextmoduleslist",
+      "community": 6,
+      "norm_label": "nextmoduleslist()"
+    },
+    {
+      "label": "BlockPopover()",
+      "file_type": "code",
+      "source_file": "app-week.js",
+      "source_location": "L604",
+      "id": "my_planning_app_week_blockpopover",
+      "community": 4,
+      "norm_label": "blockpopover()"
+    },
+    {
+      "label": "CalendarHeader()",
+      "file_type": "code",
+      "source_file": "app-week.js",
+      "source_location": "L747",
+      "id": "my_planning_app_week_calendarheader",
+      "community": 3,
+      "norm_label": "calendarheader()"
+    },
+    {
+      "label": "Legend()",
+      "file_type": "code",
+      "source_file": "app-week.js",
+      "source_location": "L801",
+      "id": "my_planning_app_week_legend",
+      "community": 6,
+      "norm_label": "legend()"
+    },
+    {
+      "label": "WeekGrid()",
+      "file_type": "code",
+      "source_file": "app-week.js",
+      "source_location": "L827",
+      "id": "my_planning_app_week_weekgrid",
+      "community": 1,
+      "norm_label": "weekgrid()"
+    },
+    {
+      "label": "CalItem()",
+      "file_type": "code",
+      "source_file": "app-week.js",
+      "source_location": "L1015",
+      "id": "my_planning_app_week_calitem",
+      "community": 4,
+      "norm_label": "calitem()"
+    },
+    {
+      "label": "NowLine()",
+      "file_type": "code",
+      "source_file": "app-week.js",
+      "source_location": "L1221",
+      "id": "my_planning_app_week_nowline",
+      "community": 6,
+      "norm_label": "nowline()"
+    },
+    {
+      "label": "app-helpers.js",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L1",
+      "id": "app_helpers_js",
+      "community": 0,
+      "norm_label": "app-helpers.js"
+    },
+    {
+      "label": "pad()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L3",
+      "id": "my_planning_app_helpers_pad",
+      "community": 4,
+      "norm_label": "pad()"
+    },
+    {
+      "label": "startOfDay()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L5",
+      "id": "my_planning_app_helpers_startofday",
+      "community": 1,
+      "norm_label": "startofday()"
+    },
+    {
+      "label": "startOfWeek()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L8",
+      "id": "my_planning_app_helpers_startofweek",
+      "community": 1,
+      "norm_label": "startofweek()"
+    },
+    {
+      "label": "addDays()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L15",
+      "id": "my_planning_app_helpers_adddays",
+      "community": 1,
+      "norm_label": "adddays()"
+    },
+    {
+      "label": "isSameDay()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L18",
+      "id": "my_planning_app_helpers_issameday",
+      "community": 1,
+      "norm_label": "issameday()"
+    },
+    {
+      "label": "toMinutes()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L23",
+      "id": "my_planning_app_helpers_tominutes",
+      "community": 4,
+      "norm_label": "tominutes()"
+    },
+    {
+      "label": "formatDateShort()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L27",
+      "id": "my_planning_app_helpers_formatdateshort",
+      "community": 3,
+      "norm_label": "formatdateshort()"
+    },
+    {
+      "label": "formatRange()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L30",
+      "id": "my_planning_app_helpers_formatrange",
+      "community": 3,
+      "norm_label": "formatrange()"
+    },
+    {
+      "label": "describeDays()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L43",
+      "id": "my_planning_app_helpers_describedays",
+      "community": 0,
+      "norm_label": "describedays()"
+    },
+    {
+      "label": "hexToRgba()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L54",
+      "id": "my_planning_app_helpers_hextorgba",
+      "community": 4,
+      "norm_label": "hextorgba()"
+    },
+    {
+      "label": "itemsForVisualColumn()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L65",
+      "id": "my_planning_app_helpers_itemsforvisualcolumn",
+      "community": 0,
+      "norm_label": "itemsforvisualcolumn()"
+    },
+    {
+      "label": "layoutDay()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L72",
+      "id": "my_planning_app_helpers_layoutday",
+      "community": 1,
+      "norm_label": "layoutday()"
+    },
+    {
+      "label": "blocksForDate()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L144",
+      "id": "my_planning_app_helpers_blocksfordate",
+      "community": 1,
+      "norm_label": "blocksfordate()"
+    },
+    {
+      "label": "blocksForWeek()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L153",
+      "id": "my_planning_app_helpers_blocksforweek",
+      "community": 1,
+      "norm_label": "blocksforweek()"
+    },
+    {
+      "label": "makeOverrideKey()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L171",
+      "id": "my_planning_app_helpers_makeoverridekey",
+      "community": 1,
+      "norm_label": "makeoverridekey()"
+    },
+    {
+      "label": "unfoldICS()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L184",
+      "id": "my_planning_app_helpers_unfoldics",
+      "community": 0,
+      "norm_label": "unfoldics()"
+    },
+    {
+      "label": "parseICSDate()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L191",
+      "id": "my_planning_app_helpers_parseicsdate",
+      "community": 0,
+      "norm_label": "parseicsdate()"
+    },
+    {
+      "label": "parseVEvent()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L211",
+      "id": "my_planning_app_helpers_parsevevent",
+      "community": 0,
+      "norm_label": "parsevevent()"
+    },
+    {
+      "label": "parseRRule()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L273",
+      "id": "my_planning_app_helpers_parserrule",
+      "community": 0,
+      "norm_label": "parserrule()"
+    },
+    {
+      "label": "RRULE_DAY_MAP",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L291",
+      "id": "my_planning_app_helpers_rrule_day_map",
+      "community": 0,
+      "norm_label": "rrule_day_map"
+    },
+    {
+      "label": "expandEvent()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L294",
+      "id": "my_planning_app_helpers_expandevent",
+      "community": 0,
+      "norm_label": "expandevent()"
+    },
+    {
+      "label": "parseICS()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L393",
+      "id": "my_planning_app_helpers_parseics",
+      "community": 0,
+      "norm_label": "parseics()"
+    },
+    {
+      "label": "expandEventsForWindow()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L417",
+      "id": "my_planning_app_helpers_expandeventsforwindow",
+      "community": 0,
+      "norm_label": "expandeventsforwindow()"
+    },
+    {
+      "label": "fetchICS()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L437",
+      "id": "my_planning_app_helpers_fetchics",
+      "community": 0,
+      "norm_label": "fetchics()"
+    },
+    {
+      "label": "WMO_ICONS",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L455",
+      "id": "my_planning_app_helpers_wmo_icons",
+      "community": 0,
+      "norm_label": "wmo_icons"
+    },
+    {
+      "label": "wmoIcon()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L471",
+      "id": "my_planning_app_helpers_wmoicon",
+      "community": 0,
+      "norm_label": "wmoicon()"
+    },
+    {
+      "label": "fetchWeather()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L473",
+      "id": "my_planning_app_helpers_fetchweather",
+      "community": 0,
+      "norm_label": "fetchweather()"
+    },
+    {
+      "label": "reverseGeocode()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L500",
+      "id": "my_planning_app_helpers_reversegeocode",
+      "community": 0,
+      "norm_label": "reversegeocode()"
+    },
+    {
+      "label": "makeCompletionKey()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L520",
+      "id": "my_planning_app_helpers_makecompletionkey",
+      "community": 1,
+      "norm_label": "makecompletionkey()"
+    },
+    {
+      "label": "resolvedRoutineForDate()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L524",
+      "id": "my_planning_app_helpers_resolvedroutinefordate",
+      "community": 1,
+      "norm_label": "resolvedroutinefordate()"
+    },
+    {
+      "label": "applyElsewhereFilter()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L592",
+      "id": "my_planning_app_helpers_applyelsewherefilter",
+      "community": 1,
+      "norm_label": "applyelsewherefilter()"
+    },
+    {
+      "label": "plannedMinutesForProject()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L610",
+      "id": "my_planning_app_helpers_plannedminutesforproject",
+      "community": 6,
+      "norm_label": "plannedminutesforproject()"
+    },
+    {
+      "label": "spentMinutesForProject()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L616",
+      "id": "my_planning_app_helpers_spentminutesforproject",
+      "community": 1,
+      "norm_label": "spentminutesforproject()"
+    },
+    {
+      "label": "combinedDayItems()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L624",
+      "id": "my_planning_app_helpers_combineddayitems",
+      "community": 1,
+      "norm_label": "combineddayitems()"
+    },
+    {
+      "label": "actionStateMap()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L656",
+      "id": "my_planning_app_helpers_actionstatemap",
+      "community": 0,
+      "norm_label": "actionstatemap()"
+    },
+    {
+      "label": "waitForGoogle()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L677",
+      "id": "my_planning_app_helpers_waitforgoogle",
+      "community": 0,
+      "norm_label": "waitforgoogle()"
+    },
+    {
+      "label": "initAuth()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L687",
+      "id": "my_planning_app_helpers_initauth",
+      "community": 0,
+      "norm_label": "initauth()"
+    },
+    {
+      "label": "requestToken()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L696",
+      "id": "my_planning_app_helpers_requesttoken",
+      "community": 0,
+      "norm_label": "requesttoken()"
+    },
+    {
+      "label": "revokeToken()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L713",
+      "id": "my_planning_app_helpers_revoketoken",
+      "community": 0,
+      "norm_label": "revoketoken()"
+    },
+    {
+      "label": "driveFetch()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L723",
+      "id": "my_planning_app_helpers_drivefetch",
+      "community": 0,
+      "norm_label": "drivefetch()"
+    },
+    {
+      "label": "findDataFile()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L733",
+      "id": "my_planning_app_helpers_finddatafile",
+      "community": 0,
+      "norm_label": "finddatafile()"
+    },
+    {
+      "label": "downloadFile()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L741",
+      "id": "my_planning_app_helpers_downloadfile",
+      "community": 0,
+      "norm_label": "downloadfile()"
+    },
+    {
+      "label": "createFile()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L747",
+      "id": "my_planning_app_helpers_createfile",
+      "community": 0,
+      "norm_label": "createfile()"
+    },
+    {
+      "label": "updateFile()",
+      "file_type": "code",
+      "source_file": "app-helpers.js",
+      "source_location": "L762",
+      "id": "my_planning_app_helpers_updatefile",
+      "community": 0,
+      "norm_label": "updatefile()"
+    },
+    {
+      "label": "README.md",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L1",
+      "id": "readme_md",
+      "community": 8,
+      "norm_label": "readme.md"
+    },
+    {
+      "label": "CLAUDE.md",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L1",
+      "id": "claude_md",
+      "community": 7,
+      "norm_label": "claude.md"
+    },
+    {
+      "label": "MY PLANNING",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L1",
+      "id": "my_planning_claude_my_planning",
+      "community": 7,
+      "norm_label": "my planning"
+    },
+    {
+      "label": "Architecture",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L5",
+      "id": "my_planning_claude_architecture",
+      "community": 7,
+      "norm_label": "architecture"
+    },
+    {
+      "label": "Core data shape (schema v16)",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L14",
+      "id": "my_planning_claude_core_data_shape_schema_v16",
+      "community": 7,
+      "norm_label": "core data shape (schema v16)"
+    },
+    {
+      "label": "Two main views",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L26",
+      "id": "my_planning_claude_two_main_views",
+      "community": 7,
+      "norm_label": "two main views"
+    },
+    {
+      "label": "Visual language",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L31",
+      "id": "my_planning_claude_visual_language",
+      "community": 7,
+      "norm_label": "visual language"
+    },
+    {
+      "label": "Project portfolio",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L40",
+      "id": "my_planning_claude_project_portfolio",
+      "community": 7,
+      "norm_label": "project portfolio"
+    },
+    {
+      "label": "Workflow",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L44",
+      "id": "my_planning_claude_workflow",
+      "community": 7,
+      "norm_label": "workflow"
+    },
+    {
+      "label": "Conventions",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L48",
+      "id": "my_planning_claude_conventions",
+      "community": 7,
+      "norm_label": "conventions"
+    },
+    {
+      "label": "Pending UX backlog",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L57",
+      "id": "my_planning_claude_pending_ux_backlog",
+      "community": 7,
+      "norm_label": "pending ux backlog"
+    },
+    {
+      "label": "graphify",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L68",
+      "id": "my_planning_claude_graphify",
+      "community": 7,
+      "norm_label": "graphify"
+    }
+  ],
+  "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-core.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_core_js",
+      "target": "my_planning_app_core_makedefaultdata",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-core.js",
+      "source_location": "L32",
+      "weight": 1.0,
+      "source": "app_core_js",
+      "target": "my_planning_app_core_migrate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-core.js",
+      "source_location": "L137",
+      "weight": 1.0,
+      "source": "app_core_js",
+      "target": "my_planning_app_core_usemediaquery",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-core.js",
+      "source_location": "L150",
+      "weight": 1.0,
+      "source": "app_core_js",
+      "target": "my_planning_app_core_usetickingclock",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-core.js",
+      "source_location": "L162",
+      "weight": 1.0,
+      "source": "app_core_js",
+      "target": "my_planning_app_core_app",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-core.js",
+      "source_location": "L281",
+      "weight": 1.0,
+      "source": "app_core_js",
+      "target": "my_planning_app_core_centered",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-core.js",
+      "source_location": "L291",
+      "weight": 1.0,
+      "source": "app_core_js",
+      "target": "my_planning_app_core_signinscreen",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-core.js",
+      "source_location": "L314",
+      "weight": 1.0,
+      "source": "app_core_js",
+      "target": "my_planning_app_core_errorscreen",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-calendar.js",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "my_planning_app_calendar_calendarscreen",
+      "target": "my_planning_app_core_usemediaquery"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-calendar.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "my_planning_app_calendar_calendarscreen",
+      "target": "my_planning_app_core_usetickingclock"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-routine.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_routine_js",
+      "target": "my_planning_app_routine_agendaview",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-routine.js",
+      "source_location": "L178",
+      "weight": 1.0,
+      "source": "app_routine_js",
+      "target": "my_planning_app_routine_routineitempopover",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-routine.js",
+      "source_location": "L448",
+      "weight": 1.0,
+      "source": "app_routine_js",
+      "target": "my_planning_app_routine_referencelibrarymodal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-routine.js",
+      "source_location": "L525",
+      "weight": 1.0,
+      "source": "app_routine_js",
+      "target": "my_planning_app_routine_emojipickerpopover",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-routine.js",
+      "source_location": "L557",
+      "weight": 1.0,
+      "source": "app_routine_js",
+      "target": "my_planning_app_routine_routinemanagermodal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-routine.js",
+      "source_location": "L774",
+      "weight": 1.0,
+      "source": "app_routine_js",
+      "target": "my_planning_app_routine_routineeditform",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-routine.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "my_planning_app_routine_agendaview",
+      "target": "my_planning_app_helpers_issameday"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-routine.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "my_planning_app_routine_agendaview",
+      "target": "my_planning_app_helpers_startofweek"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-routine.js",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "my_planning_app_routine_agendaview",
+      "target": "my_planning_app_helpers_adddays"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-routine.js",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "my_planning_app_routine_agendaview",
+      "target": "my_planning_app_helpers_applyelsewherefilter"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-routine.js",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "my_planning_app_routine_agendaview",
+      "target": "my_planning_app_helpers_resolvedroutinefordate"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-routine.js",
+      "source_location": "L24",
+      "weight": 1.0,
+      "source": "my_planning_app_routine_agendaview",
+      "target": "my_planning_app_helpers_blocksfordate"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-routine.js",
+      "source_location": "L75",
+      "weight": 1.0,
+      "source": "my_planning_app_routine_agendaview",
+      "target": "my_planning_app_helpers_formatdateshort"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-routine.js",
+      "source_location": "L192",
+      "weight": 1.0,
+      "source": "my_planning_app_routine_routineitempopover",
+      "target": "my_planning_app_helpers_makeoverridekey"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-routine.js",
+      "source_location": "L212",
+      "weight": 1.0,
+      "source": "my_planning_app_routine_routineitempopover",
+      "target": "my_planning_app_helpers_startofday"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-routine.js",
+      "source_location": "L265",
+      "weight": 1.0,
+      "source": "my_planning_app_routine_routineitempopover",
+      "target": "my_planning_app_helpers_startofweek"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-routine.js",
+      "source_location": "L286",
+      "weight": 1.0,
+      "source": "my_planning_app_routine_routineitempopover",
+      "target": "my_planning_app_helpers_formatdateshort"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-routine.js",
+      "source_location": "L900",
+      "weight": 1.0,
+      "source": "my_planning_app_routine_routineeditform",
+      "target": "my_planning_app_helpers_pad"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-today.js",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "app_today_js",
+      "target": "my_planning_app_today_todayminimonth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-today.js",
+      "source_location": "L85",
+      "weight": 1.0,
+      "source": "app_today_js",
+      "target": "my_planning_app_today_todaycalendarview",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-today.js",
+      "source_location": "L377",
+      "weight": 1.0,
+      "source": "app_today_js",
+      "target": "my_planning_app_today_todayscreen",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-today.js",
+      "source_location": "L166",
+      "weight": 1.0,
+      "source": "my_planning_app_today_todaycalendarview",
+      "target": "my_planning_app_helpers_tominutes"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-data.js",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "app_data_js",
+      "target": "my_planning_app_data_visual_to_js_day",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-data.js",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "app_data_js",
+      "target": "my_planning_app_data_day_names_short",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-data.js",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "app_data_js",
+      "target": "my_planning_app_data_day_names_long",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-data.js",
+      "source_location": "L20",
+      "weight": 1.0,
+      "source": "app_data_js",
+      "target": "my_planning_app_data_category_styles",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-data.js",
+      "source_location": "L32",
+      "weight": 1.0,
+      "source": "app_data_js",
+      "target": "my_planning_app_data_getcategorycolor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-data.js",
+      "source_location": "L39",
+      "weight": 1.0,
+      "source": "app_data_js",
+      "target": "my_planning_app_data_getcategoryemoji",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-data.js",
+      "source_location": "L46",
+      "weight": 1.0,
+      "source": "app_data_js",
+      "target": "my_planning_app_data_categorystyleswith",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-data.js",
+      "source_location": "L55",
+      "weight": 1.0,
+      "source": "app_data_js",
+      "target": "my_planning_app_data_emoji_library",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-data.js",
+      "source_location": "L76",
+      "weight": 1.0,
+      "source": "app_data_js",
+      "target": "my_planning_app_data_seed_routine",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-data.js",
+      "source_location": "L161",
+      "weight": 1.0,
+      "source": "app_data_js",
+      "target": "my_planning_app_data_seed_projects",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-data.js",
+      "source_location": "L359",
+      "weight": 1.0,
+      "source": "app_data_js",
+      "target": "my_planning_app_data_module_status_style",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-data.js",
+      "source_location": "L367",
+      "weight": 1.0,
+      "source": "app_data_js",
+      "target": "my_planning_app_data_category_options",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-data.js",
+      "source_location": "L373",
+      "weight": 1.0,
+      "source": "app_data_js",
+      "target": "my_planning_app_data_weekly_reset_phases",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-data.js",
+      "source_location": "L434",
+      "weight": 1.0,
+      "source": "app_data_js",
+      "target": "my_planning_app_data_weekly_reset_total_seconds",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-data.js",
+      "source_location": "L440",
+      "weight": 1.0,
+      "source": "app_data_js",
+      "target": "my_planning_app_data_seed_reference_library",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-calendar.js",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "app_calendar_js",
+      "target": "my_planning_app_calendar_calendarscreen",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-calendar.js",
+      "source_location": "L26",
+      "weight": 1.0,
+      "source": "my_planning_app_calendar_calendarscreen",
+      "target": "my_planning_app_helpers_adddays"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-calendar.js",
+      "source_location": "L27",
+      "weight": 1.0,
+      "source": "my_planning_app_calendar_calendarscreen",
+      "target": "my_planning_app_helpers_issameday"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-calendar.js",
+      "source_location": "L27",
+      "weight": 1.0,
+      "source": "my_planning_app_calendar_calendarscreen",
+      "target": "my_planning_app_helpers_startofweek"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-calendar.js",
+      "source_location": "L221",
+      "weight": 1.0,
+      "source": "my_planning_app_calendar_calendarscreen",
+      "target": "my_planning_app_helpers_startofday"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-calendar.js",
+      "source_location": "L647",
+      "weight": 1.0,
+      "source": "my_planning_app_calendar_calendarscreen",
+      "target": "my_planning_app_helpers_formatdateshort"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-calendar.js",
+      "source_location": "L652",
+      "weight": 1.0,
+      "source": "my_planning_app_calendar_calendarscreen",
+      "target": "my_planning_app_helpers_formatrange"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-widgets.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_widgets_js",
+      "target": "my_planning_app_widgets_weatherstrip",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-widgets.js",
+      "source_location": "L143",
+      "weight": 1.0,
+      "source": "app_widgets_js",
+      "target": "my_planning_app_widgets_capturebar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-widgets.js",
+      "source_location": "L181",
+      "weight": 1.0,
+      "source": "app_widgets_js",
+      "target": "my_planning_app_widgets_inboxmodal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-widgets.js",
+      "source_location": "L274",
+      "weight": 1.0,
+      "source": "app_widgets_js",
+      "target": "my_planning_app_widgets_elsewheretoggles",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-widgets.js",
+      "source_location": "L305",
+      "weight": 1.0,
+      "source": "app_widgets_js",
+      "target": "my_planning_app_widgets_elsewheresuggestions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-widgets.js",
+      "source_location": "L390",
+      "weight": 1.0,
+      "source": "app_widgets_js",
+      "target": "my_planning_app_widgets_todospane",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-widgets.js",
+      "source_location": "L478",
+      "weight": 1.0,
+      "source": "app_widgets_js",
+      "target": "my_planning_app_widgets_tododurationprompt",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-widgets.js",
+      "source_location": "L562",
+      "weight": 1.0,
+      "source": "app_widgets_js",
+      "target": "my_planning_app_widgets_calendar_colors",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-widgets.js",
+      "source_location": "L573",
+      "weight": 1.0,
+      "source": "app_widgets_js",
+      "target": "my_planning_app_widgets_colorswatchpicker",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-widgets.js",
+      "source_location": "L599",
+      "weight": 1.0,
+      "source": "app_widgets_js",
+      "target": "my_planning_app_widgets_settingsmodal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-widgets.js",
+      "source_location": "L858",
+      "weight": 1.0,
+      "source": "app_widgets_js",
+      "target": "my_planning_app_widgets_fridayreviewlauncher",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-widgets.js",
+      "source_location": "L883",
+      "weight": 1.0,
+      "source": "app_widgets_js",
+      "target": "my_planning_app_widgets_weeklyresetoverlay",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-widgets.js",
+      "source_location": "L1047",
+      "weight": 1.0,
+      "source": "app_widgets_js",
+      "target": "my_planning_app_widgets_resetprompt",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-widgets.js",
+      "source_location": "L35",
+      "weight": 1.0,
+      "source": "my_planning_app_widgets_weatherstrip",
+      "target": "my_planning_app_helpers_adddays"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-widgets.js",
+      "source_location": "L35",
+      "weight": 1.0,
+      "source": "my_planning_app_widgets_weatherstrip",
+      "target": "my_planning_app_helpers_startofday"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-widgets.js",
+      "source_location": "L860",
+      "weight": 1.0,
+      "source": "my_planning_app_widgets_fridayreviewlauncher",
+      "target": "my_planning_app_helpers_startofweek"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-widgets.js",
+      "source_location": "L934",
+      "weight": 1.0,
+      "source": "my_planning_app_widgets_weeklyresetoverlay",
+      "target": "my_planning_app_helpers_formatdateshort"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-week.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_week_js",
+      "target": "my_planning_app_week_rightnowbanner",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-week.js",
+      "source_location": "L158",
+      "weight": 1.0,
+      "source": "app_week_js",
+      "target": "my_planning_app_week_projectsrailpanel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-week.js",
+      "source_location": "L365",
+      "weight": 1.0,
+      "source": "app_week_js",
+      "target": "my_planning_app_week_portfoliopanel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-week.js",
+      "source_location": "L401",
+      "weight": 1.0,
+      "source": "app_week_js",
+      "target": "my_planning_app_week_minutestohrlabel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-week.js",
+      "source_location": "L410",
+      "weight": 1.0,
+      "source": "app_week_js",
+      "target": "my_planning_app_week_projectcard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-week.js",
+      "source_location": "L479",
+      "weight": 1.0,
+      "source": "app_week_js",
+      "target": "my_planning_app_week_actionchip",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-week.js",
+      "source_location": "L529",
+      "weight": 1.0,
+      "source": "app_week_js",
+      "target": "my_planning_app_week_projectnextactions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-week.js",
+      "source_location": "L547",
+      "weight": 1.0,
+      "source": "app_week_js",
+      "target": "my_planning_app_week_nextmoduleslist",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-week.js",
+      "source_location": "L604",
+      "weight": 1.0,
+      "source": "app_week_js",
+      "target": "my_planning_app_week_blockpopover",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-week.js",
+      "source_location": "L747",
+      "weight": 1.0,
+      "source": "app_week_js",
+      "target": "my_planning_app_week_calendarheader",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-week.js",
+      "source_location": "L801",
+      "weight": 1.0,
+      "source": "app_week_js",
+      "target": "my_planning_app_week_legend",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-week.js",
+      "source_location": "L827",
+      "weight": 1.0,
+      "source": "app_week_js",
+      "target": "my_planning_app_week_weekgrid",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-week.js",
+      "source_location": "L1015",
+      "weight": 1.0,
+      "source": "app_week_js",
+      "target": "my_planning_app_week_calitem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-week.js",
+      "source_location": "L1221",
+      "weight": 1.0,
+      "source": "app_week_js",
+      "target": "my_planning_app_week_nowline",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-week.js",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "my_planning_app_week_rightnowbanner",
+      "target": "my_planning_app_helpers_applyelsewherefilter"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-week.js",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "my_planning_app_week_rightnowbanner",
+      "target": "my_planning_app_helpers_resolvedroutinefordate"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-week.js",
+      "source_location": "L26",
+      "weight": 1.0,
+      "source": "my_planning_app_week_rightnowbanner",
+      "target": "my_planning_app_helpers_blocksfordate"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-week.js",
+      "source_location": "L80",
+      "weight": 1.0,
+      "source": "my_planning_app_week_rightnowbanner",
+      "target": "my_planning_app_helpers_formatdateshort"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-week.js",
+      "source_location": "L81",
+      "weight": 1.0,
+      "source": "my_planning_app_week_rightnowbanner",
+      "target": "my_planning_app_helpers_pad"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-week.js",
+      "source_location": "L381",
+      "weight": 1.0,
+      "source": "my_planning_app_week_portfoliopanel",
+      "target": "my_planning_app_week_minutestohrlabel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-week.js",
+      "source_location": "L422",
+      "weight": 1.0,
+      "source": "my_planning_app_week_projectcard",
+      "target": "my_planning_app_week_minutestohrlabel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-week.js",
+      "source_location": "L414",
+      "weight": 1.0,
+      "source": "my_planning_app_week_projectcard",
+      "target": "my_planning_app_helpers_plannedminutesforproject"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-week.js",
+      "source_location": "L609",
+      "weight": 1.0,
+      "source": "my_planning_app_week_blockpopover",
+      "target": "my_planning_app_helpers_tominutes"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-week.js",
+      "source_location": "L611",
+      "weight": 1.0,
+      "source": "my_planning_app_week_blockpopover",
+      "target": "my_planning_app_helpers_pad"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-week.js",
+      "source_location": "L613",
+      "weight": 1.0,
+      "source": "my_planning_app_week_blockpopover",
+      "target": "my_planning_app_helpers_startofday"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-week.js",
+      "source_location": "L668",
+      "weight": 1.0,
+      "source": "my_planning_app_week_blockpopover",
+      "target": "my_planning_app_helpers_formatdateshort"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-week.js",
+      "source_location": "L755",
+      "weight": 1.0,
+      "source": "my_planning_app_week_calendarheader",
+      "target": "my_planning_app_helpers_adddays"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-week.js",
+      "source_location": "L756",
+      "weight": 1.0,
+      "source": "my_planning_app_week_calendarheader",
+      "target": "my_planning_app_helpers_issameday"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-week.js",
+      "source_location": "L768",
+      "weight": 1.0,
+      "source": "my_planning_app_week_calendarheader",
+      "target": "my_planning_app_helpers_formatdateshort"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-week.js",
+      "source_location": "L771",
+      "weight": 1.0,
+      "source": "my_planning_app_week_calendarheader",
+      "target": "my_planning_app_helpers_formatrange"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-week.js",
+      "source_location": "L831",
+      "weight": 1.0,
+      "source": "my_planning_app_week_weekgrid",
+      "target": "my_planning_app_helpers_issameday"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-week.js",
+      "source_location": "L831",
+      "weight": 1.0,
+      "source": "my_planning_app_week_weekgrid",
+      "target": "my_planning_app_helpers_startofweek"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-week.js",
+      "source_location": "L1040",
+      "weight": 1.0,
+      "source": "my_planning_app_week_calitem",
+      "target": "my_planning_app_helpers_tominutes"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-week.js",
+      "source_location": "L1059",
+      "weight": 1.0,
+      "source": "my_planning_app_week_calitem",
+      "target": "my_planning_app_helpers_pad"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app-week.js",
+      "source_location": "L1186",
+      "weight": 1.0,
+      "source": "my_planning_app_week_calitem",
+      "target": "my_planning_app_helpers_hextorgba"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_pad",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_startofday",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_startofweek",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_adddays",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_issameday",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L23",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_tominutes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L27",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_formatdateshort",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_formatrange",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L43",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_describedays",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L54",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_hextorgba",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L65",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_itemsforvisualcolumn",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L72",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_layoutday",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L144",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_blocksfordate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L153",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_blocksforweek",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L171",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_makeoverridekey",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L184",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_unfoldics",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L191",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_parseicsdate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L211",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_parsevevent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L273",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_parserrule",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L291",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_rrule_day_map",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L294",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_expandevent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L393",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_parseics",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L417",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_expandeventsforwindow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L437",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_fetchics",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L455",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_wmo_icons",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L471",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_wmoicon",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L473",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_fetchweather",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L500",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_reversegeocode",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L520",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_makecompletionkey",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L524",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_resolvedroutinefordate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L592",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_applyelsewherefilter",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L610",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_plannedminutesforproject",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L616",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_spentminutesforproject",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L624",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_combineddayitems",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L656",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_actionstatemap",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L677",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_waitforgoogle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L687",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_initauth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L696",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_requesttoken",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L713",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_revoketoken",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L723",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_drivefetch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L733",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_finddatafile",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L741",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_downloadfile",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L747",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_createfile",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L762",
+      "weight": 1.0,
+      "source": "app_helpers_js",
+      "target": "my_planning_app_helpers_updatefile",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_startofweek",
+      "target": "my_planning_app_helpers_startofday",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L145",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_blocksfordate",
+      "target": "my_planning_app_helpers_startofday",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L154",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_blocksforweek",
+      "target": "my_planning_app_helpers_startofday",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L172",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_makeoverridekey",
+      "target": "my_planning_app_helpers_startofday",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L521",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_makecompletionkey",
+      "target": "my_planning_app_helpers_startofday",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L525",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_resolvedroutinefordate",
+      "target": "my_planning_app_helpers_startofday",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L155",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_blocksforweek",
+      "target": "my_planning_app_helpers_adddays",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L625",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_combineddayitems",
+      "target": "my_planning_app_helpers_adddays",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L595",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_applyelsewherefilter",
+      "target": "my_planning_app_helpers_issameday",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L35",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_formatrange",
+      "target": "my_planning_app_helpers_formatdateshort",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L651",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_combineddayitems",
+      "target": "my_planning_app_helpers_layoutday",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L628",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_combineddayitems",
+      "target": "my_planning_app_helpers_blocksfordate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L611",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_plannedminutesforproject",
+      "target": "my_planning_app_helpers_blocksforweek",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L617",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_spentminutesforproject",
+      "target": "my_planning_app_helpers_blocksforweek",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L395",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_parseics",
+      "target": "my_planning_app_helpers_unfoldics",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L284",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_parserrule",
+      "target": "my_planning_app_helpers_parseicsdate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L403",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_parseics",
+      "target": "my_planning_app_helpers_parsevevent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L446",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_fetchics",
+      "target": "my_planning_app_helpers_parseics",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L626",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_combineddayitems",
+      "target": "my_planning_app_helpers_resolvedroutinefordate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L627",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_combineddayitems",
+      "target": "my_planning_app_helpers_applyelsewherefilter",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L688",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_initauth",
+      "target": "my_planning_app_helpers_waitforgoogle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L727",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_drivefetch",
+      "target": "my_planning_app_helpers_requesttoken",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L735",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_finddatafile",
+      "target": "my_planning_app_helpers_drivefetch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L742",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_downloadfile",
+      "target": "my_planning_app_helpers_drivefetch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L754",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_createfile",
+      "target": "my_planning_app_helpers_drivefetch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app-helpers.js",
+      "source_location": "L763",
+      "weight": 1.0,
+      "source": "my_planning_app_helpers_updatefile",
+      "target": "my_planning_app_helpers_drivefetch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "claude_md",
+      "target": "my_planning_claude_my_planning",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "my_planning_claude_my_planning",
+      "target": "my_planning_claude_architecture",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "my_planning_claude_my_planning",
+      "target": "my_planning_claude_core_data_shape_schema_v16",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L26",
+      "weight": 1.0,
+      "source": "my_planning_claude_my_planning",
+      "target": "my_planning_claude_two_main_views",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L31",
+      "weight": 1.0,
+      "source": "my_planning_claude_my_planning",
+      "target": "my_planning_claude_visual_language",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L40",
+      "weight": 1.0,
+      "source": "my_planning_claude_my_planning",
+      "target": "my_planning_claude_project_portfolio",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L44",
+      "weight": 1.0,
+      "source": "my_planning_claude_my_planning",
+      "target": "my_planning_claude_workflow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L48",
+      "weight": 1.0,
+      "source": "my_planning_claude_my_planning",
+      "target": "my_planning_claude_conventions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L57",
+      "weight": 1.0,
+      "source": "my_planning_claude_my_planning",
+      "target": "my_planning_claude_pending_ux_backlog",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L68",
+      "weight": 1.0,
+      "source": "my_planning_claude_my_planning",
+      "target": "my_planning_claude_graphify",
+      "confidence_score": 1.0
+    }
+  ],
+  "hyperedges": [],
+  "built_at_commit": "1a861aa1be4cde80d24d52654e2397900e1e08de"
+}
