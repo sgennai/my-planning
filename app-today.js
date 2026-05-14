@@ -376,7 +376,7 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
 // ═════════════════════════════════════════════════════════════
 function TodayScreen({
   data, now, isMobile, saving, error, lastSyncedAt,
-  onSwitchToPlan,
+  onSwitchView,
   projects, blocks, refLibrary, elsewhere,
   weatherSettings, weatherCache, weatherRefreshing, weatherError,
   icsOccurrences,
@@ -704,9 +704,7 @@ function TodayScreen({
           <button className="today-practice-btn" onClick={onOpenPractice}>
             Practice
           </button>
-          <button className="today-plan-link" onClick={onSwitchToPlan}>
-            Plan the week →
-          </button>
+          <ViewSwitcher view="today" onSwitchView={onSwitchView} />
         </div>
       </div>
 

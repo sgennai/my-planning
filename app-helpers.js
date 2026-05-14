@@ -768,4 +768,22 @@ async function updateFile(fileId, data) {
   return resp.json();
 }
 
+// ─────────────────────────────────────────────────────────────
+// VIEW SWITCHER — Apple Calendar-style Today / Week toggle
+// ─────────────────────────────────────────────────────────────
+function ViewSwitcher({ view, onSwitchView }) {
+  return (
+    <div className="view-switcher">
+      <button
+        className={'view-switcher-btn' + (view === 'today' ? ' active' : '')}
+        onClick={() => view !== 'today' && onSwitchView('today')}
+      >Today</button>
+      <button
+        className={'view-switcher-btn' + (view === 'plan' ? ' active' : '')}
+        onClick={() => view !== 'plan' && onSwitchView('plan')}
+      >Week</button>
+    </div>
+  );
+}
+
 // ═════════════════════════════════════════════════════════════

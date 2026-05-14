@@ -608,7 +608,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         saving={saving}
         error={error}
         lastSyncedAt={lastSyncedAt}
-        onSwitchToPlan={() => setMainView('plan')}
+        onSwitchView={setMainView}
         projects={projects}
         blocks={blocks}
         refLibrary={refLibrary}
@@ -672,7 +672,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
           </div>
         </div>
         <div className="today-topbar-right">
-          <button className="today-plan-link" onClick={() => setMainView('today')}>← Today</button>
+          <ViewSwitcher view="plan" onSwitchView={setMainView} />
         </div>
       </div>
       <WeatherStrip

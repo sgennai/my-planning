@@ -1082,6 +1082,38 @@
       background: var(--primary-hover);
       box-shadow: 0 6px 16px rgba(59, 130, 246, 0.24);
     }
+    .view-switcher {
+      display: flex;
+      background: rgba(0, 0, 0, 0.06);
+      border-radius: 10px;
+      padding: 3px;
+      gap: 1px;
+    }
+    [data-theme="dark"] .view-switcher {
+      background: rgba(255, 255, 255, 0.09);
+    }
+    .view-switcher-btn {
+      padding: 5px 14px;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-2);
+      cursor: pointer;
+      transition:
+        background var(--duration-fast) var(--ease-out),
+        color var(--duration-fast) var(--ease-out),
+        box-shadow var(--duration-fast) var(--ease-out);
+      white-space: nowrap;
+      font-family: var(--serif);
+    }
+    .view-switcher-btn.active {
+      background: var(--bg-card);
+      color: var(--text-1);
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.06);
+    }
     .today-practice-btn {
       padding: var(--space-2) var(--space-4);
       background: transparent;
@@ -1630,10 +1662,9 @@
       .today-elsewhere-toggle {
         display: none;
       }
-      .today-plan-link {
-        font-size: var(--text-xs);
-        padding: var(--space-1) var(--space-3);
-        letter-spacing: 0;
+      .view-switcher-btn {
+        padding: 4px 10px;
+        font-size: 12px;
       }
     }
 
