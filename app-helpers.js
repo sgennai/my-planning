@@ -769,6 +769,61 @@ async function updateFile(fileId, data) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// SUPPLEMENT STRIP — narrow right-side zone for supplement items
+// ─────────────────────────────────────────────────────────────
+function SupplementStrip({ items, hourHeight, startHour, date, now, onItemClick, categoryStyles, stripWidth }) {
+  const CATS = categoryStyles || CATEGORY_STYLES;
+  const suppStyle = CATS.supplement || { color: '#9C8845' };
+  const SH = startHour !== undefined ? startHour : 6;
+  const sw = stripWidth || 44;
+
+  const byTime = {};
+  items.forEach(it => {
+    const min = typeof it.startMin === 'number' ? it.startMin : toMinutes(it.start || '00:00');
+    if (!byTime[min]) byTime[min] = [];
+    byTime[min].push(it);
+  });
+
+  const checkIsPast = (startMin) => {
+    if (!now) return false;
+    const dateDay = startOfDay(date).getTime();
+    const todayDay = startOfDay(now).getTime();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    return dateDay < todayDay || (dateDay === todayDay && startMin <= nowMin);
+  };
+
+  return (
+    <div className="supp-strip" style={{ width: sw }}>
+      {Object.entries(byTime).map(([minStr, group]) => {
+        const startMin = Number(minStr);
+        const top = ((startMin - SH * 60) / 60) * hourHeight;
+        const past = checkIsPast(startMin);
+        return (
+          <div key={minStr} className={`supp-strip-cluster${past ? ' is-past' : ''}`} style={{ top }}>
+            {group.map(it => {
+              const id = it.id || it.itemId;
+              const completed = it._completed || it.completed;
+              return (
+                <button
+                  key={id}
+                  className={`supp-strip-item${completed ? ' completed' : ''}`}
+                  onClick={(e) => { e.stopPropagation(); onItemClick && onItemClick(id, date); }}
+                  title={`${it.title} · ${pad(Math.floor(startMin / 60))}:${pad(startMin % 60)}`}
+                  style={{ borderLeftColor: suppStyle.color }}
+                >
+                  <span className="supp-strip-label">{it.title}</span>
+                  {completed && <span className="supp-strip-check">✓</span>}
+                </button>
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
 // VIEW SWITCHER — Apple Calendar-style Today / Week toggle
 // ─────────────────────────────────────────────────────────────
 function ViewSwitcher({ view, onSwitchView }) {

@@ -189,7 +189,9 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
   // 1. Cluster events that transitively overlap.
   // 2. Within a cluster, assign each event to the leftmost column where it doesn't conflict.
   // 3. Width = column count to the right that the event can extend through without conflict.
-  const sorted = [...items].sort((a, b) => {
+  const supplementItems = items.filter(it => it.kind === 'routine' && it.category === 'supplement');
+  const nonSupplementItems = items.filter(it => !(it.kind === 'routine' && it.category === 'supplement'));
+  const sorted = [...nonSupplementItems].sort((a, b) => {
     if (a.startMin !== b.startMin) return a.startMin - b.startMin;
     return (b.duration - (b.startMin)) - (a.duration - (a.startMin)); // longer first when ties
   });
@@ -251,7 +253,7 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
   return (
     <div
       ref={gridRef}
-      className="today-cal-grid"
+      className={`today-cal-grid${supplementItems.length ? ' has-supplements' : ''}`}
       style={{ height: totalHours * HOUR_HEIGHT }}
       onDragOver={onGridDragOver}
       onDragLeave={onGridDragLeave}
@@ -385,6 +387,21 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
           </div>
         );
       })}
+      {supplementItems.length > 0 && (
+        <SupplementStrip
+          items={supplementItems.map(it => ({ ...it, id: it.itemId || it.id }))}
+          hourHeight={HOUR_HEIGHT}
+          startHour={HOUR_START}
+          date={viewDate}
+          now={now}
+          onItemClick={(id) => {
+            const found = supplementItems.find(s => (s.itemId || s.id) === id);
+            if (found) onItemClick(found);
+          }}
+          categoryStyles={CATS}
+          stripWidth={72}
+        />
+      )}
     </div>
   );
 }
