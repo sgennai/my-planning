@@ -13,6 +13,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   const [inboxOpen, setInboxOpen] = useState(false);
   const [resetOverlayOpen, setResetOverlayOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [practiceOpen, setPracticeOpen] = useState(false);
   // ICS imported events: per-feed parsed events in memory (not synced to Drive)
   // Shape: { work: { events: [...], lastFetched: Date, error: '' }, household: { ... } }
   const [icsCache, setIcsCache] = useState({ work: null, household: null });
@@ -373,6 +374,18 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     }));
   }, [persistData]);
 
+  const updatePracticeItem = useCallback((tab, updatedItem) => {
+    persistData(d => ({
+      ...d,
+      practiceContent: {
+        ...(d.practiceContent || SEED_PRACTICE_CONTENT),
+        [tab]: ((d.practiceContent && d.practiceContent[tab]) || []).map(it =>
+          it.id === updatedItem.id ? updatedItem : it
+        ),
+      },
+    }));
+  }, [persistData]);
+
   // Drag-drop: pending drop captured by WeekGrid, then a duration prompt asks "how long".
   // Shape: { todoId, date, start, dropX, dropY } | null
   const [pendingTodoDrop, setPendingTodoDrop] = useState(null);
@@ -624,6 +637,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         onRoutineClick={handleRoutineClick}
         onTodoDrop={setPendingTodoDrop}
         onLaunchReview={() => setResetOverlayOpen(true)}
+        onOpenPractice={() => setPracticeOpen(true)}
         onOpenInbox={() => setInboxOpen(true)}
         onOpenSettings={() => setSettingsOpen(true)}
         inbox={data.inbox || []}
@@ -855,6 +869,14 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         now={now}
         onClose={() => setResetOverlayOpen(false)}
         onSave={(answers) => { saveWeeklyReset(answers); }}
+      />
+    )}
+
+    {practiceOpen && (
+      <DailyPracticeHub
+        data={data}
+        onClose={() => setPracticeOpen(false)}
+        onUpdateItem={updatePracticeItem}
       />
     )}
 

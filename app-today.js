@@ -385,7 +385,7 @@ function TodayScreen({
   onCompleteAction, onAddAction, onDeleteAction,
   onToggleRoutineCompletion, onSetElsewhere,
   onOpenReference, onOpenBlock, onRoutineClick, onTodoDrop,
-  onLaunchReview, onOpenInbox, onOpenSettings,
+  onLaunchReview, onOpenPractice, onOpenInbox, onOpenSettings,
   inbox, weeklyResets,
   currentTheme, onSetTheme,
   categoryStyles,
@@ -700,6 +700,9 @@ function TodayScreen({
             title={isWorkingAway ? 'Working away — tap to switch back to home' : 'Tap if you\'re away from home today'}
           >
             {isWorkingAway ? 'Away' : 'At home'}
+          </button>
+          <button className="today-practice-btn" onClick={onOpenPractice}>
+            Practice
           </button>
           <button className="today-plan-link" onClick={onSwitchToPlan}>
             Plan the week →

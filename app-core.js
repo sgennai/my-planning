@@ -17,6 +17,7 @@ function makeDefaultData() {
     elsewhereToggles: { morning: false, afternoon: false, allDay: false, date: null },
     todos: [],
     completedActions: [],
+    practiceContent: SEED_PRACTICE_CONTENT,
     routineCompletions: {},
     weather: { lat: null, lon: null, label: '', source: 'unset' }, // source: 'unset' | 'geolocation' | 'manual'
     prefs: {
@@ -79,6 +80,10 @@ function migrate(data) {
   if (!next.elsewhereToggles) { next.elsewhereToggles = { morning: false, afternoon: false, allDay: false, date: null }; changed = true; }
   if (!Array.isArray(next.todos)) { next.todos = []; changed = true; }
   if (!Array.isArray(next.completedActions)) { next.completedActions = []; changed = true; }
+  if (!next.practiceContent || typeof next.practiceContent !== 'object' ||
+      !next.practiceContent.interviewPrep || !next.practiceContent.personalNarrative || !next.practiceContent.clevelQs) {
+    next.practiceContent = SEED_PRACTICE_CONTENT; changed = true;
+  }
   if (!next.routineCompletions || typeof next.routineCompletions !== 'object') {
     next.routineCompletions = {};
     changed = true;
