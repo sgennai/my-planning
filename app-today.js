@@ -105,6 +105,13 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
     return () => document.removeEventListener('keydown', onKey);
   }, [composer]);
 
+  const nowLineRef = useRef(null);
+  useEffect(() => {
+    setTimeout(() => {
+      nowLineRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }, 80);
+  }, []);
+
   const submitComposer = () => {
     if (composerTitle.trim() && composer) {
       onCreateAtTime(composer.startMin, composerTitle.trim());
@@ -279,7 +286,7 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
       )}
       {/* Now line */}
       {inWindow && (
-        <div className="today-cal-now-line" style={{ top: nowY }}>
+        <div ref={nowLineRef} className="today-cal-now-line" style={{ top: nowY }}>
           <span className="today-cal-now-dot" />
         </div>
       )}

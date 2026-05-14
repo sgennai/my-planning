@@ -801,7 +801,7 @@ const START_HOUR = 6;
 const END_HOUR = 23;
 const HOURS_VISIBLE = END_HOUR - START_HOUR;
 
-function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, now, singleCol, onDayClick, onCreateBlock, onBlockClick, onRoutineClick, onUpdateBlock, elsewhereToggles, icsOccurrences, onTodoDrop, completions, onToggleComplete, categoryStyles }) {
+function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, now, singleCol, onDayClick, onCreateBlock, onBlockClick, onRoutineClick, onUpdateBlock, elsewhereToggles, icsOccurrences, onTodoDrop, completions, onToggleComplete, categoryStyles, calendarToggles }) {
   const isDayView = singleCol !== null && singleCol !== undefined;
   const HOUR_HEIGHT = isDayView ? HOUR_HEIGHT_DAY : HOUR_HEIGHT_WEEK;
   const totalHeight = HOURS_VISIBLE * HOUR_HEIGHT;
@@ -812,6 +812,12 @@ function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, no
   const [activeDropCol, setActiveDropCol] = useState(null);
   const [dropPreview, setDropPreview] = useState(null); // { col, top, height }
   const dragPayloadRef = useRef(null);
+  const nowLineRef = useRef(null);
+  useEffect(() => {
+    setTimeout(() => {
+      nowLineRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }, 80);
+  }, []);
 
   // Convert mouse Y position within a day column → snapped HH:MM string
   const yToTimeString = (y) => {
@@ -942,7 +948,15 @@ function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, no
           const date = addDays(weekStart, col);
           const isToday = isCurrentWeek && isSameDay(date, now);
           const isWeekend = col === 5 || col === 6;
-          const dayItems = combinedDayItems(col, routine, scheduledBlocks || [], weekStart, overrides, elsewhereToggles, now, icsOccurrences, completions);
+          const allDayItems = combinedDayItems(col, routine, scheduledBlocks || [], weekStart, overrides, elsewhereToggles, now, icsOccurrences, completions);
+          const dayItems = !calendarToggles ? allDayItems : allDayItems.filter(it => {
+            if (it._kind === 'routine' && !calendarToggles.routine) return false;
+            if (it._kind === 'ics' && it._ics) {
+              if (it._ics.source === 'work' && !calendarToggles.work) return false;
+              if (it._ics.source === 'household' && !calendarToggles.household) return false;
+            }
+            return true;
+          });
 
           return (
             <div
@@ -973,7 +987,7 @@ function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, no
                   categoryStyles={categoryStyles}
                 />
               ))}
-              {isToday && <NowLine now={now} hourHeight={HOUR_HEIGHT} />}
+              {isToday && <NowLine now={now} hourHeight={HOUR_HEIGHT} nowLineRef={nowLineRef} />}
               {dropPreview && dropPreview.col === col && (
                 <div className="drop-ghost" style={{ top: dropPreview.top, height: dropPreview.height }}>
                   <div style={{ padding: 4, fontSize: 10, color: 'var(--primary)', fontFamily: 'var(--mono)', letterSpacing: '0.05em' }}>
@@ -1195,12 +1209,12 @@ function CalItem({ item, date, hourHeight, projects, onBlockClick, onRoutineClic
   );
 }
 
-function NowLine({ now, hourHeight }) {
+function NowLine({ now, hourHeight, nowLineRef }) {
   const min = now.getHours() * 60 + now.getMinutes();
   const offsetMin = min - START_HOUR * 60;
   if (offsetMin < 0 || offsetMin > HOURS_VISIBLE * 60) return null;
   const top = (offsetMin / 60) * hourHeight;
-  return <div className="now-line" style={{ top }} />;
+  return <div ref={nowLineRef} className="now-line" style={{ top }} />;
 }
 
 // ═════════════════════════════════════════════════════════════

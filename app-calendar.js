@@ -22,6 +22,8 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   const [weatherRefreshing, setWeatherRefreshing] = useState(false);
   const [weatherError, setWeatherError] = useState('');
   const [weatherDayTab, setWeatherDayTab] = useState(0); // 0=today, 1=tomorrow, 2=day-after
+  const [weatherVisible, setWeatherVisible] = useState(true);
+  const [calendarToggles, setCalendarToggles] = useState({ routine: true, work: true, household: true });
 
   const weekEnd = addDays(weekStart, 6);
   const isCurrentWeek = isSameDay(weekStart, startOfWeek(now));
@@ -645,8 +647,15 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         color: occ.color || (occ.source === 'work' ? '#8C8C96' : '#7896AF'), allDay: occ.allDay });
     });
     items.sort((a, b) => a.startMin - b.startMin);
-    return items;
-  }, [data.routine, tdOverrides, tdCompletions, elsewhere, now, viewDate, blocks, projects, icsOccurrences]);
+    return items.filter(it => {
+      if (it.kind === 'routine' && !calendarToggles.routine) return false;
+      if (it.kind === 'ics') {
+        if (it.note === 'WORK' && !calendarToggles.work) return false;
+        if (it.note === 'HOUSEHOLD' && !calendarToggles.household) return false;
+      }
+      return true;
+    });
+  }, [data.routine, tdOverrides, tdCompletions, elsewhere, now, viewDate, blocks, projects, icsOccurrences, calendarToggles]);
 
   const nowMin = now.getHours() * 60 + now.getMinutes();
   const tdCurrent = todayItems.find(it => it.startMin <= nowMin && (it.startMin + it.duration) > nowMin && !it.completed);
@@ -720,6 +729,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
       </div>
       <div className="app-topbar-right">
         <button className="app-topbar-btn app-topbar-btn-icon" onClick={() => setTheme(currentTheme === 'light' ? 'dark' : 'light')} title="Toggle theme">{currentTheme === 'light' ? '◐' : '◑'}</button>
+        <button className="app-topbar-btn app-topbar-btn-icon" style={{ opacity: weatherVisible ? 1 : 0.4 }} onClick={() => setWeatherVisible(v => !v)} title={weatherVisible ? 'Hide weather' : 'Show weather'}>☁</button>
         <button className={`app-topbar-btn ${isWorkingAway ? 'active' : ''}`} onClick={toggleWorkingAway}>{isWorkingAway ? 'Away' : 'At home'}</button>
         <button className="app-topbar-btn" onClick={() => setPracticeOpen(true)}>Practice</button>
         <button className="app-topbar-btn" onClick={() => setInboxOpen(true)}>{openInboxCount > 0 ? `Inbox · ${openInboxCount}` : 'Inbox'}</button>
@@ -730,17 +740,19 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     <div className={`today-wrap fade-in${mainView === 'plan' && dayView !== null ? ' day-view' : ''}`}>
 
       {/* ── WEATHER (identical in both views) ── */}
-      <WeatherStrip
-        settings={weatherSettings}
-        cache={weatherCache}
-        refreshing={weatherRefreshing}
-        error={weatherError}
-        dayTab={weatherDayTab}
-        now={now}
-        onChangeDayTab={setWeatherDayTab}
-        onRefresh={() => refreshWeather()}
-        onRequestGeo={requestGeolocation}
-      />
+      {weatherVisible && (
+        <WeatherStrip
+          settings={weatherSettings}
+          cache={weatherCache}
+          refreshing={weatherRefreshing}
+          error={weatherError}
+          dayTab={weatherDayTab}
+          now={now}
+          onChangeDayTab={setWeatherDayTab}
+          onRefresh={() => refreshWeather()}
+          onRequestGeo={requestGeolocation}
+        />
+      )}
 
       {/* ── HERO BANNER (identical in both views) ── */}
       <div className="today-hero">
@@ -861,6 +873,27 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
               })}
             </div>
           </div>
+          <div className="today-rail-section">
+            <div className="today-rail-header">
+              <div className="today-rail-eyebrow">Calendars</div>
+            </div>
+            <div className="today-cal-toggles">
+              {[
+                { key: 'routine', label: 'Routine', color: 'var(--primary)' },
+                { key: 'work', label: 'Work', color: calendarSettings.workColor || '#8C8C96' },
+                { key: 'household', label: 'Household', color: calendarSettings.householdColor || '#7896AF' },
+              ].map(({ key, label, color }) => (
+                <button
+                  key={key}
+                  className={`cal-toggle-btn ${calendarToggles[key] ? 'active' : ''}`}
+                  onClick={() => setCalendarToggles(t => ({ ...t, [key]: !t[key] }))}
+                >
+                  <span className="cal-toggle-dot" style={{ background: color, opacity: calendarToggles[key] ? 1 : 0.3 }} />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* RIGHT PANE — today timeline OR week grid */}
@@ -925,6 +958,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                 completions={data.routineCompletions || {}}
                 onToggleComplete={toggleRoutineCompletion}
                 categoryStyles={categoryStyles}
+                calendarToggles={calendarToggles}
               />
             )}
             <Legend />

@@ -11,12 +11,6 @@ function WeatherStrip({ settings, cache, refreshing, error, dayTab, now, onChang
     const declined = settings && settings.source === 'declined';
     return (
       <div className="weather-strip">
-        <div className="weather-strip-left">
-          <div className="weather-strip-eyebrow">Weather</div>
-          <div className="weather-strip-location">
-            {declined ? 'Location off' : 'Location needed'}
-          </div>
-        </div>
         <div className="weather-strip-status">
           {declined
             ? 'Set your location in Settings to enable the forecast.'
@@ -80,14 +74,8 @@ function WeatherStrip({ settings, cache, refreshing, error, dayTab, now, onChang
     </div>
   );
 
-  const locationDisplay = settings.label || `${(settings.lat || 0).toFixed(2)}°, ${(settings.lon || 0).toFixed(2)}°`;
-
   return (
     <div className="weather-strip">
-      <div className="weather-strip-left">
-        <div className="weather-strip-eyebrow">Weather</div>
-        <div className="weather-strip-location" title={locationDisplay}>{locationDisplay}</div>
-      </div>
       {renderTabBar()}
       {refreshing && cells.length === 0 ? (
         <div className="weather-strip-status">Loading forecast…</div>
