@@ -385,7 +385,7 @@ function TodayScreen({
   onCompleteAction, onAddAction, onDeleteAction,
   onToggleRoutineCompletion, onSetElsewhere,
   onOpenReference, onOpenBlock, onRoutineClick, onTodoDrop,
-  onLaunchReview, onOpenPractice, onOpenInbox, onOpenSettings,
+  onLaunchReview, onOpenPractice, onOpenInbox, onOpenSettings, onOpenRoutineManager, onSignOut,
   inbox, weeklyResets,
   currentTheme, onSetTheme,
   categoryStyles,
@@ -704,6 +704,10 @@ function TodayScreen({
           <button className="today-practice-btn" onClick={onOpenPractice}>
             Practice
           </button>
+          <button className="today-footer-btn" onClick={onOpenInbox}>
+            {openInboxCount > 0 ? `Inbox · ${openInboxCount}` : '+ Inbox'}
+          </button>
+          <button className="today-footer-btn" onClick={onOpenSettings}>⚙ Settings</button>
         </div>
       </div>
 
@@ -790,8 +794,69 @@ function TodayScreen({
         )}
       </div>
 
-      {/* Body: timeline + rail */}
+      {/* Body: rail (left) + timeline (right) */}
       <div className="today-body">
+        <div className="today-rail">
+          {/* Portfolio */}
+          <ProjectsRailPanel projects={projects} scheduledBlocks={blocks} onCompleteAction={onCompleteAction} onAddAction={onAddAction} onDeleteAction={onDeleteAction} />
+
+          {/* Todos */}
+          <div className="today-rail-section">
+            <div className="today-rail-header">
+              <div className="today-rail-eyebrow">Todos</div>
+              <div className="today-rail-count">{todos.filter(t => !t.done).length} open</div>
+            </div>
+            <div className="today-todo-add">
+              <input
+                type="text"
+                className="today-todo-add-input"
+                placeholder="+ add todo, Enter to save"
+                value={todoInput}
+                onChange={e => setTodoInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); submitTodo(); } }}
+              />
+            </div>
+            <div className="today-rail-list">
+              {sortedTodos.length === 0 ? (
+                <div className="today-rail-empty">No todos.</div>
+              ) : sortedTodos.map(t => {
+                const sched = !t.done && scheduledTodoIds.has(t.id);
+                return (
+                  <div
+                    key={t.id}
+                    className={`today-todo-row ${t.done ? 'done' : ''} ${sched ? 'scheduled' : ''}`}
+                    draggable={!t.done}
+                    onDragStart={(e) => onTodoRailDragStart(e, t)}
+                    title={t.done ? 'Done' : (sched ? 'Scheduled · drag to reschedule' : 'Drag onto timeline to schedule')}
+                  >
+                    <input
+                      type="checkbox"
+                      className="today-todo-check"
+                      checked={!!t.done}
+                      onChange={() => onUpdateTodo(t.id, { done: !t.done })}
+                      onClick={e => e.stopPropagation()}
+                    />
+                    <div className="today-todo-title">{t.title}</div>
+                    {sched && <div className="today-todo-badge">SCHED</div>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Mini month — day navigation */}
+          <TodayMiniMonth
+            viewDate={viewDate}
+            now={now}
+            onSelectDate={(d) => {
+              const start = startOfDay(d).getTime();
+              const today0 = startOfDay(now).getTime();
+              const offset = Math.round((start - today0) / (24 * 60 * 60 * 1000));
+              setViewDayOffset(offset);
+            }}
+          />
+        </div>
+
         <div
           className="today-timeline"
           onDragOver={onTimelineDragOver}
@@ -881,85 +946,16 @@ function TodayScreen({
           </div>
         </div>
 
-        <div className="today-rail">
-          <TodayMiniMonth
-            viewDate={viewDate}
-            now={now}
-            onSelectDate={(d) => {
-              const start = startOfDay(d).getTime();
-              const today0 = startOfDay(now).getTime();
-              const offset = Math.round((start - today0) / (24 * 60 * 60 * 1000));
-              setViewDayOffset(offset);
-            }}
-          />
-          {/* Portfolio */}
-          <ProjectsRailPanel projects={projects} scheduledBlocks={blocks} onCompleteAction={onCompleteAction} onAddAction={onAddAction} onDeleteAction={onDeleteAction} />
-
-          {/* Todos */}
-          <div className="today-rail-section">
-            <div className="today-rail-header">
-              <div className="today-rail-eyebrow">Todos</div>
-              <div className="today-rail-count">{todos.filter(t => !t.done).length} open</div>
-            </div>
-            <div className="today-todo-add">
-              <input
-                type="text"
-                className="today-todo-add-input"
-                placeholder="+ add todo, Enter to save"
-                value={todoInput}
-                onChange={e => setTodoInput(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); submitTodo(); } }}
-              />
-            </div>
-            <div className="today-rail-list">
-              {sortedTodos.length === 0 ? (
-                <div className="today-rail-empty">No todos.</div>
-              ) : sortedTodos.map(t => {
-                const sched = !t.done && scheduledTodoIds.has(t.id);
-                return (
-                  <div
-                    key={t.id}
-                    className={`today-todo-row ${t.done ? 'done' : ''} ${sched ? 'scheduled' : ''}`}
-                    draggable={!t.done}
-                    onDragStart={(e) => onTodoRailDragStart(e, t)}
-                    title={t.done ? 'Done' : (sched ? 'Scheduled · drag to reschedule' : 'Drag onto timeline to schedule')}
-                  >
-                    <input
-                      type="checkbox"
-                      className="today-todo-check"
-                      checked={!!t.done}
-                      onChange={() => onUpdateTodo(t.id, { done: !t.done })}
-                      onClick={e => e.stopPropagation()}
-                    />
-                    <div className="today-todo-title">{t.title}</div>
-                    {sched && <div className="today-todo-badge">SCHED</div>}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Footer / utility row */}
       <div className="today-footer">
-        <FridayReviewLauncher
-          now={now}
-          weeklyResets={weeklyResets}
-          onLaunch={onLaunchReview}
-        />
-        {openInboxCount > 0 && (
-          <button className="today-footer-btn" onClick={onOpenInbox}>
-            Inbox · {openInboxCount}
-          </button>
-        )}
-        {openInboxCount === 0 && (
-          <button className="today-footer-btn" onClick={onOpenInbox}>+ Inbox</button>
-        )}
-        <button className="today-footer-btn" onClick={onOpenSettings}>⚙ Settings</button>
+        <FridayReviewLauncher now={now} weeklyResets={weeklyResets} onLaunch={onLaunchReview} />
+        <button className="today-footer-btn" onClick={onOpenRoutineManager}>⚙ Routines</button>
         <span className="today-footer-status">
           {saving ? 'Saving…' : (error ? 'Save error' : (lastSyncedAt ? `Synced ${new Date(lastSyncedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}` : ''))}
         </span>
+        <button className="today-footer-btn" onClick={onSignOut} style={{ marginLeft: 'auto' }}>Sign out</button>
       </div>
     </div>
   );

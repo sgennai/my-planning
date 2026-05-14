@@ -248,6 +248,13 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     });
   }, [persistData, todayDateKey]);
 
+  const isWorkingAway = !!(elsewhere && (elsewhere.allDay || elsewhere.morning || elsewhere.afternoon));
+  const toggleWorkingAway = useCallback(() => {
+    if (isWorkingAway) toggleElsewhere('allDay'); // toggleElsewhere off
+    else persistData(d => ({ ...d, elsewhereToggles: { morning: false, afternoon: false, allDay: true, date: todayDateKey } }));
+  }, [isWorkingAway, toggleElsewhere, persistData, todayDateKey]);
+  const openInboxCount = (data.inbox || []).filter(i => !i.done).length;
+
   // ─── Weekly reset save ──────────────────────────
   const saveWeeklyReset = useCallback((answers) => {
     const weekLabel = `Week of ${formatDateShort(weekStart)}, ${weekStart.getFullYear()}`;
@@ -643,6 +650,8 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         onOpenPractice={() => setPracticeOpen(true)}
         onOpenInbox={() => setInboxOpen(true)}
         onOpenSettings={() => setSettingsOpen(true)}
+        onOpenRoutineManager={() => setRoutineManagerOpen(true)}
+        onSignOut={onSignOut}
         inbox={data.inbox || []}
         weeklyResets={data.weeklyResets || []}
         currentTheme={currentTheme}
@@ -675,6 +684,21 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
           </div>
         </div>
         <div className="today-topbar-right">
+          <button
+            className="today-theme-toggle"
+            onClick={() => setTheme(currentTheme === 'light' ? 'dark' : 'light')}
+            title={currentTheme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'}
+          >{currentTheme === 'light' ? '◐' : '◑'}</button>
+          <button
+            className={`today-elsewhere-toggle ${isWorkingAway ? 'active' : ''}`}
+            onClick={toggleWorkingAway}
+            title={isWorkingAway ? 'Working away — tap to switch back to home' : "Tap if you're away from home today"}
+          >{isWorkingAway ? 'Away' : 'At home'}</button>
+          <button className="today-practice-btn" onClick={() => setPracticeOpen(true)}>Practice</button>
+          <button className="today-footer-btn" onClick={() => setInboxOpen(true)}>
+            {openInboxCount > 0 ? `Inbox · ${openInboxCount}` : '+ Inbox'}
+          </button>
+          <button className="today-footer-btn" onClick={() => setSettingsOpen(true)}>⚙ Settings</button>
         </div>
       </div>
       <WeatherStrip
@@ -710,16 +734,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
             onPrev={goPrev}
             onNext={goNext}
             onToday={goToday}
-            saving={saving}
-            error={error}
-            lastSyncedAt={lastSyncedAt}
-            onManageRoutine={() => setRoutineManagerOpen(true)}
             now={now}
-            isWorkingAway={!!(elsewhere && (elsewhere.allDay || elsewhere.morning || elsewhere.afternoon))}
-            onToggleWorkingAway={() => {
-              const isAway = !!(elsewhere && (elsewhere.allDay || elsewhere.morning || elsewhere.afternoon));
-              toggleElsewhere({ morning: false, afternoon: false, allDay: !isAway });
-            }}
             hideTitle={true}
           />
 
@@ -777,30 +792,13 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         <pre>{JSON.stringify(data, null, 2)}</pre>
       </details>
 
-      <div className="footer">
-        <div className="footer-info">{FILE_NAME}</div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <FridayReviewLauncher
-            now={now}
-            weeklyResets={data.weeklyResets || []}
-            onLaunch={() => setResetOverlayOpen(true)}
-          />
-          {(calendarSettings.workIcs || calendarSettings.householdIcs) && (
-            <button className="btn-tertiary" onClick={refreshICS} disabled={icsRefreshing}>
-              {icsRefreshing ? '↻ Refreshing…' : '↻ Calendars'}
-            </button>
-          )}
-          <button
-            className="btn-tertiary"
-            onClick={() => setTheme(currentTheme === 'light' ? 'dark' : 'light')}
-            title={currentTheme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'}
-          >
-            {currentTheme === 'light' ? '◐ Dark' : '◑ Light'}
-          </button>
-          <button className="btn-tertiary" onClick={() => setSettingsOpen(true)}>⚙ Settings</button>
-          <button className="btn-tertiary" onClick={onReload}>↻ Reload</button>
-          <button className="btn-tertiary" onClick={onSignOut}>Sign out</button>
-        </div>
+      <div className="today-footer">
+        <FridayReviewLauncher now={now} weeklyResets={data.weeklyResets || []} onLaunch={() => setResetOverlayOpen(true)} />
+        <button className="today-footer-btn" onClick={() => setRoutineManagerOpen(true)}>⚙ Routines</button>
+        <span className="today-footer-status">
+          {saving ? 'Saving…' : (error ? 'Save error' : (lastSyncedAt ? `Synced ${new Date(lastSyncedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}` : ''))}
+        </span>
+        <button className="today-footer-btn" onClick={onSignOut} style={{ marginLeft: 'auto' }}>Sign out</button>
       </div>
     </div>
     )}

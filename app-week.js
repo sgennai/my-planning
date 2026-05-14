@@ -744,24 +744,15 @@ function BlockPopover({ block, projects, onClose, onUpdate, onDelete }) {
   );
 }
 
-function CalendarHeader({ weekStart, weekEnd, isCurrentWeek, dayView, onPrev, onNext, onToday, saving, error, lastSyncedAt, onManageRoutine, now, isWorkingAway, onToggleWorkingAway, hideTitle }) {
-  const synced = lastSyncedAt
-    ? lastSyncedAt.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
-    : '—';
-  const status = error ? 'error' : (saving ? 'saving' : '');
-  const statusText = error ? 'Save error' : (saving ? 'Saving…' : `Synced ${synced}`);
-
+function CalendarHeader({ weekStart, weekEnd, isCurrentWeek, dayView, onPrev, onNext, onToday, now, hideTitle }) {
   const isDayView = dayView !== null;
   const focusedDate = isDayView ? addDays(weekStart, dayView) : null;
   const focusedIsToday = isDayView && isSameDay(focusedDate, new Date());
-
-  const timeLabel = (now || new Date()).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
 
   return (
     <div className="cal-header">
       {!hideTitle && (
         <div className="cal-title-block">
-          <div className="cal-eyebrow">My Planning</div>
           <div className="cal-week-label">
             {isDayView
               ? (focusedIsToday ? 'Today' : DAY_NAMES_LONG[dayView])
@@ -770,23 +761,9 @@ function CalendarHeader({ weekStart, weekEnd, isCurrentWeek, dayView, onPrev, on
           <div className="cal-week-range">
             {isDayView ? formatDateShort(focusedDate) + ', ' + focusedDate.getFullYear() : formatRange(weekStart, weekEnd)}
           </div>
-          <div className="cal-week-time">{timeLabel}</div>
         </div>
       )}
       <div className="cal-controls">
-        <span className={`sync-pill ${status}`}>{statusText}</span>
-        {onToggleWorkingAway && (
-          <button
-            className={`cal-away-pill ${isWorkingAway ? 'active' : ''}`}
-            onClick={onToggleWorkingAway}
-            title={isWorkingAway ? 'Working away — tap to switch back to home' : 'Tap if you\'re away from home today'}
-          >
-            {isWorkingAway ? 'Away' : 'At home'}
-          </button>
-        )}
-        {onManageRoutine && (
-          <button className="cal-routine-pill" onClick={onManageRoutine} title="Manage your routine items">⚙ Routines</button>
-        )}
         <button className="cal-nav-btn" onClick={onPrev} aria-label={isDayView ? 'Previous day' : 'Previous week'}>‹</button>
         <button
           className={`cal-today-btn ${(isDayView ? focusedIsToday : isCurrentWeek) ? 'active' : ''}`}
