@@ -4,29 +4,90 @@ Personal scheduling and portfolio management web app — a personal operating sy
 
 ## Architecture
 
-- **Single file**: everything lives in `index.html` (~11,000 lines). React 18 UMD + Babel standalone, no build step.
+- **Multi-file**: codebase is split into `index.html` (CSS + script tags only) and several JS modules loaded as `<script type="text/babel" data-presets="env,react">` tags. No build step — Babel transpiles at runtime in the browser.
 - **No backend**: state syncs to a single JSON file in Google Drive's appdata folder via OAuth. OAuth Client ID `25894919429-pbtl8l6nn23vnvc8c8cbhg5f3n8gepu6.apps.googleusercontent.com`.
-- **Deployment**: GitHub Pages from `main` branch at https://sgennai.github.io/my-planning/.
+- **Deployment**: GitHub Pages from `main` branch at https://sgennai.github.io/my-planning/. GitHub Actions workflow (`.github/workflows/deploy.yml`) injects `?v=<git-hash>` cache-busting query strings into all `app-*.js` `src=` attributes at deploy time — no hard-reload needed after push.
 - **ICS imports**: Cloudflare Worker (`cloudflare-worker.js`, deployed separately) proxies work + household calendars, read-only.
-- **Weather**: Open-Meteo, no key. Default location: Plouhinec, Brittany.
+- **Weather**: Open-Meteo, no key. Default location: Plouhinec, Brittany (47.99°N, -4.49°W).
 - **Custom UI**: hand-rolled calendar (no FullCalendar), hand-rolled drag-and-drop, hand-rolled component system. No Tailwind, no shadcn.
 
-## Core data shape (schema v16)
-{
-schemaVersion, createdAt, lastModified,
-routine, overrides, calendars,
-weeklyResets, projects, scheduledBlocks,
-referenceLibrary, inbox, elsewhereToggles,
-todos, routineCompletions, weather,
-prefs: { theme, categoryColors, categoryEmojis, todayView, lunchSlot }
-}
+## File structure
 
-Schema migrations are non-destructive at every version bump.
+```
+index.html          — CSS only + ordered <script> tags (no component logic)
+app-data.js         — SCHEMA_VERSION, SEED_PROJECTS, SEED_PRACTICE_CONTENT, makeDefaultData(), migrate()
+app-core.js         — root App component, Google Drive OAuth, state persistence, auth
+app-helpers.js      — shared utility functions, ViewSwitcher component, ProjectsRailPanel, date helpers
+app-routine.js      — RoutineManagerModal, RoutineEditForm, routine resolution logic
+app-widgets.js      — SettingsModal (with Routines tab), InboxModal, WeatherStrip, FridayReviewLauncher, Legend, TodosPane
+app-today.js        — TodayScreen (timeline pane only), TodayCalendarView, TodayMiniMonth
+app-week.js         — WeekGrid, AgendaView, CalendarHeader, BlockPopover, RoutineItemPopover
+app-practice.js     — DailyPracticeHub overlay (Interview Prep, Personal Narrative, C-Level Qs tabs)
+app-calendar.js     — CalendarScreen (single layout shell for both views), all shared state
+```
+
+All files share one global scope (no ES modules). Variables defined in one file are visible in others — global naming discipline matters.
+
+## Core data shape (schema v18)
+
+```
+{
+  schemaVersion, createdAt, lastModified,
+  routine, overrides, calendars,
+  weeklyResets, projects, scheduledBlocks,
+  referenceLibrary, inbox, elsewhereToggles,
+  todos, routineCompletions, weather,
+  practiceContent: { interviewPrep[], personalNarrative[], clevelQs[] },
+  prefs: { theme, categoryColors, categoryEmojis, todayView, lunchSlot }
+}
+```
+
+Schema migrations are non-destructive at every version bump. `migrate()` in `app-data.js` runs on every load.
+
+## Layout architecture
+
+`CalendarScreen` in `app-calendar.js` is the single layout shell for both views:
+
+```
+Fixed .app-topbar (52px, full viewport width)
+  Left:   [Today] [‹] [›] [date label]
+  Center: [Today / Week switcher]
+  Right:  [◐] [At home] [Practice] [Inbox] [Settings]
+
+.today-wrap (scrollable content, padding-top: 60px to clear topbar)
+  WeatherStrip
+  .today-hero  (Right Now / Next Up banner — always shows today)
+  .today-body  (grid: 320px left | 1fr right)
+    .today-rail (sticky left column — same in both views):
+      TodayMiniMonth
+      ProjectsRailPanel
+      Todos section (draggable to timeline)
+    Right pane (switches on mainView):
+      'today' → TodayScreen (timeline pane only)
+      'plan'  → WeekGrid / AgendaView
+  .today-footer  (FridayReviewLauncher · Save status · Sign out)
+```
+
+`TodayScreen` (`app-today.js`) renders only the `today-timeline` div — no wrapper, no topbar, no rail. All shared layout lives in `CalendarScreen`.
 
 ## Two main views
 
-1. **Daily view** (default landing, "Today" button): daily compass — "what do I do now?" Hero "Right Now" banner, weather strip with 4 fixed checkpoints (7am/12pm/5pm/10pm), timeline OR calendar toggle, mini-month picker + collapsible projects + todos in right rail.
-2. **Weekly view** ("Plan the week" button): full week grid for drag-drop scheduling, portfolio panel on left.
+Both views share identical topbar, weather, hero banner, and left rail. Only the right pane changes.
+
+1. **Today view** (default landing): daily compass — hero "Right Now/Next Up" banner, timeline list OR hour-grid calendar toggle, day navigation (‹ ›), mini-month date picker.
+2. **Week view**: full week grid for drag-drop scheduling. Day columns clickable to single-day view.
+
+The `viewDayOffset` state (today view's day navigation) and `todayItems` computation both live in `CalendarScreen` so the hero banner and left rail have access to them.
+
+## Key state in CalendarScreen
+
+- `mainView` — 'today' | 'plan'
+- `viewDayOffset` — day offset from now for today-view navigation
+- `weekStart` — Monday of the displayed week (plan view)
+- `dayView` — null (week) or 0–6 (single-day column) in plan view
+- `todayItems` — computed timeline items for viewDate (routine + blocks + ICS)
+- `tdCurrent`, `tdNext`, `tdThen` — hero banner data
+- `sortedTodos`, `todoInput` — shared left-rail todos state
 
 ## Visual language
 
@@ -36,19 +97,36 @@ Schema migrations are non-destructive at every version bump.
 - **Shape**: rounded cards (16/12/8/5px radius), soft shadows, pill buttons.
 - **Calendar blocks**: solid color fill, white text, title-first then time-below ("2 – 3pm" 12-hour format), 6px radius.
 - **Now-line**: 2px blue with soft halo.
+- **Topbar buttons**: `.app-topbar-btn` — pill, same size for all actions including Today.
 
 ## Project portfolio
 
 Tier 1 NEXT (master, 6h/week, 13 modules). Tier 2 APP - AI FOR SALES. Tier 3 Gym Exercise Translation. Tier 4 APP - FINANCE TRACKING + APP - INVESTMENT. Tier 5 APP - ROUTINE PLANNER. Master project (NEXT) has `isMaster: true`, `prioritySequence`, and `modules[]` each with `nextActions[]`.
 
+Projects rail (`ProjectsRailPanel` in `app-helpers.js`) shows next actions per module with complete/add/delete controls. `completedActions[]` tracks history.
+
+## Daily Practice Hub
+
+Overlay accessible via "Practice" button in topbar. Three tabs: Interview Prep (15 items), Personal Narrative (7 items), C-Level Qs (15 items). Two modes per tab: Full Answer (editable) and Flashcard (question → reveal → knew it / needs work). Mastery tracked via `streak` counter. All content lives in `data.practiceContent` in Google Drive JSON.
+
+## Settings modal
+
+Opened via "Settings" button in topbar. Two tabs:
+- **Calendars & Settings**: ICS calendar feeds, weather location, lunch slot config.
+- **Routines**: full routine manager (category colors/emojis, add/edit/delete routine items). This replaced the standalone "Routines" button.
+
+`RoutineManagerModal` accepts `embedded={true}` to render without its own modal-backdrop wrapper (used when hosted inside SettingsModal).
+
 ## Workflow
 
-Stephane edits via Claude Code. Deploy: `git add`, `git commit`, `git push` — GitHub Pages picks up `main` automatically. Cache is aggressive — hard reload (Cmd+Shift+R) after every deploy.
+Stephane edits via Claude Code. Deploy: `git add`, `git commit`, `git push` — GitHub Actions deploys to GitHub Pages automatically with cache-busting. No hard reload needed.
 
 ## Conventions
 
 - Schema migrations are non-destructive — every version bump preserves prior data shape.
 - All transitions use `--ease-out` and `--duration-*` tokens; `prefers-reduced-motion` is respected.
+- `persistData(mutator)` pattern for all state updates — never mutate `data` directly.
+- Overlay/modal pattern: `{stateVar && <Component onClose={() => setStateVar(false)} />}`.
 - Heavy formatting (bold, headers, bullets) is avoided in chat replies; concise prose only.
 - Stephane prefers full creative control over constrained defaults (e.g., free color picker, not curated swatches).
 - Mark backlog items COMPLETED, do not remove them.
@@ -56,14 +134,21 @@ Stephane edits via Claude Code. Deploy: `git add`, `git commit`, `git push` — 
 
 ## Pending UX backlog
 
-- ~~Cache-control meta tag (deploys require hard-reload — friction)~~ COMPLETED
+- ~~Cache-control meta tag (deploys require hard-reload — friction)~~ COMPLETED via GitHub Actions cache-busting
+- ~~File splitting (single index.html was ~11,000 lines)~~ COMPLETED — split into app-*.js files
+- ~~Daily Practice Hub~~ COMPLETED
+- ~~Unified Today/Week layout shell~~ COMPLETED
+- ~~Routines inside Settings modal~~ COMPLETED
 - Persistent Google sign-in
+- Next actions edit mode for Projects Rail (complete/add/archive actions live)
 - Past weekly resets browser
 - Story Vault
 - Habit streaks/analytics
 - Voice memo capture
 - Multi-device conflict handling
 - Offline fallback
+- RSS article feed for modules #5/#6 (extend Cloudflare Worker + in-app widget)
+- Claude Skills: `/sales-coach`, `/comm-coach`, `/linkedin-post` command files
 
 ## graphify
 
