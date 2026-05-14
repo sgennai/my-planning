@@ -710,50 +710,48 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
       <div className="today-topbar">
         <div className="today-topbar-left">
           <button
-            className="today-day-nav-btn"
-            onClick={mainView === 'today' ? () => setViewDayOffset(o => o - 1) : goPrev}
-            aria-label="Previous"
-          >‹</button>
-          <div className="today-date-block">
-            <div className="today-date">
-              <span className="today-date-day">
-                {mainView === 'today'
-                  ? viewDate.toLocaleDateString(undefined, { weekday: 'long' })
-                  : (dayView !== null
-                      ? (isSameDay(addDays(weekStart, dayView), now) ? 'Today' : DAY_NAMES_LONG[dayView])
-                      : (isCurrentWeek ? 'This week' : `Week of ${formatDateShort(weekStart)}`))
+            className="today-day-nav-today"
+            onClick={mainView === 'today' ? () => setViewDayOffset(0) : goToday}
+            aria-label="Go to today"
+          >Today</button>
+          <div className="today-topbar-nav-row">
+            <button
+              className="today-day-nav-btn"
+              onClick={mainView === 'today' ? () => setViewDayOffset(o => o - 1) : goPrev}
+              aria-label="Previous"
+            >‹</button>
+            <div className="today-date-block">
+              <div className="today-date">
+                <span className="today-date-day">
+                  {mainView === 'today'
+                    ? viewDate.toLocaleDateString(undefined, { weekday: 'long' })
+                    : (dayView !== null
+                        ? (isSameDay(addDays(weekStart, dayView), now) ? 'Today' : DAY_NAMES_LONG[dayView])
+                        : (isCurrentWeek ? 'This week' : `Week of ${formatDateShort(weekStart)}`))
+                  }
+                </span>
+                <span className="today-date-rest">
+                  {mainView === 'today'
+                    ? viewDate.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })
+                    : (dayView !== null
+                        ? `${formatDateShort(addDays(weekStart, dayView))}, ${addDays(weekStart, dayView).getFullYear()}`
+                        : formatRange(weekStart, weekEnd))
+                  }
+                </span>
+              </div>
+              <div className="today-date-time">
+                {mainView === 'today' && viewDayOffset !== 0
+                  ? (viewDayOffset === 1 ? 'Tomorrow' : viewDayOffset === -1 ? 'Yesterday' : `${viewDayOffset > 0 ? '+' : ''}${viewDayOffset} days`)
+                  : now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
                 }
-              </span>
-              <span className="today-date-rest">
-                {mainView === 'today'
-                  ? viewDate.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })
-                  : (dayView !== null
-                      ? `${formatDateShort(addDays(weekStart, dayView))}, ${addDays(weekStart, dayView).getFullYear()}`
-                      : formatRange(weekStart, weekEnd))
-                }
-              </span>
+              </div>
             </div>
-            <div className="today-date-time">
-              {mainView === 'today' && viewDayOffset !== 0
-                ? (viewDayOffset === 1 ? 'Tomorrow' : viewDayOffset === -1 ? 'Yesterday' : `${viewDayOffset > 0 ? '+' : ''}${viewDayOffset} days`)
-                : now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
-              }
-            </div>
+            <button
+              className="today-day-nav-btn"
+              onClick={mainView === 'today' ? () => setViewDayOffset(o => o + 1) : goNext}
+              aria-label="Next"
+            >›</button>
           </div>
-          <button
-            className="today-day-nav-btn"
-            onClick={mainView === 'today' ? () => setViewDayOffset(o => o + 1) : goNext}
-            aria-label="Next"
-          >›</button>
-          {mainView === 'today' && viewDayOffset !== 0 && (
-            <button className="today-day-nav-today" onClick={() => setViewDayOffset(0)}>Today</button>
-          )}
-          {mainView === 'plan' && dayView === null && !isCurrentWeek && (
-            <button className="today-day-nav-today" onClick={goToday}>Today</button>
-          )}
-          {mainView === 'plan' && dayView !== null && !isSameDay(addDays(weekStart, dayView), now) && (
-            <button className="today-day-nav-today" onClick={goToday}>Today</button>
-          )}
         </div>
         <div className="today-topbar-right">
           <button
