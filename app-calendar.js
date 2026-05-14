@@ -603,91 +603,155 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   const openBlock = openBlockId ? blocks.find(b => b.id === openBlockId) : null;
   const refLibrary = data.referenceLibrary || [];
 
-  // View routing: Today is the daily compass; Plan is the full week canvas.
-  // Both share the modals rendered at the bottom of this component.
+  // ── TODAY-VIEW STATE (lifted so hero banner + shared rail work in both views) ──
+  const [viewDayOffset, setViewDayOffset] = useState(0);
+  const [todoInput, setTodoInput] = useState('');
+
+  const viewDate = useMemo(() => {
+    const d = new Date(now);
+    d.setDate(d.getDate() + viewDayOffset);
+    return d;
+  }, [now, viewDayOffset]);
+  const isToday = viewDayOffset === 0;
+
+  const tdOverrides = data.overrides || {};
+  const tdCompletions = data.routineCompletions || {};
+  const CATS = categoryStyles || CATEGORY_STYLES;
+
+  const todayItems = useMemo(() => {
+    const items = [];
+    const routineToday = applyElsewhereFilter(
+      resolvedRoutineForDate(data.routine || [], tdOverrides, viewDate, tdCompletions),
+      viewDate, elsewhere, now
+    );
+    routineToday.forEach(it => {
+      items.push({ kind: 'routine', id: `routine-${it.id}`, itemId: it.id,
+        title: it.title, note: it.note, startMin: toMinutes(it.start), duration: it.duration,
+        completed: !!it._completed, category: it.category, homeOnly: it.homeOnly });
+    });
+    blocksForDate(blocks, viewDate).forEach(b => {
+      const proj = projects.find(p => p.id === b.projectId);
+      items.push({ kind: 'block', id: `block-${b.id}`, blockId: b.id,
+        title: b.title, note: proj ? proj.name.replace('APP - ', '') : '',
+        startMin: toMinutes(b.start), duration: b.duration,
+        completed: b.status === 'completed', partial: b.status === 'partial',
+        color: (proj && proj.color) || 'var(--primary)', isTodo: !!b.todoId });
+    });
+    icsOccurrences.forEach(occ => {
+      if (!isSameDay(occ.start, viewDate)) return;
+      const startMin = occ.start.getHours() * 60 + occ.start.getMinutes();
+      const dur = Math.max(1, Math.round((occ.end - occ.start) / 60000));
+      items.push({ kind: 'ics', id: `ics-${occ.uid}-${startMin}`, title: occ.summary || '(untitled)',
+        note: occ.source === 'work' ? 'WORK' : 'HOUSEHOLD', startMin, duration: dur,
+        color: occ.color || (occ.source === 'work' ? '#8C8C96' : '#7896AF'), allDay: occ.allDay });
+    });
+    items.sort((a, b) => a.startMin - b.startMin);
+    return items;
+  }, [data.routine, tdOverrides, tdCompletions, elsewhere, now, viewDate, blocks, projects, icsOccurrences]);
+
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const tdCurrent = todayItems.find(it => it.startMin <= nowMin && (it.startMin + it.duration) > nowMin && !it.completed);
+  const tdUpcoming = todayItems.filter(it => it.startMin > nowMin && !it.completed);
+  const tdNext = tdUpcoming[0];
+  const tdThen = tdUpcoming[1];
+  const fmtHeroTime = (m) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
+
+  const microItem = (data.routine || []).find(r => r.recurrence && r.recurrence.kind === 'top-of-hour');
+  let microBanner = null;
+  if (microItem) {
+    const days = microItem.days || [];
+    const sh = microItem.recurrence.startHour ?? 9;
+    const eh = microItem.recurrence.endHour ?? 18;
+    const jsDay = now.getDay();
+    if (days.includes(jsDay) && now.getHours() >= sh && now.getHours() <= eh && now.getMinutes() < 2) {
+      const ref = refLibrary.find(r => r.id === 'ref-micro-strength');
+      let summary = '~60–80s · take a movement break';
+      if (ref && ref.body) {
+        const moves = ref.body.split(/\r?\n/).map(l => l.trim())
+          .filter(l => /^\d+\./.test(l))
+          .map(l => l.replace(/^\d+\.\s*/, '').replace(/\s*—.*$/, '').trim())
+          .filter(Boolean);
+        if (moves.length) summary = `~60–80s · ${moves.join(' · ')}`;
+      }
+      microBanner = { title: microItem.title, summary };
+    }
+  }
+
+  const todos = data.todos || [];
+  const scheduledTodoIds = new Set((blocks).filter(b => b.todoId && b.status !== 'completed').map(b => b.todoId));
+  const sortedTodos = [...todos].sort((a, b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    const aSched = scheduledTodoIds.has(a.id);
+    const bSched = scheduledTodoIds.has(b.id);
+    if (aSched !== bSched) return aSched ? 1 : -1;
+    return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+  });
+  const submitTodo = () => {
+    if (!todoInput.trim()) return;
+    addTodo(todoInput);
+    setTodoInput('');
+  };
+  const onTodoRailDragStart = (e, todo) => {
+    if (todo.done) { e.preventDefault(); return; }
+    e.dataTransfer.effectAllowed = 'copy';
+    e.dataTransfer.setData('application/json', JSON.stringify(
+      { type: 'todo', todoId: todo.id, title: todo.title, duration: 30 }
+    ));
+  };
+
   return (
     <>
     <div className="view-switcher-bar">
       <ViewSwitcher view={mainView} onSwitchView={setMainView} />
     </div>
-    {mainView === 'today' ? (
-      <TodayScreen
-        data={data}
-        now={now}
-        isMobile={isMobile}
-        saving={saving}
-        error={error}
-        lastSyncedAt={lastSyncedAt}
-        onSwitchView={setMainView}
-        projects={projects}
-        blocks={blocks}
-        refLibrary={refLibrary}
-        elsewhere={elsewhere}
-        weatherSettings={weatherSettings}
-        weatherCache={weatherCache}
-        weatherRefreshing={weatherRefreshing}
-        weatherError={weatherError}
-        icsOccurrences={icsOccurrences}
-        onRefreshWeather={() => refreshWeather()}
-        onRequestGeo={requestGeolocation}
-        onCreateBlock={createBlock}
-        onAddTodo={addTodo}
-        onUpdateTodo={updateTodo}
-        onDeleteTodo={deleteTodo}
-        onCompleteAction={completeProjectAction}
-        onAddAction={addProjectAction}
-        onDeleteAction={deleteProjectAction}
-        onToggleRoutineCompletion={toggleRoutineCompletion}
-        onSetElsewhere={(patch) => persistData(d => ({
-          ...d,
-          elsewhereToggles: { ...(d.elsewhereToggles || { morning: false, afternoon: false, allDay: false, date: null }), ...patch, date: todayDateKey },
-        }))}
-        onOpenReference={(id) => { setRefExpandedId(id); setRefLibraryOpen(true); }}
-        onOpenBlock={(blockId) => setOpenBlockId(blockId)}
-        onRoutineClick={handleRoutineClick}
-        onTodoDrop={setPendingTodoDrop}
-        onLaunchReview={() => setResetOverlayOpen(true)}
-        onOpenPractice={() => setPracticeOpen(true)}
-        onOpenInbox={() => setInboxOpen(true)}
-        onOpenSettings={() => setSettingsOpen(true)}
-        onOpenRoutineManager={() => setRoutineManagerOpen(true)}
-        onSignOut={onSignOut}
-        inbox={data.inbox || []}
-        weeklyResets={data.weeklyResets || []}
-        currentTheme={currentTheme}
-        onSetTheme={setTheme}
-        categoryStyles={categoryStyles}
-        todayViewMode={todayViewMode}
-        onSetTodayView={setTodayView}
-        lunchSlot={lunchSlot}
-      />
-    ) : (
-    <div className={`wrap-wide screen-pad-top-sm fade-in ${dayView !== null ? 'day-view' : ''}`}>
+    <div className={`today-wrap fade-in${mainView === 'plan' && dayView !== null ? ' day-view' : ''}`}>
+
+      {/* ── TOPBAR (identical in both views) ── */}
       <div className="today-topbar">
         <div className="today-topbar-left">
-          <button className="today-day-nav-btn" onClick={goPrev} aria-label={dayView !== null ? 'Previous day' : 'Previous week'}>‹</button>
+          <button
+            className="today-day-nav-btn"
+            onClick={mainView === 'today' ? () => setViewDayOffset(o => o - 1) : goPrev}
+            aria-label="Previous"
+          >‹</button>
           <div className="today-date-block">
             <div className="today-date">
               <span className="today-date-day">
-                {dayView !== null
-                  ? (isSameDay(addDays(weekStart, dayView), now) ? 'Today' : DAY_NAMES_LONG[dayView])
-                  : (isCurrentWeek ? 'This week' : `Week of ${formatDateShort(weekStart)}`)}
+                {mainView === 'today'
+                  ? viewDate.toLocaleDateString(undefined, { weekday: 'long' })
+                  : (dayView !== null
+                      ? (isSameDay(addDays(weekStart, dayView), now) ? 'Today' : DAY_NAMES_LONG[dayView])
+                      : (isCurrentWeek ? 'This week' : `Week of ${formatDateShort(weekStart)}`))
+                }
               </span>
               <span className="today-date-rest">
-                {dayView !== null
-                  ? `${formatDateShort(addDays(weekStart, dayView))}, ${addDays(weekStart, dayView).getFullYear()}`
-                  : formatRange(weekStart, weekEnd)}
+                {mainView === 'today'
+                  ? viewDate.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })
+                  : (dayView !== null
+                      ? `${formatDateShort(addDays(weekStart, dayView))}, ${addDays(weekStart, dayView).getFullYear()}`
+                      : formatRange(weekStart, weekEnd))
+                }
               </span>
             </div>
             <div className="today-date-time">
-              {now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
+              {mainView === 'today' && viewDayOffset !== 0
+                ? (viewDayOffset === 1 ? 'Tomorrow' : viewDayOffset === -1 ? 'Yesterday' : `${viewDayOffset > 0 ? '+' : ''}${viewDayOffset} days`)
+                : now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+              }
             </div>
           </div>
-          <button className="today-day-nav-btn" onClick={goNext} aria-label={dayView !== null ? 'Next day' : 'Next week'}>›</button>
-          {!isCurrentWeek && dayView === null && (
+          <button
+            className="today-day-nav-btn"
+            onClick={mainView === 'today' ? () => setViewDayOffset(o => o + 1) : goNext}
+            aria-label="Next"
+          >›</button>
+          {mainView === 'today' && viewDayOffset !== 0 && (
+            <button className="today-day-nav-today" onClick={() => setViewDayOffset(0)}>Today</button>
+          )}
+          {mainView === 'plan' && dayView === null && !isCurrentWeek && (
             <button className="today-day-nav-today" onClick={goToday}>Today</button>
           )}
-          {dayView !== null && !isSameDay(addDays(weekStart, dayView), now) && (
+          {mainView === 'plan' && dayView !== null && !isSameDay(addDays(weekStart, dayView), now) && (
             <button className="today-day-nav-today" onClick={goToday}>Today</button>
           )}
         </div>
@@ -696,6 +760,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
             className="today-theme-toggle"
             onClick={() => setTheme(currentTheme === 'light' ? 'dark' : 'light')}
             title={currentTheme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'}
+            aria-label="Toggle theme"
           >{currentTheme === 'light' ? '◐' : '◑'}</button>
           <button
             className={`today-elsewhere-toggle ${isWorkingAway ? 'active' : ''}`}
@@ -709,6 +774,8 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
           <button className="today-footer-btn" onClick={() => setSettingsOpen(true)}>⚙ Settings</button>
         </div>
       </div>
+
+      {/* ── WEATHER (identical in both views) ── */}
       <WeatherStrip
         settings={weatherSettings}
         cache={weatherCache}
@@ -721,73 +788,197 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         onRequestGeo={requestGeolocation}
       />
 
-      <div className="main-layout">
-        <div className="portfolio">
-          <ProjectsRailPanel projects={projects} scheduledBlocks={blocks} onCompleteAction={completeProjectAction} onAddAction={addProjectAction} onDeleteAction={deleteProjectAction} />
-          <TodosPane
-            todos={data.todos || []}
+      {/* ── HERO BANNER (identical in both views) ── */}
+      <div className="today-hero">
+        {tdCurrent ? (
+          <>
+            <div className="today-hero-eyebrow">Right now</div>
+            <div className="today-hero-now">
+              {tdCurrent.kind === 'routine' && CATS[tdCurrent.category] && CATS[tdCurrent.category].emoji ? `${CATS[tdCurrent.category].emoji} ` : ''}
+              {tdCurrent.title}
+            </div>
+            <div className="today-hero-now-meta">
+              ends {fmtHeroTime(tdCurrent.startMin + tdCurrent.duration)}
+              {tdCurrent.note && <span> · {tdCurrent.note}</span>}
+            </div>
+            {tdNext && (
+              <div className="today-hero-next">
+                <span className="today-hero-next-label">Next</span>
+                <span className="today-hero-next-time">{fmtHeroTime(tdNext.startMin)}</span>
+                <span>{tdNext.kind === 'routine' && CATS[tdNext.category] && CATS[tdNext.category].emoji ? `${CATS[tdNext.category].emoji} ` : ''}{tdNext.title}</span>
+              </div>
+            )}
+            {tdThen && (
+              <div className="today-hero-then">
+                <span className="today-hero-then-label">Then</span>
+                <span className="today-hero-then-time">{fmtHeroTime(tdThen.startMin)}</span>
+                <span>{tdThen.kind === 'routine' && CATS[tdThen.category] && CATS[tdThen.category].emoji ? `${CATS[tdThen.category].emoji} ` : ''}{tdThen.title}</span>
+              </div>
+            )}
+          </>
+        ) : tdNext ? (
+          <>
+            <div className="today-hero-eyebrow">Next up</div>
+            <div className="today-hero-now">
+              <span className="today-hero-next-time" style={{ marginRight: 'var(--space-3)' }}>{fmtHeroTime(tdNext.startMin)}</span>
+              {tdNext.kind === 'routine' && CATS[tdNext.category] && CATS[tdNext.category].emoji ? `${CATS[tdNext.category].emoji} ` : ''}{tdNext.title}
+            </div>
+            {tdNext.note && <div className="today-hero-now-meta">{tdNext.note}</div>}
+            {tdThen && (
+              <div className="today-hero-then">
+                <span className="today-hero-then-label">Then</span>
+                <span className="today-hero-then-time">{fmtHeroTime(tdThen.startMin)}</span>
+                <span>{tdThen.kind === 'routine' && CATS[tdThen.category] && CATS[tdThen.category].emoji ? `${CATS[tdThen.category].emoji} ` : ''}{tdThen.title}</span>
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            <div className="today-hero-eyebrow">Today</div>
+            <div className="today-hero-now" style={{ color: 'var(--muted-3)' }}>Nothing else scheduled.</div>
+          </>
+        )}
+        {microBanner && (
+          <div className="today-hero-micro">⚡ {microBanner.title} · {microBanner.summary}</div>
+        )}
+      </div>
+
+      {/* ── BODY: shared left rail + switching right pane ── */}
+      <div className="today-body">
+
+        {/* LEFT RAIL — same in both views */}
+        <div className="today-rail">
+          <ProjectsRailPanel
+            projects={projects}
             scheduledBlocks={blocks}
-            onAdd={addTodo}
-            onUpdate={updateTodo}
-            onDelete={deleteTodo}
+            onCompleteAction={completeProjectAction}
+            onAddAction={addProjectAction}
+            onDeleteAction={deleteProjectAction}
+          />
+          <div className="today-rail-section">
+            <div className="today-rail-header">
+              <div className="today-rail-eyebrow">Todos</div>
+              <div className="today-rail-count">{todos.filter(t => !t.done).length} open</div>
+            </div>
+            <div className="today-todo-add">
+              <input
+                type="text"
+                className="today-todo-add-input"
+                placeholder="+ add todo, Enter to save"
+                value={todoInput}
+                onChange={e => setTodoInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); submitTodo(); } }}
+              />
+            </div>
+            <div className="today-rail-list">
+              {sortedTodos.length === 0 ? (
+                <div className="today-rail-empty">No todos.</div>
+              ) : sortedTodos.map(t => {
+                const sched = !t.done && scheduledTodoIds.has(t.id);
+                return (
+                  <div
+                    key={t.id}
+                    className={`today-todo-row ${t.done ? 'done' : ''} ${sched ? 'scheduled' : ''}`}
+                    draggable={!t.done}
+                    onDragStart={(e) => onTodoRailDragStart(e, t)}
+                    title={t.done ? 'Done' : (sched ? 'Scheduled · drag to reschedule' : 'Drag onto timeline to schedule')}
+                  >
+                    <input
+                      type="checkbox"
+                      className="today-todo-check"
+                      checked={!!t.done}
+                      onChange={() => updateTodo(t.id, { done: !t.done })}
+                      onClick={e => e.stopPropagation()}
+                    />
+                    <div className="today-todo-title">{t.title}</div>
+                    {sched && <div className="today-todo-badge">SCHED</div>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <TodayMiniMonth
+            viewDate={viewDate}
+            now={now}
+            onSelectDate={(d) => {
+              const start = startOfDay(d).getTime();
+              const today0 = startOfDay(now).getTime();
+              const offset = Math.round((start - today0) / (24 * 60 * 60 * 1000));
+              setViewDayOffset(offset);
+            }}
           />
         </div>
 
-        <div className="calendar-panel">
-          {dayView !== null && !isMobile && (
-            <button className="day-view-back" onClick={() => setDayView(null)}>
-              ← Back to week
-            </button>
-          )}
-
-          {isMobile ? (
-            <AgendaView
-              routine={data.routine}
-              overrides={data.overrides || {}}
-              scheduledBlocks={blocks}
-              projects={projects}
-              weekStart={weekStart}
-              now={now}
-              onBlockClick={(blockId) => setOpenBlockId(blockId)}
-              onRoutineClick={handleRoutineClick}
-              elsewhereToggles={elsewhere}
-              icsOccurrences={icsOccurrences}
-              completions={data.routineCompletions || {}}
-              onToggleComplete={toggleRoutineCompletion}
-              categoryStyles={categoryStyles}
-            />
-          ) : (
-            <WeekGrid
-              routine={data.routine}
-              overrides={data.overrides || {}}
-              scheduledBlocks={blocks}
-              projects={projects}
-              weekStart={weekStart}
-              now={now}
-              singleCol={dayView}
-              onDayClick={handleDayClick}
-              onCreateBlock={createBlock}
-              onBlockClick={(blockId) => setOpenBlockId(blockId)}
-              onRoutineClick={handleRoutineClick}
-              onUpdateBlock={updateBlock}
-              elsewhereToggles={elsewhere}
-              icsOccurrences={icsOccurrences}
-              onTodoDrop={setPendingTodoDrop}
-              completions={data.routineCompletions || {}}
-              onToggleComplete={toggleRoutineCompletion}
-              categoryStyles={categoryStyles}
-            />
-          )}
-
-          <Legend />
-        </div>
+        {/* RIGHT PANE — today timeline OR week grid */}
+        {mainView === 'today' ? (
+          <TodayScreen
+            viewDate={viewDate}
+            isToday={isToday}
+            viewDayOffset={viewDayOffset}
+            todayItems={todayItems}
+            current={tdCurrent}
+            nowMin={nowMin}
+            now={now}
+            elsewhere={elsewhere}
+            categoryStyles={categoryStyles}
+            lunchSlot={lunchSlot}
+            todayViewMode={todayViewMode}
+            onSetTodayView={setTodayView}
+            onCreateBlock={createBlock}
+            onOpenBlock={(blockId) => setOpenBlockId(blockId)}
+            onRoutineClick={handleRoutineClick}
+            onToggleRoutineCompletion={toggleRoutineCompletion}
+            onTodoDrop={setPendingTodoDrop}
+          />
+        ) : (
+          <div className="calendar-panel">
+            {dayView !== null && !isMobile && (
+              <button className="day-view-back" onClick={() => setDayView(null)}>← Back to week</button>
+            )}
+            {isMobile ? (
+              <AgendaView
+                routine={data.routine}
+                overrides={data.overrides || {}}
+                scheduledBlocks={blocks}
+                projects={projects}
+                weekStart={weekStart}
+                now={now}
+                onBlockClick={(blockId) => setOpenBlockId(blockId)}
+                onRoutineClick={handleRoutineClick}
+                elsewhereToggles={elsewhere}
+                icsOccurrences={icsOccurrences}
+                completions={data.routineCompletions || {}}
+                onToggleComplete={toggleRoutineCompletion}
+                categoryStyles={categoryStyles}
+              />
+            ) : (
+              <WeekGrid
+                routine={data.routine}
+                overrides={data.overrides || {}}
+                scheduledBlocks={blocks}
+                projects={projects}
+                weekStart={weekStart}
+                now={now}
+                singleCol={dayView}
+                onDayClick={handleDayClick}
+                onCreateBlock={createBlock}
+                onBlockClick={(blockId) => setOpenBlockId(blockId)}
+                onRoutineClick={handleRoutineClick}
+                onUpdateBlock={updateBlock}
+                elsewhereToggles={elsewhere}
+                icsOccurrences={icsOccurrences}
+                onTodoDrop={setPendingTodoDrop}
+                completions={data.routineCompletions || {}}
+                onToggleComplete={toggleRoutineCompletion}
+                categoryStyles={categoryStyles}
+              />
+            )}
+            <Legend />
+          </div>
+        )}
       </div>
 
-      <details className="raw">
-        <summary>Diagnostics · raw data</summary>
-        <pre>{JSON.stringify(data, null, 2)}</pre>
-      </details>
-
+      {/* ── FOOTER (identical in both views) ── */}
       <div className="today-footer">
         <FridayReviewLauncher now={now} weeklyResets={data.weeklyResets || []} onLaunch={() => setResetOverlayOpen(true)} />
         <button className="today-footer-btn" onClick={() => setRoutineManagerOpen(true)}>⚙ Routines</button>
@@ -797,7 +988,6 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         <button className="today-footer-btn" onClick={onSignOut} style={{ marginLeft: 'auto' }}>Sign out</button>
       </div>
     </div>
-    )}
 
     {/* ─── Modals (rendered for both Today and Plan views) ─── */}
     {openBlock && (

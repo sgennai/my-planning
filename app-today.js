@@ -375,158 +375,15 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
 // TODAY SCREEN — daily compass (default landing surface)
 // ═════════════════════════════════════════════════════════════
 function TodayScreen({
-  data, now, isMobile, saving, error, lastSyncedAt,
-  onSwitchView,
-  projects, blocks, refLibrary, elsewhere,
-  weatherSettings, weatherCache, weatherRefreshing, weatherError,
-  icsOccurrences,
-  onRefreshWeather, onRequestGeo,
-  onCreateBlock, onAddTodo, onUpdateTodo, onDeleteTodo,
-  onCompleteAction, onAddAction, onDeleteAction,
-  onToggleRoutineCompletion, onSetElsewhere,
-  onOpenReference, onOpenBlock, onRoutineClick, onTodoDrop,
-  onLaunchReview, onOpenPractice, onOpenInbox, onOpenSettings, onOpenRoutineManager, onSignOut,
-  inbox, weeklyResets,
-  currentTheme, onSetTheme,
-  categoryStyles,
-  todayViewMode, onSetTodayView, lunchSlot,
+  viewDate, isToday, viewDayOffset,
+  todayItems, current, nowMin, now,
+  elsewhere, categoryStyles, lunchSlot,
+  todayViewMode, onSetTodayView,
+  onCreateBlock, onOpenBlock, onRoutineClick, onToggleRoutineCompletion, onTodoDrop,
 }) {
-  const [weatherDayTab, setWeatherDayTab] = useState(0);
   const CATS = categoryStyles || CATEGORY_STYLES;
-  const todos = data.todos || [];
-  const completions = data.routineCompletions || {};
-  const overrides = data.overrides || {};
+  const fmtTime = (m) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
 
-  // Build today's timeline: routine + scheduled blocks + ICS, sorted, with completion state
-  // viewDate: the day being shown. Defaults to today (now), can be navigated +/- 1 day.
-  // MUST be declared before any memo that depends on viewDate.
-  const [viewDayOffset, setViewDayOffset] = useState(0);
-  const viewDate = useMemo(() => {
-    const d = new Date(now);
-    d.setDate(d.getDate() + viewDayOffset);
-    return d;
-  }, [now, viewDayOffset]);
-  const isToday = viewDayOffset === 0;
-
-  const todayItems = useMemo(() => {
-    const items = [];
-    // Routine items happening on the viewed date
-    const routineToday = applyElsewhereFilter(
-      resolvedRoutineForDate(data.routine || [], overrides, viewDate, completions),
-      viewDate,
-      elsewhere,
-      now
-    );
-    routineToday.forEach(it => {
-      items.push({
-        kind: 'routine',
-        id: `routine-${it.id}`,
-        itemId: it.id,
-        title: it.title,
-        note: it.note,
-        startMin: toMinutes(it.start),
-        duration: it.duration,
-        completed: !!it._completed,
-        category: it.category,
-        homeOnly: it.homeOnly,
-      });
-    });
-    // Scheduled project blocks today
-    blocksForDate(blocks || [], viewDate).forEach(b => {
-      const proj = (projects || []).find(p => p.id === b.projectId);
-      items.push({
-        kind: 'block',
-        id: `block-${b.id}`,
-        blockId: b.id,
-        title: b.title,
-        note: proj ? proj.name.replace('APP - ', '') : '',
-        startMin: toMinutes(b.start),
-        duration: b.duration,
-        completed: b.status === 'completed',
-        partial: b.status === 'partial',
-        color: (proj && proj.color) || 'var(--primary)',
-        isTodo: !!b.todoId,
-      });
-    });
-    // ICS events today
-    (icsOccurrences || []).forEach(occ => {
-      if (!isSameDay(occ.start, viewDate)) return;
-      const startMin = occ.start.getHours() * 60 + occ.start.getMinutes();
-      const dur = Math.max(1, Math.round((occ.end - occ.start) / 60000));
-      items.push({
-        kind: 'ics',
-        id: `ics-${occ.uid}-${startMin}`,
-        title: occ.summary || '(untitled)',
-        note: occ.source === 'work' ? 'WORK' : 'HOUSEHOLD',
-        startMin,
-        duration: dur,
-        color: occ.color || (occ.source === 'work' ? '#8C8C96' : '#7896AF'),
-        allDay: occ.allDay,
-      });
-    });
-    items.sort((a, b) => a.startMin - b.startMin);
-    return items;
-  }, [data.routine, overrides, completions, elsewhere, now, viewDate, blocks, projects, icsOccurrences]);
-
-  const nowMin = now.getHours() * 60 + now.getMinutes();
-  const current = todayItems.find(it => it.startMin <= nowMin && (it.startMin + it.duration) > nowMin && !it.completed);
-  const upcoming = todayItems.filter(it => it.startMin > nowMin && !it.completed);
-  const nextItem = upcoming[0];
-  const thenItem = upcoming[1];
-
-  // Micro-strength banner detection
-  const microItem = (data.routine || []).find(r => r.recurrence && r.recurrence.kind === 'top-of-hour');
-  let microBanner = null;
-  if (microItem) {
-    const days = microItem.days || [];
-    const sh = microItem.recurrence.startHour ?? 9;
-    const eh = microItem.recurrence.endHour ?? 18;
-    const jsDay = now.getDay();
-    if (days.includes(jsDay) && now.getHours() >= sh && now.getHours() <= eh && now.getMinutes() < 2) {
-      const ref = (refLibrary || []).find(r => r.id === 'ref-micro-strength');
-      let summary = '~60–80s · take a movement break';
-      if (ref && ref.body) {
-        const moves = ref.body.split(/\r?\n/).map(l => l.trim())
-          .filter(l => /^\d+\./.test(l))
-          .map(l => l.replace(/^\d+\.\s*/, '').replace(/\s*—.*$/, '').trim())
-          .filter(Boolean);
-        if (moves.length) summary = `~60–80s · ${moves.join(' · ')}`;
-      }
-      microBanner = { title: microItem.title, summary };
-    }
-  }
-
-  // Today's weather summary (one line)
-  const weatherInline = (() => {
-    if (!weatherCache || !Array.isArray(weatherCache.hours)) return null;
-    const today = startOfDay(now).getTime();
-    const tomorrow = today + 24 * 60 * 60 * 1000;
-    const todayHours = weatherCache.hours.filter(h => {
-      const t = h.time.getTime();
-      return t >= today && t < tomorrow;
-    });
-    if (!todayHours.length) return null;
-    const temps = todayHours.map(h => h.temp).filter(t => t != null);
-    if (!temps.length) return null;
-    const min = Math.round(Math.min(...temps));
-    const max = Math.round(Math.max(...temps));
-    // Use the current/next hour code for the icon
-    const currentHourEntry = todayHours.find(h => h.time.getHours() === now.getHours()) || todayHours[0];
-    const icon = wmoIcon(currentHourEntry.code);
-    return { min, max, icon };
-  })();
-
-  // Single elsewhere toggle: active if any of morning/afternoon/allDay set
-  const isWorkingAway = !!(elsewhere && (elsewhere.morning || elsewhere.afternoon || elsewhere.allDay));
-  const toggleWorkingAway = () => {
-    if (isWorkingAway) {
-      onSetElsewhere({ morning: false, afternoon: false, allDay: false });
-    } else {
-      onSetElsewhere({ allDay: true });
-    }
-  };
-
-  // Drag handlers for the timeline drop zone (project actions or todos)
   const [dragOver, setDragOver] = useState(false);
   const onTimelineDragOver = (e) => {
     if (Array.from(e.dataTransfer.types).includes('application/json')) {
@@ -542,59 +399,17 @@ function TodayScreen({
     let payload;
     try { payload = JSON.parse(e.dataTransfer.getData('application/json')); }
     catch { return; }
-    // Drop into the next reasonable slot — if there's a current item, drop right after it; else now (rounded).
     const dropMin = current
       ? Math.min(current.startMin + current.duration, 23 * 60 + 45)
       : Math.round(nowMin / 15) * 15;
     const startStr = `${pad(Math.floor(dropMin / 60))}:${pad(dropMin % 60)}`;
     const dateISO = startOfDay(viewDate).toISOString();
     if (payload.type === 'next-action') {
-      onCreateBlock({
-        projectId: payload.projectId,
-        actionId: payload.actionId,
-        title: payload.title,
-        date: dateISO,
-        start: startStr,
-        duration: payload.duration || 30,
-      });
+      onCreateBlock({ projectId: payload.projectId, actionId: payload.actionId, title: payload.title,
+        date: dateISO, start: startStr, duration: payload.duration || 30 });
     } else if (payload.type === 'todo') {
-      onTodoDrop({
-        todoId: payload.todoId,
-        date: dateISO,
-        start: startStr,
-        dropX: e.clientX,
-        dropY: e.clientY,
-      });
+      onTodoDrop({ todoId: payload.todoId, date: dateISO, start: startStr, dropX: e.clientX, dropY: e.clientY });
     }
-  };
-
-  const dateLabel = viewDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
-  const openInboxCount = (inbox || []).filter(i => !i.actioned).length;
-
-  const fmtTime = (m) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
-
-  const [todoInput, setTodoInput] = useState('');
-  const submitTodo = () => {
-    if (!todoInput.trim()) return;
-    onAddTodo(todoInput);
-    setTodoInput('');
-  };
-
-  // Sort todos: open + unscheduled first, then scheduled, then done
-  const scheduledTodoIds = new Set((blocks || []).filter(b => b.todoId && b.status !== 'completed').map(b => b.todoId));
-  const sortedTodos = [...todos].sort((a, b) => {
-    if (a.done !== b.done) return a.done ? 1 : -1;
-    const aSched = scheduledTodoIds.has(a.id);
-    const bSched = scheduledTodoIds.has(b.id);
-    if (aSched !== bSched) return aSched ? 1 : -1;
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
-
-  const onTodoRailDragStart = (e, todo) => {
-    if (todo.done) { e.preventDefault(); return; }
-    const payload = { type: 'todo', todoId: todo.id, title: todo.title, duration: 30 };
-    e.dataTransfer.effectAllowed = 'copy';
-    e.dataTransfer.setData('application/json', JSON.stringify(payload));
   };
 
   const renderTimelineItem = (it) => {
@@ -650,312 +465,81 @@ function TodayScreen({
   };
 
   return (
-    <div className="today-wrap fade-in">
-      {/* Top bar */}
-      <div className="today-topbar">
-        <div className="today-topbar-left">
-          <button
-            className="today-day-nav-btn"
-            onClick={() => setViewDayOffset(o => o - 1)}
-            title="Previous day"
-            aria-label="Previous day"
-          >‹</button>
-          <div className="today-date-block">
-            <div className="today-date">
-              <span className="today-date-day">{dateLabel.split(',')[0]}</span>
-              <span className="today-date-rest">{dateLabel.split(',').slice(1).join(',').trim()}</span>
-            </div>
-            <div className="today-date-time">
-              {isToday
-                ? now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
-                : (viewDayOffset === 1 ? 'Tomorrow' : viewDayOffset === -1 ? 'Yesterday' : `${viewDayOffset > 0 ? '+' : ''}${viewDayOffset} days`)}
-            </div>
-          </div>
-          <button
-            className="today-day-nav-btn"
-            onClick={() => setViewDayOffset(o => o + 1)}
-            title="Next day"
-            aria-label="Next day"
-          >›</button>
-          {viewDayOffset !== 0 && (
+    <div
+      className="today-timeline"
+      onDragOver={onTimelineDragOver}
+      onDragLeave={onTimelineDragLeave}
+      onDrop={onTimelineDrop}
+    >
+      <div className="today-timeline-header">
+        <div className="today-timeline-eyebrow">
+          {viewDayOffset === 0 ? 'Today'
+            : viewDayOffset === 1 ? 'Tomorrow'
+            : viewDayOffset === -1 ? 'Yesterday'
+            : viewDate.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
+        </div>
+        <div className="today-timeline-header-right">
+          <div className="today-view-toggle" role="group" aria-label="View mode">
             <button
-              className="today-day-nav-today"
-              onClick={() => setViewDayOffset(0)}
-              title="Jump to today"
-            >Today</button>
-          )}
-        </div>
-        <div className="today-topbar-right">
-          <button
-            className="today-theme-toggle"
-            onClick={() => onSetTheme(currentTheme === 'light' ? 'dark' : 'light')}
-            title={currentTheme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'}
-            aria-label="Toggle theme"
-          >
-            {currentTheme === 'light' ? '◐' : '◑'}
-          </button>
-          <button
-            className={`today-elsewhere-toggle ${isWorkingAway ? 'active' : ''}`}
-            onClick={toggleWorkingAway}
-            title={isWorkingAway ? 'Working away — tap to switch back to home' : 'Tap if you\'re away from home today'}
-          >
-            {isWorkingAway ? 'Away' : 'At home'}
-          </button>
-          <button className="today-practice-btn" onClick={onOpenPractice}>
-            Practice
-          </button>
-          <button className="today-footer-btn" onClick={onOpenInbox}>
-            {openInboxCount > 0 ? `Inbox · ${openInboxCount}` : '+ Inbox'}
-          </button>
-          <button className="today-footer-btn" onClick={onOpenSettings}>⚙ Settings</button>
+              className={`today-view-toggle-btn ${todayViewMode === 'timeline' ? 'active' : ''}`}
+              onClick={() => onSetTodayView('timeline')}
+              title="List view"
+              aria-label="List view"
+            >☰</button>
+            <button
+              className={`today-view-toggle-btn ${todayViewMode === 'calendar' ? 'active' : ''}`}
+              onClick={() => onSetTodayView('calendar')}
+              title="Calendar view"
+              aria-label="Calendar view"
+            >▦</button>
+          </div>
+          <div className="today-timeline-meta">
+            {todayItems.filter(i => !i.completed).length} open · {todayItems.length} total
+          </div>
         </div>
       </div>
-
-      <WeatherStrip
-        settings={weatherSettings}
-        cache={weatherCache}
-        refreshing={weatherRefreshing}
-        error={weatherError}
-        dayTab={weatherDayTab}
-        now={now}
-        onChangeDayTab={setWeatherDayTab}
-        onRefresh={onRefreshWeather}
-        onRequestGeo={onRequestGeo}
-      />
-
-      {/* Right Now hero */}
-      <div className="today-hero">
-        {current ? (
-          <>
-            <div className="today-hero-eyebrow">Right now</div>
-            <div className="today-hero-now">
-              {current.kind === 'routine' && CATS[current.category] && CATS[current.category].emoji ? `${CATS[current.category].emoji} ` : ''}
-              {current.title}
-            </div>
-            <div className="today-hero-now-meta">
-              ends {fmtTime(current.startMin + current.duration)}
-              {current.note && <span> · {current.note}</span>}
-            </div>
-            {nextItem && (
-              <div className="today-hero-next">
-                <span className="today-hero-next-label">Next</span>
-                <span className="today-hero-next-time">{fmtTime(nextItem.startMin)}</span>
-                <span>
-                  {nextItem.kind === 'routine' && CATS[nextItem.category] && CATS[nextItem.category].emoji ? `${CATS[nextItem.category].emoji} ` : ''}
-                  {nextItem.title}
-                </span>
-              </div>
-            )}
-            {thenItem && (
-              <div className="today-hero-then">
-                <span className="today-hero-then-label">Then</span>
-                <span className="today-hero-then-time">{fmtTime(thenItem.startMin)}</span>
-                <span>
-                  {thenItem.kind === 'routine' && CATS[thenItem.category] && CATS[thenItem.category].emoji ? `${CATS[thenItem.category].emoji} ` : ''}
-                  {thenItem.title}
-                </span>
-              </div>
-            )}
-          </>
-        ) : nextItem ? (
-          <>
-            <div className="today-hero-eyebrow">Next up</div>
-            <div className="today-hero-now">
-              <span className="today-hero-next-time" style={{ marginRight: 'var(--space-3)' }}>{fmtTime(nextItem.startMin)}</span>
-              {nextItem.kind === 'routine' && CATS[nextItem.category] && CATS[nextItem.category].emoji ? `${CATS[nextItem.category].emoji} ` : ''}
-              {nextItem.title}
-            </div>
-            {nextItem.note && (
-              <div className="today-hero-now-meta">{nextItem.note}</div>
-            )}
-            {thenItem && (
-              <div className="today-hero-then">
-                <span className="today-hero-then-label">Then</span>
-                <span className="today-hero-then-time">{fmtTime(thenItem.startMin)}</span>
-                <span>
-                  {thenItem.kind === 'routine' && CATS[thenItem.category] && CATS[thenItem.category].emoji ? `${CATS[thenItem.category].emoji} ` : ''}
-                  {thenItem.title}
-                </span>
-              </div>
-            )}
-          </>
-        ) : (
-          <>
-            <div className="today-hero-eyebrow">Today</div>
-            <div className="today-hero-now" style={{ color: 'var(--muted-3)' }}>
-              Nothing else scheduled.
-            </div>
-          </>
-        )}
-        {microBanner && (
-          <div className="today-hero-micro">
-            ⚡ {microBanner.title} · {microBanner.summary}
-          </div>
-        )}
-      </div>
-
-      {/* Body: rail (left) + timeline (right) */}
-      <div className="today-body">
-        <div className="today-rail">
-          {/* Portfolio */}
-          <ProjectsRailPanel projects={projects} scheduledBlocks={blocks} onCompleteAction={onCompleteAction} onAddAction={onAddAction} onDeleteAction={onDeleteAction} />
-
-          {/* Todos */}
-          <div className="today-rail-section">
-            <div className="today-rail-header">
-              <div className="today-rail-eyebrow">Todos</div>
-              <div className="today-rail-count">{todos.filter(t => !t.done).length} open</div>
-            </div>
-            <div className="today-todo-add">
-              <input
-                type="text"
-                className="today-todo-add-input"
-                placeholder="+ add todo, Enter to save"
-                value={todoInput}
-                onChange={e => setTodoInput(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); submitTodo(); } }}
-              />
-            </div>
-            <div className="today-rail-list">
-              {sortedTodos.length === 0 ? (
-                <div className="today-rail-empty">No todos.</div>
-              ) : sortedTodos.map(t => {
-                const sched = !t.done && scheduledTodoIds.has(t.id);
-                return (
-                  <div
-                    key={t.id}
-                    className={`today-todo-row ${t.done ? 'done' : ''} ${sched ? 'scheduled' : ''}`}
-                    draggable={!t.done}
-                    onDragStart={(e) => onTodoRailDragStart(e, t)}
-                    title={t.done ? 'Done' : (sched ? 'Scheduled · drag to reschedule' : 'Drag onto timeline to schedule')}
-                  >
-                    <input
-                      type="checkbox"
-                      className="today-todo-check"
-                      checked={!!t.done}
-                      onChange={() => onUpdateTodo(t.id, { done: !t.done })}
-                      onClick={e => e.stopPropagation()}
-                    />
-                    <div className="today-todo-title">{t.title}</div>
-                    {sched && <div className="today-todo-badge">SCHED</div>}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Mini month — day navigation */}
-          <TodayMiniMonth
-            viewDate={viewDate}
-            now={now}
-            onSelectDate={(d) => {
-              const start = startOfDay(d).getTime();
-              const today0 = startOfDay(now).getTime();
-              const offset = Math.round((start - today0) / (24 * 60 * 60 * 1000));
-              setViewDayOffset(offset);
-            }}
-          />
+      {todayItems.length === 0 ? (
+        <div className="today-timeline-empty">
+          No events scheduled yet.<br />
+          Drag a project action or todo from the left to plan the day.
         </div>
-
-        <div
-          className="today-timeline"
-          onDragOver={onTimelineDragOver}
-          onDragLeave={onTimelineDragLeave}
-          onDrop={onTimelineDrop}
-        >
-          <div className="today-timeline-header">
-            <div className="today-timeline-eyebrow">
-              {viewDayOffset === 0 ? 'Today'
-                : viewDayOffset === 1 ? 'Tomorrow'
-                : viewDayOffset === -1 ? 'Yesterday'
-                : viewDate.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
-            </div>
-            <div className="today-timeline-header-right">
-              <div className="today-view-toggle" role="group" aria-label="View mode">
-                <button
-                  className={`today-view-toggle-btn ${todayViewMode === 'timeline' ? 'active' : ''}`}
-                  onClick={() => onSetTodayView('timeline')}
-                  title="List view"
-                  aria-label="List view"
-                >☰</button>
-                <button
-                  className={`today-view-toggle-btn ${todayViewMode === 'calendar' ? 'active' : ''}`}
-                  onClick={() => onSetTodayView('calendar')}
-                  title="Calendar view"
-                  aria-label="Calendar view"
-                >▦</button>
-              </div>
-              <div className="today-timeline-meta">
-                {todayItems.filter(i => !i.completed).length} open · {todayItems.length} total
-              </div>
-            </div>
-          </div>
-          {todayItems.length === 0 ? (
-            <div className="today-timeline-empty">
-              No events scheduled yet.
-              <br />
-              Drag a project action or todo from the right to plan the day.
-            </div>
-          ) : todayViewMode === 'calendar' ? (
-            <TodayCalendarView
-              items={todayItems}
-              now={now}
-              viewDate={viewDate}
-              isToday={isToday}
-              lunchSlot={lunchSlot}
-              onItemClick={(it) => {
-                if (it.kind === 'block') onOpenBlock(it.blockId);
-                else if (it.kind === 'routine') onRoutineClick(it.itemId, now);
-              }}
-              onToggleRoutineComplete={(itemId) => onToggleRoutineCompletion(itemId, now)}
-              CATS={CATS}
-              onDrop={(payload, startMin, dropX, dropY) => {
-                const startStr = `${pad(Math.floor(startMin / 60))}:${pad(startMin % 60)}`;
-                const dateISO = startOfDay(viewDate).toISOString();
-                if (payload.type === 'next-action') {
-                  onCreateBlock({
-                    projectId: payload.projectId,
-                    actionId: payload.actionId,
-                    title: payload.title,
-                    date: dateISO,
-                    start: startStr,
-                    duration: payload.duration || 30,
-                  });
-                } else if (payload.type === 'todo') {
-                  onTodoDrop({ todoId: payload.todoId, date: dateISO, start: startStr, dropX, dropY });
-                }
-              }}
-              onCreateAtTime={(startMin, title) => {
-                if (!title || !title.trim()) return;
-                const startStr = `${pad(Math.floor(startMin / 60))}:${pad(startMin % 60)}`;
-                onCreateBlock({
-                  title: title.trim(),
-                  date: startOfDay(viewDate).toISOString(),
-                  start: startStr,
-                  duration: 30,
-                });
-              }}
-            />
-          ) : (
-            <div className="today-timeline-list">
-              {todayItems.map(renderTimelineItem)}
-            </div>
-          )}
-          <div className={`today-timeline-drop-hint ${dragOver ? 'drag-over' : ''}`}>
-            {dragOver ? 'Release to schedule for now' : 'Drag a project action or todo here to schedule it for today'}
-          </div>
+      ) : todayViewMode === 'calendar' ? (
+        <TodayCalendarView
+          items={todayItems}
+          now={now}
+          viewDate={viewDate}
+          isToday={isToday}
+          lunchSlot={lunchSlot}
+          onItemClick={(it) => {
+            if (it.kind === 'block') onOpenBlock(it.blockId);
+            else if (it.kind === 'routine') onRoutineClick(it.itemId, now);
+          }}
+          onToggleRoutineComplete={(itemId) => onToggleRoutineCompletion(itemId, now)}
+          CATS={CATS}
+          onDrop={(payload, startMin, dropX, dropY) => {
+            const startStr = `${pad(Math.floor(startMin / 60))}:${pad(startMin % 60)}`;
+            const dateISO = startOfDay(viewDate).toISOString();
+            if (payload.type === 'next-action') {
+              onCreateBlock({ projectId: payload.projectId, actionId: payload.actionId,
+                title: payload.title, date: dateISO, start: startStr, duration: payload.duration || 30 });
+            } else if (payload.type === 'todo') {
+              onTodoDrop({ todoId: payload.todoId, date: dateISO, start: startStr, dropX, dropY });
+            }
+          }}
+          onCreateAtTime={(startMin, title) => {
+            if (!title || !title.trim()) return;
+            const startStr = `${pad(Math.floor(startMin / 60))}:${pad(startMin % 60)}`;
+            onCreateBlock({ title: title.trim(), date: startOfDay(viewDate).toISOString(),
+              start: startStr, duration: 30 });
+          }}
+        />
+      ) : (
+        <div className="today-timeline-list">
+          {todayItems.map(renderTimelineItem)}
         </div>
-
-      </div>
-
-      {/* Footer / utility row */}
-      <div className="today-footer">
-        <FridayReviewLauncher now={now} weeklyResets={weeklyResets} onLaunch={onLaunchReview} />
-        <button className="today-footer-btn" onClick={onOpenRoutineManager}>⚙ Routines</button>
-        <span className="today-footer-status">
-          {saving ? 'Saving…' : (error ? 'Save error' : (lastSyncedAt ? `Synced ${new Date(lastSyncedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}` : ''))}
-        </span>
-        <button className="today-footer-btn" onClick={onSignOut} style={{ marginLeft: 'auto' }}>Sign out</button>
+      )}
+      <div className={`today-timeline-drop-hint ${dragOver ? 'drag-over' : ''}`}>
+        {dragOver ? 'Release to schedule for now' : 'Drag a project action or todo here to schedule it for today'}
       </div>
     </div>
   );
