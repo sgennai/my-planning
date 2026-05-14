@@ -1,3 +1,9 @@
+// Stable empty defaults — hoisted so inline `|| []`/`|| {}` don't create
+// new references on every render and silently invalidate useMemo deps.
+const _EMPTY_ARRAY = [];
+const _EMPTY_OBJ = {};
+const _DEFAULT_ELSEWHERE = { morning: false, afternoon: false, allDay: false, date: null };
+
 function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut, onPersist }) {
   const isMobile = useMediaQuery('(max-width: 759px)');
   const now = useTickingClock(60000);
@@ -226,7 +232,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
 
   // ─── Elsewhere toggles ──────────────────────────
   // Auto-reset toggles when the date changes (each new day they start fresh).
-  const elsewhere = data.elsewhereToggles || { morning: false, afternoon: false, allDay: false, date: null };
+  const elsewhere = data.elsewhereToggles || _DEFAULT_ELSEWHERE;
   const todayDateKey = startOfDay(now).toISOString();
   useEffect(() => {
     if (!elsewhere.date || elsewhere.date !== todayDateKey) {
@@ -606,8 +612,8 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     setOpenRoutineEdit({ itemId, date: date.toISOString() });
   }, []);
 
-  const blocks = data.scheduledBlocks || [];
-  const projects = data.projects || [];
+  const blocks = data.scheduledBlocks || _EMPTY_ARRAY;
+  const projects = data.projects || _EMPTY_ARRAY;
   const openBlock = openBlockId ? blocks.find(b => b.id === openBlockId) : null;
   const refLibrary = data.referenceLibrary || [];
 
@@ -622,8 +628,8 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   }, [now, viewDayOffset]);
   const isToday = viewDayOffset === 0;
 
-  const tdOverrides = data.overrides || {};
-  const tdCompletions = data.routineCompletions || {};
+  const tdOverrides = data.overrides || _EMPTY_OBJ;
+  const tdCompletions = data.routineCompletions || _EMPTY_OBJ;
   const CATS = categoryStyles || CATEGORY_STYLES;
 
   const todayItems = useMemo(() => {
@@ -692,20 +698,23 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     }
   }
 
-  const todos = data.todos || [];
-  const scheduledTodoIds = new Set((blocks).filter(b => b.todoId && b.status !== 'completed').map(b => b.todoId));
-  const sortedTodos = [...todos].sort((a, b) => {
+  const todos = data.todos || _EMPTY_ARRAY;
+  const scheduledTodoIds = useMemo(
+    () => new Set(blocks.filter(b => b.todoId && b.status !== 'completed').map(b => b.todoId)),
+    [blocks]
+  );
+  const sortedTodos = useMemo(() => [...todos].sort((a, b) => {
     if (a.done !== b.done) return a.done ? 1 : -1;
     const aSched = scheduledTodoIds.has(a.id);
     const bSched = scheduledTodoIds.has(b.id);
     if (aSched !== bSched) return aSched ? 1 : -1;
     return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
-  });
-  const submitTodo = () => {
+  }), [todos, scheduledTodoIds]);
+  const submitTodo = useCallback(() => {
     if (!todoInput.trim()) return;
     addTodo(todoInput);
     setTodoInput('');
-  };
+  }, [todoInput, addTodo]);
   const onTodoRailDragStart = (e, todo) => {
     if (todo.done) { e.preventDefault(); return; }
     e.dataTransfer.effectAllowed = 'copy';
