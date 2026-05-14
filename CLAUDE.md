@@ -13,20 +13,22 @@ Personal scheduling and portfolio management web app — a personal operating sy
 
 ## File structure
 
+Scripts load in this exact order (global scope — later files can use symbols from earlier ones):
+
 ```
 index.html          — CSS only + ordered <script> tags (no component logic)
-app-data.js         — SCHEMA_VERSION, SEED_PROJECTS, SEED_PRACTICE_CONTENT, makeDefaultData(), migrate()
+app-data.js         — SCHEMA_VERSION, CATEGORY_STYLES, SEED_PROJECTS, makeDefaultData(), migrate()
+app-helpers.js      — shared utils (pad, startOfDay, toMinutes, layoutDay, combinedDayItems…), ViewSwitcher, ProjectsRailPanel, ICS parser
 app-core.js         — root App component, Google Drive OAuth, state persistence, auth
-app-helpers.js      — shared utility functions, ViewSwitcher component, ProjectsRailPanel, date helpers
-app-routine.js      — RoutineManagerModal, RoutineEditForm, routine resolution logic
-app-widgets.js      — SettingsModal (with Routines tab), InboxModal, WeatherStrip, FridayReviewLauncher, Legend, TodosPane
 app-today.js        — TodayScreen (timeline pane only), TodayCalendarView, TodayMiniMonth
-app-week.js         — WeekGrid, AgendaView, CalendarHeader, BlockPopover, RoutineItemPopover
 app-practice.js     — DailyPracticeHub overlay (Interview Prep, Personal Narrative, C-Level Qs tabs)
 app-calendar.js     — CalendarScreen (single layout shell for both views), all shared state
+app-week.js         — WeekGrid, AgendaView, CalendarHeader, BlockPopover, RoutineItemPopover, CalItem, NowLine
+app-routine.js      — RoutineManagerModal, RoutineEditForm, routine resolution logic
+app-widgets.js      — SettingsModal (with Routines tab), InboxModal, WeatherStrip, FridayReviewLauncher, Legend, TodosPane
 ```
 
-All files share one global scope (no ES modules). Variables defined in one file are visible in others — global naming discipline matters.
+All files share one global scope (no ES modules). Variables defined in one file are visible in others — global naming discipline matters. If a new shared component is needed by both app-today.js and app-week.js, define it in app-helpers.js (loads before both).
 
 ## Core data shape (schema v18)
 
@@ -91,13 +93,17 @@ The `viewDayOffset` state (today view's day navigation) and `todayItems` computa
 
 ## Visual language
 
-- **Default theme**: light off-white (`#F5F7FA`); dark theme is opt-in via `prefs.theme`.
-- **Primary color**: blue (`#3B82F6`), token `var(--primary)`.
-- **Typography**: Inter (sans) for everything; JetBrains Mono for time and labels.
-- **Shape**: rounded cards (16/12/8/5px radius), soft shadows, pill buttons.
+- **Themes**: light (default, `--bg: #F9F9F7` near-paper) and dark (`--bg: #0C0C0E` near-black), toggled via `prefs.theme` → `data-theme` on `<html>`.
+- **Primary color**: blue, token `var(--primary)` (`#2563EB` light / `#4F8EF7` dark).
+- **Typography**: DM Sans for body/UI; Cormorant Garamond (`var(--display)`) for eyebrow/display labels; JetBrains Mono (`var(--mono)`) for times and data.
+- **Shape**: rounded cards (16/12/8/5px radius), near-zero shadows (borders carry structure), pill buttons.
+- **Calendar surfaces**: `.today-timeline` and `.week-grid` use `var(--bg-calendar)` — pure white in light mode, `#1D1D24` in dark — visually distinct from the left-rail panes which use `var(--bg-card)` (`#F7F7F5` light / `#141418` dark).
+- **Grid lines**: `var(--rule)` — `rgba(0,0,0,0.10)` light / `rgba(255,255,255,0.10)` dark. Used for hour lines, day-column separators, and timeline borders.
 - **Calendar blocks**: solid color fill, white text, title-first then time-below ("2 – 3pm" 12-hour format), 6px radius.
+- **Past events**: `.is-past` class — `opacity: 0.55–0.6; filter: saturate(0.55–0.65)`. Applied to `.today-timeline-row`, `.today-cal-block`, and `.cal-item`.
 - **Now-line**: 2px blue with soft halo.
 - **Topbar buttons**: `.app-topbar-btn` — pill, same size for all actions including Today.
+- **Work calendar untitled events**: `occ.summary || (occ.source === 'work' ? 'Work' : '(untitled)')` — avoids blank event titles.
 
 ## Project portfolio
 
@@ -131,6 +137,9 @@ Stephane edits via Claude Code. Deploy: `git add`, `git commit`, `git push` — 
 - Stephane prefers full creative control over constrained defaults (e.g., free color picker, not curated swatches).
 - Mark backlog items COMPLETED, do not remove them.
 - User location: Plouhinec, Brittany, FR (47.99°N, -4.49°W).
+- **Stable defaults in CalendarScreen**: module-level `_EMPTY_ARRAY = []`, `_EMPTY_OBJ = {}`, `_DEFAULT_ELSEWHERE` prevent useMemo invalidation on every render. `scheduledTodoIds` and `sortedTodos` are memoized; `submitTodo` is wrapped in useCallback.
+- **`color-scheme`** is set on `:root` per theme so native scrollbars/inputs match the active theme.
+- **`touch-action: manipulation`** on all buttons to suppress double-tap zoom on mobile.
 
 ## Pending UX backlog
 
