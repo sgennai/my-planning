@@ -105,11 +105,18 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
     return () => document.removeEventListener('keydown', onKey);
   }, [composer]);
 
-  const nowLineRef = useRef(null);
+  // Instantly position the pane so the now-line is vertically centred on mount
   useEffect(() => {
-    setTimeout(() => {
-      nowLineRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    }, 80);
+    requestAnimationFrame(() => {
+      const grid = gridRef.current;
+      if (!grid) return;
+      const container = grid.parentElement;
+      if (!container) return;
+      const nowMin = now.getHours() * 60 + now.getMinutes();
+      if (nowMin < HOUR_START * 60 || nowMin >= HOUR_END * 60) return;
+      const nowTop = ((nowMin / 60) - HOUR_START) * HOUR_HEIGHT;
+      container.scrollTop = Math.max(0, nowTop - container.clientHeight / 2);
+    });
   }, []);
 
   const submitComposer = () => {
@@ -286,7 +293,7 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
       )}
       {/* Now line */}
       {inWindow && (
-        <div ref={nowLineRef} className="today-cal-now-line" style={{ top: nowY }}>
+        <div className="today-cal-now-line" style={{ top: nowY }}>
           <span className="today-cal-now-dot" />
         </div>
       )}

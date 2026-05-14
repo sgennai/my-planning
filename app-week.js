@@ -812,11 +812,20 @@ function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, no
   const [activeDropCol, setActiveDropCol] = useState(null);
   const [dropPreview, setDropPreview] = useState(null); // { col, top, height }
   const dragPayloadRef = useRef(null);
-  const nowLineRef = useRef(null);
+  const weekGridRef = useRef(null);
+  // Instantly position the pane so the now-line is vertically centred on mount
   useEffect(() => {
-    setTimeout(() => {
-      nowLineRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    }, 80);
+    if (!isCurrentWeek) return;
+    requestAnimationFrame(() => {
+      const container = weekGridRef.current;
+      if (!container) return;
+      const nowMin = now.getHours() * 60 + now.getMinutes();
+      const nowTop = ((nowMin - START_HOUR * 60) / 60) * HOUR_HEIGHT;
+      const header = container.querySelector('.week-grid-header');
+      const headerH = header ? header.offsetHeight : 56;
+      const viewH = container.clientHeight - headerH;
+      container.scrollTop = Math.max(0, nowTop - viewH / 2);
+    });
   }, []);
 
   // Convert mouse Y position within a day column → snapped HH:MM string
@@ -908,7 +917,7 @@ function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, no
   }, []);
 
   return (
-    <div className="week-grid">
+    <div ref={weekGridRef} className="week-grid">
       <div className="week-grid-header">
         <div className="time-gutter-header" />
         {cols.map(col => {
@@ -987,7 +996,7 @@ function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, no
                   categoryStyles={categoryStyles}
                 />
               ))}
-              {isToday && <NowLine now={now} hourHeight={HOUR_HEIGHT} nowLineRef={nowLineRef} />}
+              {isToday && <NowLine now={now} hourHeight={HOUR_HEIGHT} />}
               {dropPreview && dropPreview.col === col && (
                 <div className="drop-ghost" style={{ top: dropPreview.top, height: dropPreview.height }}>
                   <div style={{ padding: 4, fontSize: 10, color: 'var(--primary)', fontFamily: 'var(--mono)', letterSpacing: '0.05em' }}>
@@ -1209,12 +1218,12 @@ function CalItem({ item, date, hourHeight, projects, onBlockClick, onRoutineClic
   );
 }
 
-function NowLine({ now, hourHeight, nowLineRef }) {
+function NowLine({ now, hourHeight }) {
   const min = now.getHours() * 60 + now.getMinutes();
   const offsetMin = min - START_HOUR * 60;
   if (offsetMin < 0 || offsetMin > HOURS_VISIBLE * 60) return null;
   const top = (offsetMin / 60) * hourHeight;
-  return <div ref={nowLineRef} className="now-line" style={{ top }} />;
+  return <div className="now-line" style={{ top }} />;
 }
 
 // ═════════════════════════════════════════════════════════════
