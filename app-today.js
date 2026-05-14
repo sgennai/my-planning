@@ -704,7 +704,6 @@ function TodayScreen({
           <button className="today-practice-btn" onClick={onOpenPractice}>
             Practice
           </button>
-          <ViewSwitcher view="today" onSwitchView={onSwitchView} />
         </div>
       </div>
 

@@ -232,7 +232,21 @@
     .wrap { max-width: 820px; }
     .wrap-wide { max-width: 1500px; }
     .screen-pad-top { padding-top: 80px; }
-    .screen-pad-top-sm { padding-top: 40px; }
+    .screen-pad-top-sm { padding-top: 60px; }
+    .view-switcher-bar {
+      position: fixed;
+      top: 12px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      z-index: 100;
+      pointer-events: none;
+    }
+    .view-switcher-bar .view-switcher {
+      pointer-events: auto;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+    }
 
     .eyebrow {
       font-size: 11px;
@@ -4081,7 +4095,9 @@
 
     @media (max-width: 759px) {
       .wrap, .wrap-wide { padding: 0 18px 60px; }
-      .screen-pad-top { padding-top: 50px; }
+      .screen-pad-top { padding-top: 58px; }
+      .screen-pad-top-sm { padding-top: 58px; }
+      .view-switcher-bar { top: 10px; }
       .cal-header { gap: 12px; }
       .cal-week-label { font-size: 22px; }
       .right-now-now { font-size: 15px; }

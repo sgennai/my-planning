@@ -600,6 +600,9 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   // Both share the modals rendered at the bottom of this component.
   return (
     <>
+    <div className="view-switcher-bar">
+      <ViewSwitcher view={mainView} onSwitchView={setMainView} />
+    </div>
     {mainView === 'today' ? (
       <TodayScreen
         data={data}
@@ -672,7 +675,6 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
           </div>
         </div>
         <div className="today-topbar-right">
-          <ViewSwitcher view="plan" onSwitchView={setMainView} />
         </div>
       </div>
       <WeatherStrip
