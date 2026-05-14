@@ -665,6 +665,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     <div className={`wrap-wide screen-pad-top-sm fade-in ${dayView !== null ? 'day-view' : ''}`}>
       <div className="today-topbar">
         <div className="today-topbar-left">
+          <button className="today-day-nav-btn" onClick={goPrev} aria-label={dayView !== null ? 'Previous day' : 'Previous week'}>‹</button>
           <div className="today-date-block">
             <div className="today-date">
               <span className="today-date-day">
@@ -682,6 +683,13 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
               {now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
             </div>
           </div>
+          <button className="today-day-nav-btn" onClick={goNext} aria-label={dayView !== null ? 'Next day' : 'Next week'}>›</button>
+          {!isCurrentWeek && dayView === null && (
+            <button className="today-day-nav-today" onClick={goToday}>Today</button>
+          )}
+          {dayView !== null && !isSameDay(addDays(weekStart, dayView), now) && (
+            <button className="today-day-nav-today" onClick={goToday}>Today</button>
+          )}
         </div>
         <div className="today-topbar-right">
           <button
@@ -726,18 +734,6 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         </div>
 
         <div className="calendar-panel">
-          <CalendarHeader
-            weekStart={weekStart}
-            weekEnd={weekEnd}
-            isCurrentWeek={isCurrentWeek}
-            dayView={dayView}
-            onPrev={goPrev}
-            onNext={goNext}
-            onToday={goToday}
-            now={now}
-            hideTitle={true}
-          />
-
           {dayView !== null && !isMobile && (
             <button className="day-view-back" onClick={() => setDayView(null)}>
               ← Back to week
