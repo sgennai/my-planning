@@ -48,29 +48,36 @@ Schema migrations are non-destructive at every version bump. `migrate()` in `app
 
 ## Layout architecture
 
-`CalendarScreen` in `app-calendar.js` is the single layout shell for both views:
+`CalendarScreen` in `app-calendar.js` is the single layout shell for both views.
+
+**Apple Calendar–style split**: the left rail is a full-height glass panel that spans the entire viewport height (y=0 to bottom), and the topbar starts at `left: 300px` so it never overlaps the rail.
 
 ```
-Fixed .app-topbar (52px, full viewport width)
-  Left:   [Today] [‹] [›] [date label]
-  Center: [Today / Week switcher]
-  Right:  [◐] [At home] [Practice] [Inbox] [Settings]
+.today-wrap  (flex row, height: 100vh, overflow: hidden)
+  │
+  ├─ .today-rail  (300px, full-height glass card, z-index 2)
+  │    .today-rail-nav:  [Today btn] [‹] [date label] [›]
+  │    TodayMiniMonth
+  │    ProjectsRailPanel
+  │    Todos section  (draggable to timeline)
+  │    Calendars section
+  │
+  └─ .today-right-col  (flex: 1, flex column, padding-top: 66px to clear topbar)
+       WeatherStrip  (hidden by default, toggled via ☁ button)
+       .today-hero   (Right Now / Next Up banner — always shows today)
+       Right pane (switches on mainView):
+         'today' → TodayScreen (timeline pane only)
+         'plan'  → WeekGrid / AgendaView
+       .today-footer  (FridayReviewLauncher · Save status · Sign out)
 
-.today-wrap (scrollable content, padding-top: 60px to clear topbar)
-  WeatherStrip
-  .today-hero  (Right Now / Next Up banner — always shows today)
-  .today-body  (grid: 320px left | 1fr right)
-    .today-rail (sticky left column — same in both views):
-      TodayMiniMonth
-      ProjectsRailPanel
-      Todos section (draggable to timeline)
-    Right pane (switches on mainView):
-      'today' → TodayScreen (timeline pane only)
-      'plan'  → WeekGrid / AgendaView
-  .today-footer  (FridayReviewLauncher · Save status · Sign out)
+Fixed .app-topbar  (56px, left: 300px → right: 0  — does NOT overlap rail)
+  Center: [Today / Week switcher]
+  Right:  [◐] [☁] [At home] [Practice] [Inbox] [Settings]
 ```
 
 `TodayScreen` (`app-today.js`) renders only the `today-timeline` div — no wrapper, no topbar, no rail. All shared layout lives in `CalendarScreen`.
+
+**Responsive breakpoints**: rail narrows to 260px at ≤1100px; topbar resets to `left: 0` at ≤759px.
 
 ## Two main views
 
@@ -93,16 +100,20 @@ The `viewDayOffset` state (today view's day navigation) and `todayItems` computa
 
 ## Visual language
 
-- **Themes**: light (default, `--bg: #F9F9F7` near-paper) and dark (`--bg: #0C0C0E` near-black), toggled via `prefs.theme` → `data-theme` on `<html>`.
+- **Themes**: light (default, `--bg: #F5F5F7`) and dark (`--bg: #1C1C1E`), toggled via `prefs.theme` → `data-theme` on `<html>`.
+- **Aurora background**: three radial-gradient blobs (indigo + rose/pink + teal) sit on `:root`. `html, body` use `background: transparent` so the aurora shows through all glass surfaces. Blobs are baked into the rail and topbar backgrounds too.
+- **Glassmorphism**: all major surfaces (rail, topbar, hero, timeline, week-grid) use `rgba(255,255,255,0.72)` / `rgba(28,28,30,0.72)` + `backdrop-filter: blur()`. Cards do not use solid `var(--bg-card)` fills.
 - **Primary color**: blue, token `var(--primary)` (`#2563EB` light / `#4F8EF7` dark).
-- **Typography**: DM Sans for body/UI; Cormorant Garamond (`var(--display)`) for eyebrow/display labels; JetBrains Mono (`var(--mono)`) for times and data.
-- **Shape**: rounded cards (16/12/8/5px radius), near-zero shadows (borders carry structure), pill buttons.
-- **Calendar surfaces**: `.today-timeline` and `.week-grid` use `var(--bg-calendar)` — pure white in light mode, `#1D1D24` in dark — visually distinct from the left-rail panes which use `var(--bg-card)` (`#F7F7F5` light / `#141418` dark).
-- **Grid lines**: `var(--rule)` — `rgba(0,0,0,0.10)` light / `rgba(255,255,255,0.10)` dark. Used for hour lines, day-column separators, and timeline borders.
+- **Typography**: DM Sans for body/UI; Cormorant Garamond (`var(--serif)`) for section eyebrows and the mini-month label; JetBrains Mono (`var(--mono)`) for times and data.
+- **Shape**: rounded cards (16/12/8/5px radius), subtle `var(--shadow-card)` shadows, pill buttons.
+- **Rail section titles** (Projects, Todos, Calendars, month name): `var(--muted-3)` — grey, acting as visual separators (no horizontal rule lines).
+- **3D rail depth effect**: rail casts a right-side `box-shadow`; topbar continues the effect via `box-shadow: inset 14px 0 22px -10px rgba(0,0,0,0.10)` on its left edge.
+- **Grid lines**: `var(--rule)` — `rgba(0,0,0,0.10)` light / `rgba(255,255,255,0.10)` dark. Used for hour lines and day-column separators.
 - **Calendar blocks**: solid color fill, white text, title-first then time-below ("2 – 3pm" 12-hour format), 6px radius.
 - **Past events**: `.is-past` class — `opacity: 0.55–0.6; filter: saturate(0.55–0.65)`. Applied to `.today-timeline-row`, `.today-cal-block`, and `.cal-item`.
 - **Now-line**: 2px blue with soft halo.
-- **Topbar buttons**: `.app-topbar-btn` — pill, same size for all actions including Today.
+- **Topbar buttons**: `.app-topbar-btn` — pill, same size for all actions.
+- **Weather**: hidden by default (`useState(false)`), toggled via ☁ button in topbar.
 - **Work calendar untitled events**: `occ.summary || (occ.source === 'work' ? 'Work' : '(untitled)')` — avoids blank event titles.
 
 ## Project portfolio
@@ -148,6 +159,7 @@ Stephane edits via Claude Code. Deploy: `git add`, `git commit`, `git push` — 
 - ~~Daily Practice Hub~~ COMPLETED
 - ~~Unified Today/Week layout shell~~ COMPLETED
 - ~~Routines inside Settings modal~~ COMPLETED
+- ~~Aurora/glassmorphism redesign~~ COMPLETED — full-height rail, apple-calendar layout, aurora gradient, glass surfaces
 - Persistent Google sign-in
 - Next actions edit mode for Projects Rail (complete/add/archive actions live)
 - Past weekly resets browser
