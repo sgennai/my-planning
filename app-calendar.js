@@ -28,7 +28,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   const [weatherRefreshing, setWeatherRefreshing] = useState(false);
   const [weatherError, setWeatherError] = useState('');
   const [weatherDayTab, setWeatherDayTab] = useState(0); // 0=today, 1=tomorrow, 2=day-after
-  const [weatherVisible, setWeatherVisible] = useState(true);
+  const [weatherVisible, setWeatherVisible] = useState(false);
   const [calendarToggles, setCalendarToggles] = useState({ routine: true, work: true, household: true });
   const [todosExpanded, setTodosExpanded] = useState(true);
   const [calendarsExpanded, setCalendarsExpanded] = useState(true);
@@ -729,7 +729,8 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     <>
     {/* ── FIXED APP TOPBAR ── */}
     <div className="app-topbar">
-      <div className="app-topbar-left">
+      <div className="app-topbar-left" />
+      <div className="app-topbar-center">
         <ViewSwitcher view={mainView} onSwitchView={setMainView} />
       </div>
       <div className="app-topbar-right">
@@ -744,26 +745,8 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
 
     <div className={`today-wrap fade-in${mainView === 'plan' && dayView !== null ? ' day-view' : ''}`}>
 
-      {/* ── WEATHER (identical in both views) ── */}
-      {weatherVisible && (
-        <WeatherStrip
-          settings={weatherSettings}
-          cache={weatherCache}
-          refreshing={weatherRefreshing}
-          error={weatherError}
-          dayTab={weatherDayTab}
-          now={now}
-          onChangeDayTab={setWeatherDayTab}
-          onRefresh={() => refreshWeather()}
-          onRequestGeo={requestGeolocation}
-        />
-      )}
-
-      {/* ── BODY: shared left rail + switching right pane ── */}
-      <div className="today-body">
-
-        {/* LEFT RAIL — single floating card */}
-        <div className="today-rail">
+      {/* LEFT RAIL — full-height glass card, edge to edge */}
+      <div className="today-rail">
           {/* Nav header: Today · ‹ · date · › */}
           <div className="today-rail-nav">
             <button className="app-topbar-btn" onClick={mainView === 'today' ? () => setViewDayOffset(0) : goToday}>Today</button>
@@ -874,8 +857,23 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
           </div>
         </div>
 
-        {/* RIGHT PANE — hero banner + today timeline OR week grid */}
-        <div className="today-right-col">
+      {/* RIGHT PANE — weather + hero + calendar + footer */}
+      <div className="today-right-col">
+
+        {/* WEATHER — same width as hero/calendar (hidden by default) */}
+        {weatherVisible && (
+          <WeatherStrip
+            settings={weatherSettings}
+            cache={weatherCache}
+            refreshing={weatherRefreshing}
+            error={weatherError}
+            dayTab={weatherDayTab}
+            now={now}
+            onChangeDayTab={setWeatherDayTab}
+            onRefresh={() => refreshWeather()}
+            onRequestGeo={requestGeolocation}
+          />
+        )}
 
         {/* HERO BANNER — sits above the calendar pane, same width */}
         <div className="today-hero">
@@ -1000,17 +998,15 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
           </div>
         )}
 
-        </div>{/* end today-right-col */}
-      </div>
-
-      {/* ── FOOTER (identical in both views) ── */}
-      <div className="today-footer">
-        <FridayReviewLauncher now={now} weeklyResets={data.weeklyResets || []} onLaunch={() => setResetOverlayOpen(true)} />
-        <span className="today-footer-status">
-          {saving ? 'Saving…' : (error ? 'Save error' : (lastSyncedAt ? `Synced ${new Date(lastSyncedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}` : ''))}
-        </span>
-        <button className="today-footer-btn" onClick={onSignOut} style={{ marginLeft: 'auto' }}>Sign out</button>
-      </div>
+        {/* FOOTER */}
+        <div className="today-footer">
+          <FridayReviewLauncher now={now} weeklyResets={data.weeklyResets || []} onLaunch={() => setResetOverlayOpen(true)} />
+          <span className="today-footer-status">
+            {saving ? 'Saving…' : (error ? 'Save error' : (lastSyncedAt ? `Synced ${new Date(lastSyncedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}` : ''))}
+          </span>
+          <button className="today-footer-btn" onClick={onSignOut} style={{ marginLeft: 'auto' }}>Sign out</button>
+        </div>
+      </div>{/* end today-right-col */}
     </div>
 
     {/* ─── Modals (rendered for both Today and Plan views) ─── */}
