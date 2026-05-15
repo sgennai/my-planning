@@ -1080,6 +1080,7 @@
       flex-direction: column;
       gap: 0;
       overflow: hidden;
+      background: var(--bg);
     }
     /* Weather needs its own horizontal padding */
     .today-wrap > .weather-strip {
@@ -1678,10 +1679,11 @@
     /* Right-now hero block — flat strip above calendar */
     .today-hero {
       padding: var(--space-3) var(--space-5);
-      background: var(--bg-calendar);
+      background: var(--bg);
       border: none;
       border-radius: 0;
       box-shadow: none;
+      border-bottom: 1px solid var(--border);
       position: relative;
       overflow: hidden;
       flex-shrink: 0;
@@ -2872,9 +2874,10 @@
       align-items: center;
       padding: var(--space-2) var(--space-6);
       flex-shrink: 0;
+      background: var(--bg);
     }
     .today-footer-btn {
-      background: var(--bg-card);
+      background: transparent;
       border: 1px solid var(--border);
       border-radius: var(--radius-pill);
       color: var(--muted-2);
