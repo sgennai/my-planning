@@ -80,22 +80,21 @@
        cleanly without per-theme rewrites.
        ───────────────────────────────────────────────────────────── */
 
-    /* Light theme — luxury minimal. Near-paper surfaces, ink-black text.
-       Borders do the structural work; shadows are near-zero. */
+    /* Light theme — clean, iOS-like. White surfaces, crisp borders. */
     :root, :root[data-theme="light"] {
       color-scheme: light;
       /* Surfaces */
-      --bg: #F9F9F7;
-      --bg-card: #F7F7F5;
-      --bg-card-deep: #EEEEEC;
-      --bg-hover: #E8E8E6;
+      --bg: #F2F2F7;
+      --bg-card: #FFFFFF;
+      --bg-card-deep: #F2F2F7;
+      --bg-hover: #E5E5EA;
       --bg-calendar: #FFFFFF;
 
-      /* Lines — single-tone, no blue tint */
-      --border: #E4E4E0;
-      --rule: rgba(0, 0, 0, 0.10);
+      /* Lines */
+      --border: #C6C6C8;
+      --rule: rgba(0, 0, 0, 0.08);
       --rule-faint: rgba(0, 0, 0, 0.04);
-      --col-divider: #E4E4E0;
+      --col-divider: #C6C6C8;
 
       /* Primary — authoritative blue */
       --primary: #2563EB;
@@ -131,37 +130,37 @@
       --bg-error: rgba(220, 38, 38, 0.07);
     }
 
-    /* Dark theme — luxury: near-pure black, precise hairlines, no glow. */
+    /* Dark theme — Apple-like warm charcoal. Softer than pitch black. */
     :root[data-theme="dark"] {
       color-scheme: dark;
-      --bg: #0C0C0E;
-      --bg-card: #141418;
-      --bg-card-deep: #0C0C0E;
-      --bg-hover: #1E1E24;
-      --bg-calendar: #1D1D24;
+      --bg: #1C1C1E;
+      --bg-card: #2C2C2E;
+      --bg-card-deep: #3A3A3C;
+      --bg-hover: #3A3A3C;
+      --bg-calendar: #1C1C1E;
 
-      --border: #2A2A32;
-      --rule: rgba(255, 255, 255, 0.10);
-      --rule-faint: rgba(255, 255, 255, 0.03);
-      --col-divider: #2A2A32;
+      --border: #3A3A3C;
+      --rule: rgba(255, 255, 255, 0.08);
+      --rule-faint: rgba(255, 255, 255, 0.04);
+      --col-divider: #3A3A3C;
 
       --primary: #4F8EF7;
       --primary-hover: #3B82F6;
-      --primary-soft: rgba(79, 142, 247, 0.12);
-      --primary-text: #0C0C0E;
+      --primary-soft: rgba(79, 142, 247, 0.14);
+      --primary-text: #FFFFFF;
 
       --gold: #E09020;
       --gold-dim: #C97A10;
-      --teal: #14B8A6;
-      --violet: #8B5CF6;
-      --coral: #F87171;
+      --teal: #30D158;
+      --violet: #BF5AF2;
+      --coral: #FF453A;
 
-      /* Text — 3 decisive tones: ghost-white, mid, faded */
-      --text: #EDECF0;
-      --muted-1: #C0BFCA;
-      --muted-2: #8A899A;
-      --muted-3: #5C5B6A;
-      --muted-4: #404050;
+      /* Text — Apple label hierarchy */
+      --text: #FFFFFF;
+      --muted-1: #D1D1D6;
+      --muted-2: #AEAEB2;
+      --muted-3: #636366;
+      --muted-4: #48484A;
 
       --serif: 'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
       --mono: 'JetBrains Mono', 'SF Mono', 'Menlo', 'Consolas', monospace;
@@ -568,9 +567,9 @@
     }
     .week-grid {
       background: var(--bg-calendar);
-      border: 1px solid var(--rule);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-sm);
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
       overflow-y: auto;
       flex: 1;
       min-height: 0;
@@ -579,7 +578,7 @@
     .week-grid-header {
       display: grid;
       grid-template-columns: 64px repeat(7, 1fr);
-      border-bottom: 1px solid var(--rule);
+      border-bottom: 1px solid var(--border);
       position: sticky; top: 0; z-index: 4;
       background: var(--bg-calendar);
     }
@@ -979,7 +978,9 @@
       top: 0; left: 0; right: 0;
       z-index: 200;
       height: 52px;
-      background: var(--bg);
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      backdrop-filter: blur(20px) saturate(1.4);
+      -webkit-backdrop-filter: blur(20px) saturate(1.4);
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
@@ -1080,12 +1081,18 @@
     .today-wrap {
       max-width: none;
       margin: 0 auto;
-      padding: 60px var(--space-6) var(--space-4);
+      padding: 52px 0 0;
       height: 100vh;
       display: flex;
       flex-direction: column;
-      gap: var(--space-4);
+      gap: 0;
       overflow: hidden;
+    }
+    /* Weather and hero need their own horizontal padding */
+    .today-wrap > .weather-strip,
+    .today-wrap > .today-hero {
+      padding-left: var(--space-6);
+      padding-right: var(--space-6);
     }
 
     .today-topbar {
@@ -1676,13 +1683,14 @@
       .today-practice-btn { display: none; }
     }
 
-    /* Right-now hero block */
+    /* Right-now hero block — flat, no card chrome */
     .today-hero {
-      padding: var(--space-3) var(--space-6);
-      background: var(--bg-card);
-      border: 1px solid var(--rule);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow-md);
+      padding: var(--space-3) var(--space-5) var(--space-3) var(--space-6);
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      border-bottom: 1px solid var(--border);
+      box-shadow: none;
       position: relative;
       overflow: hidden;
       flex-shrink: 0;
@@ -1783,32 +1791,32 @@
       font-weight: 500;
     }
 
-    /* Body layout: left rail + timeline main */
+    /* Body layout: left rail + timeline main — no gap, rail divides */
     .today-body {
       display: grid;
-      grid-template-columns: 320px 1fr;
+      grid-template-columns: 300px 1fr;
       grid-template-rows: 1fr;
-      gap: var(--space-6);
+      gap: 0;
       flex: 1;
       min-height: 0;
       overflow: hidden;
     }
     @media (max-width: 1100px) {
-      .today-body { grid-template-columns: 280px 1fr; gap: var(--space-5); }
-    }
-    @media (max-width: 759px) {
-      .today-body { grid-template-columns: 1fr; gap: var(--space-4); }
+      .today-body { grid-template-columns: 260px 1fr; }
     }
     .today-rail {
       display: flex;
       flex-direction: column;
-      gap: var(--space-4);
+      gap: 0;
       min-height: 0;
       overflow-y: auto;
       scrollbar-width: thin;
       overscroll-behavior: contain;
+      background: var(--bg-card);
+      border-right: 1px solid var(--border);
     }
     @media (max-width: 759px) {
+      .today-body { grid-template-columns: 1fr; }
       .today-topbar {
         align-items: center;
         gap: var(--space-3);
@@ -1829,12 +1837,12 @@
       }
     }
 
-    /* Timeline */
+    /* Timeline — open surface, no card chrome */
     .today-timeline {
       background: var(--bg-calendar);
-      border: 1px solid var(--rule);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-sm);
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
       overflow-y: auto;
       min-height: 0;
       display: flex;
@@ -1850,7 +1858,7 @@
       display: flex;
       justify-content: space-between;
       align-items: baseline;
-      border-bottom: 1px solid var(--rule);
+      border-bottom: 1px solid var(--border);
       flex-shrink: 0;
     }
     .today-timeline-eyebrow {
@@ -2313,11 +2321,12 @@
 
     /* ───────── MINI MONTH PICKER ───────── */
     .mini-month {
-      background: var(--bg-card);
-      border: 1px solid var(--rule);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-sm);
-      padding: 8px;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      border-radius: 0;
+      box-shadow: none;
+      padding: 6px 10px 8px;
       flex-shrink: 0;
       animation: riseIn var(--duration-slow) var(--ease-out) backwards;
       animation-delay: 60ms;
@@ -2326,10 +2335,10 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
+      margin-bottom: 6px;
     }
     .mini-month-label {
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 600;
       color: var(--text);
       letter-spacing: -0.01em;
@@ -2339,13 +2348,13 @@
       gap: 2px;
     }
     .mini-month-nav-btn {
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       background: transparent;
       border: none;
       border-radius: 50%;
       color: var(--muted-3);
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1;
       padding: 0 0 1px 0;
       display: flex;
@@ -2360,27 +2369,27 @@
     .mini-month-weekdays {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      margin-bottom: 4px;
+      margin-bottom: 2px;
     }
     .mini-month-weekday {
       text-align: center;
-      font-size: 10px;
+      font-size: 9px;
       color: var(--muted-3);
       font-weight: 600;
-      letter-spacing: 0.05em;
-      padding: 2px 0;
+      letter-spacing: 0.03em;
+      padding: 1px 0;
     }
     .mini-month-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 1px;
+      gap: 0;
     }
     .mini-month-day {
       aspect-ratio: 1;
       background: transparent;
       border: none;
       border-radius: 50%;
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text);
       cursor: pointer;
       padding: 0;
@@ -2406,10 +2415,11 @@
     }
     .mini-month-day.selected:hover { background: var(--primary-soft); }
     .today-rail-section {
-      background: var(--bg-card);
-      border: 1px solid var(--rule);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-sm);
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      border-radius: 0;
+      box-shadow: none;
       overflow: hidden;
       flex-shrink: 0;
       animation: riseIn var(--duration-slow) var(--ease-out) backwards;
@@ -2430,7 +2440,7 @@
       display: flex;
       justify-content: space-between;
       align-items: baseline;
-      border-bottom: 1px solid var(--rule);
+      border-bottom: 1px solid var(--border);
     }
     .today-rail-eyebrow {
       font-size: var(--text-xs);
@@ -2455,16 +2465,17 @@
     .today-rail-list::-webkit-scrollbar { width: 4px; }
     .today-rail-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: var(--radius-pill); }
 
-    /* Project chip in rail — card style with colored accent bar */
+    /* Project chip in rail — flat row with accent bar */
     .today-project-chip {
       padding: 0;
-      margin-bottom: var(--space-2);
-      background: var(--bg-card);
-      border: 1px solid var(--rule);
-      border-radius: var(--radius-base);
-      box-shadow: var(--shadow-sm);
+      margin-bottom: 0;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--rule-faint);
+      border-radius: 0;
+      box-shadow: none;
       cursor: default;
-      transition: box-shadow var(--duration-fast) var(--ease-out);
+      transition: background var(--duration-fast) var(--ease-out);
       overflow: hidden;
       position: relative;
     }
@@ -2475,8 +2486,8 @@
       width: 3px;
       background: var(--card-accent, var(--border));
     }
-    .today-project-chip:last-child { margin-bottom: 0; }
-    .today-project-chip:hover { box-shadow: var(--shadow-md); }
+    .today-project-chip:last-child { border-bottom: none; }
+    .today-project-chip:hover { background: var(--bg-hover); }
     .today-project-chip-header {
       display: flex;
       align-items: center;
@@ -2835,7 +2846,8 @@
       flex-wrap: wrap;
       justify-content: flex-end;
       align-items: center;
-      padding-top: var(--space-3);
+      padding: var(--space-2) var(--space-6);
+      border-top: 1px solid var(--border);
       flex-shrink: 0;
     }
     .today-footer-btn {
@@ -2873,10 +2885,11 @@
 
 
     .weather-strip {
-      background: var(--bg-card);
-      border: 1px solid var(--rule);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-sm);
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      border-bottom: 1px solid var(--border);
+      box-shadow: none;
       padding: 5px 12px;
       flex-shrink: 0;
       display: flex;
