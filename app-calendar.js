@@ -729,7 +729,6 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     <>
     {/* ── FIXED APP TOPBAR ── */}
     <div className="app-topbar">
-      <div className="app-topbar-left" />
       <div className="app-topbar-center">
         <ViewSwitcher view={mainView} onSwitchView={setMainView} />
       </div>
