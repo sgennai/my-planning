@@ -5094,31 +5094,9 @@
       box-shadow: 0 0 0 1px var(--primary), 0 0 12px rgba(201, 168, 76, 0.4);
     }
 
-    /* ───────── INTEGRATED PANEL STYLE — borderline-only, near-zero shadow ───────── */
-    .mini-month,
-    .today-rail-section,
-    .today-timeline,
-    .week-grid,
-    .weather-strip {
-      background: rgba(255, 255, 255, 0.82);
-      border-color: rgba(0, 0, 0, 0.08);
-      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
-    }
-    :root[data-theme="dark"] .mini-month,
-    :root[data-theme="dark"] .today-rail-section,
-    :root[data-theme="dark"] .today-timeline,
-    :root[data-theme="dark"] .week-grid,
-    :root[data-theme="dark"] .weather-strip {
-      background: rgba(20, 20, 24, 0.88);
-      border-color: rgba(255, 255, 255, 0.07);
-      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02);
-    }
-    /* week-grid header stays solid so sticky scrolling looks clean */
+    /* week-grid header matches calendar surface for clean sticky scrolling */
     .week-grid-header {
-      background: var(--bg-card);
-    }
-    :root[data-theme="dark"] .week-grid-header {
-      background: var(--bg-card);
+      background: var(--bg-calendar);
     }
 
     /* ───────── CALENDAR TOGGLES — Apple Calendar style ───────── */
