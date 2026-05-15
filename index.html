@@ -134,12 +134,12 @@
     /* Dark theme — Apple-like warm charcoal. Softer than pitch black. */
     :root[data-theme="dark"] {
       color-scheme: dark;
-      --bg: #2C2C2E;
+      --bg: #1C1C1E;
       --bg-card: #2C2C2E;
       --bg-card-deep: #3A3A3C;
       --bg-hover: #3A3A3C;
-      --bg-calendar: #1C1C1E;
-      --bg-sidebar: #2C2C2E;
+      --bg-calendar: #2C2C2E;
+      --bg-sidebar: #1C1C1E;
 
       --border: #3A3A3C;
       --rule: rgba(255, 255, 255, 0.08);
@@ -562,12 +562,13 @@
     .week-grid {
       background: var(--bg-calendar);
       border: none;
-      border-radius: 0;
+      border-radius: var(--radius-xl);
       box-shadow: none;
       overflow-y: auto;
       flex: 1;
       min-height: 0;
       overscroll-behavior: contain;
+      margin: var(--space-3) var(--space-5) var(--space-5) 0;
     }
     .week-grid-header {
       display: grid;
@@ -906,7 +907,6 @@
       padding: 16px 0;
       display: flex; flex-wrap: wrap;
       gap: 18px;
-      border-top: 1px solid var(--rule);
     }
     .legend-item {
       display: flex; align-items: center; gap: 8px;
@@ -1683,7 +1683,6 @@
       border: none;
       border-radius: 0;
       box-shadow: none;
-      border-bottom: 1px solid var(--border);
       position: relative;
       overflow: hidden;
       flex-shrink: 0;
@@ -1787,7 +1786,7 @@
       display: grid;
       grid-template-columns: 300px 1fr;
       grid-template-rows: 1fr;
-      gap: 0;
+      gap: var(--space-5);
       flex: 1;
       min-height: 0;
       overflow: hidden;
@@ -1834,13 +1833,14 @@
     .today-timeline {
       background: var(--bg-calendar);
       border: none;
-      border-radius: 0;
+      border-radius: var(--radius-xl);
       box-shadow: none;
       overflow-y: auto;
       min-height: 0;
       display: flex;
       flex-direction: column;
       overscroll-behavior: contain;
+      margin: var(--space-3) var(--space-5) var(--space-5) 0;
     }
     .today-timeline-header {
       position: sticky;
@@ -2315,7 +2315,7 @@
       min-height: 0;
       flex: 1;
       overflow: hidden;
-      background: var(--bg-calendar);
+      background: var(--bg);
     }
 
     /* Right rail — scrollable but no visible scrollbar */
@@ -2497,7 +2497,6 @@
       margin-bottom: 0;
       background: transparent;
       border: none;
-      border-bottom: 1px solid var(--rule-faint);
       border-radius: 0;
       box-shadow: none;
       cursor: default;
@@ -2800,7 +2799,6 @@
     .today-todo-add {
       display: flex;
       padding: 0;
-      border-bottom: 1px solid var(--rule);
       transition: background var(--duration-fast) var(--ease-out);
     }
     .today-todo-add:focus-within { background: var(--primary-soft); }
@@ -2826,12 +2824,10 @@
       align-items: center;
       gap: var(--space-3);
       padding: var(--space-2) var(--space-4);
-      border-bottom: 1px solid var(--rule-faint);
       cursor: grab;
       transition: background var(--duration-fast) var(--ease-out);
       min-height: 36px;
     }
-    .today-todo-row:last-child { border-bottom: none; }
     .today-todo-row:hover { background: var(--bg-hover); }
     .today-todo-row.done { opacity: 0.45; }
     /* No strikethrough on done todos either — opacity tells the story */
