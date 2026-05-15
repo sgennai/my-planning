@@ -84,12 +84,12 @@
     :root, :root[data-theme="light"] {
       color-scheme: light;
       /* Surfaces */
-      --bg: #F0F0F0;
+      --bg: #EFEFEF;
       --bg-card: #FFFFFF;
-      --bg-card-deep: #F0F0F0;
-      --bg-hover: #E5E5EA;
+      --bg-card-deep: #E5E5E5;
+      --bg-hover: #E0E0E0;
       --bg-calendar: #FFFFFF;
-      --bg-sidebar: #E4E4E4;
+      --bg-sidebar: #EFEFEF;
 
       /* Lines */
       --border: #C6C6C8;
@@ -134,7 +134,7 @@
     /* Dark theme — Apple-like warm charcoal. Softer than pitch black. */
     :root[data-theme="dark"] {
       color-scheme: dark;
-      --bg: #1C1C1E;
+      --bg: #2C2C2E;
       --bg-card: #2C2C2E;
       --bg-card-deep: #3A3A3C;
       --bg-hover: #3A3A3C;
@@ -260,17 +260,9 @@
     }
     .eyebrow.danger { color: var(--coral); }
 
-    /* ── Cormorant Garamond on all eyebrow / section-label elements.
-       The display font is the typographic signature of this app. ── */
+    /* ── Cormorant Garamond only on calendar/week display labels ── */
     .eyebrow,
     .cal-eyebrow,
-    .today-hero-eyebrow,
-    .today-hero-next-label,
-    .today-hero-then-label,
-    .today-rail-eyebrow,
-    .today-timeline-eyebrow,
-    .todos-pane-eyebrow,
-    .todos-pane-eyebrow,
     .week-col-date-label {
       font-family: var(--display);
       font-weight: 600;
@@ -980,10 +972,8 @@
       top: 0; left: 0; right: 0;
       z-index: 200;
       height: 56px;
-      background: color-mix(in srgb, var(--bg) 88%, transparent);
-      backdrop-filter: blur(20px) saturate(1.4);
-      -webkit-backdrop-filter: blur(20px) saturate(1.4);
-      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      border-bottom: none;
       display: flex;
       align-items: center;
       padding: 0 var(--space-6);
@@ -1691,7 +1681,6 @@
       background: var(--bg-calendar);
       border: none;
       border-radius: 0;
-      border-bottom: 1px solid var(--border);
       box-shadow: none;
       position: relative;
       overflow: hidden;
@@ -1708,20 +1697,20 @@
       border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
     }
     .today-hero-eyebrow {
-      font-size: var(--text-xs);
-      letter-spacing: var(--tracking-wider);
-      color: var(--primary);
-      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0;
+      color: var(--muted-3);
+      text-transform: none;
       font-family: var(--serif);
-      margin-bottom: var(--space-3);
-      font-weight: 600;
+      margin-bottom: var(--space-2);
+      font-weight: 500;
     }
     .today-hero-now {
-      font-size: var(--text-xl);
+      font-size: 24px;
       color: var(--text);
-      letter-spacing: var(--tracking-tight);
-      line-height: var(--leading-tight);
-      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      font-weight: 700;
       text-wrap: balance;
     }
     .today-hero-now-meta {
@@ -1812,11 +1801,10 @@
       overflow-y: auto;
       scrollbar-width: thin;
       overscroll-behavior: contain;
-      background: var(--bg-sidebar);
+      background: var(--bg);
       border-right: none;
-      border-radius: 14px;
-      margin: var(--space-3);
-      margin-right: 0;
+      border-radius: 0;
+      margin: 0;
     }
     @media (max-width: 759px) {
       .today-body { grid-template-columns: 1fr; }
@@ -2350,10 +2338,11 @@
       margin-bottom: 6px;
     }
     .mini-month-label {
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 600;
-      color: var(--text);
-      letter-spacing: -0.01em;
+      color: var(--muted-2);
+      letter-spacing: 0;
+      font-family: var(--serif);
     }
     .mini-month-nav {
       display: flex;
@@ -2452,11 +2441,12 @@
       align-items: baseline;
     }
     .today-rail-eyebrow {
-      font-size: var(--text-xs);
-      letter-spacing: var(--tracking-wider);
+      font-size: 11px;
+      letter-spacing: 0;
       color: var(--muted-3);
-      text-transform: uppercase;
+      text-transform: none;
       font-weight: 600;
+      font-family: var(--serif);
     }
     .today-rail-count {
       font-size: var(--text-xs);
@@ -2856,7 +2846,6 @@
       justify-content: flex-end;
       align-items: center;
       padding: var(--space-2) var(--space-6);
-      border-top: 1px solid var(--border);
       flex-shrink: 0;
     }
     .today-footer-btn {
@@ -2897,7 +2886,6 @@
       background: transparent;
       border: none;
       border-radius: 0;
-      border-bottom: 1px solid var(--border);
       box-shadow: none;
       padding: 5px 12px;
       flex-shrink: 0;
@@ -5111,21 +5099,21 @@
 
     /* ───────── CALENDAR TOGGLES — Apple Calendar style ───────── */
     .today-cal-toggles {
-      padding: var(--space-1) var(--space-3) var(--space-4);
+      padding: 4px var(--space-3) var(--space-4);
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 1px;
     }
     .cal-toggle-btn {
       display: flex;
       align-items: center;
-      gap: var(--space-2);
-      padding: 5px var(--space-2);
+      gap: 8px;
+      padding: 6px var(--space-2);
       background: transparent;
       border: none;
       border-radius: var(--radius-base);
       color: var(--text);
-      font-size: var(--text-sm);
+      font-size: 13px;
       font-family: var(--serif);
       font-weight: 400;
       cursor: pointer;
@@ -5134,15 +5122,15 @@
       width: 100%;
     }
     .cal-toggle-btn:hover {
-      background: color-mix(in srgb, var(--bg-hover) 60%, transparent);
+      background: var(--bg-hover);
       border-radius: var(--radius-base);
     }
     .cal-toggle-btn.active { color: var(--text); }
     .cal-toggle-btn:not(.active) { color: var(--muted-3); }
     .cal-toggle-dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 3px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
       flex-shrink: 0;
       transition: opacity var(--duration-fast) var(--ease-out);
     }

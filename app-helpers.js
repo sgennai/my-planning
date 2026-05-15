@@ -777,7 +777,7 @@ function ViewSwitcher({ view, onSwitchView }) {
       <button
         className={'view-switcher-btn' + (view === 'today' ? ' active' : '')}
         onClick={() => view !== 'today' && onSwitchView('today')}
-      >Today</button>
+      >Day</button>
       <button
         className={'view-switcher-btn' + (view === 'plan' ? ' active' : '')}
         onClick={() => view !== 'plan' && onSwitchView('plan')}
