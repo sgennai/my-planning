@@ -156,6 +156,7 @@ function RightNowBanner({ routine, overrides, scheduledBlocks, projects, referen
 // PORTFOLIO PANEL
 // ═════════════════════════════════════════════════════════════
 function ProjectsRailPanel({ projects, scheduledBlocks, onCompleteAction, onAddAction, onDeleteAction }) {
+  const [sectionExpanded, setSectionExpanded] = useState(true);
   const [collapsedProjects, setCollapsedProjects] = useState(null);
   const [expandedModules, setExpandedModules] = useState({});
   const [addingFor, setAddingFor] = useState(null); // key: `${projectId}:${moduleId}` or `${projectId}`
@@ -296,9 +297,14 @@ function ProjectsRailPanel({ projects, scheduledBlocks, onCompleteAction, onAddA
     <div className="today-rail-section today-projects-section">
       <div className="today-rail-header">
         <div className="today-rail-eyebrow">Projects</div>
-        <div className="today-rail-count">{railProjects.length}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <div className="today-rail-count">{railProjects.length}</div>
+          <button className="rail-section-toggle" onClick={() => setSectionExpanded(v => !v)} aria-label={sectionExpanded ? 'Collapse projects' : 'Expand projects'}>
+            <span className={`rail-section-toggle-icon${sectionExpanded ? '' : ' collapsed'}`}>⌄</span>
+          </button>
+        </div>
       </div>
-      <div className="today-rail-list">
+      {sectionExpanded && <div className="today-rail-list">
         {railProjects.length === 0 ? (
           <div className="today-rail-empty">No projects.</div>
         ) : railProjects.map(p => {
@@ -357,7 +363,7 @@ function ProjectsRailPanel({ projects, scheduledBlocks, onCompleteAction, onAddA
             </div>
           );
         })}
-      </div>
+      </div>}
     </div>
   );
 }

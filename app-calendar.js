@@ -30,6 +30,8 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   const [weatherDayTab, setWeatherDayTab] = useState(0); // 0=today, 1=tomorrow, 2=day-after
   const [weatherVisible, setWeatherVisible] = useState(true);
   const [calendarToggles, setCalendarToggles] = useState({ routine: true, work: true, household: true });
+  const [todosExpanded, setTodosExpanded] = useState(true);
+  const [calendarsExpanded, setCalendarsExpanded] = useState(true);
 
   const weekEnd = addDays(weekStart, 6);
   const isCurrentWeek = isSameDay(weekStart, startOfWeek(now));
@@ -795,50 +797,62 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
           <div className="today-rail-section">
             <div className="today-rail-header">
               <div className="today-rail-eyebrow">Todos</div>
-              <div className="today-rail-count">{todos.filter(t => !t.done).length} open</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                <div className="today-rail-count">{todos.filter(t => !t.done).length} open</div>
+                <button className="rail-section-toggle" onClick={() => setTodosExpanded(v => !v)} aria-label={todosExpanded ? 'Collapse todos' : 'Expand todos'}>
+                  <span className={`rail-section-toggle-icon${todosExpanded ? '' : ' collapsed'}`}>⌄</span>
+                </button>
+              </div>
             </div>
-            <div className="today-todo-add">
-              <input
-                type="text"
-                className="today-todo-add-input"
-                placeholder="+ add todo, Enter to save"
-                value={todoInput}
-                onChange={e => setTodoInput(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); submitTodo(); } }}
-              />
-            </div>
-            <div className="today-rail-list">
-              {sortedTodos.length === 0 ? (
-                <div className="today-rail-empty">No todos.</div>
-              ) : sortedTodos.map(t => {
-                const sched = !t.done && scheduledTodoIds.has(t.id);
-                return (
-                  <div
-                    key={t.id}
-                    className={`today-todo-row ${t.done ? 'done' : ''} ${sched ? 'scheduled' : ''}`}
-                    draggable={!t.done}
-                    onDragStart={(e) => onTodoRailDragStart(e, t)}
-                    title={t.done ? 'Done' : (sched ? 'Scheduled · drag to reschedule' : 'Drag onto timeline to schedule')}
-                  >
-                    <input
-                      type="checkbox"
-                      className="today-todo-check"
-                      checked={!!t.done}
-                      onChange={() => updateTodo(t.id, { done: !t.done })}
-                      onClick={e => e.stopPropagation()}
-                    />
-                    <div className="today-todo-title">{t.title}</div>
-                    {sched && <div className="today-todo-badge">SCHED</div>}
-                  </div>
-                );
-              })}
-            </div>
+            {todosExpanded && (
+              <>
+                <div className="today-todo-add">
+                  <input
+                    type="text"
+                    className="today-todo-add-input"
+                    placeholder="+ add todo, Enter to save"
+                    value={todoInput}
+                    onChange={e => setTodoInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); submitTodo(); } }}
+                  />
+                </div>
+                <div className="today-rail-list">
+                  {sortedTodos.length === 0 ? (
+                    <div className="today-rail-empty">No todos.</div>
+                  ) : sortedTodos.map(t => {
+                    const sched = !t.done && scheduledTodoIds.has(t.id);
+                    return (
+                      <div
+                        key={t.id}
+                        className={`today-todo-row ${t.done ? 'done' : ''} ${sched ? 'scheduled' : ''}`}
+                        draggable={!t.done}
+                        onDragStart={(e) => onTodoRailDragStart(e, t)}
+                        title={t.done ? 'Done' : (sched ? 'Scheduled · drag to reschedule' : 'Drag onto timeline to schedule')}
+                      >
+                        <input
+                          type="checkbox"
+                          className="today-todo-check"
+                          checked={!!t.done}
+                          onChange={() => updateTodo(t.id, { done: !t.done })}
+                          onClick={e => e.stopPropagation()}
+                        />
+                        <div className="today-todo-title">{t.title}</div>
+                        {sched && <div className="today-todo-badge">SCHED</div>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
           <div className="today-rail-section">
             <div className="today-rail-header">
               <div className="today-rail-eyebrow">Calendars</div>
+              <button className="rail-section-toggle" onClick={() => setCalendarsExpanded(v => !v)} aria-label={calendarsExpanded ? 'Collapse calendars' : 'Expand calendars'}>
+                <span className={`rail-section-toggle-icon${calendarsExpanded ? '' : ' collapsed'}`}>⌄</span>
+              </button>
             </div>
-            <div className="today-cal-toggles">
+            {calendarsExpanded && <div className="today-cal-toggles">
               {[
                 { key: 'routine', label: 'Routine', color: 'var(--primary)' },
                 { key: 'work', label: 'Work', color: calendarSettings.workColor || '#8C8C96' },
@@ -849,11 +863,13 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                   className={`cal-toggle-btn ${calendarToggles[key] ? 'active' : ''}`}
                   onClick={() => setCalendarToggles(t => ({ ...t, [key]: !t[key] }))}
                 >
-                  <span className="cal-toggle-dot" style={{ background: color, opacity: calendarToggles[key] ? 1 : 0.3 }} />
+                  <span className="cal-toggle-check" style={{ '--cal-check-color': color }}>
+                    {calendarToggles[key] && <span className="cal-toggle-check-mark">✓</span>}
+                  </span>
                   {label}
                 </button>
               ))}
-            </div>
+            </div>}
           </div>
         </div>
 
