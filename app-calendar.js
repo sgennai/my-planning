@@ -770,65 +770,10 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         />
       )}
 
-      {/* ── HERO BANNER (identical in both views) ── */}
-      <div className="today-hero">
-        {tdCurrent ? (
-          <>
-            <div className="today-hero-eyebrow">Right now</div>
-            <div className="today-hero-now">
-              {tdCurrent.kind === 'routine' && CATS[tdCurrent.category] && CATS[tdCurrent.category].emoji ? `${CATS[tdCurrent.category].emoji} ` : ''}
-              {tdCurrent.title}
-            </div>
-            <div className="today-hero-now-meta">
-              ends {fmtHeroTime(tdCurrent.startMin + tdCurrent.duration)}
-              {tdCurrent.note && <span> · {tdCurrent.note}</span>}
-            </div>
-            {tdNext && (
-              <div className="today-hero-next">
-                <span className="today-hero-next-label">Next</span>
-                <span className="today-hero-next-time">{fmtHeroTime(tdNext.startMin)}</span>
-                <span>{tdNext.kind === 'routine' && CATS[tdNext.category] && CATS[tdNext.category].emoji ? `${CATS[tdNext.category].emoji} ` : ''}{tdNext.title}</span>
-              </div>
-            )}
-            {tdThen && (
-              <div className="today-hero-then">
-                <span className="today-hero-then-label">Then</span>
-                <span className="today-hero-then-time">{fmtHeroTime(tdThen.startMin)}</span>
-                <span>{tdThen.kind === 'routine' && CATS[tdThen.category] && CATS[tdThen.category].emoji ? `${CATS[tdThen.category].emoji} ` : ''}{tdThen.title}</span>
-              </div>
-            )}
-          </>
-        ) : tdNext ? (
-          <>
-            <div className="today-hero-eyebrow">Next up</div>
-            <div className="today-hero-now">
-              <span className="today-hero-next-time" style={{ marginRight: 'var(--space-3)' }}>{fmtHeroTime(tdNext.startMin)}</span>
-              {tdNext.kind === 'routine' && CATS[tdNext.category] && CATS[tdNext.category].emoji ? `${CATS[tdNext.category].emoji} ` : ''}{tdNext.title}
-            </div>
-            {tdNext.note && <div className="today-hero-now-meta">{tdNext.note}</div>}
-            {tdThen && (
-              <div className="today-hero-then">
-                <span className="today-hero-then-label">Then</span>
-                <span className="today-hero-then-time">{fmtHeroTime(tdThen.startMin)}</span>
-                <span>{tdThen.kind === 'routine' && CATS[tdThen.category] && CATS[tdThen.category].emoji ? `${CATS[tdThen.category].emoji} ` : ''}{tdThen.title}</span>
-              </div>
-            )}
-          </>
-        ) : (
-          <>
-            <div className="today-hero-eyebrow">Today</div>
-            <div className="today-hero-now" style={{ color: 'var(--muted-3)' }}>Nothing else scheduled.</div>
-          </>
-        )}
-        {microBanner && (
-          <div className="today-hero-micro">⚡ {microBanner.title} · {microBanner.summary}</div>
-        )}
-      </div>
-
       {/* ── BODY: shared left rail + switching right pane ── */}
       <div className="today-body">
 
-        {/* LEFT RAIL — same in both views */}
+        {/* LEFT RAIL — same in both views, floating rounded card */}
         <div className="today-rail">
           <TodayMiniMonth
             viewDate={viewDate}
@@ -912,7 +857,64 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
           </div>
         </div>
 
-        {/* RIGHT PANE — today timeline OR week grid */}
+        {/* RIGHT PANE — hero banner + today timeline OR week grid */}
+        <div className="today-right-col">
+
+        {/* HERO BANNER — sits above the calendar pane, same width */}
+        <div className="today-hero">
+          {tdCurrent ? (
+            <>
+              <div className="today-hero-eyebrow">Right now</div>
+              <div className="today-hero-now">
+                {tdCurrent.kind === 'routine' && CATS[tdCurrent.category] && CATS[tdCurrent.category].emoji ? `${CATS[tdCurrent.category].emoji} ` : ''}
+                {tdCurrent.title}
+              </div>
+              <div className="today-hero-now-meta">
+                ends {fmtHeroTime(tdCurrent.startMin + tdCurrent.duration)}
+                {tdCurrent.note && <span> · {tdCurrent.note}</span>}
+              </div>
+              {tdNext && (
+                <div className="today-hero-next">
+                  <span className="today-hero-next-label">Next</span>
+                  <span className="today-hero-next-time">{fmtHeroTime(tdNext.startMin)}</span>
+                  <span>{tdNext.kind === 'routine' && CATS[tdNext.category] && CATS[tdNext.category].emoji ? `${CATS[tdNext.category].emoji} ` : ''}{tdNext.title}</span>
+                </div>
+              )}
+              {tdThen && (
+                <div className="today-hero-then">
+                  <span className="today-hero-then-label">Then</span>
+                  <span className="today-hero-then-time">{fmtHeroTime(tdThen.startMin)}</span>
+                  <span>{tdThen.kind === 'routine' && CATS[tdThen.category] && CATS[tdThen.category].emoji ? `${CATS[tdThen.category].emoji} ` : ''}{tdThen.title}</span>
+                </div>
+              )}
+            </>
+          ) : tdNext ? (
+            <>
+              <div className="today-hero-eyebrow">Next up</div>
+              <div className="today-hero-now">
+                <span className="today-hero-next-time" style={{ marginRight: 'var(--space-3)' }}>{fmtHeroTime(tdNext.startMin)}</span>
+                {tdNext.kind === 'routine' && CATS[tdNext.category] && CATS[tdNext.category].emoji ? `${CATS[tdNext.category].emoji} ` : ''}{tdNext.title}
+              </div>
+              {tdNext.note && <div className="today-hero-now-meta">{tdNext.note}</div>}
+              {tdThen && (
+                <div className="today-hero-then">
+                  <span className="today-hero-then-label">Then</span>
+                  <span className="today-hero-then-time">{fmtHeroTime(tdThen.startMin)}</span>
+                  <span>{tdThen.kind === 'routine' && CATS[tdThen.category] && CATS[tdThen.category].emoji ? `${CATS[tdThen.category].emoji} ` : ''}{tdThen.title}</span>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="today-hero-eyebrow">Today</div>
+              <div className="today-hero-now" style={{ color: 'var(--muted-3)' }}>Nothing else scheduled.</div>
+            </>
+          )}
+          {microBanner && (
+            <div className="today-hero-micro">⚡ {microBanner.title} · {microBanner.summary}</div>
+          )}
+        </div>
+
         {mainView === 'today' ? (
           <TodayScreen
             viewDate={viewDate}
@@ -980,6 +982,8 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
             <Legend />
           </div>
         )}
+
+        </div>{/* end today-right-col */}
       </div>
 
       {/* ── FOOTER (identical in both views) ── */}

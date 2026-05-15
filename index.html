@@ -84,11 +84,12 @@
     :root, :root[data-theme="light"] {
       color-scheme: light;
       /* Surfaces */
-      --bg: #F2F2F7;
+      --bg: #F0F0F0;
       --bg-card: #FFFFFF;
-      --bg-card-deep: #F2F2F7;
+      --bg-card-deep: #F0F0F0;
       --bg-hover: #E5E5EA;
       --bg-calendar: #FFFFFF;
+      --bg-sidebar: #E4E4E4;
 
       /* Lines */
       --border: #C6C6C8;
@@ -138,6 +139,7 @@
       --bg-card-deep: #3A3A3C;
       --bg-hover: #3A3A3C;
       --bg-calendar: #1C1C1E;
+      --bg-sidebar: #2C2C2E;
 
       --border: #3A3A3C;
       --rule: rgba(255, 255, 255, 0.08);
@@ -977,7 +979,7 @@
       position: fixed;
       top: 0; left: 0; right: 0;
       z-index: 200;
-      height: 52px;
+      height: 56px;
       background: color-mix(in srgb, var(--bg) 88%, transparent);
       backdrop-filter: blur(20px) saturate(1.4);
       -webkit-backdrop-filter: blur(20px) saturate(1.4);
@@ -1046,11 +1048,12 @@
     }
     .app-topbar-nav-btn:hover { color: var(--text); }
     .app-topbar-date {
-      font-size: 13px;
+      font-size: 20px;
       font-weight: 600;
       color: var(--text);
       white-space: nowrap;
-      padding-left: var(--space-1);
+      padding-left: var(--space-2);
+      letter-spacing: -0.02em;
     }
 
     /* ───────── SETTINGS TABS ───────── */
@@ -1081,16 +1084,15 @@
     .today-wrap {
       max-width: none;
       margin: 0 auto;
-      padding: 52px 0 0;
+      padding: 56px 0 0;
       height: 100vh;
       display: flex;
       flex-direction: column;
       gap: 0;
       overflow: hidden;
     }
-    /* Weather and hero need their own horizontal padding */
-    .today-wrap > .weather-strip,
-    .today-wrap > .today-hero {
+    /* Weather needs its own horizontal padding */
+    .today-wrap > .weather-strip {
       padding-left: var(--space-6);
       padding-right: var(--space-6);
     }
@@ -1683,10 +1685,10 @@
       .today-practice-btn { display: none; }
     }
 
-    /* Right-now hero block — flat, no card chrome */
+    /* Right-now hero block — flat strip above calendar */
     .today-hero {
-      padding: var(--space-3) var(--space-5) var(--space-3) var(--space-6);
-      background: transparent;
+      padding: var(--space-3) var(--space-5);
+      background: var(--bg-calendar);
       border: none;
       border-radius: 0;
       border-bottom: 1px solid var(--border);
@@ -1694,8 +1696,6 @@
       position: relative;
       overflow: hidden;
       flex-shrink: 0;
-      animation: riseIn var(--duration-slow) var(--ease-out) backwards;
-      animation-delay: 40ms;
     }
     .today-hero::before {
       content: '';
@@ -1812,8 +1812,11 @@
       overflow-y: auto;
       scrollbar-width: thin;
       overscroll-behavior: contain;
-      background: var(--bg-card);
-      border-right: 1px solid var(--border);
+      background: var(--bg-sidebar);
+      border-right: none;
+      border-radius: 14px;
+      margin: var(--space-3);
+      margin-right: 0;
     }
     @media (max-width: 759px) {
       .today-body { grid-template-columns: 1fr; }
@@ -2315,6 +2318,16 @@
       animation: tickPop 280ms var(--ease-out);
     }
 
+    /* Right column: hero + calendar stacked */
+    .today-right-col {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      flex: 1;
+      overflow: hidden;
+      background: var(--bg-calendar);
+    }
+
     /* Right rail */
     .today-rail::-webkit-scrollbar { width: 4px; }
     .today-rail::-webkit-scrollbar-thumb { background: var(--border); }
@@ -2323,10 +2336,9 @@
     .mini-month {
       background: transparent;
       border: none;
-      border-bottom: 1px solid var(--border);
       border-radius: 0;
       box-shadow: none;
-      padding: 6px 10px 8px;
+      padding: 10px 10px 6px;
       flex-shrink: 0;
       animation: riseIn var(--duration-slow) var(--ease-out) backwards;
       animation-delay: 60ms;
@@ -2417,12 +2429,10 @@
     .today-rail-section {
       background: transparent;
       border: none;
-      border-bottom: 1px solid var(--border);
       border-radius: 0;
       box-shadow: none;
       overflow: hidden;
       flex-shrink: 0;
-      animation: riseIn var(--duration-slow) var(--ease-out) backwards;
     }
     .today-rail-section:nth-child(1) { animation-delay: 80ms; }
     .today-rail-section:nth-child(2) { animation-delay: 140ms; }
@@ -2436,11 +2446,10 @@
     .today-projects-section::-webkit-scrollbar-thumb { background: var(--border); border-radius: var(--radius-pill); }
     .today-projects-section .today-rail-list { max-height: none; overflow-y: visible; }
     .today-rail-header {
-      padding: var(--space-3) var(--space-4) var(--space-2);
+      padding: var(--space-5) var(--space-4) var(--space-1);
       display: flex;
       justify-content: space-between;
       align-items: baseline;
-      border-bottom: 1px solid var(--border);
     }
     .today-rail-eyebrow {
       font-size: var(--text-xs);
@@ -5100,42 +5109,40 @@
       background: var(--bg-card);
     }
 
-    /* ───────── CALENDAR TOGGLES (left rail pane) ───────── */
+    /* ───────── CALENDAR TOGGLES — Apple Calendar style ───────── */
     .today-cal-toggles {
-      padding: var(--space-2) var(--space-4) var(--space-3);
+      padding: var(--space-1) var(--space-3) var(--space-4);
       display: flex;
       flex-direction: column;
-      gap: var(--space-2);
+      gap: 2px;
     }
     .cal-toggle-btn {
       display: flex;
       align-items: center;
       gap: var(--space-2);
-      padding: var(--space-2) var(--space-3);
+      padding: 5px var(--space-2);
       background: transparent;
-      border: 1px solid transparent;
+      border: none;
       border-radius: var(--radius-base);
-      color: var(--muted-4);
-      font-size: var(--text-xs);
+      color: var(--text);
+      font-size: var(--text-sm);
       font-family: var(--serif);
-      font-weight: 500;
+      font-weight: 400;
       cursor: pointer;
       text-align: left;
-      transition: color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
+      transition: background var(--duration-fast) var(--ease-out);
+      width: 100%;
     }
     .cal-toggle-btn:hover {
-      color: var(--muted-2);
-      background: var(--bg-hover);
+      background: color-mix(in srgb, var(--bg-hover) 60%, transparent);
+      border-radius: var(--radius-base);
     }
-    .cal-toggle-btn.active {
-      color: var(--text);
-      background: var(--bg-hover);
-      border-color: var(--border);
-    }
+    .cal-toggle-btn.active { color: var(--text); }
+    .cal-toggle-btn:not(.active) { color: var(--muted-3); }
     .cal-toggle-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
       flex-shrink: 0;
       transition: opacity var(--duration-fast) var(--ease-out);
     }
