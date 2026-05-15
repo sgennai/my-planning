@@ -83,6 +83,11 @@
     /* Light theme — clean, iOS-like. White surfaces, crisp borders. */
     :root, :root[data-theme="light"] {
       color-scheme: light;
+      background:
+        radial-gradient(ellipse 70% 55% at 8% 20%, rgba(99, 102, 241, 0.11) 0%, transparent 55%),
+        radial-gradient(ellipse 55% 65% at 93% 10%, rgba(244, 114, 182, 0.09) 0%, transparent 55%),
+        radial-gradient(ellipse 65% 50% at 45% 94%, rgba(20, 184, 166, 0.09) 0%, transparent 55%),
+        #F5F5F7;
       /* Surfaces */
       --bg: #F5F5F7;
       --bg-card: #FFFFFF;
@@ -135,6 +140,11 @@
     /* Dark theme — Apple-like warm charcoal. Softer than pitch black. */
     :root[data-theme="dark"] {
       color-scheme: dark;
+      background:
+        radial-gradient(ellipse 70% 55% at 8% 20%, rgba(99, 102, 241, 0.24) 0%, transparent 55%),
+        radial-gradient(ellipse 55% 65% at 93% 10%, rgba(236, 72, 153, 0.18) 0%, transparent 55%),
+        radial-gradient(ellipse 65% 50% at 45% 94%, rgba(20, 184, 166, 0.18) 0%, transparent 55%),
+        #1C1C1E;
       --bg: #1C1C1E;
       --bg-card: #2C2C2E;
       --bg-card-deep: #3A3A3C;
@@ -562,15 +572,20 @@
       overflow: hidden;
     }
     .week-grid {
-      background: var(--bg-calendar);
+      background: rgba(255, 255, 255, 0.86);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border: none;
       border-radius: var(--radius-xl);
-      box-shadow: none;
+      box-shadow: var(--shadow-card);
       overflow-y: auto;
       flex: 1;
       min-height: 0;
       overscroll-behavior: contain;
       margin: 0 0 var(--space-4) 0;
+    }
+    :root[data-theme="dark"] .week-grid {
+      background: rgba(44, 44, 46, 0.88);
     }
     .week-grid-header {
       display: grid;
@@ -974,12 +989,18 @@
       top: 0; left: 0; right: 0;
       z-index: 200;
       height: 56px;
-      background: var(--bg);
-      border-bottom: none;
+      background: rgba(245, 245, 247, 0.82);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
       display: flex;
       align-items: center;
       padding: 0 var(--space-6);
       gap: var(--space-4);
+    }
+    :root[data-theme="dark"] .app-topbar {
+      background: rgba(28, 28, 30, 0.88);
+      border-bottom-color: rgba(255, 255, 255, 0.06);
     }
     .app-topbar-left {
       display: flex;
@@ -1082,7 +1103,7 @@
       flex-direction: column;
       gap: 0;
       overflow: hidden;
-      background: var(--bg);
+      background: transparent;
     }
 
     .today-topbar {
@@ -1676,12 +1697,17 @@
     /* Right-now hero block — flat strip above calendar */
     .today-hero {
       padding: var(--space-3) var(--space-5);
-      background: var(--bg-card);
+      background: rgba(255, 255, 255, 0.86);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border-radius: var(--radius-xl);
       box-shadow: var(--shadow-card);
       position: relative;
       overflow: hidden;
       flex-shrink: 0;
+    }
+    :root[data-theme="dark"] .today-hero {
+      background: rgba(44, 44, 46, 0.88);
     }
     .today-hero::before {
       content: '';
@@ -1794,13 +1820,29 @@
     .today-rail {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 0;
       min-height: 0;
       overflow-y: auto;
       scrollbar-width: none;
       overscroll-behavior: contain;
-      background: transparent;
+      background: rgba(255, 255, 255, 0.86);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: var(--radius-xl);
+      box-shadow:
+        8px 0 32px rgba(0, 0, 0, 0.11),
+        3px 0 10px rgba(0, 0, 0, 0.07),
+        0 2px 12px rgba(0, 0, 0, 0.06);
+      position: relative;
+      z-index: 2;
       padding-bottom: var(--space-5);
+    }
+    :root[data-theme="dark"] .today-rail {
+      background: rgba(44, 44, 46, 0.90);
+      box-shadow:
+        8px 0 32px rgba(0, 0, 0, 0.40),
+        3px 0 10px rgba(0, 0, 0, 0.25),
+        0 2px 12px rgba(0, 0, 0, 0.20);
     }
     @media (max-width: 759px) {
       .today-body { grid-template-columns: 1fr; }
@@ -1826,7 +1868,9 @@
 
     /* Timeline — calendar card */
     .today-timeline {
-      background: var(--bg-calendar);
+      background: rgba(255, 255, 255, 0.86);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border: none;
       border-radius: var(--radius-xl);
       box-shadow: var(--shadow-card);
@@ -1836,6 +1880,9 @@
       flex-direction: column;
       overscroll-behavior: contain;
       margin: 0 0 var(--space-4) 0;
+    }
+    :root[data-theme="dark"] .today-timeline {
+      background: rgba(44, 44, 46, 0.88);
     }
     .today-timeline-header {
       position: sticky;
@@ -2319,9 +2366,9 @@
 
     /* ───────── MINI MONTH PICKER ───────── */
     .mini-month {
-      background: var(--bg-card);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow-card);
+      background: transparent;
+      border-radius: 0;
+      box-shadow: none;
       padding: 12px 10px 8px;
       flex-shrink: 0;
       animation: riseIn var(--duration-slow) var(--ease-out) backwards;
@@ -2412,14 +2459,46 @@
     }
     .mini-month-day.selected:hover { background: var(--primary-soft); }
     .today-rail-section {
-      background: var(--bg-card);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow-card);
+      background: transparent;
+      border-radius: 0;
+      box-shadow: none;
       overflow: hidden;
       flex-shrink: 0;
+      border-top: 1px solid var(--rule);
     }
     .today-rail-section:nth-child(1) { animation-delay: 80ms; }
     .today-rail-section:nth-child(2) { animation-delay: 140ms; }
+
+    /* Rail nav — Today/‹/date/› inside the left card */
+    .today-rail-nav {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      padding: var(--space-3) var(--space-3) var(--space-2);
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--rule);
+    }
+    .today-rail-nav-date {
+      flex: 1;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      font-family: var(--sans);
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .today-rail-nav .app-topbar-btn {
+      font-size: 10px;
+      padding: 3px 8px;
+    }
+    .today-rail-nav .app-topbar-nav-btn {
+      width: 24px;
+      height: 24px;
+      font-size: 16px;
+    }
     .today-projects-section {
       overflow-y: auto;
       max-height: 520px;
@@ -5088,9 +5167,11 @@
       box-shadow: 0 0 0 1px var(--primary), 0 0 12px rgba(201, 168, 76, 0.4);
     }
 
-    /* week-grid header matches calendar surface for clean sticky scrolling */
+    /* week-grid header — transparent so card blur shows through */
     .week-grid-header {
-      background: var(--bg-calendar);
+      background: transparent;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
     }
 
     /* ───────── CALENDAR TOGGLES — Apple Calendar style ───────── */

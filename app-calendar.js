@@ -730,19 +730,6 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     {/* ── FIXED APP TOPBAR ── */}
     <div className="app-topbar">
       <div className="app-topbar-left">
-        <button className="app-topbar-btn" onClick={mainView === 'today' ? () => setViewDayOffset(0) : goToday}>Today</button>
-        <button className="app-topbar-nav-btn" onClick={mainView === 'today' ? () => setViewDayOffset(o => o - 1) : goPrev} aria-label="Previous">‹</button>
-        <button className="app-topbar-nav-btn" onClick={mainView === 'today' ? () => setViewDayOffset(o => o + 1) : goNext} aria-label="Next">›</button>
-        <span className="app-topbar-date">
-          {mainView === 'today'
-            ? viewDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })
-            : (dayView !== null
-                ? (isSameDay(addDays(weekStart, dayView), now) ? 'Today' : `${DAY_NAMES_LONG[dayView]}, ${formatDateShort(addDays(weekStart, dayView))}`)
-                : (isCurrentWeek ? 'This week' : formatRange(weekStart, weekEnd)))
-          }
-        </span>
-      </div>
-      <div className="app-topbar-center">
         <ViewSwitcher view={mainView} onSwitchView={setMainView} />
       </div>
       <div className="app-topbar-right">
@@ -775,8 +762,22 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
       {/* ── BODY: shared left rail + switching right pane ── */}
       <div className="today-body">
 
-        {/* LEFT RAIL — same in both views, floating rounded card */}
+        {/* LEFT RAIL — single floating card */}
         <div className="today-rail">
+          {/* Nav header: Today · ‹ · date · › */}
+          <div className="today-rail-nav">
+            <button className="app-topbar-btn" onClick={mainView === 'today' ? () => setViewDayOffset(0) : goToday}>Today</button>
+            <button className="app-topbar-nav-btn" onClick={mainView === 'today' ? () => setViewDayOffset(o => o - 1) : goPrev} aria-label="Previous">‹</button>
+            <span className="today-rail-nav-date">
+              {mainView === 'today'
+                ? viewDate.toLocaleDateString(undefined, { month: 'long', day: 'numeric' })
+                : (dayView !== null
+                    ? formatDateShort(addDays(weekStart, dayView))
+                    : formatRange(weekStart, weekEnd))
+              }
+            </span>
+            <button className="app-topbar-nav-btn" onClick={mainView === 'today' ? () => setViewDayOffset(o => o + 1) : goNext} aria-label="Next">›</button>
+          </div>
           <TodayMiniMonth
             viewDate={viewDate}
             now={now}
