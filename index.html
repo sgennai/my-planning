@@ -84,12 +84,13 @@
     :root, :root[data-theme="light"] {
       color-scheme: light;
       /* Surfaces */
-      --bg: #EFEFEF;
+      --bg: #F5F5F7;
       --bg-card: #FFFFFF;
-      --bg-card-deep: #E5E5E5;
-      --bg-hover: #E0E0E0;
+      --bg-card-deep: #F2F2F7;
+      --bg-hover: #E8E8EC;
       --bg-calendar: #FFFFFF;
-      --bg-sidebar: #EFEFEF;
+      --bg-sidebar: #F5F5F7;
+      --shadow-card: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
 
       /* Lines */
       --border: #C6C6C8;
@@ -140,6 +141,7 @@
       --bg-hover: #3A3A3C;
       --bg-calendar: #2C2C2E;
       --bg-sidebar: #1C1C1E;
+      --shadow-card: 0 2px 8px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.2);
 
       --border: #3A3A3C;
       --rule: rgba(255, 255, 255, 0.08);
@@ -568,7 +570,7 @@
       flex: 1;
       min-height: 0;
       overscroll-behavior: contain;
-      margin: var(--space-3) var(--space-5) var(--space-5) 0;
+      margin: 0 0 var(--space-4) 0;
     }
     .week-grid-header {
       display: grid;
@@ -1074,18 +1076,13 @@
     .today-wrap {
       max-width: none;
       margin: 0 auto;
-      padding: 56px 0 0;
+      padding: 56px var(--space-4) 0;
       height: 100vh;
       display: flex;
       flex-direction: column;
       gap: 0;
       overflow: hidden;
       background: var(--bg);
-    }
-    /* Weather needs its own horizontal padding */
-    .today-wrap > .weather-strip {
-      padding-left: var(--space-6);
-      padding-right: var(--space-6);
     }
 
     .today-topbar {
@@ -1679,10 +1676,9 @@
     /* Right-now hero block — flat strip above calendar */
     .today-hero {
       padding: var(--space-3) var(--space-5);
-      background: var(--bg);
-      border: none;
-      border-radius: 0;
-      box-shadow: none;
+      background: var(--bg-card);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-card);
       position: relative;
       overflow: hidden;
       flex-shrink: 0;
@@ -1786,10 +1782,11 @@
       display: grid;
       grid-template-columns: 300px 1fr;
       grid-template-rows: 1fr;
-      gap: var(--space-5);
+      gap: var(--space-4);
       flex: 1;
       min-height: 0;
       overflow: hidden;
+      padding-top: var(--space-3);
     }
     @media (max-width: 1100px) {
       .today-body { grid-template-columns: 260px 1fr; }
@@ -1797,15 +1794,13 @@
     .today-rail {
       display: flex;
       flex-direction: column;
-      gap: 0;
+      gap: 10px;
       min-height: 0;
       overflow-y: auto;
       scrollbar-width: none;
       overscroll-behavior: contain;
-      background: var(--bg);
-      border-right: none;
-      border-radius: 0;
-      margin: 0;
+      background: transparent;
+      padding-bottom: var(--space-5);
     }
     @media (max-width: 759px) {
       .today-body { grid-template-columns: 1fr; }
@@ -1829,18 +1824,18 @@
       }
     }
 
-    /* Timeline — open surface, no card chrome */
+    /* Timeline — calendar card */
     .today-timeline {
       background: var(--bg-calendar);
       border: none;
       border-radius: var(--radius-xl);
-      box-shadow: none;
+      box-shadow: var(--shadow-card);
       overflow-y: auto;
       min-height: 0;
       display: flex;
       flex-direction: column;
       overscroll-behavior: contain;
-      margin: var(--space-3) var(--space-5) var(--space-5) 0;
+      margin: 0 0 var(--space-4) 0;
     }
     .today-timeline-header {
       position: sticky;
@@ -2312,10 +2307,11 @@
     .today-right-col {
       display: flex;
       flex-direction: column;
+      gap: 10px;
       min-height: 0;
       flex: 1;
       overflow: hidden;
-      background: var(--bg);
+      background: transparent;
     }
 
     /* Right rail — scrollable but no visible scrollbar */
@@ -2323,11 +2319,10 @@
 
     /* ───────── MINI MONTH PICKER ───────── */
     .mini-month {
-      background: transparent;
-      border: none;
-      border-radius: 0;
-      box-shadow: none;
-      padding: 10px 10px 6px;
+      background: var(--bg-card);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-card);
+      padding: 12px 10px 8px;
       flex-shrink: 0;
       animation: riseIn var(--duration-slow) var(--ease-out) backwards;
       animation-delay: 60ms;
@@ -2417,10 +2412,9 @@
     }
     .mini-month-day.selected:hover { background: var(--primary-soft); }
     .today-rail-section {
-      background: transparent;
-      border: none;
-      border-radius: 0;
-      box-shadow: none;
+      background: var(--bg-card);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-card);
       overflow: hidden;
       flex-shrink: 0;
     }
