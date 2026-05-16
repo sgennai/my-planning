@@ -585,7 +585,8 @@ function ColorSwatchPicker({ value, onChange, label }) {
 }
 
 function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh, weather, onUpdateWeather, onRequestGeo, lunchSlot, onSetLunchSlot, onClose,
-  routine, onUpdateRoutineItem, onAddRoutineItem, onDeleteRoutineItem, categoryStyles, onSetCategoryColor, onResetCategoryColor, userCategoryColors, onSetCategoryEmoji, onResetCategoryEmoji, userCategoryEmojis
+  routine, onUpdateRoutineItem, onAddRoutineItem, onDeleteRoutineItem, categoryStyles, onSetCategoryColor, onResetCategoryColor, userCategoryColors, onSetCategoryEmoji, onResetCategoryEmoji, userCategoryEmojis,
+  todoist, onUpdateTodoist
 }) {
   const [activeTab, setActiveTab] = useState('calendars');
   const [lunchStart, setLunchStart] = useState((lunchSlot && lunchSlot.start) || '12:30');
@@ -598,6 +599,30 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
   const [latInput, setLatInput] = useState(weather && weather.lat != null ? String(weather.lat) : '');
   const [lonInput, setLonInput] = useState(weather && weather.lon != null ? String(weather.lon) : '');
   const [labelInput, setLabelInput] = useState(weather && weather.label ? weather.label : '');
+  const [todoistToken, setTodoistToken] = useState((todoist && todoist.token) || '');
+  const [showToken, setShowToken] = useState(false);
+  const [todoistProjects, setTodoistProjects] = useState([]);
+  const [todoistProjectId, setTodoistProjectId] = useState((todoist && todoist.projectId) || '');
+  const [todoistProjectName, setTodoistProjectName] = useState((todoist && todoist.projectName) || '');
+  const [todoistProjectsLoading, setTodoistProjectsLoading] = useState(false);
+  const [todoistProjectsError, setTodoistProjectsError] = useState(null);
+
+  const loadTodoistProjects = async () => {
+    setTodoistProjectsLoading(true);
+    setTodoistProjectsError(null);
+    try {
+      const res = await fetch('https://api.todoist.com/rest/v2/projects', {
+        headers: { Authorization: `Bearer ${todoistToken.trim()}` },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const projects = await res.json();
+      setTodoistProjects(projects);
+    } catch {
+      setTodoistProjectsError('Invalid token or network error');
+    } finally {
+      setTodoistProjectsLoading(false);
+    }
+  };
 
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) onClose();
@@ -840,6 +865,88 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
               >
                 <span>Save lunch slot</span>
               </button>
+            </div>
+          </div>
+
+          <div className="settings-section">
+            <div className="settings-field-label" style={{ marginBottom: 8 }}>Todoist</div>
+            <div className="settings-field-hint" style={{ marginBottom: 10 }}>
+              Connect your Todoist account to display tasks from a project in the left rail. Get your API token from Todoist → Settings → Integrations → Developer → API token.
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+              <input
+                type={showToken ? 'text' : 'password'}
+                className="settings-input"
+                style={{ flex: 1, fontFamily: 'var(--mono)', fontSize: 12 }}
+                value={todoistToken}
+                placeholder="Your Todoist API token…"
+                onChange={e => setTodoistToken(e.target.value)}
+                autoComplete="off"
+              />
+              <button className="modal-btn" style={{ flexShrink: 0 }} onClick={() => setShowToken(v => !v)}>
+                <span>{showToken ? 'Hide' : 'Show'}</span>
+              </button>
+              <button
+                className="modal-btn"
+                style={{ flexShrink: 0 }}
+                disabled={!todoistToken.trim() || todoistProjectsLoading}
+                onClick={loadTodoistProjects}
+              >
+                <span>{todoistProjectsLoading ? 'Loading…' : 'Load projects'}</span>
+              </button>
+            </div>
+            {todoistProjectsError && (
+              <div className="settings-field-hint" style={{ color: 'var(--coral)', marginBottom: 8 }}>
+                {todoistProjectsError}
+              </div>
+            )}
+            {todoistProjects.length > 0 && (
+              <div style={{ marginBottom: 10 }}>
+                <div className="routine-form-label" style={{ marginBottom: 6 }}>Project</div>
+                <select
+                  className="settings-input"
+                  value={todoistProjectId}
+                  onChange={e => {
+                    const proj = todoistProjects.find(p => p.id === e.target.value);
+                    setTodoistProjectId(e.target.value);
+                    setTodoistProjectName(proj ? proj.name : '');
+                  }}
+                >
+                  <option value="">— Select a project —</option>
+                  {todoistProjects.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+              <button
+                className="modal-btn primary"
+                disabled={!todoistToken.trim() || !todoistProjectId}
+                onClick={() => {
+                  onUpdateTodoist({ token: todoistToken.trim(), projectId: todoistProjectId, projectName: todoistProjectName });
+                  onClose();
+                }}
+              >
+                <span>Save Todoist settings</span>
+              </button>
+              {todoist && todoist.token && (
+                <button
+                  className="modal-btn"
+                  style={{ color: 'var(--coral)', borderColor: 'var(--coral)' }}
+                  onClick={() => {
+                    if (confirm('Disconnect Todoist?')) {
+                      onUpdateTodoist({ token: '', projectId: '', projectName: '' });
+                      setTodoistToken('');
+                      setTodoistProjectId('');
+                      setTodoistProjectName('');
+                      setTodoistProjects([]);
+                    }
+                  }}
+                >
+                  <span>Disconnect</span>
+                </button>
+              )}
             </div>
           </div>
 

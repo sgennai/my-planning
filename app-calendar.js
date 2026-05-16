@@ -23,6 +23,9 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   const menuRef = React.useRef(null);
   const [scrollToNowTick, setScrollToNowTick] = useState(0);
   const [heroDropTarget, setHeroDropTarget] = useState(null);
+  const [todoistTasks, setTodoistTasks] = useState([]);
+  const [todoistLoading, setTodoistLoading] = useState(false);
+  const [todoistError, setTodoistError] = useState(null);
   // ICS imported events: per-feed parsed events in memory (not synced to Drive)
   // Shape: { work: { events: [...], lastFetched: Date, error: '' }, household: { ... } }
   const [icsCache, setIcsCache] = useState({ work: null, household: null });
@@ -420,6 +423,30 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     }));
   }, [persistData]);
 
+  const updateTodoistSettings = useCallback((patch) => {
+    persistData(d => ({ ...d, todoist: { ...(d.todoist || {}), ...patch } }));
+  }, [persistData]);
+
+  const setTodoistTaskSlot = useCallback((taskId, slot) => {
+    persistData(d => ({
+      ...d,
+      todoistSlots: { ...(d.todoistSlots || {}), [taskId]: slot || null },
+    }));
+  }, [persistData]);
+
+  const completeTodoistTask = useCallback(async (taskId) => {
+    const token = (data.todoist || {}).token;
+    if (!token) return;
+    try {
+      await fetch(`https://api.todoist.com/rest/v2/tasks/${taskId}/close`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setTodoistTasks(prev => prev.filter(t => t.id !== taskId));
+      setTodoistTaskSlot(taskId, null);
+    } catch { /* silent */ }
+  }, [data.todoist, setTodoistTaskSlot]);
+
   // ─── ICS handlers ───────────────────────────────
   const calendarSettings = data.calendars || { workIcs: '', householdIcs: '', proxyUrl: '' };
 
@@ -701,6 +728,33 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     return () => document.removeEventListener('mousedown', handler);
   }, [menuOpen]);
 
+  const todoistToken = (data.todoist || {}).token || '';
+  const todoistProjectId = (data.todoist || {}).projectId || '';
+  const todoistSlots = data.todoistSlots || _EMPTY_OBJ;
+
+  React.useEffect(() => {
+    if (!todoistToken || !todoistProjectId) { setTodoistTasks([]); setTodoistError(null); return; }
+    let cancelled = false;
+    const fetchTasks = async () => {
+      setTodoistLoading(true);
+      try {
+        const res = await fetch(`https://api.todoist.com/rest/v2/tasks?project_id=${todoistProjectId}`, {
+          headers: { Authorization: `Bearer ${todoistToken}` },
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const tasks = await res.json();
+        if (!cancelled) { setTodoistTasks(tasks.filter(t => !t.is_completed)); setTodoistError(null); }
+      } catch {
+        if (!cancelled) setTodoistError('Could not load Todoist tasks');
+      } finally {
+        if (!cancelled) setTodoistLoading(false);
+      }
+    };
+    fetchTasks();
+    const interval = setInterval(fetchTasks, 5 * 60 * 1000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [todoistToken, todoistProjectId]);
+
   const onTodoRailDragStart = (e, todo) => {
     if (todo.done) { e.preventDefault(); return; }
     e.dataTransfer.effectAllowed = 'move';
@@ -835,6 +889,55 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
               </>
             )}
           </div>
+          {todoistToken && todoistProjectId && (
+            <div className="today-rail-section">
+              <div className="today-rail-header">
+                <div className="today-rail-eyebrow">{(data.todoist || {}).projectName || 'Todoist'}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                  {todoistLoading && <span style={{ fontSize: 11, color: 'var(--muted-4)', lineHeight: 1 }}>↻</span>}
+                  <div className="today-rail-count">{todoistTasks.length}</div>
+                </div>
+              </div>
+              <div className="today-rail-list">
+                {todoistError ? (
+                  <div className="today-rail-empty">{todoistError}</div>
+                ) : todoistTasks.length === 0 ? (
+                  <div className="today-rail-empty">{todoistLoading ? 'Loading…' : 'No open tasks.'}</div>
+                ) : todoistTasks.map(t => (
+                  <div
+                    key={t.id}
+                    className="today-todo-row"
+                    draggable
+                    onDragStart={e => {
+                      e.dataTransfer.effectAllowed = 'move';
+                      e.dataTransfer.setData('application/json', JSON.stringify({ type: 'todo-promote', todoId: t.id, title: t.content, source: 'todoist' }));
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      className="today-todo-check"
+                      checked={false}
+                      onChange={() => completeTodoistTask(t.id)}
+                      onClick={e => e.stopPropagation()}
+                    />
+                    <div className="today-todo-title">{t.content}</div>
+                    <div className="today-todo-slots">
+                      <button
+                        className={`today-todo-slot-btn${todoistSlots[t.id] === 'morning' ? ' active' : ''}`}
+                        onClick={e => { e.stopPropagation(); if (todoistSlots[t.id] === 'morning') setTodoistTaskSlot(t.id, null); else { const total = todos.filter(x => x.slot === 'morning').length + todoistTasks.filter(x => todoistSlots[x.id] === 'morning').length; if (total < 5) setTodoistTaskSlot(t.id, 'morning'); } }}
+                        title="Add to Morning"
+                      >AM</button>
+                      <button
+                        className={`today-todo-slot-btn${todoistSlots[t.id] === 'afternoon' ? ' active' : ''}`}
+                        onClick={e => { e.stopPropagation(); if (todoistSlots[t.id] === 'afternoon') setTodoistTaskSlot(t.id, null); else { const total = todos.filter(x => x.slot === 'afternoon').length + todoistTasks.filter(x => todoistSlots[x.id] === 'afternoon').length; if (total < 5) setTodoistTaskSlot(t.id, 'afternoon'); } }}
+                        title="Add to Afternoon"
+                      >PM</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="today-rail-section">
             <div className="today-rail-header">
               <div className="today-rail-eyebrow">Calendars</div>
@@ -976,7 +1079,9 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
             <div className="today-hero-pt-cols">
               {['morning', 'afternoon'].map(slot => {
                 const label = slot === 'morning' ? 'Morning' : 'Afternoon';
-                const slotTodos = todos.filter(t => t.slot === slot);
+                const localItems = todos.filter(t => t.slot === slot).map(t => ({ id: t.id, title: t.title, done: !!t.done, source: 'local' }));
+                const tdItems = todoistTasks.filter(t => todoistSlots[t.id] === slot).map(t => ({ id: t.id, title: t.content, done: false, source: 'todoist' }));
+                const slotItems = [...localItems, ...tdItems];
                 const isTarget = heroDropTarget === slot;
                 return (
                   <div
@@ -991,36 +1096,37 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                       try {
                         const payload = JSON.parse(e.dataTransfer.getData('application/json'));
                         if (payload.type === 'todo-promote' || payload.type === 'todo-col-move') {
-                          const t = todos.find(x => x.id === payload.todoId);
-                          if (!t || t.slot === slot) return;
-                          if (todos.filter(x => x.slot === slot).length >= 5) return;
-                          setTodoSlot(payload.todoId, slot);
+                          const src = payload.source || 'local';
+                          const combined = todos.filter(x => x.slot === slot).length + todoistTasks.filter(x => todoistSlots[x.id] === slot).length;
+                          if (combined >= 5) return;
+                          if (src === 'todoist') { if (todoistSlots[payload.todoId] !== slot) setTodoistTaskSlot(payload.todoId, slot); }
+                          else { const t = todos.find(x => x.id === payload.todoId); if (t && t.slot !== slot) setTodoSlot(payload.todoId, slot); }
                         }
                       } catch {}
                     }}
                   >
                     <div className="today-hero-pt-col-header">
-                      {label} <span className="today-hero-pt-count">{slotTodos.length}/5</span>
+                      {label} <span className="today-hero-pt-count">{slotItems.length}/5</span>
                     </div>
                     <div className="today-hero-list">
-                      {slotTodos.length === 0
+                      {slotItems.length === 0
                         ? <div className="today-hero-pt-empty">Drop here</div>
-                        : slotTodos.map(t => (
+                        : slotItems.map(item => (
                           <div
-                            key={t.id}
-                            className={`today-hero-list-item today-hero-pt-item${t.done ? ' done' : ''}`}
+                            key={item.id}
+                            className={`today-hero-list-item today-hero-pt-item${item.done ? ' done' : ''}`}
                             draggable
-                            onDragStart={e => { e.stopPropagation(); e.dataTransfer.setData('application/json', JSON.stringify({ type: 'todo-col-move', todoId: t.id })); }}
+                            onDragStart={e => { e.stopPropagation(); e.dataTransfer.setData('application/json', JSON.stringify({ type: 'todo-col-move', todoId: item.id, source: item.source })); }}
                           >
                             <input
                               type="checkbox"
                               className="today-hero-pt-check"
-                              checked={!!t.done}
-                              onChange={() => updateTodo(t.id, { done: !t.done })}
+                              checked={item.done}
+                              onChange={() => item.source === 'todoist' ? completeTodoistTask(item.id) : updateTodo(item.id, { done: !item.done })}
                               onClick={e => e.stopPropagation()}
                             />
-                            <span className="today-hero-list-title">{t.title}</span>
-                            <button className="today-hero-pt-remove" onClick={() => setTodoSlot(t.id, null)} title="Unpromote">×</button>
+                            <span className="today-hero-list-title">{item.title}</span>
+                            <button className="today-hero-pt-remove" onClick={() => item.source === 'todoist' ? setTodoistTaskSlot(item.id, null) : setTodoSlot(item.id, null)} title="Unpromote">×</button>
                           </div>
                         ))
                       }
@@ -1188,6 +1294,8 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         onSetCategoryEmoji={setCategoryEmoji}
         onResetCategoryEmoji={resetCategoryEmoji}
         userCategoryEmojis={userCategoryEmojis}
+        todoist={data.todoist || _EMPTY_OBJ}
+        onUpdateTodoist={updateTodoistSettings}
       />
     )}
 
