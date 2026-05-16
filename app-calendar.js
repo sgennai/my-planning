@@ -436,16 +436,17 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
 
   const completeTodoistTask = useCallback(async (taskId) => {
     const token = (data.todoist || {}).token;
-    if (!token) return;
+    const proxy = (data.calendars || {}).proxyUrl;
+    if (!token || !proxy) return;
     try {
-      await fetch(`https://api.todoist.com/rest/v2/tasks/${taskId}/close`, {
+      await fetch(`${proxy}/todoist/tasks/${taskId}/close`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 'X-Todoist-Token': token },
       });
       setTodoistTasks(prev => prev.filter(t => t.id !== taskId));
       setTodoistTaskSlot(taskId, null);
     } catch { /* silent */ }
-  }, [data.todoist, setTodoistTaskSlot]);
+  }, [data.todoist, data.calendars, setTodoistTaskSlot]);
 
   // ─── ICS handlers ───────────────────────────────
   const calendarSettings = data.calendars || { workIcs: '', householdIcs: '', proxyUrl: '' };
@@ -732,19 +733,21 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   const todoistProjectId = (data.todoist || {}).projectId || '';
   const todoistSlots = data.todoistSlots || _EMPTY_OBJ;
 
+  const todoistProxyBase = calendarSettings.proxyUrl ? `${calendarSettings.proxyUrl}/todoist` : null;
+
   React.useEffect(() => {
-    if (!todoistToken || !todoistProjectId) { setTodoistTasks([]); setTodoistError(null); return; }
+    if (!todoistToken || !todoistProjectId || !todoistProxyBase) { setTodoistTasks([]); setTodoistError(null); return; }
     let cancelled = false;
     const fetchTasks = async () => {
       setTodoistLoading(true);
       try {
-        const res = await fetch(`https://api.todoist.com/rest/v2/tasks?project_id=${todoistProjectId}`, {
-          headers: { Authorization: `Bearer ${todoistToken}` },
+        const res = await fetch(`${todoistProxyBase}/tasks?project_id=${todoistProjectId}`, {
+          headers: { 'X-Todoist-Token': todoistToken },
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const tasks = await res.json();
         if (!cancelled) { setTodoistTasks(tasks.filter(t => !t.is_completed)); setTodoistError(null); }
-      } catch {
+      } catch (err) {
         if (!cancelled) setTodoistError('Could not load Todoist tasks');
       } finally {
         if (!cancelled) setTodoistLoading(false);
@@ -753,7 +756,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     fetchTasks();
     const interval = setInterval(fetchTasks, 5 * 60 * 1000);
     return () => { cancelled = true; clearInterval(interval); };
-  }, [todoistToken, todoistProjectId]);
+  }, [todoistToken, todoistProjectId, todoistProxyBase]);
 
   const onTodoRailDragStart = (e, todo) => {
     if (todo.done) { e.preventDefault(); return; }
@@ -1296,6 +1299,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         userCategoryEmojis={userCategoryEmojis}
         todoist={data.todoist || _EMPTY_OBJ}
         onUpdateTodoist={updateTodoistSettings}
+        proxyUrl={calendarSettings.proxyUrl || ''}
       />
     )}
 

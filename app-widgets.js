@@ -586,7 +586,7 @@ function ColorSwatchPicker({ value, onChange, label }) {
 
 function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh, weather, onUpdateWeather, onRequestGeo, lunchSlot, onSetLunchSlot, onClose,
   routine, onUpdateRoutineItem, onAddRoutineItem, onDeleteRoutineItem, categoryStyles, onSetCategoryColor, onResetCategoryColor, userCategoryColors, onSetCategoryEmoji, onResetCategoryEmoji, userCategoryEmojis,
-  todoist, onUpdateTodoist
+  todoist, onUpdateTodoist, proxyUrl
 }) {
   const [activeTab, setActiveTab] = useState('calendars');
   const [lunchStart, setLunchStart] = useState((lunchSlot && lunchSlot.start) || '12:30');
@@ -608,11 +608,15 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
   const [todoistProjectsError, setTodoistProjectsError] = useState(null);
 
   const loadTodoistProjects = async () => {
+    if (!proxyUrl) {
+      setTodoistProjectsError('Set your Cloudflare Worker Proxy URL in the ICS Proxy URL field first (the same Worker proxies Todoist).');
+      return;
+    }
     setTodoistProjectsLoading(true);
     setTodoistProjectsError(null);
     try {
-      const res = await fetch('https://api.todoist.com/rest/v2/projects', {
-        headers: { Authorization: `Bearer ${todoistToken.trim()}` },
+      const res = await fetch(`${proxyUrl}/todoist/projects`, {
+        headers: { 'X-Todoist-Token': todoistToken.trim() },
       });
       if (res.status === 401 || res.status === 403) {
         setTodoistProjectsError('Invalid token — copy it from Todoist → Settings → Integrations → Developer.');
@@ -626,7 +630,7 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
       setTodoistProjects(projects);
     } catch (err) {
       console.error('Todoist load error:', err);
-      setTodoistProjectsError(`Network error: ${err.message}. Make sure you're on HTTPS (GitHub Pages), not a local file.`);
+      setTodoistProjectsError(`Network error: ${err.message}`);
     } finally {
       setTodoistProjectsLoading(false);
     }
