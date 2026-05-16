@@ -601,40 +601,7 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
   const [labelInput, setLabelInput] = useState(weather && weather.label ? weather.label : '');
   const [todoistToken, setTodoistToken] = useState((todoist && todoist.token) || '');
   const [showToken, setShowToken] = useState(false);
-  const [todoistProjects, setTodoistProjects] = useState([]);
-  const [todoistProjectId, setTodoistProjectId] = useState((todoist && todoist.projectId) || '');
-  const [todoistProjectName, setTodoistProjectName] = useState((todoist && todoist.projectName) || '');
-  const [todoistProjectsLoading, setTodoistProjectsLoading] = useState(false);
-  const [todoistProjectsError, setTodoistProjectsError] = useState(null);
-
-  const loadTodoistProjects = async () => {
-    if (!proxyUrl) {
-      setTodoistProjectsError('Set your Cloudflare Worker Proxy URL in the ICS Proxy URL field first (the same Worker proxies Todoist).');
-      return;
-    }
-    setTodoistProjectsLoading(true);
-    setTodoistProjectsError(null);
-    try {
-      const res = await fetch(`${proxyUrl}/todoist/projects`, {
-        headers: { 'X-Todoist-Token': todoistToken.trim() },
-      });
-      if (res.status === 401 || res.status === 403) {
-        setTodoistProjectsError('Invalid token — copy it from Todoist → Settings → Integrations → Developer.');
-        return;
-      }
-      if (!res.ok) {
-        setTodoistProjectsError(`Todoist API error (HTTP ${res.status}). Try again.`);
-        return;
-      }
-      const projects = await res.json();
-      setTodoistProjects(projects);
-    } catch (err) {
-      console.error('Todoist load error:', err);
-      setTodoistProjectsError(`Network error: ${err.message}`);
-    } finally {
-      setTodoistProjectsLoading(false);
-    }
-  };
+  const [todoistFilter, setTodoistFilter] = useState((todoist && todoist.filter) || '');
 
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) onClose();
@@ -883,9 +850,9 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
           <div className="settings-section">
             <div className="settings-field-label" style={{ marginBottom: 8 }}>Todoist</div>
             <div className="settings-field-hint" style={{ marginBottom: 10 }}>
-              Connect your Todoist account to display tasks from a project in the left rail. Get your API token from Todoist → Settings → Integrations → Developer → API token.
+              Connect your Todoist account to show matching tasks in the left rail. Get your API token from Todoist → Settings → Integrations → Developer → API token.
             </div>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
               <input
                 type={showToken ? 'text' : 'password'}
                 className="settings-input"
@@ -898,45 +865,24 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
               <button className="modal-btn" style={{ flexShrink: 0 }} onClick={() => setShowToken(v => !v)}>
                 <span>{showToken ? 'Hide' : 'Show'}</span>
               </button>
-              <button
-                className="modal-btn"
-                style={{ flexShrink: 0 }}
-                disabled={!todoistToken.trim() || todoistProjectsLoading}
-                onClick={loadTodoistProjects}
-              >
-                <span>{todoistProjectsLoading ? 'Loading…' : 'Load projects'}</span>
-              </button>
             </div>
-            {todoistProjectsError && (
-              <div className="settings-field-hint" style={{ color: 'var(--coral)', marginBottom: 8 }}>
-                {todoistProjectsError}
-              </div>
-            )}
-            {todoistProjects.length > 0 && (
-              <div style={{ marginBottom: 10 }}>
-                <div className="routine-form-label" style={{ marginBottom: 6 }}>Project</div>
-                <select
-                  className="settings-input"
-                  value={todoistProjectId}
-                  onChange={e => {
-                    const proj = todoistProjects.find(p => p.id === e.target.value);
-                    setTodoistProjectId(e.target.value);
-                    setTodoistProjectName(proj ? proj.name : '');
-                  }}
-                >
-                  <option value="">— Select a project —</option>
-                  {todoistProjects.map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+            <div className="routine-form-label" style={{ marginBottom: 6 }}>Filter</div>
+            <input
+              type="text"
+              className="settings-input"
+              value={todoistFilter}
+              placeholder="e.g. #PERSO & next 5 days"
+              onChange={e => setTodoistFilter(e.target.value)}
+            />
+            <div className="settings-field-hint" style={{ marginTop: 6 }}>
+              Uses Todoist filter syntax. Examples: <code>today</code>, <code>next 7 days</code>, <code>#ProjectName & next 5 days</code>, <code>overdue | today</code>.
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
               <button
                 className="modal-btn primary"
-                disabled={!todoistToken.trim() || !todoistProjectId}
+                disabled={!todoistToken.trim() || !todoistFilter.trim()}
                 onClick={() => {
-                  onUpdateTodoist({ token: todoistToken.trim(), projectId: todoistProjectId, projectName: todoistProjectName });
+                  onUpdateTodoist({ token: todoistToken.trim(), filter: todoistFilter.trim() });
                   onClose();
                 }}
               >
@@ -948,11 +894,9 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
                   style={{ color: 'var(--coral)', borderColor: 'var(--coral)' }}
                   onClick={() => {
                     if (confirm('Disconnect Todoist?')) {
-                      onUpdateTodoist({ token: '', projectId: '', projectName: '' });
+                      onUpdateTodoist({ token: '', filter: '' });
                       setTodoistToken('');
-                      setTodoistProjectId('');
-                      setTodoistProjectName('');
-                      setTodoistProjects([]);
+                      setTodoistFilter('');
                     }
                   }}
                 >

@@ -730,18 +730,18 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   }, [menuOpen]);
 
   const todoistToken = (data.todoist || {}).token || '';
-  const todoistProjectId = (data.todoist || {}).projectId || '';
+  const todoistFilter = (data.todoist || {}).filter || '';
   const todoistSlots = data.todoistSlots || _EMPTY_OBJ;
 
   const todoistProxyBase = calendarSettings.proxyUrl ? `${calendarSettings.proxyUrl}/todoist` : null;
 
   React.useEffect(() => {
-    if (!todoistToken || !todoistProjectId || !todoistProxyBase) { setTodoistTasks([]); setTodoistError(null); return; }
+    if (!todoistToken || !todoistFilter || !todoistProxyBase) { setTodoistTasks([]); setTodoistError(null); return; }
     let cancelled = false;
     const fetchTasks = async () => {
       setTodoistLoading(true);
       try {
-        const res = await fetch(`${todoistProxyBase}/tasks?project_id=${todoistProjectId}`, {
+        const res = await fetch(`${todoistProxyBase}/tasks?filter=${encodeURIComponent(todoistFilter)}`, {
           headers: { 'X-Todoist-Token': todoistToken },
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -756,7 +756,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     fetchTasks();
     const interval = setInterval(fetchTasks, 5 * 60 * 1000);
     return () => { cancelled = true; clearInterval(interval); };
-  }, [todoistToken, todoistProjectId, todoistProxyBase]);
+  }, [todoistToken, todoistFilter, todoistProxyBase]);
 
   const onTodoRailDragStart = (e, todo) => {
     if (todo.done) { e.preventDefault(); return; }
@@ -892,10 +892,10 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
               </>
             )}
           </div>
-          {todoistToken && todoistProjectId && (
+          {todoistToken && todoistFilter && (
             <div className="today-rail-section">
               <div className="today-rail-header">
-                <div className="today-rail-eyebrow">{(data.todoist || {}).projectName || 'Todoist'}</div>
+                <div className="today-rail-eyebrow">Todoist</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
                   {todoistLoading && <span style={{ fontSize: 11, color: 'var(--muted-4)', lineHeight: 1 }}>↻</span>}
                   <div className="today-rail-count">{todoistTasks.length}</div>
