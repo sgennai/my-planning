@@ -295,6 +295,7 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
       {inWindow && (
         <div className="today-cal-now-line" style={{ top: nowY }}>
           <span className="today-cal-now-dot" />
+          <span className="today-cal-now-time">{pad(now.getHours())}:{pad(now.getMinutes())}</span>
         </div>
       )}
       {/* Inline composer */}
