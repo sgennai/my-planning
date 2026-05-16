@@ -957,19 +957,25 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
             )}
           </div>
 
-          {/* Card 2: Routine */}
+          {/* Card 2: Routine — supplements only, checkable */}
           <div className="today-hero today-hero--secondary">
             <div className="today-hero-eyebrow">Routine</div>
             {(() => {
-              const routineItems = todayItems.filter(it => it.kind === 'routine');
-              if (routineItems.length === 0) return <div className="today-hero-empty">No routine today.</div>;
+              const supplements = todayItems.filter(it => it.kind === 'routine' && it.category === 'supplement');
+              if (supplements.length === 0) return <div className="today-hero-empty">No supplements today.</div>;
               return (
                 <div className="today-hero-list today-hero-list--two-col">
-                  {routineItems.map(it => (
-                    <div key={it.id} className={`today-hero-list-item${it.completed ? ' done' : ''}`}>
-                      <span className="today-hero-list-check">{it.completed ? '✓' : '○'}</span>
+                  {supplements.map(it => (
+                    <div
+                      key={it.id}
+                      className={`today-hero-list-item today-hero-sup-row${it.completed ? ' done' : ''}`}
+                      onClick={() => toggleRoutineCompletion(it.itemId, viewDate)}
+                    >
+                      <span className={`today-hero-sup-check${it.completed ? ' checked' : ''}`}>
+                        {it.completed ? '✓' : ''}
+                      </span>
                       <span className="today-hero-list-time">{fmtHeroTime(it.startMin)}</span>
-                      <span className="today-hero-list-title">{CATS[it.category] && CATS[it.category].emoji ? `${CATS[it.category].emoji} ` : ''}{it.title}</span>
+                      <span className="today-hero-list-title">{it.title}</span>
                     </div>
                   ))}
                 </div>
