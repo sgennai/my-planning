@@ -963,18 +963,15 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
             {(() => {
               const routineItems = todayItems.filter(it => it.kind === 'routine');
               if (routineItems.length === 0) return <div className="today-hero-empty">No routine today.</div>;
-              const visible = routineItems.slice(0, 5);
-              const rest = routineItems.length - visible.length;
               return (
-                <div className="today-hero-list">
-                  {visible.map(it => (
+                <div className="today-hero-list today-hero-list--two-col">
+                  {routineItems.map(it => (
                     <div key={it.id} className={`today-hero-list-item${it.completed ? ' done' : ''}`}>
                       <span className="today-hero-list-check">{it.completed ? '✓' : '○'}</span>
                       <span className="today-hero-list-time">{fmtHeroTime(it.startMin)}</span>
                       <span className="today-hero-list-title">{CATS[it.category] && CATS[it.category].emoji ? `${CATS[it.category].emoji} ` : ''}{it.title}</span>
                     </div>
                   ))}
-                  {rest > 0 && <div className="today-hero-list-more">+{rest} more</div>}
                 </div>
               );
             })()}
@@ -1009,7 +1006,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
             viewDate={viewDate}
             isToday={isToday}
             viewDayOffset={viewDayOffset}
-            todayItems={todayItems}
+            todayItems={todayItems.filter(it => it.category !== 'supplement')}
             current={tdCurrent}
             nowMin={nowMin}
             now={now}
