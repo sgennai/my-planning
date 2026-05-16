@@ -553,9 +553,6 @@ function TodayScreen({
           {todayItems.map(renderTimelineItem)}
         </div>
       )}
-      <div className={`today-timeline-drop-hint ${dragOver ? 'drag-over' : ''}`}>
-        {dragOver ? 'Release to schedule for now' : 'Drag a project action or todo here to schedule it for today'}
-      </div>
     </div>
   );
 }
