@@ -19,6 +19,8 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   const [resetOverlayOpen, setResetOverlayOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [practiceOpen, setPracticeOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = React.useRef(null);
   // ICS imported events: per-feed parsed events in memory (not synced to Drive)
   // Shape: { work: { events: [...], lastFetched: Date, error: '' }, household: { ... } }
   const [icsCache, setIcsCache] = useState({ work: null, household: null });
@@ -717,6 +719,13 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     addTodo(todoInput);
     setTodoInput('');
   }, [todoInput, addTodo]);
+  React.useEffect(() => {
+    if (!menuOpen) return;
+    const handler = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [menuOpen]);
+
   const onTodoRailDragStart = (e, todo) => {
     if (todo.done) { e.preventDefault(); return; }
     e.dataTransfer.effectAllowed = 'copy';
@@ -736,9 +745,25 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         <button className="app-topbar-btn app-topbar-btn-icon" onClick={() => setTheme(currentTheme === 'light' ? 'dark' : 'light')} title="Toggle theme" aria-label="Toggle theme">{currentTheme === 'light' ? '◐' : '◑'}</button>
         <button className="app-topbar-btn app-topbar-btn-icon" style={{ opacity: weatherVisible ? 1 : 0.4 }} onClick={() => setWeatherVisible(v => !v)} title={weatherVisible ? 'Hide weather' : 'Show weather'} aria-label={weatherVisible ? 'Hide weather' : 'Show weather'}>☁</button>
         <button className={`app-topbar-btn ${isWorkingAway ? 'active' : ''}`} onClick={toggleWorkingAway}>{isWorkingAway ? 'Away' : 'At home'}</button>
-        <button className="app-topbar-btn" onClick={() => setPracticeOpen(true)}>Practice</button>
         <button className="app-topbar-btn" onClick={() => setInboxOpen(true)}>{openInboxCount > 0 ? `Inbox · ${openInboxCount}` : 'Inbox'}</button>
-        <button className="app-topbar-btn" onClick={() => setSettingsOpen(true)}>Settings</button>
+        <div className="app-menu-wrap" ref={menuRef}>
+          <button className="app-topbar-btn app-topbar-btn-icon" onClick={() => setMenuOpen(v => !v)} aria-label="Menu" title="Menu">☰</button>
+          {menuOpen && (() => {
+            const thisWeekStart = startOfWeek(now);
+            const reviewDone = (data.weeklyResets || []).some(r => r.weekStart && startOfDay(new Date(r.weekStart)).getTime() === thisWeekStart.getTime());
+            return (
+              <div className="app-menu-dropdown">
+                <button className="app-menu-item" onClick={() => { setResetOverlayOpen(true); setMenuOpen(false); }}>
+                  {reviewDone ? '✓ Weekly Review' : 'Weekly Review'}
+                </button>
+                <button className="app-menu-item" onClick={() => { setPracticeOpen(true); setMenuOpen(false); }}>Practice</button>
+                <button className="app-menu-item" onClick={() => { setSettingsOpen(true); setMenuOpen(false); }}>Settings</button>
+                <div className="app-menu-divider" />
+                <button className="app-menu-item app-menu-item--danger" onClick={() => { onSignOut(); setMenuOpen(false); }}>Sign out</button>
+              </div>
+            );
+          })()}
+        </div>
       </div>
     </div>
 
@@ -999,11 +1024,9 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
 
         {/* FOOTER */}
         <div className="today-footer">
-          <FridayReviewLauncher now={now} weeklyResets={data.weeklyResets || []} onLaunch={() => setResetOverlayOpen(true)} />
           <span className="today-footer-status">
             {saving ? 'Saving…' : (error ? 'Save error' : (lastSyncedAt ? `Synced ${new Date(lastSyncedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}` : ''))}
           </span>
-          <button className="today-footer-btn" onClick={onSignOut} style={{ marginLeft: 'auto' }}>Sign out</button>
         </div>
       </div>{/* end today-right-col */}
     </div>
