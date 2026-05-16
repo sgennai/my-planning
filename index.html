@@ -2263,7 +2263,13 @@
       position: absolute;
       left: 64px; right: var(--space-3);
       height: 2px;
-      background: var(--primary);
+      background: linear-gradient(
+        to right,
+        var(--primary) calc(50% - 24px),
+        transparent calc(50% - 24px),
+        transparent calc(50% + 24px),
+        var(--primary) calc(50% + 24px)
+      );
       z-index: 5;
       pointer-events: none;
     }
