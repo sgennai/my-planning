@@ -1023,11 +1023,6 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         )}
 
         {/* FOOTER */}
-        <div className="today-footer">
-          <span className="today-footer-status">
-            {saving ? 'Saving…' : (error ? 'Save error' : (lastSyncedAt ? `Synced ${new Date(lastSyncedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}` : ''))}
-          </span>
-        </div>
       </div>{/* end today-right-col */}
     </div>
 
