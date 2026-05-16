@@ -888,6 +888,7 @@ function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, no
         start: startStr,
         duration: payload.duration || 30,
       });
+    }
     dragPayloadRef.current = null;
   };
 
