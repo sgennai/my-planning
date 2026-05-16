@@ -82,7 +82,7 @@ function TodayMiniMonth({ viewDate, now, onSelectDate }) {
 // ═════════════════════════════════════════════════════════════
 // TODAY CALENDAR VIEW — single-column hour grid for today
 // ═════════════════════════════════════════════════════════════
-function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemClick, onToggleRoutineComplete, CATS, onDrop, onCreateAtTime }) {
+function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemClick, onToggleRoutineComplete, CATS, onDrop, onCreateAtTime, scrollToNowTick }) {
   const HOUR_START = 6;
   const HOUR_END = 23;
   const HOUR_HEIGHT = 64;
@@ -105,8 +105,8 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
     return () => document.removeEventListener('keydown', onKey);
   }, [composer]);
 
-  // Instantly position the pane so the now-line is vertically centred on mount
-  useEffect(() => {
+  // Scroll so the now-line is vertically centred — runs on mount and whenever scrollToNowTick changes
+  const scrollToNow = () => {
     requestAnimationFrame(() => {
       const grid = gridRef.current;
       if (!grid) return;
@@ -117,7 +117,9 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
       const nowTop = ((nowMin / 60) - HOUR_START) * HOUR_HEIGHT;
       container.scrollTop = Math.max(0, nowTop - container.clientHeight / 2);
     });
-  }, []);
+  };
+  useEffect(() => { scrollToNow(); }, []);
+  useEffect(() => { if (scrollToNowTick) scrollToNow(); }, [scrollToNowTick]);
 
   const submitComposer = () => {
     if (composerTitle.trim() && composer) {
@@ -399,6 +401,7 @@ function TodayScreen({
   elsewhere, categoryStyles, lunchSlot,
   todayViewMode, onSetTodayView,
   onCreateBlock, onOpenBlock, onRoutineClick, onToggleRoutineCompletion, onTodoDrop,
+  scrollToNowTick,
 }) {
   const CATS = categoryStyles || CATEGORY_STYLES;
   const fmtTime = (m) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
@@ -543,6 +546,7 @@ function TodayScreen({
             onCreateBlock({ title: title.trim(), date: startOfDay(viewDate).toISOString(),
               start: startStr, duration: 30 });
           }}
+          scrollToNowTick={scrollToNowTick}
         />
       ) : (
         <div className="today-timeline-list">

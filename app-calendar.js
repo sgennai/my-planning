@@ -21,6 +21,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   const [practiceOpen, setPracticeOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = React.useRef(null);
+  const [scrollToNowTick, setScrollToNowTick] = useState(0);
   // ICS imported events: per-feed parsed events in memory (not synced to Drive)
   // Shape: { work: { events: [...], lastFetched: Date, error: '' }, household: { ... } }
   const [icsCache, setIcsCache] = useState({ work: null, household: null });
@@ -773,7 +774,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
       <div className="today-rail">
           {/* Nav header: Today · ‹ · date · › */}
           <div className="today-rail-nav">
-            <button className="app-topbar-btn" onClick={mainView === 'today' ? () => setViewDayOffset(0) : goToday}>Today</button>
+            <button className="app-topbar-btn" onClick={mainView === 'today' ? () => { setViewDayOffset(0); setScrollToNowTick(n => n + 1); } : goToday}>Today</button>
             <button className="app-topbar-nav-btn" onClick={mainView === 'today' ? () => setViewDayOffset(o => o - 1) : goPrev} aria-label="Previous">‹</button>
             <span className="today-rail-nav-date">
               {mainView === 'today'
@@ -1031,6 +1032,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
             onRoutineClick={handleRoutineClick}
             onToggleRoutineCompletion={toggleRoutineCompletion}
             onTodoDrop={setPendingTodoDrop}
+            scrollToNowTick={scrollToNowTick}
           />
         ) : (
           <div className="calendar-panel">
