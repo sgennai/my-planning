@@ -807,7 +807,7 @@ const START_HOUR = 6;
 const END_HOUR = 23;
 const HOURS_VISIBLE = END_HOUR - START_HOUR;
 
-function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, now, singleCol, onDayClick, onCreateBlock, onBlockClick, onRoutineClick, onUpdateBlock, elsewhereToggles, icsOccurrences, onTodoDrop, completions, onToggleComplete, categoryStyles, calendarToggles }) {
+function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, now, singleCol, onDayClick, onCreateBlock, onBlockClick, onRoutineClick, onUpdateBlock, elsewhereToggles, icsOccurrences, completions, onToggleComplete, categoryStyles, calendarToggles }) {
   const isDayView = singleCol !== null && singleCol !== undefined;
   const HOUR_HEIGHT = isDayView ? HOUR_HEIGHT_DAY : HOUR_HEIGHT_WEEK;
   const totalHeight = HOURS_VISIBLE * HOUR_HEIGHT;
@@ -888,15 +888,6 @@ function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, no
         start: startStr,
         duration: payload.duration || 30,
       });
-    } else if (payload.type === 'todo' && onTodoDrop) {
-      onTodoDrop({
-        todoId: payload.todoId,
-        date,
-        start: startStr,
-        dropX: e.clientX,
-        dropY: e.clientY,
-      });
-    }
     dragPayloadRef.current = null;
   };
 

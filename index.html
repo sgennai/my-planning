@@ -3092,16 +3092,14 @@
     .today-todo-row {
       display: flex;
       align-items: center;
-      gap: var(--space-3);
+      gap: var(--space-2);
       padding: var(--space-2) var(--space-4);
       cursor: grab;
       transition: background var(--duration-fast) var(--ease-out);
-      min-height: 36px;
+      min-height: 34px;
     }
     .today-todo-row:hover { background: var(--bg-hover); }
     .today-todo-row.done { opacity: 0.45; }
-    /* No strikethrough on done todos either — opacity tells the story */
-    .today-todo-row.scheduled { opacity: 0.65; }
     .today-todo-check {
       flex-shrink: 0;
       width: 14px; height: 14px;
@@ -3114,15 +3112,112 @@
       color: var(--text);
       line-height: var(--leading-snug);
       min-width: 0;
-      word-break: break-word;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
-    .today-todo-badge {
-      font-size: var(--text-xs);
-      color: var(--muted-3);
-      font-family: var(--mono);
-      letter-spacing: var(--tracking-wider);
+    .today-todo-slots {
+      display: flex;
+      gap: 3px;
       flex-shrink: 0;
     }
+    .today-todo-slot-btn {
+      font-size: 10px;
+      font-family: var(--mono);
+      font-weight: 500;
+      padding: 2px 5px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted-4);
+      cursor: pointer;
+      line-height: 1.4;
+      transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), font-weight var(--duration-fast) var(--ease-out);
+    }
+    .today-todo-slot-btn.active {
+      color: #16a34a;
+      border-color: #16a34a;
+      font-weight: 700;
+      background: rgba(22,163,74,0.07);
+    }
+    .today-todo-slot-btn:hover:not(.active) {
+      color: var(--muted-2);
+      border-color: var(--muted-3);
+    }
+    /* Personal tasks hero columns */
+    .today-hero-pt-cols {
+      display: flex;
+      gap: 10px;
+      margin-top: var(--space-2);
+      flex: 1;
+    }
+    .today-hero-pt-col {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      border-radius: 8px;
+      padding: 6px 8px;
+      border: 1.5px dashed transparent;
+      transition: border-color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out);
+    }
+    .today-hero-pt-col.drop-active {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+    }
+    .today-hero-pt-col-header {
+      font-size: 10px;
+      font-family: var(--serif);
+      color: var(--muted-3);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      margin-bottom: 2px;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+    .today-hero-pt-count {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted-4);
+      font-weight: 400;
+    }
+    .today-hero-pt-empty {
+      font-size: 11px;
+      color: var(--muted-4);
+      font-style: italic;
+      padding: 2px 0;
+    }
+    .today-hero-pt-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 0;
+    }
+    .today-hero-pt-item.done .today-hero-list-title {
+      opacity: 0.45;
+      text-decoration: line-through;
+    }
+    .today-hero-pt-check {
+      flex-shrink: 0;
+      width: 12px; height: 12px;
+      accent-color: var(--teal);
+      cursor: pointer;
+    }
+    .today-hero-pt-remove {
+      flex-shrink: 0;
+      background: none;
+      border: none;
+      color: var(--muted-4);
+      font-size: 13px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0 2px;
+      border-radius: 3px;
+      transition: color var(--duration-fast) var(--ease-out);
+    }
+    .today-hero-pt-remove:hover { color: #E53E3E; }
     .today-rail-empty {
       padding: var(--space-5) var(--space-4);
       font-size: var(--text-sm);

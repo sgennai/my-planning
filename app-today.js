@@ -400,7 +400,7 @@ function TodayScreen({
   todayItems, current, nowMin, now,
   elsewhere, categoryStyles, lunchSlot,
   todayViewMode, onSetTodayView,
-  onCreateBlock, onOpenBlock, onRoutineClick, onToggleRoutineCompletion, onTodoDrop,
+  onCreateBlock, onOpenBlock, onRoutineClick, onToggleRoutineCompletion,
   scrollToNowTick,
 }) {
   const CATS = categoryStyles || CATEGORY_STYLES;
@@ -429,8 +429,6 @@ function TodayScreen({
     if (payload.type === 'next-action') {
       onCreateBlock({ projectId: payload.projectId, actionId: payload.actionId, title: payload.title,
         date: dateISO, start: startStr, duration: payload.duration || 30 });
-    } else if (payload.type === 'todo') {
-      onTodoDrop({ todoId: payload.todoId, date: dateISO, start: startStr, dropX: e.clientX, dropY: e.clientY });
     }
   };
 
@@ -530,14 +528,12 @@ function TodayScreen({
           }}
           onToggleRoutineComplete={(itemId) => onToggleRoutineCompletion(itemId, now)}
           CATS={CATS}
-          onDrop={(payload, startMin, dropX, dropY) => {
-            const startStr = `${pad(Math.floor(startMin / 60))}:${pad(startMin % 60)}`;
-            const dateISO = startOfDay(viewDate).toISOString();
+          onDrop={(payload, startMin) => {
             if (payload.type === 'next-action') {
+              const startStr = `${pad(Math.floor(startMin / 60))}:${pad(startMin % 60)}`;
+              const dateISO = startOfDay(viewDate).toISOString();
               onCreateBlock({ projectId: payload.projectId, actionId: payload.actionId,
                 title: payload.title, date: dateISO, start: startStr, duration: payload.duration || 30 });
-            } else if (payload.type === 'todo') {
-              onTodoDrop({ todoId: payload.todoId, date: dateISO, start: startStr, dropX, dropY });
             }
           }}
           onCreateAtTime={(startMin, title) => {

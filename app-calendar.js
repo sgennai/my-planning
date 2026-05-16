@@ -22,6 +22,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = React.useRef(null);
   const [scrollToNowTick, setScrollToNowTick] = useState(0);
+  const [heroDropTarget, setHeroDropTarget] = useState(null);
   // ICS imported events: per-feed parsed events in memory (not synced to Drive)
   // Shape: { work: { events: [...], lastFetched: Date, error: '' }, household: { ... } }
   const [icsCache, setIcsCache] = useState({ work: null, household: null });
@@ -412,34 +413,12 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     }));
   }, [persistData]);
 
-  // Drag-drop: pending drop captured by WeekGrid, then a duration prompt asks "how long".
-  // Shape: { todoId, date, start, dropX, dropY } | null
-  const [pendingTodoDrop, setPendingTodoDrop] = useState(null);
-
-  const confirmTodoDrop = useCallback((duration) => {
-    if (!pendingTodoDrop) return;
-    const todo = (data.todos || []).find(t => t.id === pendingTodoDrop.todoId);
-    if (!todo) { setPendingTodoDrop(null); return; }
-    const block = {
-      id: `block-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      title: todo.title,
-      date: pendingTodoDrop.date,
-      start: pendingTodoDrop.start,
-      duration,
-      todoId: todo.id,
-      status: 'scheduled',
-      actualMinutes: null,
-      completedAt: null,
-      createdAt: new Date().toISOString(),
-    };
+  const setTodoSlot = useCallback((todoId, slot) => {
     persistData(d => ({
       ...d,
-      scheduledBlocks: [...(d.scheduledBlocks || []), block],
+      todos: (d.todos || []).map(t => t.id === todoId ? { ...t, slot: slot || null } : t),
     }));
-    setPendingTodoDrop(null);
-  }, [pendingTodoDrop, persistData, data.todos]);
-
-  const cancelTodoDrop = useCallback(() => setPendingTodoDrop(null), []);
+  }, [persistData]);
 
   // ─── ICS handlers ───────────────────────────────
   const calendarSettings = data.calendars || { workIcs: '', householdIcs: '', proxyUrl: '' };
@@ -704,17 +683,12 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   }
 
   const todos = data.todos || _EMPTY_ARRAY;
-  const scheduledTodoIds = useMemo(
-    () => new Set(blocks.filter(b => b.todoId && b.status !== 'completed').map(b => b.todoId)),
-    [blocks]
-  );
   const sortedTodos = useMemo(() => [...todos].sort((a, b) => {
     if (a.done !== b.done) return a.done ? 1 : -1;
-    const aSched = scheduledTodoIds.has(a.id);
-    const bSched = scheduledTodoIds.has(b.id);
-    if (aSched !== bSched) return aSched ? 1 : -1;
+    const aSlot = !!a.slot, bSlot = !!b.slot;
+    if (aSlot !== bSlot) return aSlot ? -1 : 1;
     return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
-  }), [todos, scheduledTodoIds]);
+  }), [todos]);
   const submitTodo = useCallback(() => {
     if (!todoInput.trim()) return;
     addTodo(todoInput);
@@ -729,9 +703,9 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
 
   const onTodoRailDragStart = (e, todo) => {
     if (todo.done) { e.preventDefault(); return; }
-    e.dataTransfer.effectAllowed = 'copy';
+    e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('application/json', JSON.stringify(
-      { type: 'todo', todoId: todo.id, title: todo.title, duration: 30 }
+      { type: 'todo-promote', todoId: todo.id, title: todo.title }
     ));
   };
 
@@ -828,28 +802,35 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                 <div className="today-rail-list">
                   {sortedTodos.length === 0 ? (
                     <div className="today-rail-empty">No todos.</div>
-                  ) : sortedTodos.map(t => {
-                    const sched = !t.done && scheduledTodoIds.has(t.id);
-                    return (
-                      <div
-                        key={t.id}
-                        className={`today-todo-row ${t.done ? 'done' : ''} ${sched ? 'scheduled' : ''}`}
-                        draggable={!t.done}
-                        onDragStart={(e) => onTodoRailDragStart(e, t)}
-                        title={t.done ? 'Done' : (sched ? 'Scheduled · drag to reschedule' : 'Drag onto timeline to schedule')}
-                      >
-                        <input
-                          type="checkbox"
-                          className="today-todo-check"
-                          checked={!!t.done}
-                          onChange={() => updateTodo(t.id, { done: !t.done })}
-                          onClick={e => e.stopPropagation()}
-                        />
-                        <div className="today-todo-title">{t.title}</div>
-                        {sched && <div className="today-todo-badge">SCHED</div>}
+                  ) : sortedTodos.map(t => (
+                    <div
+                      key={t.id}
+                      className={`today-todo-row ${t.done ? 'done' : ''}`}
+                      draggable={!t.done}
+                      onDragStart={(e) => onTodoRailDragStart(e, t)}
+                    >
+                      <input
+                        type="checkbox"
+                        className="today-todo-check"
+                        checked={!!t.done}
+                        onChange={() => updateTodo(t.id, { done: !t.done })}
+                        onClick={e => e.stopPropagation()}
+                      />
+                      <div className="today-todo-title">{t.title}</div>
+                      <div className="today-todo-slots">
+                        <button
+                          className={`today-todo-slot-btn${t.slot === 'morning' ? ' active' : ''}`}
+                          onClick={e => { e.stopPropagation(); if (t.slot === 'morning') { setTodoSlot(t.id, null); } else { if (todos.filter(x => x.slot === 'morning').length < 5) setTodoSlot(t.id, 'morning'); } }}
+                          title="Add to Morning"
+                        >AM</button>
+                        <button
+                          className={`today-todo-slot-btn${t.slot === 'afternoon' ? ' active' : ''}`}
+                          onClick={e => { e.stopPropagation(); if (t.slot === 'afternoon') { setTodoSlot(t.id, null); } else { if (todos.filter(x => x.slot === 'afternoon').length < 5) setTodoSlot(t.id, 'afternoon'); } }}
+                          title="Add to Afternoon"
+                        >PM</button>
                       </div>
-                    );
-                  })}
+                    </div>
+                  ))}
                 </div>
               </>
             )}
@@ -989,26 +970,65 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
             })()}
           </div>
 
-          {/* Card 3: Personal tasks */}
+          {/* Card 3: Personal tasks — Morning / Afternoon columns */}
           <div className="today-hero today-hero--secondary">
             <div className="today-hero-eyebrow">Personal tasks</div>
-            {(() => {
-              const openTodos = sortedTodos.filter(t => !t.done);
-              if (openTodos.length === 0) return <div className="today-hero-empty">All clear.</div>;
-              const visible = openTodos.slice(0, 5);
-              const rest = openTodos.length - visible.length;
-              return (
-                <div className="today-hero-list">
-                  {visible.map(t => (
-                    <div key={t.id} className="today-hero-list-item">
-                      <span className="today-hero-list-check">○</span>
-                      <span className="today-hero-list-title">{t.title}</span>
+            <div className="today-hero-pt-cols">
+              {['morning', 'afternoon'].map(slot => {
+                const label = slot === 'morning' ? 'Morning' : 'Afternoon';
+                const slotTodos = todos.filter(t => t.slot === slot);
+                const isTarget = heroDropTarget === slot;
+                return (
+                  <div
+                    key={slot}
+                    className={`today-hero-pt-col${isTarget ? ' drop-active' : ''}`}
+                    onDragOver={e => { if (e.dataTransfer.types.includes('application/json')) { e.preventDefault(); setHeroDropTarget(slot); } }}
+                    onDragEnter={e => { if (e.dataTransfer.types.includes('application/json')) setHeroDropTarget(slot); }}
+                    onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget)) setHeroDropTarget(null); }}
+                    onDrop={e => {
+                      e.preventDefault();
+                      setHeroDropTarget(null);
+                      try {
+                        const payload = JSON.parse(e.dataTransfer.getData('application/json'));
+                        if (payload.type === 'todo-promote' || payload.type === 'todo-col-move') {
+                          const t = todos.find(x => x.id === payload.todoId);
+                          if (!t || t.slot === slot) return;
+                          if (todos.filter(x => x.slot === slot).length >= 5) return;
+                          setTodoSlot(payload.todoId, slot);
+                        }
+                      } catch {}
+                    }}
+                  >
+                    <div className="today-hero-pt-col-header">
+                      {label} <span className="today-hero-pt-count">{slotTodos.length}/5</span>
                     </div>
-                  ))}
-                  {rest > 0 && <div className="today-hero-list-more">+{rest} more</div>}
-                </div>
-              );
-            })()}
+                    <div className="today-hero-list">
+                      {slotTodos.length === 0
+                        ? <div className="today-hero-pt-empty">Drop here</div>
+                        : slotTodos.map(t => (
+                          <div
+                            key={t.id}
+                            className={`today-hero-list-item today-hero-pt-item${t.done ? ' done' : ''}`}
+                            draggable
+                            onDragStart={e => { e.stopPropagation(); e.dataTransfer.setData('application/json', JSON.stringify({ type: 'todo-col-move', todoId: t.id })); }}
+                          >
+                            <input
+                              type="checkbox"
+                              className="today-hero-pt-check"
+                              checked={!!t.done}
+                              onChange={() => updateTodo(t.id, { done: !t.done })}
+                              onClick={e => e.stopPropagation()}
+                            />
+                            <span className="today-hero-list-title">{t.title}</span>
+                            <button className="today-hero-pt-remove" onClick={() => setTodoSlot(t.id, null)} title="Unpromote">×</button>
+                          </div>
+                        ))
+                      }
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
         </div>
@@ -1031,7 +1051,6 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
             onOpenBlock={(blockId) => setOpenBlockId(blockId)}
             onRoutineClick={handleRoutineClick}
             onToggleRoutineCompletion={toggleRoutineCompletion}
-            onTodoDrop={setPendingTodoDrop}
             scrollToNowTick={scrollToNowTick}
           />
         ) : (
@@ -1071,7 +1090,6 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                 onUpdateBlock={updateBlock}
                 elsewhereToggles={elsewhere}
                 icsOccurrences={icsOccurrences}
-                onTodoDrop={setPendingTodoDrop}
                 completions={data.routineCompletions || {}}
                 onToggleComplete={toggleRoutineCompletion}
                 categoryStyles={categoryStyles}
@@ -1173,14 +1191,6 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
       />
     )}
 
-    {pendingTodoDrop && (
-      <TodoDurationPrompt
-        drop={pendingTodoDrop}
-        todo={(data.todos || []).find(t => t.id === pendingTodoDrop.todoId)}
-        onConfirm={confirmTodoDrop}
-        onCancel={cancelTodoDrop}
-      />
-    )}
     </>
   );
 }
