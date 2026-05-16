@@ -614,11 +614,19 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
       const res = await fetch('https://api.todoist.com/rest/v2/projects', {
         headers: { Authorization: `Bearer ${todoistToken.trim()}` },
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (res.status === 401 || res.status === 403) {
+        setTodoistProjectsError('Invalid token — copy it from Todoist → Settings → Integrations → Developer.');
+        return;
+      }
+      if (!res.ok) {
+        setTodoistProjectsError(`Todoist API error (HTTP ${res.status}). Try again.`);
+        return;
+      }
       const projects = await res.json();
       setTodoistProjects(projects);
-    } catch {
-      setTodoistProjectsError('Invalid token or network error');
+    } catch (err) {
+      console.error('Todoist load error:', err);
+      setTodoistProjectsError(`Network error: ${err.message}. Make sure you're on HTTPS (GitHub Pages), not a local file.`);
     } finally {
       setTodoistProjectsLoading(false);
     }
