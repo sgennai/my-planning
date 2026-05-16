@@ -513,12 +513,7 @@ function TodayScreen({
           </div>
         </div>
       </div>
-      {todayItems.length === 0 ? (
-        <div className="today-timeline-empty">
-          No events scheduled yet.<br />
-          Drag a project action or todo from the left to plan the day.
-        </div>
-      ) : todayViewMode === 'calendar' ? (
+      {todayViewMode === 'calendar' ? (
         <TodayCalendarView
           items={todayItems}
           now={now}
