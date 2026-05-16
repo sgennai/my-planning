@@ -899,59 +899,109 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
           />
         )}
 
-        {/* HERO BANNER — sits above the calendar pane, same width */}
-        <div className="today-hero">
-          {tdCurrent ? (
-            <>
-              <div className="today-hero-eyebrow">Right now</div>
-              <div className="today-hero-now">
-                {tdCurrent.kind === 'routine' && CATS[tdCurrent.category] && CATS[tdCurrent.category].emoji ? `${CATS[tdCurrent.category].emoji} ` : ''}
-                {tdCurrent.title}
-              </div>
-              <div className="today-hero-now-meta">
-                ends {fmtHeroTime(tdCurrent.startMin + tdCurrent.duration)}
-                {tdCurrent.note && <span> · {tdCurrent.note}</span>}
-              </div>
-              {tdNext && (
-                <div className="today-hero-next">
-                  <span className="today-hero-next-label">Next</span>
-                  <span className="today-hero-next-time">{fmtHeroTime(tdNext.startMin)}</span>
-                  <span>{tdNext.kind === 'routine' && CATS[tdNext.category] && CATS[tdNext.category].emoji ? `${CATS[tdNext.category].emoji} ` : ''}{tdNext.title}</span>
+        {/* HERO BANNER — 3 cards side by side */}
+        <div className="today-hero-row">
+
+          {/* Card 1: Next up / Right now */}
+          <div className="today-hero">
+            {tdCurrent ? (
+              <>
+                <div className="today-hero-eyebrow">Right now</div>
+                <div className="today-hero-now">
+                  {tdCurrent.kind === 'routine' && CATS[tdCurrent.category] && CATS[tdCurrent.category].emoji ? `${CATS[tdCurrent.category].emoji} ` : ''}
+                  {tdCurrent.title}
                 </div>
-              )}
-              {tdThen && (
-                <div className="today-hero-then">
-                  <span className="today-hero-then-label">Then</span>
-                  <span className="today-hero-then-time">{fmtHeroTime(tdThen.startMin)}</span>
-                  <span>{tdThen.kind === 'routine' && CATS[tdThen.category] && CATS[tdThen.category].emoji ? `${CATS[tdThen.category].emoji} ` : ''}{tdThen.title}</span>
+                <div className="today-hero-now-meta">
+                  ends {fmtHeroTime(tdCurrent.startMin + tdCurrent.duration)}
+                  {tdCurrent.note && <span> · {tdCurrent.note}</span>}
                 </div>
-              )}
-            </>
-          ) : tdNext ? (
-            <>
-              <div className="today-hero-eyebrow">Next up</div>
-              <div className="today-hero-now">
-                <span className="today-hero-next-time" style={{ marginRight: 'var(--space-3)' }}>{fmtHeroTime(tdNext.startMin)}</span>
-                {tdNext.kind === 'routine' && CATS[tdNext.category] && CATS[tdNext.category].emoji ? `${CATS[tdNext.category].emoji} ` : ''}{tdNext.title}
-              </div>
-              {tdNext.note && <div className="today-hero-now-meta">{tdNext.note}</div>}
-              {tdThen && (
-                <div className="today-hero-then">
-                  <span className="today-hero-then-label">Then</span>
-                  <span className="today-hero-then-time">{fmtHeroTime(tdThen.startMin)}</span>
-                  <span>{tdThen.kind === 'routine' && CATS[tdThen.category] && CATS[tdThen.category].emoji ? `${CATS[tdThen.category].emoji} ` : ''}{tdThen.title}</span>
+                {tdNext && (
+                  <div className="today-hero-next">
+                    <span className="today-hero-next-label">Next</span>
+                    <span className="today-hero-next-time">{fmtHeroTime(tdNext.startMin)}</span>
+                    <span>{tdNext.kind === 'routine' && CATS[tdNext.category] && CATS[tdNext.category].emoji ? `${CATS[tdNext.category].emoji} ` : ''}{tdNext.title}</span>
+                  </div>
+                )}
+                {tdThen && (
+                  <div className="today-hero-then">
+                    <span className="today-hero-then-label">Then</span>
+                    <span className="today-hero-then-time">{fmtHeroTime(tdThen.startMin)}</span>
+                    <span>{tdThen.kind === 'routine' && CATS[tdThen.category] && CATS[tdThen.category].emoji ? `${CATS[tdThen.category].emoji} ` : ''}{tdThen.title}</span>
+                  </div>
+                )}
+              </>
+            ) : tdNext ? (
+              <>
+                <div className="today-hero-eyebrow">Next up</div>
+                <div className="today-hero-now">
+                  <span className="today-hero-next-time" style={{ marginRight: 'var(--space-3)' }}>{fmtHeroTime(tdNext.startMin)}</span>
+                  {tdNext.kind === 'routine' && CATS[tdNext.category] && CATS[tdNext.category].emoji ? `${CATS[tdNext.category].emoji} ` : ''}{tdNext.title}
                 </div>
-              )}
-            </>
-          ) : (
-            <>
-              <div className="today-hero-eyebrow">Today</div>
-              <div className="today-hero-now" style={{ color: 'var(--muted-3)' }}>Nothing else scheduled.</div>
-            </>
-          )}
-          {microBanner && (
-            <div className="today-hero-micro">⚡ {microBanner.title} · {microBanner.summary}</div>
-          )}
+                {tdNext.note && <div className="today-hero-now-meta">{tdNext.note}</div>}
+                {tdThen && (
+                  <div className="today-hero-then">
+                    <span className="today-hero-then-label">Then</span>
+                    <span className="today-hero-then-time">{fmtHeroTime(tdThen.startMin)}</span>
+                    <span>{tdThen.kind === 'routine' && CATS[tdThen.category] && CATS[tdThen.category].emoji ? `${CATS[tdThen.category].emoji} ` : ''}{tdThen.title}</span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <div className="today-hero-eyebrow">Today</div>
+                <div className="today-hero-now" style={{ color: 'var(--muted-3)' }}>Nothing else scheduled.</div>
+              </>
+            )}
+            {microBanner && (
+              <div className="today-hero-micro">⚡ {microBanner.title} · {microBanner.summary}</div>
+            )}
+          </div>
+
+          {/* Card 2: Routine */}
+          <div className="today-hero today-hero--secondary">
+            <div className="today-hero-eyebrow">Routine</div>
+            {(() => {
+              const routineItems = todayItems.filter(it => it.kind === 'routine');
+              if (routineItems.length === 0) return <div className="today-hero-empty">No routine today.</div>;
+              const visible = routineItems.slice(0, 5);
+              const rest = routineItems.length - visible.length;
+              return (
+                <div className="today-hero-list">
+                  {visible.map(it => (
+                    <div key={it.id} className={`today-hero-list-item${it.completed ? ' done' : ''}`}>
+                      <span className="today-hero-list-check">{it.completed ? '✓' : '○'}</span>
+                      <span className="today-hero-list-time">{fmtHeroTime(it.startMin)}</span>
+                      <span className="today-hero-list-title">{CATS[it.category] && CATS[it.category].emoji ? `${CATS[it.category].emoji} ` : ''}{it.title}</span>
+                    </div>
+                  ))}
+                  {rest > 0 && <div className="today-hero-list-more">+{rest} more</div>}
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Card 3: Personal tasks */}
+          <div className="today-hero today-hero--secondary">
+            <div className="today-hero-eyebrow">Personal tasks</div>
+            {(() => {
+              const openTodos = sortedTodos.filter(t => !t.done);
+              if (openTodos.length === 0) return <div className="today-hero-empty">All clear.</div>;
+              const visible = openTodos.slice(0, 5);
+              const rest = openTodos.length - visible.length;
+              return (
+                <div className="today-hero-list">
+                  {visible.map(t => (
+                    <div key={t.id} className="today-hero-list-item">
+                      <span className="today-hero-list-check">○</span>
+                      <span className="today-hero-list-title">{t.title}</span>
+                    </div>
+                  ))}
+                  {rest > 0 && <div className="today-hero-list-more">+{rest} more</div>}
+                </div>
+              );
+            })()}
+          </div>
+
         </div>
 
         {mainView === 'today' ? (
