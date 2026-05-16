@@ -511,9 +511,6 @@ function TodayScreen({
               aria-label="Calendar view"
             >▦</button>
           </div>
-          <div className="today-timeline-meta">
-            {todayItems.filter(i => !i.completed).length} open · {todayItems.length} total
-          </div>
         </div>
       </div>
       {todayItems.length === 0 ? (
