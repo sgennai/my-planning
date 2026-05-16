@@ -963,21 +963,26 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
             {(() => {
               const supplements = todayItems.filter(it => it.kind === 'routine' && it.category === 'supplement');
               if (supplements.length === 0) return <div className="today-hero-empty">No supplements today.</div>;
+              const half = Math.ceil(supplements.length / 2);
+              const col1 = supplements.slice(0, half);
+              const col2 = supplements.slice(half);
+              const renderRow = (it) => (
+                <div
+                  key={it.id}
+                  className={`today-hero-list-item today-hero-sup-row${it.completed ? ' done' : ''}`}
+                  onClick={() => toggleRoutineCompletion(it.itemId, viewDate)}
+                >
+                  <span className={`today-hero-sup-check${it.completed ? ' checked' : ''}`}>
+                    {it.completed ? '✓' : ''}
+                  </span>
+                  <span className="today-hero-list-time">{fmtHeroTime(it.startMin)}</span>
+                  <span className="today-hero-list-title">{it.title}</span>
+                </div>
+              );
               return (
-                <div className="today-hero-list today-hero-list--two-col">
-                  {supplements.map(it => (
-                    <div
-                      key={it.id}
-                      className={`today-hero-list-item today-hero-sup-row${it.completed ? ' done' : ''}`}
-                      onClick={() => toggleRoutineCompletion(it.itemId, viewDate)}
-                    >
-                      <span className={`today-hero-sup-check${it.completed ? ' checked' : ''}`}>
-                        {it.completed ? '✓' : ''}
-                      </span>
-                      <span className="today-hero-list-time">{fmtHeroTime(it.startMin)}</span>
-                      <span className="today-hero-list-title">{it.title}</span>
-                    </div>
-                  ))}
+                <div className="today-hero-sup-cols">
+                  <div className="today-hero-list">{col1.map(renderRow)}</div>
+                  <div className="today-hero-list">{col2.map(renderRow)}</div>
                 </div>
               );
             })()}
