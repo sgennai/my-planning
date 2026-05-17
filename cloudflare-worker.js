@@ -3,9 +3,9 @@
 //
 // Routes:
 //   GET  /?url=<encoded-ics-url>          → proxy an ICS feed (existing behaviour)
-//   GET  /todoist/projects                → GET api.todoist.com/rest/v2/projects
-//   GET  /todoist/tasks?project_id=xxx    → GET api.todoist.com/rest/v2/tasks?project_id=xxx
-//   POST /todoist/tasks/:id/close         → POST api.todoist.com/rest/v2/tasks/:id/close
+//   GET  /todoist/projects                → GET api.todoist.com/api/v1/projects
+//   GET  /todoist/tasks?project_id=xxx    → GET api.todoist.com/api/v1/tasks?project_id=xxx
+//   POST /todoist/tasks/:id/close         → POST api.todoist.com/api/v1/tasks/:id/close
 //
 // Auth for Todoist routes: pass the API token in the X-Todoist-Token request header.
 
@@ -13,6 +13,7 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'X-Todoist-Token, Content-Type',
+  'Cache-Control': 'no-store',
 };
 
 addEventListener('fetch', event => {
@@ -39,7 +40,7 @@ async function handleRequest(request) {
 
     // Strip /todoist prefix, keep the rest of the path + query string
     const todoistPath = url.pathname.replace(/^\/todoist/, '');
-    const todoistUrl = `https://api.todoist.com/rest/v2${todoistPath}${url.search}`;
+    const todoistUrl = `https://api.todoist.com/api/v1${todoistPath}${url.search}`;
 
     const todoistRes = await fetch(todoistUrl, {
       method: request.method,

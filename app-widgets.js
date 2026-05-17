@@ -603,6 +603,27 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
   const [showToken, setShowToken] = useState(false);
   const [todoistProjectId, setTodoistProjectId] = useState((todoist && todoist.projectId) || '');
   const [todoistDaysAhead, setTodoistDaysAhead] = useState((todoist && todoist.daysAhead != null) ? String(todoist.daysAhead) : '7');
+  const [todoistProjects, setTodoistProjects] = useState([]);
+  const [todoistProjectsLoading, setTodoistProjectsLoading] = useState(false);
+  const [todoistProjectsError, setTodoistProjectsError] = useState(null);
+
+  const fetchTodoistProjects = async () => {
+    const token = todoistToken.trim();
+    const base = proxyUrl.trim().replace(/\/+$/, '');
+    if (!token || !base) return;
+    setTodoistProjectsLoading(true);
+    setTodoistProjectsError(null);
+    try {
+      const res = await fetch(`${base}/todoist/projects`, { headers: { 'X-Todoist-Token': token } });
+      const body = await res.text();
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${body.slice(0, 120)}`);
+      setTodoistProjects(JSON.parse(body));
+    } catch (err) {
+      setTodoistProjectsError(err.message);
+    } finally {
+      setTodoistProjectsLoading(false);
+    }
+  };
 
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) onClose();
@@ -869,18 +890,41 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
             </div>
             <div className="routine-form-grid">
               <div className="routine-form-row">
-                <div className="routine-form-label" style={{ marginBottom: 6 }}>Project ID</div>
-                <input
-                  type="text"
-                  className="settings-input"
-                  style={{ fontFamily: 'var(--mono)' }}
-                  value={todoistProjectId}
-                  placeholder="e.g. 2203306141"
-                  onChange={e => setTodoistProjectId(e.target.value)}
-                />
-                <div className="settings-field-hint" style={{ marginTop: 5 }}>
-                  Open the project in Todoist on the web — the ID is the number at the end of the URL (e.g. todoist.com/app/project/2203306141).
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <div className="routine-form-label" style={{ margin: 0 }}>Project</div>
+                  <button
+                    className="modal-btn"
+                    style={{ padding: '2px 10px', fontSize: 12 }}
+                    disabled={!todoistToken.trim() || !proxyUrl.trim() || todoistProjectsLoading}
+                    onClick={fetchTodoistProjects}
+                  >
+                    <span>{todoistProjectsLoading ? 'Fetching…' : 'Fetch projects'}</span>
+                  </button>
                 </div>
+                {todoistProjects.length > 0 ? (
+                  <select
+                    className="settings-input"
+                    value={todoistProjectId}
+                    onChange={e => setTodoistProjectId(e.target.value)}
+                  >
+                    <option value="">— pick a project —</option>
+                    {todoistProjects.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    className="settings-input"
+                    style={{ fontFamily: 'var(--mono)' }}
+                    value={todoistProjectId}
+                    placeholder="Click 'Fetch projects' to pick one"
+                    onChange={e => setTodoistProjectId(e.target.value)}
+                  />
+                )}
+                {todoistProjectsError && (
+                  <div className="settings-field-hint" style={{ marginTop: 5, color: 'var(--coral)' }}>{todoistProjectsError}</div>
+                )}
               </div>
               <div className="routine-form-row half" style={{ marginTop: 8 }}>
                 <div className="routine-form-label" style={{ marginBottom: 6 }}>Days ahead (0 = all)</div>
