@@ -1299,7 +1299,6 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         userCategoryEmojis={userCategoryEmojis}
         todoist={data.todoist || _EMPTY_OBJ}
         onUpdateTodoist={updateTodoistSettings}
-        proxyUrl={calendarSettings.proxyUrl || ''}
       />
     )}
 
