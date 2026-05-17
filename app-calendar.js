@@ -27,6 +27,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   const [todoistLoading, setTodoistLoading] = useState(false);
   const [todoistError, setTodoistError] = useState(null);
   const [todoistRefreshTick, setTodoistRefreshTick] = useState(0);
+  const [todoistAddError, setTodoistAddError] = useState(null);
   // ICS imported events: per-feed parsed events in memory (not synced to Drive)
   // Shape: { work: { events: [...], lastFetched: Date, error: '' }, household: { ... } }
   const [icsCache, setIcsCache] = useState({ work: null, household: null });
@@ -633,6 +634,8 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   // ── TODAY-VIEW STATE (lifted so hero banner + shared rail work in both views) ──
   const [viewDayOffset, setViewDayOffset] = useState(0);
   const [todoInput, setTodoInput] = useState('');
+  const [todoistDueInput, setTodoistDueInput] = useState('');
+  const todoistDueRef = React.useRef(null);
 
   const viewDate = useMemo(() => {
     const d = new Date(now);
@@ -774,6 +777,30 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     return () => { cancelled = true; clearInterval(interval); };
   }, [todoistToken, todoistProjectId, todoistDaysAhead, todoistProxyBase, todoistRefreshTick]);
 
+  const submitTodoistTask = useCallback(async () => {
+    if (!todoInput.trim() || !todoistProxyBase) return;
+    const content = todoInput.trim();
+    const dueString = todoistDueInput.trim();
+    setTodoInput('');
+    setTodoistDueInput('');
+    setTodoistAddError(null);
+    try {
+      const payload = { content, project_id: todoistProjectId };
+      if (dueString) payload.due_string = dueString;
+      const res = await fetch(`${todoistProxyBase}/tasks`, {
+        method: 'POST',
+        headers: { 'X-Todoist-Token': todoistToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const body = await res.text();
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${body.slice(0, 100)}`);
+      const task = JSON.parse(body);
+      setTodoistTasks(prev => [task, ...prev]);
+    } catch (err) {
+      setTodoistAddError(err.message);
+    }
+  }, [todoInput, todoistDueInput, todoistProjectId, todoistProxyBase, todoistToken]);
+
   const onTodoRailDragStart = (e, todo) => {
     if (todo.done) { e.preventDefault(); return; }
     e.dataTransfer.effectAllowed = 'move';
@@ -877,11 +904,32 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                   <input
                     type="text"
                     className="today-todo-add-input"
-                    placeholder="+ add todo, Enter to save"
+                    placeholder={todoistProxyBase ? '+ add to Todoist…' : '+ add todo, Enter to save'}
                     value={todoInput}
                     onChange={e => setTodoInput(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); submitTodo(); } }}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (todoistProxyBase) { if (todoistDueRef.current) todoistDueRef.current.focus(); }
+                        else submitTodo();
+                      }
+                    }}
                   />
+                  {todoistProxyBase && (
+                    <input
+                      ref={todoistDueRef}
+                      type="text"
+                      className="today-todo-add-input"
+                      style={{ marginTop: 4 }}
+                      placeholder="Due: today / tomorrow / friday…"
+                      value={todoistDueInput}
+                      onChange={e => setTodoistDueInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); submitTodoistTask(); } }}
+                    />
+                  )}
+                  {todoistAddError && (
+                    <div style={{ fontSize: 11, color: 'var(--coral)', padding: '4px 4px 0' }}>{todoistAddError}</div>
+                  )}
                 </div>
                 <div className="today-rail-list">
                   {sortedTodos.length === 0 && todoistTasks.length === 0 ? (

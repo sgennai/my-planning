@@ -48,6 +48,7 @@ async function handleRequest(request) {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
+      body: (request.method === 'POST' || request.method === 'PUT' || request.method === 'PATCH') ? await request.text() : undefined,
     });
 
     const body = await todoistRes.text();
