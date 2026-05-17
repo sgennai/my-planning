@@ -28,7 +28,7 @@ async function handleRequest(request) {
   const url = new URL(request.url);
 
   // ── Todoist proxy ──────────────────────────────────────────────────────────
-  if (url.pathname.startsWith('/todoist/')) {
+  if (url.pathname.startsWith('/todoist/') || url.pathname === '/todoist') {
     const token = request.headers.get('X-Todoist-Token');
     if (!token) {
       return new Response(JSON.stringify({ error: 'Missing X-Todoist-Token header' }), {

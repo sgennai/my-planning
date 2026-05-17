@@ -436,7 +436,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
 
   const completeTodoistTask = useCallback(async (taskId) => {
     const token = (data.todoist || {}).token;
-    const proxy = (data.calendars || {}).proxyUrl;
+    const proxy = ((data.calendars || {}).proxyUrl || '').replace(/\/+$/, '');
     if (!token || !proxy) return;
     try {
       await fetch(`${proxy}/todoist/tasks/${taskId}/close`, {
@@ -733,7 +733,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   const todoistFilter = (data.todoist || {}).filter || '';
   const todoistSlots = data.todoistSlots || _EMPTY_OBJ;
 
-  const todoistProxyBase = calendarSettings.proxyUrl ? `${calendarSettings.proxyUrl}/todoist` : null;
+  const todoistProxyBase = calendarSettings.proxyUrl ? `${calendarSettings.proxyUrl.replace(/\/+$/, '')}/todoist` : null;
 
   React.useEffect(() => {
     if (!todoistToken || !todoistFilter || !todoistProxyBase) { setTodoistTasks([]); setTodoistError(null); return; }
