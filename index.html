@@ -983,12 +983,40 @@
       font-weight: 500;
     }
 
+    /* ───────── RAIL COLLAPSE BUTTON ───────── */
+    .rail-collapse-btn {
+      position: fixed;
+      top: 16px;
+      z-index: 300;
+      width: 20px;
+      height: 24px;
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: none;
+      border-radius: 0 8px 8px 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted-3);
+      font-size: 11px;
+      box-shadow: 3px 0 8px rgba(0,0,0,0.12);
+      transition: left 0.28s cubic-bezier(0.25,0,0,1), color 0.15s;
+      touch-action: manipulation;
+    }
+    .rail-collapse-btn:hover { color: var(--primary); }
+    :root[data-theme="dark"] .rail-collapse-btn {
+      background: rgba(44,44,46,0.88);
+    }
+
     /* ───────── FIXED APP TOPBAR ───────── */
     .app-topbar {
       position: fixed;
       top: 0; left: 300px; right: 0;
       z-index: 200;
       height: 56px;
+      transition: left 0.28s cubic-bezier(0.25,0,0,1);
       background: transparent;
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
@@ -1986,8 +2014,10 @@
       width: 300px;
       flex-shrink: 0;
       height: 100vh;
+      overflow-x: hidden;
       overflow-y: auto;
       scrollbar-width: none;
+      transition: width 0.28s cubic-bezier(0.25,0,0,1);
       overscroll-behavior: contain;
       background:
         radial-gradient(ellipse 160% 40% at 50% 0%, rgba(99, 102, 241, 0.18) 0%, transparent 60%),

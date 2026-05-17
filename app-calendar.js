@@ -21,6 +21,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   const [practiceOpen, setPracticeOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = React.useRef(null);
+  const [railCollapsed, setRailCollapsed] = useState(false);
   const [scrollToNowTick, setScrollToNowTick] = useState(0);
   const [heroDropTarget, setHeroDropTarget] = useState(null);
   const [allTodoistTasks, setAllTodoistTasks] = useState([]);
@@ -828,8 +829,19 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
 
   return (
     <>
+    {/* ── RAIL COLLAPSE BUTTON ── */}
+    <button
+      className="rail-collapse-btn"
+      style={{ left: railCollapsed ? 0 : 290 }}
+      onClick={() => setRailCollapsed(v => !v)}
+      aria-label={railCollapsed ? 'Expand rail' : 'Collapse rail'}
+      title={railCollapsed ? 'Expand' : 'Collapse'}
+    >
+      {railCollapsed ? '»' : '«'}
+    </button>
+
     {/* ── FIXED APP TOPBAR ── */}
-    <div className="app-topbar">
+    <div className="app-topbar" style={railCollapsed ? { left: 0 } : undefined}>
       <div className="app-topbar-center">
         <ViewSwitcher view={mainView} onSwitchView={setMainView} />
       </div>
@@ -862,7 +874,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     <div className={`today-wrap fade-in${mainView === 'plan' && dayView !== null ? ' day-view' : ''}`}>
 
       {/* LEFT RAIL — full-height glass card, edge to edge */}
-      <div className="today-rail">
+      <div className="today-rail" style={railCollapsed ? { width: 0 } : undefined}>
           {/* Nav header: Today · ‹ · date · › */}
           <div className="today-rail-nav">
             <button className="app-topbar-btn" onClick={mainView === 'today' ? () => { setViewDayOffset(0); setScrollToNowTick(n => n + 1); } : goToday}>Today</button>
