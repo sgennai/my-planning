@@ -23,7 +23,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   const menuRef = React.useRef(null);
   const [scrollToNowTick, setScrollToNowTick] = useState(0);
   const [heroDropTarget, setHeroDropTarget] = useState(null);
-  const [todoistTasks, setTodoistTasks] = useState([]);
+  const [allTodoistTasks, setAllTodoistTasks] = useState([]);
   const [todoistLoading, setTodoistLoading] = useState(false);
   const [todoistError, setTodoistError] = useState(null);
   const [todoistRefreshTick, setTodoistRefreshTick] = useState(0);
@@ -445,7 +445,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         method: 'POST',
         headers: { 'X-Todoist-Token': token },
       });
-      setTodoistTasks(prev => prev.filter(t => t.id !== taskId));
+      setAllTodoistTasks(prev => prev.filter(t => t.id !== taskId));
       setTodoistTaskSlot(taskId, null);
     } catch { /* silent */ }
   }, [data.todoist, data.calendars, setTodoistTaskSlot]);
@@ -741,8 +741,33 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
 
   const todoistProxyBase = calendarSettings.proxyUrl ? `${calendarSettings.proxyUrl.replace(/\/+$/, '')}/todoist` : null;
 
+  // Client-side days filter — instant, no re-fetch
+  const todoistTasks = React.useMemo(() => {
+    if (todoistDaysAhead === 0) return allTodoistTasks;
+    const today = startOfDay(new Date());
+    const cutoff = new Date(today.getTime() + todoistDaysAhead * 24 * 60 * 60 * 1000);
+    return allTodoistTasks.filter(t => {
+      if (!t.due) return false;
+      const due = startOfDay(new Date(t.due.date));
+      return due <= cutoff;
+    });
+  }, [allTodoistTasks, todoistDaysAhead]);
+
+  // Backfill project name if missing (e.g. saved before this field existed)
   React.useEffect(() => {
-    if (!todoistToken || !todoistProjectId || !todoistProxyBase) { setTodoistTasks([]); setTodoistError(null); return; }
+    if (!todoistToken || !todoistProjectId || !todoistProxyBase || todoistProjectName) return;
+    fetch(`${todoistProxyBase}/projects`, { headers: { 'X-Todoist-Token': todoistToken } })
+      .then(r => r.json())
+      .then(json => {
+        const list = Array.isArray(json) ? json : (json.results || []);
+        const proj = list.find(p => p.id === todoistProjectId);
+        if (proj) updateTodoistSettings({ projectName: proj.name });
+      })
+      .catch(() => {});
+  }, [todoistToken, todoistProjectId, todoistProxyBase, todoistProjectName]);
+
+  React.useEffect(() => {
+    if (!todoistToken || !todoistProjectId || !todoistProxyBase) { setAllTodoistTasks([]); setTodoistError(null); return; }
     let cancelled = false;
     const fetchTasks = async () => {
       setTodoistLoading(true);
@@ -756,16 +781,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         }
         const json = await res.json();
         const tasks = Array.isArray(json) ? json : (json.results || json.items || json.tasks || []);
-        const today = startOfDay(new Date());
-        const cutoff = todoistDaysAhead > 0 ? new Date(today.getTime() + todoistDaysAhead * 24 * 60 * 60 * 1000) : null;
-        const filtered = tasks.filter(t => {
-          if (t.is_completed) return false;
-          if (!cutoff) return true;
-          if (!t.due) return false; // no due date: skip when days filter is active
-          const due = startOfDay(new Date(t.due.date));
-          return due <= cutoff;
-        });
-        if (!cancelled) { setTodoistTasks(filtered); setTodoistError(null); }
+        if (!cancelled) { setAllTodoistTasks(tasks.filter(t => !t.is_completed)); setTodoistError(null); }
       } catch (err) {
         console.error('Todoist fetch error:', err);
         if (!cancelled) setTodoistError(err.message || 'Could not load Todoist tasks');
@@ -776,7 +792,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     fetchTasks();
     const interval = setInterval(fetchTasks, 5 * 60 * 1000);
     return () => { cancelled = true; clearInterval(interval); };
-  }, [todoistToken, todoistProjectId, todoistDaysAhead, todoistProxyBase, todoistRefreshTick]);
+  }, [todoistToken, todoistProjectId, todoistProxyBase, todoistRefreshTick]);
 
   const submitTodoistTask = useCallback(async () => {
     if (!todoInput.trim() || !todoistProxyBase) return;
@@ -796,7 +812,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
       const body = await res.text();
       if (!res.ok) throw new Error(`HTTP ${res.status}: ${body.slice(0, 100)}`);
       const task = JSON.parse(body);
-      setTodoistTasks(prev => [task, ...prev]);
+      setAllTodoistTasks(prev => [task, ...prev]);
     } catch (err) {
       setTodoistAddError(err.message);
     }
@@ -889,7 +905,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
                 {todoistToken && todoistProjectId && (
                   <select
-                    style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--muted-3)', fontSize: 10, fontFamily: 'var(--mono)', cursor: 'pointer', padding: 0 }}
+                    style={{ background: 'var(--bg-hover)', border: 'none', outline: 'none', color: 'var(--muted-3)', fontSize: 10, fontFamily: 'var(--mono)', cursor: 'pointer', padding: '2px 6px', borderRadius: 20 }}
                     value={String(todoistDaysAhead)}
                     onChange={e => updateTodoistSettings({ daysAhead: Number(e.target.value) })}
                   >
@@ -911,6 +927,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                 </button>
               </div>
             </div>
+            {(() => { const total = todos.filter(t => !t.done).length + todoistTasks.length; return total > 0 && <div style={{ fontSize: 10, color: 'var(--muted-4)', fontFamily: 'var(--mono)', padding: '0 0 4px 0', lineHeight: 1 }}>{total} task{total !== 1 ? 's' : ''}</div>; })()}
             {todosExpanded && (
               <>
                 <div className="today-todo-add" style={todoistProxyBase ? { alignItems: 'center', paddingRight: 4 } : undefined}>
