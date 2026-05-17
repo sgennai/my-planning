@@ -749,7 +749,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     return allTodoistTasks.filter(t => {
       if (!t.due) return false;
       const due = startOfDay(new Date(t.due.date));
-      return due <= cutoff;
+      return due < cutoff;
     });
   }, [allTodoistTasks, todoistDaysAhead]);
 
@@ -896,10 +896,10 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
           />
           <div className="today-rail-section">
             <div className="today-rail-header">
-              <div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
                 <div className="today-rail-eyebrow">Todos</div>
-                {todoistProjectName && (
-                  <div style={{ fontSize: 10, color: 'var(--muted-4)', fontFamily: 'var(--mono)', lineHeight: 1.2, marginTop: 1 }}>{todoistProjectName}</div>
+                {(todos.filter(t => !t.done).length + todoistTasks.length) > 0 && (
+                  <span style={{ fontSize: 11, color: 'var(--muted-4)', fontFamily: 'var(--mono)' }}>({todos.filter(t => !t.done).length + todoistTasks.length})</span>
                 )}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
@@ -927,7 +927,6 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                 </button>
               </div>
             </div>
-            {(() => { const total = todos.filter(t => !t.done).length + todoistTasks.length; return total > 0 && <div style={{ fontSize: 10, color: 'var(--muted-4)', fontFamily: 'var(--mono)', padding: '0 0 4px 0', lineHeight: 1 }}>{total} task{total !== 1 ? 's' : ''}</div>; })()}
             {todosExpanded && (
               <>
                 <div className="today-todo-add" style={todoistProxyBase ? { alignItems: 'center', paddingRight: 4 } : undefined}>
