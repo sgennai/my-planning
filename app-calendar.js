@@ -996,16 +996,15 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                       />
                       <div className="today-todo-title">{t.title}</div>
                       <div className="today-todo-slots">
-                        <button
-                          className={`today-todo-slot-btn${t.slot === 'morning' ? ' active' : ''}`}
-                          onClick={e => { e.stopPropagation(); if (t.slot === 'morning') { setTodoSlot(t.id, null); } else { if (todos.filter(x => x.slot === 'morning').length < 5) setTodoSlot(t.id, 'morning'); } }}
-                          title="Add to Morning"
-                        >AM</button>
-                        <button
-                          className={`today-todo-slot-btn${t.slot === 'afternoon' ? ' active' : ''}`}
-                          onClick={e => { e.stopPropagation(); if (t.slot === 'afternoon') { setTodoSlot(t.id, null); } else { if (todos.filter(x => x.slot === 'afternoon').length < 5) setTodoSlot(t.id, 'afternoon'); } }}
-                          title="Add to Afternoon"
-                        >PM</button>
+                        <div className="today-todo-slots-group">
+                          <span className={`today-todo-slots-dot${t.slot ? ' has-slot' : ''}`}>
+                            {t.slot === 'morning' ? 'AM' : t.slot === 'afternoon' ? 'PM' : '+'}
+                          </span>
+                          <div className="today-todo-slots-choices">
+                            <button className={`today-todo-slot-btn${t.slot === 'morning' ? ' active' : ''}`} onClick={e => { e.stopPropagation(); if (t.slot === 'morning') { setTodoSlot(t.id, null); } else { if (todos.filter(x => x.slot === 'morning').length < 5) setTodoSlot(t.id, 'morning'); } }} title="Add to Morning">AM</button>
+                            <button className={`today-todo-slot-btn${t.slot === 'afternoon' ? ' active' : ''}`} onClick={e => { e.stopPropagation(); if (t.slot === 'afternoon') { setTodoSlot(t.id, null); } else { if (todos.filter(x => x.slot === 'afternoon').length < 5) setTodoSlot(t.id, 'afternoon'); } }} title="Add to Afternoon">PM</button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -1030,16 +1029,15 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                       />
                       <div className="today-todo-title">{t.content}</div>
                       <div className="today-todo-slots">
-                        <button
-                          className={`today-todo-slot-btn${todoistSlots[t.id] === 'morning' ? ' active' : ''}`}
-                          onClick={e => { e.stopPropagation(); if (todoistSlots[t.id] === 'morning') setTodoistTaskSlot(t.id, null); else { const total = todos.filter(x => x.slot === 'morning').length + todoistTasks.filter(x => todoistSlots[x.id] === 'morning').length; if (total < 5) setTodoistTaskSlot(t.id, 'morning'); } }}
-                          title="Add to Morning"
-                        >AM</button>
-                        <button
-                          className={`today-todo-slot-btn${todoistSlots[t.id] === 'afternoon' ? ' active' : ''}`}
-                          onClick={e => { e.stopPropagation(); if (todoistSlots[t.id] === 'afternoon') setTodoistTaskSlot(t.id, null); else { const total = todos.filter(x => x.slot === 'afternoon').length + todoistTasks.filter(x => todoistSlots[x.id] === 'afternoon').length; if (total < 5) setTodoistTaskSlot(t.id, 'afternoon'); } }}
-                          title="Add to Afternoon"
-                        >PM</button>
+                        <div className="today-todo-slots-group">
+                          <span className={`today-todo-slots-dot${todoistSlots[t.id] ? ' has-slot' : ''}`}>
+                            {todoistSlots[t.id] === 'morning' ? 'AM' : todoistSlots[t.id] === 'afternoon' ? 'PM' : '+'}
+                          </span>
+                          <div className="today-todo-slots-choices">
+                            <button className={`today-todo-slot-btn${todoistSlots[t.id] === 'morning' ? ' active' : ''}`} onClick={e => { e.stopPropagation(); if (todoistSlots[t.id] === 'morning') setTodoistTaskSlot(t.id, null); else { const total = todos.filter(x => x.slot === 'morning').length + todoistTasks.filter(x => todoistSlots[x.id] === 'morning').length; if (total < 5) setTodoistTaskSlot(t.id, 'morning'); } }} title="Add to Morning">AM</button>
+                            <button className={`today-todo-slot-btn${todoistSlots[t.id] === 'afternoon' ? ' active' : ''}`} onClick={e => { e.stopPropagation(); if (todoistSlots[t.id] === 'afternoon') setTodoistTaskSlot(t.id, null); else { const total = todos.filter(x => x.slot === 'afternoon').length + todoistTasks.filter(x => todoistSlots[x.id] === 'afternoon').length; if (total < 5) setTodoistTaskSlot(t.id, 'afternoon'); } }} title="Add to Afternoon">PM</button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
