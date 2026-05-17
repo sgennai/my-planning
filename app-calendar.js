@@ -749,7 +749,8 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
           const body = await res.text().catch(() => '');
           throw new Error(`HTTP ${res.status}${body ? ': ' + body.slice(0, 200) : ''}`);
         }
-        const tasks = await res.json();
+        const json = await res.json();
+        const tasks = Array.isArray(json) ? json : (json.results || json.items || json.tasks || []);
         const today = startOfDay(new Date());
         const cutoff = todoistDaysAhead > 0 ? new Date(today.getTime() + todoistDaysAhead * 24 * 60 * 60 * 1000) : null;
         const filtered = tasks.filter(t => {
