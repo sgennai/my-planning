@@ -187,8 +187,8 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
   const nowY = minToY(nowMin);
   const inWindow = isToday && nowMin >= HOUR_START * 60 && nowMin < HOUR_END * 60;
 
-  // Lane-stacking (Google/Apple style): overlapping events get full width,
-  // stacked vertically by lane — no column-splitting.
+  // Column-split layout: overlapping events placed side-by-side, each at its actual time position.
+  // Conflict detection uses VISUAL_MIN_MIN so very short events don't visually collide.
   const sorted = [...items].sort((a, b) => {
     if (a.startMin !== b.startMin) return a.startMin - b.startMin;
     return b.duration - a.duration;
@@ -226,8 +226,17 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
         col++;
       }
     });
+    const totalCols = columns.length;
     evs.forEach(it => {
-      positioned.push({ ...it, _lane: eventColumn.get(it.id), _totalLanes: columns.length });
+      const myCol = eventColumn.get(it.id);
+      const end = visualEnd(it);
+      let span = 1;
+      for (let c = myCol + 1; c < totalCols; c++) {
+        const conflict = (columns[c] || []).some(o => !(o.end <= it.startMin || o.startMin >= end));
+        if (conflict) break;
+        span++;
+      }
+      positioned.push({ ...it, _col: myCol, _colspan: span, _totalCols: totalCols });
     });
   });
 
@@ -307,10 +316,12 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
       )}
       {/* Items */}
       {positioned.map(it => {
-        const lane = it._lane || 0;
-        const LANE_OFFSET = Math.round(VISUAL_MIN_MIN / 60 * HOUR_HEIGHT); // ~22px at 64px/hr
-        const top = minToY(it.startMin) + lane * LANE_OFFSET;
+        const top = minToY(it.startMin);
         const height = Math.max(20, it.duration / 60 * HOUR_HEIGHT - 2);
+        const totalCols = it._totalCols || 1;
+        const colWidth = (100 - 8) / totalCols;
+        const leftPct = (it._col || 0) * colWidth;
+        const widthPct = colWidth * (it._colspan || 1);
         const stripeColor = it.kind === 'routine'
           ? ((CATS[it.category] || CATS.supplement).color)
           : (it.color || 'var(--primary)');
@@ -346,9 +357,8 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
             onClick={(e) => { e.stopPropagation(); onItemClick(it); }}
             style={{
               top, height,
-              left: 'calc(64px + 2px)',
-              width: 'calc(100% - 68px)',
-              zIndex: lane + 1,
+              left: `calc(64px + ${leftPct}% - ${64 * leftPct / 100}px + 2px)`,
+              width: `calc(${widthPct}% - 4px)`,
               background: it.completed ? 'var(--bg-card-deep)' : stripeColor,
             }}
             title={`${it.title} · ${timeLabel}`}

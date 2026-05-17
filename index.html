@@ -681,6 +681,7 @@
       display: flex;
       flex-direction: column;
       gap: 1px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
     }
     .cal-item:hover { filter: brightness(0.92); z-index: 4; }
     /* Solid-color blocks: white text on the category color */
@@ -2336,6 +2337,7 @@
       display: flex;
       flex-direction: column;
       gap: 1px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
       transition:
         transform var(--duration-fast) var(--ease-out),
         filter var(--duration-fast) var(--ease-out);
@@ -2345,7 +2347,7 @@
       z-index: 4;
     }
     .today-cal-block.is-completed { filter: saturate(0.5); }
-    .today-cal-block.is-now { box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 4px var(--primary); }
+    .today-cal-block.is-now { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22), 0 0 0 2px var(--bg-card), 0 0 0 4px var(--primary); }
     /* Title is the hero — sits on top, white, medium weight */
     .today-cal-block-title {
       font-size: 13px;

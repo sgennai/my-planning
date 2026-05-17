@@ -1049,7 +1049,10 @@ function CalItem({ item, date, hourHeight, projects, onBlockClick, onRoutineClic
   const isShort = !isTiny && rawHeight < 50;
 
   const lane = item._lane || 0;
-  const laneOffset = Math.round(22 / 60 * hourHeight); // ~20px at 56px/hr, ~29px at 80px/hr
+  const totalLanes = item._totalLanes || 1;
+  const colspan = item._colspan || 1;
+  const widthPct = (100 / totalLanes) * colspan;
+  const leftPct = (100 / totalLanes) * lane;
 
   const endMin = startMin + effectiveDuration;
   const endStr = `${pad(Math.floor(endMin / 60))}:${pad(endMin % 60)}`;
@@ -1185,11 +1188,10 @@ function CalItem({ item, date, hourHeight, projects, onBlockClick, onRoutineClic
       title={tooltipParts.join('\n')}
       onClick={onClick}
       style={{
-        top: top + lane * laneOffset,
+        top,
         height,
-        left: '2px',
-        width: 'calc(100% - 4px)',
-        zIndex: lane + 1,
+        left: `calc(${leftPct}% + 2px)`,
+        width: `calc(${widthPct}% - 4px)`,
         background: item._completed
           ? '#7EB8A4'
           : (isHexColor ? blockColor : style.color),
