@@ -2344,7 +2344,7 @@
       filter: brightness(0.92);
       z-index: 4;
     }
-    .today-cal-block.is-completed { opacity: 0.55; }
+    .today-cal-block.is-completed { filter: saturate(0.5); }
     .today-cal-block.is-now { box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 4px var(--primary); }
     /* Title is the hero — sits on top, white, medium weight */
     .today-cal-block-title {
@@ -2456,8 +2456,8 @@
     }
     .today-timeline-row { position: relative; }
     .today-timeline-row.is-past { opacity: 0.6; filter: saturate(0.65); }
-    .today-cal-block.is-past { opacity: 0.6; filter: saturate(0.6); }
-    .cal-item.is-past { opacity: 0.55; filter: saturate(0.55); }
+    .today-cal-block.is-past { filter: saturate(0.55); }
+    .cal-item.is-past { filter: saturate(0.55); }
     .today-timeline-row.is-completed { opacity: 0.55; }
     .today-timeline-time {
       flex-shrink: 0;

@@ -187,16 +187,13 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
   const nowY = minToY(nowMin);
   const inWindow = isToday && nowMin >= HOUR_START * 60 && nowMin < HOUR_END * 60;
 
-  // Google-style packing algorithm:
-  // 1. Cluster events that transitively overlap.
-  // 2. Within a cluster, assign each event to the leftmost column where it doesn't conflict.
-  // 3. Width = column count to the right that the event can extend through without conflict.
+  // Lane-stacking (Google/Apple style): overlapping events get full width,
+  // stacked vertically by lane — no column-splitting.
   const sorted = [...items].sort((a, b) => {
     if (a.startMin !== b.startMin) return a.startMin - b.startMin;
-    return (b.duration - (b.startMin)) - (a.duration - (a.startMin)); // longer first when ties
+    return b.duration - a.duration;
   });
 
-  // Build clusters using visual end (accounts for 20px minimum block height)
   const visualEnd = (it) => it.startMin + Math.max(it.duration, VISUAL_MIN_MIN);
   const clusters = [];
   sorted.forEach(it => {
@@ -213,8 +210,7 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
   const positioned = [];
   clusters.forEach(cluster => {
     const evs = cluster.events;
-    // Assign each event to a column (lane) using leftmost-fit
-    const columns = []; // each column: array of {startMin, end}
+    const columns = [];
     const eventColumn = new Map();
     evs.forEach(it => {
       const end = visualEnd(it);
@@ -230,23 +226,8 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
         col++;
       }
     });
-    const totalCols = columns.length;
-    // For each event, find max colspan (how far right it can extend without conflict)
     evs.forEach(it => {
-      const myCol = eventColumn.get(it.id);
-      const end = visualEnd(it);
-      let span = 1;
-      for (let c = myCol + 1; c < totalCols; c++) {
-        const conflict = (columns[c] || []).some(o => !(o.end <= it.startMin || o.startMin >= end));
-        if (conflict) break;
-        span++;
-      }
-      positioned.push({
-        ...it,
-        _col: myCol,
-        _colspan: span,
-        _totalCols: totalCols,
-      });
+      positioned.push({ ...it, _lane: eventColumn.get(it.id), _totalLanes: columns.length });
     });
   });
 
@@ -326,12 +307,10 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
       )}
       {/* Items */}
       {positioned.map(it => {
-        const top = minToY(it.startMin);
+        const lane = it._lane || 0;
+        const LANE_OFFSET = Math.round(VISUAL_MIN_MIN / 60 * HOUR_HEIGHT); // ~22px at 64px/hr
+        const top = minToY(it.startMin) + lane * LANE_OFFSET;
         const height = Math.max(20, it.duration / 60 * HOUR_HEIGHT - 2);
-        const totalCols = it._totalCols;
-        const colWidth = (100 - 8) / totalCols; // wider right gutter so blocks don't kiss the edge
-        const leftPct = it._col * colWidth;
-        const widthPct = colWidth * it._colspan;
         const stripeColor = it.kind === 'routine'
           ? ((CATS[it.category] || CATS.supplement).color)
           : (it.color || 'var(--primary)');
@@ -367,8 +346,9 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
             onClick={(e) => { e.stopPropagation(); onItemClick(it); }}
             style={{
               top, height,
-              left: `calc(64px + ${leftPct}% - ${64 * leftPct / 100}px + 2px)`,
-              width: `calc(${widthPct}% - 4px)`,
+              left: 'calc(64px + 2px)',
+              width: 'calc(100% - 68px)',
+              zIndex: lane + 1,
               background: it.completed ? 'var(--bg-card-deep)' : stripeColor,
             }}
             title={`${it.title} · ${timeLabel}`}
