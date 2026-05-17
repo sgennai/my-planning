@@ -730,26 +730,36 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   }, [menuOpen]);
 
   const todoistToken = (data.todoist || {}).token || '';
-  const todoistFilter = (data.todoist || {}).filter || '';
+  const todoistProjectId = (data.todoist || {}).projectId || '';
+  const todoistDaysAhead = (data.todoist || {}).daysAhead != null ? (data.todoist || {}).daysAhead : 7;
   const todoistSlots = data.todoistSlots || _EMPTY_OBJ;
 
   const todoistProxyBase = calendarSettings.proxyUrl ? `${calendarSettings.proxyUrl.replace(/\/+$/, '')}/todoist` : null;
 
   React.useEffect(() => {
-    if (!todoistToken || !todoistFilter || !todoistProxyBase) { setTodoistTasks([]); setTodoistError(null); return; }
+    if (!todoistToken || !todoistProjectId || !todoistProxyBase) { setTodoistTasks([]); setTodoistError(null); return; }
     let cancelled = false;
     const fetchTasks = async () => {
       setTodoistLoading(true);
       try {
-        const res = await fetch(`${todoistProxyBase}/tasks?filter=${encodeURIComponent(todoistFilter)}`, {
+        const res = await fetch(`${todoistProxyBase}/tasks?project_id=${todoistProjectId}`, {
           headers: { 'X-Todoist-Token': todoistToken },
         });
         if (!res.ok) {
           const body = await res.text().catch(() => '');
-          throw new Error(`HTTP ${res.status}${body ? ': ' + body.slice(0, 120) : ''}`);
+          throw new Error(`HTTP ${res.status}${body ? ': ' + body.slice(0, 200) : ''}`);
         }
         const tasks = await res.json();
-        if (!cancelled) { setTodoistTasks(tasks.filter(t => !t.is_completed)); setTodoistError(null); }
+        const today = startOfDay(new Date());
+        const cutoff = todoistDaysAhead > 0 ? new Date(today.getTime() + todoistDaysAhead * 24 * 60 * 60 * 1000) : null;
+        const filtered = tasks.filter(t => {
+          if (t.is_completed) return false;
+          if (!cutoff) return true;
+          if (!t.due) return false; // no due date: skip when days filter is active
+          const due = startOfDay(new Date(t.due.date));
+          return due <= cutoff;
+        });
+        if (!cancelled) { setTodoistTasks(filtered); setTodoistError(null); }
       } catch (err) {
         console.error('Todoist fetch error:', err);
         if (!cancelled) setTodoistError(err.message || 'Could not load Todoist tasks');
@@ -760,7 +770,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     fetchTasks();
     const interval = setInterval(fetchTasks, 5 * 60 * 1000);
     return () => { cancelled = true; clearInterval(interval); };
-  }, [todoistToken, todoistFilter, todoistProxyBase]);
+  }, [todoistToken, todoistProjectId, todoistDaysAhead, todoistProxyBase]);
 
   const onTodoRailDragStart = (e, todo) => {
     if (todo.done) { e.preventDefault(); return; }
@@ -896,7 +906,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
               </>
             )}
           </div>
-          {todoistToken && todoistFilter && (
+          {todoistToken && todoistProjectId && (
             <div className="today-rail-section">
               <div className="today-rail-header">
                 <div className="today-rail-eyebrow">Todoist</div>

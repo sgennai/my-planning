@@ -601,7 +601,8 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
   const [labelInput, setLabelInput] = useState(weather && weather.label ? weather.label : '');
   const [todoistToken, setTodoistToken] = useState((todoist && todoist.token) || '');
   const [showToken, setShowToken] = useState(false);
-  const [todoistFilter, setTodoistFilter] = useState((todoist && todoist.filter) || '');
+  const [todoistProjectId, setTodoistProjectId] = useState((todoist && todoist.projectId) || '');
+  const [todoistDaysAhead, setTodoistDaysAhead] = useState((todoist && todoist.daysAhead != null) ? String(todoist.daysAhead) : '7');
 
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) onClose();
@@ -866,23 +867,40 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
                 <span>{showToken ? 'Hide' : 'Show'}</span>
               </button>
             </div>
-            <div className="routine-form-label" style={{ marginBottom: 6 }}>Filter</div>
-            <input
-              type="text"
-              className="settings-input"
-              value={todoistFilter}
-              placeholder="e.g. #PERSO & next 5 days"
-              onChange={e => setTodoistFilter(e.target.value)}
-            />
-            <div className="settings-field-hint" style={{ marginTop: 6 }}>
-              Uses Todoist filter syntax. Examples: <code>today</code>, <code>next 7 days</code>, <code>#ProjectName & next 5 days</code>, <code>overdue | today</code>.
+            <div className="routine-form-grid">
+              <div className="routine-form-row">
+                <div className="routine-form-label" style={{ marginBottom: 6 }}>Project ID</div>
+                <input
+                  type="text"
+                  className="settings-input"
+                  style={{ fontFamily: 'var(--mono)' }}
+                  value={todoistProjectId}
+                  placeholder="e.g. 2203306141"
+                  onChange={e => setTodoistProjectId(e.target.value)}
+                />
+                <div className="settings-field-hint" style={{ marginTop: 5 }}>
+                  Open the project in Todoist on the web — the ID is the number at the end of the URL (e.g. todoist.com/app/project/2203306141).
+                </div>
+              </div>
+              <div className="routine-form-row half" style={{ marginTop: 8 }}>
+                <div className="routine-form-label" style={{ marginBottom: 6 }}>Days ahead (0 = all)</div>
+                <input
+                  type="number"
+                  className="settings-input"
+                  style={{ fontFamily: 'var(--mono)' }}
+                  value={todoistDaysAhead}
+                  min="0" max="365"
+                  onChange={e => setTodoistDaysAhead(e.target.value)}
+                />
+              </div>
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
               <button
                 className="modal-btn primary"
-                disabled={!todoistToken.trim() || !todoistFilter.trim()}
+                disabled={!todoistToken.trim() || !todoistProjectId.trim()}
                 onClick={() => {
-                  onUpdateTodoist({ token: todoistToken.trim(), filter: todoistFilter.trim() });
+                  const days = parseInt(todoistDaysAhead, 10);
+                  onUpdateTodoist({ token: todoistToken.trim(), projectId: todoistProjectId.trim(), daysAhead: isNaN(days) ? 7 : days });
                   onClose();
                 }}
               >
@@ -894,9 +912,9 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
                   style={{ color: 'var(--coral)', borderColor: 'var(--coral)' }}
                   onClick={() => {
                     if (confirm('Disconnect Todoist?')) {
-                      onUpdateTodoist({ token: '', filter: '' });
+                      onUpdateTodoist({ token: '', projectId: '', daysAhead: 7 });
                       setTodoistToken('');
-                      setTodoistFilter('');
+                      setTodoistProjectId('');
                     }
                   }}
                 >
