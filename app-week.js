@@ -298,7 +298,6 @@ function ProjectsRailPanel({ projects, scheduledBlocks, onCompleteAction, onAddA
       <div className="today-rail-header">
         <div className="today-rail-eyebrow">Projects</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-          <div className="today-rail-count">{railProjects.length}</div>
           <button className="rail-section-toggle" onClick={() => setSectionExpanded(v => !v)} aria-label={sectionExpanded ? 'Collapse projects' : 'Expand projects'}>
             <span className={`rail-section-toggle-icon${sectionExpanded ? '' : ' collapsed'}`}>⌄</span>
           </button>
