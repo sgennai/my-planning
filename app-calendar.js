@@ -927,8 +927,8 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                   <option value="14">14 days</option>
                   <option value="30">30 days</option>
                 </select>
-                <button className="rail-section-toggle" onClick={() => setTodoistRefreshTick(v => v + 1)} disabled={todoistLoading} title="Refresh Todoist" style={{ opacity: todoistLoading ? 0.4 : 1 }}>
-                  <span style={{ display: 'inline-block', fontSize: 14 }}>↻</span>
+                <button className="rail-section-toggle" onClick={() => setTodoistRefreshTick(v => v + 1)} disabled={todoistLoading} title="Refresh Todoist" style={{ opacity: todoistLoading ? 0.3 : 0.45, fontSize: 10 }}>
+                  ↻
                 </button>
               </div>
             )}
