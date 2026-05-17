@@ -837,7 +837,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
       aria-label={railCollapsed ? 'Expand rail' : 'Collapse rail'}
       title={railCollapsed ? 'Expand' : 'Collapse'}
     >
-      {railCollapsed ? '›' : '‹'}
+      {railCollapsed ? '»' : '«'}
     </button>
 
     {/* ── FIXED APP TOPBAR ── */}
