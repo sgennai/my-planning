@@ -610,14 +610,18 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
   const fetchTodoistProjects = async () => {
     const token = todoistToken.trim();
     const base = proxyUrl.trim().replace(/\/+$/, '');
-    if (!token || !base) return;
+    if (!token || !base) { setTodoistProjectsError('Proxy URL and token are required.'); return; }
     setTodoistProjectsLoading(true);
     setTodoistProjectsError(null);
     try {
       const res = await fetch(`${base}/todoist/projects`, { headers: { 'X-Todoist-Token': token } });
       const body = await res.text();
-      if (!res.ok) throw new Error(`HTTP ${res.status}: ${body.slice(0, 120)}`);
-      setTodoistProjects(JSON.parse(body));
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${body.slice(0, 200)}`);
+      const parsed = JSON.parse(body);
+      // API v1 returns {results:[...]} (paginated); REST v2 returned a plain array
+      const list = Array.isArray(parsed) ? parsed : (parsed.results || parsed.projects || parsed.items || []);
+      if (list.length === 0) throw new Error('No projects returned. Raw: ' + body.slice(0, 120));
+      setTodoistProjects(list);
     } catch (err) {
       setTodoistProjectsError(err.message);
     } finally {
@@ -895,7 +899,7 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
                   <button
                     className="modal-btn"
                     style={{ padding: '2px 10px', fontSize: 12 }}
-                    disabled={!todoistToken.trim() || !proxyUrl.trim() || todoistProjectsLoading}
+                    disabled={!todoistToken.trim() || todoistProjectsLoading}
                     onClick={fetchTodoistProjects}
                   >
                     <span>{todoistProjectsLoading ? 'Fetching…' : 'Fetch projects'}</span>
