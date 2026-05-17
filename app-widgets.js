@@ -602,6 +602,7 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
   const [todoistToken, setTodoistToken] = useState((todoist && todoist.token) || '');
   const [showToken, setShowToken] = useState(false);
   const [todoistProjectId, setTodoistProjectId] = useState((todoist && todoist.projectId) || '');
+  const [todoistProjectName, setTodoistProjectName] = useState((todoist && todoist.projectName) || '');
   const [todoistDaysAhead, setTodoistDaysAhead] = useState((todoist && todoist.daysAhead != null) ? String(todoist.daysAhead) : '7');
   const [todoistProjects, setTodoistProjects] = useState([]);
   const [todoistProjectsLoading, setTodoistProjectsLoading] = useState(false);
@@ -909,7 +910,7 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
                   <select
                     className="settings-input"
                     value={todoistProjectId}
-                    onChange={e => setTodoistProjectId(e.target.value)}
+                    onChange={e => { const p = todoistProjects.find(p => p.id === e.target.value); setTodoistProjectId(e.target.value); setTodoistProjectName(p ? p.name : ''); }}
                   >
                     <option value="">— pick a project —</option>
                     {todoistProjects.map(p => (
@@ -948,7 +949,7 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
                 disabled={!todoistToken.trim() || !todoistProjectId.trim()}
                 onClick={() => {
                   const days = parseInt(todoistDaysAhead, 10);
-                  onUpdateTodoist({ token: todoistToken.trim(), projectId: todoistProjectId.trim(), daysAhead: isNaN(days) ? 7 : days });
+                  onUpdateTodoist({ token: todoistToken.trim(), projectId: todoistProjectId.trim(), projectName: todoistProjectName.trim(), daysAhead: isNaN(days) ? 7 : days });
                   onClose();
                 }}
               >

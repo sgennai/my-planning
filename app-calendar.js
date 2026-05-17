@@ -735,6 +735,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
 
   const todoistToken = (data.todoist || {}).token || '';
   const todoistProjectId = (data.todoist || {}).projectId || '';
+  const todoistProjectName = (data.todoist || {}).projectName || '';
   const todoistDaysAhead = (data.todoist || {}).daysAhead != null ? (data.todoist || {}).daysAhead : 7;
   const todoistSlots = data.todoistSlots || _EMPTY_OBJ;
 
@@ -879,17 +880,29 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
           />
           <div className="today-rail-section">
             <div className="today-rail-header">
-              <div className="today-rail-eyebrow">Todos</div>
+              <div>
+                <div className="today-rail-eyebrow">Todos</div>
+                {todoistProjectName && (
+                  <div style={{ fontSize: 10, color: 'var(--muted-4)', fontFamily: 'var(--mono)', lineHeight: 1.2, marginTop: 1 }}>{todoistProjectName}</div>
+                )}
+              </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                <div className="today-rail-count">{todos.filter(t => !t.done).length + todoistTasks.length} open</div>
                 {todoistToken && todoistProjectId && (
-                  <button
-                    className="rail-section-toggle"
-                    onClick={() => setTodoistRefreshTick(v => v + 1)}
-                    disabled={todoistLoading}
-                    title="Refresh Todoist"
-                    style={{ opacity: todoistLoading ? 0.4 : 1 }}
+                  <select
+                    style={{ background: 'transparent', border: 'none', outline: 'none', color: 'var(--muted-3)', fontSize: 10, fontFamily: 'var(--mono)', cursor: 'pointer', padding: 0 }}
+                    value={String(todoistDaysAhead)}
+                    onChange={e => updateTodoistSettings({ daysAhead: Number(e.target.value) })}
                   >
+                    <option value="0">All</option>
+                    <option value="1">Today</option>
+                    <option value="3">3 days</option>
+                    <option value="7">7 days</option>
+                    <option value="14">14 days</option>
+                    <option value="30">30 days</option>
+                  </select>
+                )}
+                {todoistToken && todoistProjectId && (
+                  <button className="rail-section-toggle" onClick={() => setTodoistRefreshTick(v => v + 1)} disabled={todoistLoading} title="Refresh Todoist" style={{ opacity: todoistLoading ? 0.4 : 1 }}>
                     <span style={{ display: 'inline-block', fontSize: 14 }}>↻</span>
                   </button>
                 )}
