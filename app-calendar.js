@@ -900,36 +900,47 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
             </div>
             {todosExpanded && (
               <>
-                <div className="today-todo-add">
+                <div className="today-todo-add" style={todoistProxyBase ? { display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' } : undefined}>
                   <input
                     type="text"
                     className="today-todo-add-input"
-                    placeholder={todoistProxyBase ? '+ add to Todoist…' : '+ add todo, Enter to save'}
+                    style={todoistProxyBase ? { flex: 1, minWidth: 0 } : undefined}
+                    placeholder={todoistProxyBase ? '+ add task…' : '+ add todo, Enter to save'}
                     value={todoInput}
                     onChange={e => setTodoInput(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        if (todoistProxyBase) { if (todoistDueRef.current) todoistDueRef.current.focus(); }
-                        else submitTodo();
-                      }
-                    }}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); todoistProxyBase ? submitTodoistTask() : submitTodo(); } }}
                   />
-                  {todoistProxyBase && (
-                    <input
-                      ref={todoistDueRef}
-                      type="text"
-                      className="today-todo-add-input"
-                      style={{ marginTop: 4 }}
-                      placeholder="Due: today / tomorrow / friday…"
-                      value={todoistDueInput}
-                      onChange={e => setTodoistDueInput(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); submitTodoistTask(); } }}
-                    />
-                  )}
-                  {todoistAddError && (
-                    <div style={{ fontSize: 11, color: 'var(--coral)', padding: '4px 4px 0' }}>{todoistAddError}</div>
-                  )}
+                  {todoistProxyBase && (<>
+                    <div style={{ position: 'relative', flexShrink: 0 }}>
+                      <input
+                        ref={todoistDueRef}
+                        type="date"
+                        style={{ position: 'absolute', bottom: 0, left: 0, opacity: 0, pointerEvents: 'none', width: '100%', height: '100%' }}
+                        value={todoistDueInput}
+                        onChange={e => setTodoistDueInput(e.target.value)}
+                      />
+                      <button
+                        className="today-todo-slot-btn"
+                        style={{ position: 'relative', zIndex: 1, minWidth: 28, fontFamily: 'var(--mono)', fontSize: 10, color: todoistDueInput ? 'var(--primary)' : undefined, borderColor: todoistDueInput ? 'var(--primary)' : undefined }}
+                        title="Pick due date"
+                        onClick={() => todoistDueRef.current?.showPicker?.()}
+                      >
+                        {todoistDueInput ? (() => { const d = new Date(todoistDueInput + 'T00:00:00'); return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); })() : (
+                          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><rect x="1" y="2.5" width="14" height="12.5" rx="2"/><line x1="1" y1="7" x2="15" y2="7"/><line x1="5" y1="0" x2="5" y2="5"/><line x1="11" y1="0" x2="11" y2="5"/></svg>
+                        )}
+                      </button>
+                    </div>
+                    <button
+                      className="today-todo-slot-btn"
+                      style={{ flexShrink: 0, color: todoInput.trim() ? 'var(--primary)' : undefined, borderColor: todoInput.trim() ? 'var(--primary)' : undefined }}
+                      disabled={!todoInput.trim()}
+                      title="Add task to Todoist"
+                      onClick={submitTodoistTask}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="2" y1="8" x2="13" y2="8"/><polyline points="9 4 13 8 9 12"/></svg>
+                    </button>
+                    {todoistAddError && <div style={{ fontSize: 11, color: 'var(--coral)', padding: '2px 2px 0', width: '100%' }}>{todoistAddError}</div>}
+                  </>)}
                 </div>
                 <div className="today-rail-list">
                   {sortedTodos.length === 0 && todoistTasks.length === 0 ? (
