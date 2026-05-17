@@ -3146,28 +3146,31 @@
       flex-shrink: 0;
     }
     .today-todo-slots-group {
+      position: relative;
       display: flex;
       align-items: center;
+      justify-content: center;
     }
     .today-todo-slots-dot {
+      position: absolute;
       font-size: 10px;
       font-family: var(--mono);
       color: var(--muted-4);
-      padding: 2px 4px;
-      min-width: 20px;
       text-align: center;
       cursor: default;
+      pointer-events: none;
     }
     .today-todo-slots-dot.has-slot {
       color: #16a34a;
       font-weight: 700;
     }
     .today-todo-slots-choices {
-      display: none;
+      display: flex;
       gap: 3px;
+      visibility: hidden;
     }
     .today-todo-slots-group:hover .today-todo-slots-dot { display: none; }
-    .today-todo-slots-group:hover .today-todo-slots-choices { display: flex; }
+    .today-todo-slots-group:hover .today-todo-slots-choices { visibility: visible; }
     .today-todo-slot-btn {
       font-size: 10px;
       font-family: var(--mono);
