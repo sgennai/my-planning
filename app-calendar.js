@@ -744,11 +744,15 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         const res = await fetch(`${todoistProxyBase}/tasks?filter=${encodeURIComponent(todoistFilter)}`, {
           headers: { 'X-Todoist-Token': todoistToken },
         });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) {
+          const body = await res.text().catch(() => '');
+          throw new Error(`HTTP ${res.status}${body ? ': ' + body.slice(0, 120) : ''}`);
+        }
         const tasks = await res.json();
         if (!cancelled) { setTodoistTasks(tasks.filter(t => !t.is_completed)); setTodoistError(null); }
       } catch (err) {
-        if (!cancelled) setTodoistError('Could not load Todoist tasks');
+        console.error('Todoist fetch error:', err);
+        if (!cancelled) setTodoistError(err.message || 'Could not load Todoist tasks');
       } finally {
         if (!cancelled) setTodoistLoading(false);
       }
