@@ -908,37 +908,30 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
           />
           <div className="today-rail-section">
             <div className="today-rail-header">
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
-                <div className="today-rail-eyebrow">Todos</div>
-                {(todos.filter(t => !t.done).length + todoistTasks.length) > 0 && (
-                  <span style={{ fontSize: 11, color: 'var(--muted-4)', fontFamily: 'var(--mono)' }}>({todos.filter(t => !t.done).length + todoistTasks.length})</span>
-                )}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                {todoistToken && todoistProjectId && (
-                  <select
-                    style={{ background: 'var(--bg-hover)', border: 'none', outline: 'none', color: 'var(--muted-3)', fontSize: 10, fontFamily: 'var(--mono)', cursor: 'pointer', padding: '2px 6px', borderRadius: 20 }}
-                    value={String(todoistDaysAhead)}
-                    onChange={e => updateTodoistSettings({ daysAhead: Number(e.target.value) })}
-                  >
-                    <option value="0">All</option>
-                    <option value="1">Today</option>
-                    <option value="3">3 days</option>
-                    <option value="7">7 days</option>
-                    <option value="14">14 days</option>
-                    <option value="30">30 days</option>
-                  </select>
-                )}
-                {todoistToken && todoistProjectId && (
-                  <button className="rail-section-toggle" onClick={() => setTodoistRefreshTick(v => v + 1)} disabled={todoistLoading} title="Refresh Todoist" style={{ opacity: todoistLoading ? 0.4 : 1 }}>
-                    <span style={{ display: 'inline-block', fontSize: 14 }}>↻</span>
-                  </button>
-                )}
-                <button className="rail-section-toggle" onClick={() => setTodosExpanded(v => !v)} aria-label={todosExpanded ? 'Collapse todos' : 'Expand todos'}>
-                  <span className={`rail-section-toggle-icon${todosExpanded ? '' : ' collapsed'}`}>⌄</span>
+              <div className="today-rail-eyebrow">Todos</div>
+              <button className="rail-section-toggle" onClick={() => setTodosExpanded(v => !v)} aria-label={todosExpanded ? 'Collapse todos' : 'Expand todos'}>
+                <span className={`rail-section-toggle-icon${todosExpanded ? '' : ' collapsed'}`}>⌄</span>
+              </button>
+            </div>
+            {todoistToken && todoistProjectId && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 var(--space-4) 8px' }}>
+                <select
+                  style={{ flex: 1, background: 'var(--bg-hover)', border: 'none', outline: 'none', color: 'var(--muted-3)', fontSize: 10, fontFamily: 'var(--mono)', cursor: 'pointer', padding: '2px 6px', borderRadius: 20 }}
+                  value={String(todoistDaysAhead)}
+                  onChange={e => updateTodoistSettings({ daysAhead: Number(e.target.value) })}
+                >
+                  <option value="0">All</option>
+                  <option value="1">Today</option>
+                  <option value="3">3 days</option>
+                  <option value="7">7 days</option>
+                  <option value="14">14 days</option>
+                  <option value="30">30 days</option>
+                </select>
+                <button className="rail-section-toggle" onClick={() => setTodoistRefreshTick(v => v + 1)} disabled={todoistLoading} title="Refresh Todoist" style={{ opacity: todoistLoading ? 0.4 : 1 }}>
+                  <span style={{ display: 'inline-block', fontSize: 14 }}>↻</span>
                 </button>
               </div>
-            </div>
+            )}
             {todosExpanded && (
               <>
                 <div className="today-todo-add" style={todoistProxyBase ? { alignItems: 'center', paddingRight: 4 } : undefined}>
@@ -962,7 +955,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                       />
                       <button
                         className="rail-section-toggle"
-                        style={{ position: 'relative', zIndex: 1, width: todoistDueInput ? 'auto' : 22, padding: todoistDueInput ? '0 5px' : 0, color: todoistDueInput ? 'var(--primary)' : undefined, fontFamily: 'var(--mono)', fontSize: 10 }}
+                        style={{ position: 'relative', zIndex: 1, width: todoistDueInput ? 'auto' : 22, padding: todoistDueInput ? '0 5px' : 0, color: todoistDueInput ? 'rgba(99,102,241,0.9)' : undefined, fontFamily: 'var(--mono)', fontSize: 10 }}
                         title="Pick due date"
                         onClick={() => todoistDueRef.current?.showPicker?.()}
                       >
@@ -973,7 +966,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                     </div>
                     <button
                       className="rail-section-toggle"
-                      style={{ color: todoInput.trim() ? 'var(--primary)' : undefined }}
+                      style={{ color: todoInput.trim() ? 'rgba(99,102,241,0.9)' : undefined }}
                       disabled={!todoInput.trim()}
                       title="Add task to Todoist"
                       onClick={submitTodoistTask}
