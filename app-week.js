@@ -311,7 +311,7 @@ function ProjectsRailPanel({ projects, scheduledBlocks, onCompleteAction, onAddA
           return (
             <div key={p.id} className={`today-project-chip ${isCollapsed ? 'collapsed' : ''}`} style={{ '--card-accent': p.color || 'var(--primary)' }}>
               <div className="today-project-chip-header" onClick={() => toggleCollapse(p.id)}>
-                <span className={`today-project-chip-chevron ${isCollapsed ? 'collapsed' : ''}`}>▾</span>
+                <span className="today-project-chip-dot" style={{ background: p.color || 'var(--primary)' }} />
                 <div className="today-project-chip-name" title={p.name}>{p.name.replace('APP - ', '')}</div>
                 <div className="today-project-chip-tier">T{p.tier}</div>
               </div>
