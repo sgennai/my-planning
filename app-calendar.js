@@ -900,11 +900,11 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
             </div>
             {todosExpanded && (
               <>
-                <div className="today-todo-add" style={todoistProxyBase ? { display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' } : undefined}>
+                <div className="today-todo-add" style={todoistProxyBase ? { alignItems: 'center', paddingRight: 4 } : undefined}>
                   <input
                     type="text"
                     className="today-todo-add-input"
-                    style={todoistProxyBase ? { flex: 1, minWidth: 0 } : undefined}
+                    style={todoistProxyBase ? { minWidth: 0 } : undefined}
                     placeholder={todoistProxyBase ? '+ add task…' : '+ add todo, Enter to save'}
                     value={todoInput}
                     onChange={e => setTodoInput(e.target.value)}
@@ -920,8 +920,8 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                         onChange={e => setTodoistDueInput(e.target.value)}
                       />
                       <button
-                        className="today-todo-slot-btn"
-                        style={{ position: 'relative', zIndex: 1, minWidth: 28, fontFamily: 'var(--mono)', fontSize: 10, color: todoistDueInput ? 'var(--primary)' : undefined, borderColor: todoistDueInput ? 'var(--primary)' : undefined }}
+                        className="rail-section-toggle"
+                        style={{ position: 'relative', zIndex: 1, width: todoistDueInput ? 'auto' : 22, padding: todoistDueInput ? '0 5px' : 0, color: todoistDueInput ? 'var(--primary)' : undefined, fontFamily: 'var(--mono)', fontSize: 10 }}
                         title="Pick due date"
                         onClick={() => todoistDueRef.current?.showPicker?.()}
                       >
@@ -931,15 +931,15 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                       </button>
                     </div>
                     <button
-                      className="today-todo-slot-btn"
-                      style={{ flexShrink: 0, color: todoInput.trim() ? 'var(--primary)' : undefined, borderColor: todoInput.trim() ? 'var(--primary)' : undefined }}
+                      className="rail-section-toggle"
+                      style={{ color: todoInput.trim() ? 'var(--primary)' : undefined }}
                       disabled={!todoInput.trim()}
                       title="Add task to Todoist"
                       onClick={submitTodoistTask}
                     >
                       <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="2" y1="8" x2="13" y2="8"/><polyline points="9 4 13 8 9 12"/></svg>
                     </button>
-                    {todoistAddError && <div style={{ fontSize: 11, color: 'var(--coral)', padding: '2px 2px 0', width: '100%' }}>{todoistAddError}</div>}
+                    {todoistAddError && <div style={{ fontSize: 11, color: 'var(--coral)', padding: '2px 4px 0', width: '100%' }}>{todoistAddError}</div>}
                   </>)}
                 </div>
                 <div className="today-rail-list">
