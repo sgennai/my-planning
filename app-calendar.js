@@ -916,7 +916,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
             {todoistToken && todoistProjectId && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 var(--space-4) 8px' }}>
                 <select
-                  style={{ flex: 1, background: 'var(--bg-hover)', border: 'none', outline: 'none', color: 'var(--muted-3)', fontSize: 10, fontFamily: 'var(--mono)', cursor: 'pointer', padding: '2px 6px', borderRadius: 20 }}
+                  style={{ width: `${({ 0:'All',1:'Today',3:'3 days',7:'7 days',14:'14 days',30:'30 days' }[todoistDaysAhead] || '7 days').length + 1}ch`, background: 'transparent', border: 'none', outline: 'none', color: 'var(--muted-3)', fontSize: 10, fontFamily: 'var(--mono)', cursor: 'pointer', padding: 0, appearance: 'none', WebkitAppearance: 'none' }}
                   value={String(todoistDaysAhead)}
                   onChange={e => updateTodoistSettings({ daysAhead: Number(e.target.value) })}
                 >
