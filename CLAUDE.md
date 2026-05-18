@@ -110,7 +110,7 @@ The `viewDayOffset` state (today view's day navigation) and `todayItems` computa
 - **3D rail depth effect**: rail casts a right-side `box-shadow`; topbar continues the effect via `box-shadow: inset 14px 0 22px -10px rgba(0,0,0,0.10)` on its left edge.
 - **Grid lines**: `var(--rule)` — `rgba(0,0,0,0.10)` light / `rgba(255,255,255,0.10)` dark. Used for hour lines and day-column separators.
 - **Calendar blocks**: solid color fill, white text, title-first then time-below ("2 – 3pm" 12-hour format), 6px radius.
-- **Past events**: `.is-past` class — `opacity: 0.55–0.6; filter: saturate(0.55–0.65)`. Applied to `.today-timeline-row`, `.today-cal-block`, and `.cal-item`.
+- **Past events**: `.is-past` class — `filter: saturate(0.55–0.65)` only (no opacity). Applied to `.today-timeline-row`, `.today-cal-block`, and `.cal-item`.
 - **Now-line**: 2px blue with soft halo.
 - **Topbar buttons**: `.app-topbar-btn` — pill, same size for all actions.
 - **Weather**: hidden by default (`useState(false)`), toggled via ☁ button in topbar.
@@ -160,6 +160,14 @@ Stephane edits via Claude Code. Deploy: `git add`, `git commit`, `git push` — 
 - ~~Unified Today/Week layout shell~~ COMPLETED
 - ~~Routines inside Settings modal~~ COMPLETED
 - ~~Aurora/glassmorphism redesign~~ COMPLETED — full-height rail, apple-calendar layout, aurora gradient, glass surfaces
+- ~~Rail collapse/expand button~~ COMPLETED — fixed «/» button, transitions on rail width + topbar left
+- ~~Overlapping calendar events~~ COMPLETED — column-split layout (side-by-side, events at actual time position), thin inset border per event
+- ~~Projects rail: remove project count~~ COMPLETED
+- ~~Project chips: remove color bar, replace with colored dot, fix indentation~~ COMPLETED
+- ~~Todos section header: remove counter, isolate title as separator, sub-row for dropdown + refresh~~ COMPLETED
+- ~~Todos dropdown: transparent, auto-sized to selected label (ch units)~~ COMPLETED
+- ~~AM/PM slot buttons: single + that reveals AM/PM on hover, + centered between choices~~ COMPLETED
+- ~~Add-task controls (calendar icon + submit arrow): only show when input is non-empty~~ COMPLETED
 - Persistent Google sign-in
 - Next actions edit mode for Projects Rail (complete/add/archive actions live)
 - Past weekly resets browser

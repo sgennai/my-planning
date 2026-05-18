@@ -28,7 +28,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   const [todoistLoading, setTodoistLoading] = useState(false);
   const [todoistError, setTodoistError] = useState(null);
   const [todoistRefreshTick, setTodoistRefreshTick] = useState(0);
-  const [todoistAddError, setTodoistAddError] = useState(null);
+  const todoistPendingRef = React.useRef([]); // tracks data.todoistPending without adding to effect deps
   // ICS imported events: per-feed parsed events in memory (not synced to Drive)
   // Shape: { work: { events: [...], lastFetched: Date, error: '' }, household: { ... } }
   const [icsCache, setIcsCache] = useState({ work: null, household: null });
@@ -437,6 +437,13 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     }));
   }, [persistData]);
 
+  const deletePendingTask = useCallback((id) => {
+    persistData(d => ({ ...d, todoistPending: (d.todoistPending || []).filter(p => p.id !== id) }));
+  }, [persistData]);
+
+  // Keep ref in sync so the fetch effect can read latest pending without it being a dep
+  React.useEffect(() => { todoistPendingRef.current = data.todoistPending || []; }, [data.todoistPending]);
+
   const completeTodoistTask = useCallback(async (taskId) => {
     const token = (data.todoist || {}).token;
     const proxy = ((data.calendars || {}).proxyUrl || '').replace(/\/+$/, '');
@@ -754,6 +761,8 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     });
   }, [allTodoistTasks, todoistDaysAhead]);
 
+  const todoistPendingTasks = React.useMemo(() => data.todoistPending || [], [data.todoistPending]);
+
   // Backfill project name if missing (e.g. saved before this field existed)
   React.useEffect(() => {
     if (!todoistToken || !todoistProjectId || !todoistProxyBase || todoistProjectName) return;
@@ -772,6 +781,26 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     let cancelled = false;
     const fetchTasks = async () => {
       setTodoistLoading(true);
+      // Flush any pending tasks before fetching — they'll appear in the fetch result on success
+      const pending = todoistPendingRef.current;
+      if (pending.length) {
+        const stillPending = [];
+        for (const p of pending) {
+          try {
+            const payload = { content: p.content, project_id: todoistProjectId };
+            if (p.due_string) payload.due_string = p.due_string;
+            const res = await fetch(`${todoistProxyBase}/tasks`, {
+              method: 'POST',
+              headers: { 'X-Todoist-Token': todoistToken, 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            });
+            if (!res.ok) stillPending.push(p);
+          } catch { stillPending.push(p); }
+        }
+        if (!cancelled && stillPending.length !== pending.length) {
+          persistData(d => ({ ...d, todoistPending: stillPending }));
+        }
+      }
       try {
         const res = await fetch(`${todoistProxyBase}/tasks?project_id=${todoistProjectId}`, {
           headers: { 'X-Todoist-Token': todoistToken },
@@ -801,7 +830,6 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     const dueString = todoistDueInput.trim();
     setTodoInput('');
     setTodoistDueInput('');
-    setTodoistAddError(null);
     try {
       const payload = { content, project_id: todoistProjectId };
       if (dueString) payload.due_string = dueString;
@@ -811,13 +839,20 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         body: JSON.stringify(payload),
       });
       const body = await res.text();
-      if (!res.ok) throw new Error(`HTTP ${res.status}: ${body.slice(0, 100)}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const task = JSON.parse(body);
       setAllTodoistTasks(prev => [task, ...prev]);
-    } catch (err) {
-      setTodoistAddError(err.message);
+    } catch {
+      // API unreachable — save to pending queue, will retry on next fetch cycle
+      persistData(d => ({
+        ...d,
+        todoistPending: [
+          { id: `pending-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, content, due_string: dueString || null, createdAt: new Date().toISOString() },
+          ...(d.todoistPending || []),
+        ],
+      }));
     }
-  }, [todoInput, todoistDueInput, todoistProjectId, todoistProxyBase, todoistToken]);
+  }, [todoInput, todoistDueInput, todoistProjectId, todoistProxyBase, todoistToken, persistData]);
 
   const onTodoRailDragStart = (e, todo) => {
     if (todo.done) { e.preventDefault(); return; }
@@ -945,39 +980,39 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                     onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); todoistProxyBase ? submitTodoistTask() : submitTodo(); } }}
                   />
                   {todoistProxyBase && (<>
-                    <div style={{ position: 'relative', flexShrink: 0 }}>
-                      <input
-                        ref={todoistDueRef}
-                        type="date"
-                        style={{ position: 'absolute', bottom: 0, left: 0, opacity: 0, pointerEvents: 'none', width: '100%', height: '100%' }}
-                        value={todoistDueInput}
-                        onChange={e => setTodoistDueInput(e.target.value)}
-                      />
+                    {todoInput.trim() && (<>
+                      <div style={{ position: 'relative', flexShrink: 0 }}>
+                        <input
+                          ref={todoistDueRef}
+                          type="date"
+                          style={{ position: 'absolute', bottom: 0, left: 0, opacity: 0, pointerEvents: 'none', width: '100%', height: '100%' }}
+                          value={todoistDueInput}
+                          onChange={e => setTodoistDueInput(e.target.value)}
+                        />
+                        <button
+                          className="rail-section-toggle"
+                          style={{ position: 'relative', zIndex: 1, width: todoistDueInput ? 'auto' : 22, padding: todoistDueInput ? '0 5px' : 0, color: todoistDueInput ? 'rgba(99,102,241,0.9)' : undefined, fontFamily: 'var(--mono)', fontSize: 10 }}
+                          title="Pick due date"
+                          onClick={() => todoistDueRef.current?.showPicker?.()}
+                        >
+                          {todoistDueInput ? (() => { const d = new Date(todoistDueInput + 'T00:00:00'); return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); })() : (
+                            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><rect x="1" y="2.5" width="14" height="12.5" rx="2"/><line x1="1" y1="7" x2="15" y2="7"/><line x1="5" y1="0" x2="5" y2="5"/><line x1="11" y1="0" x2="11" y2="5"/></svg>
+                          )}
+                        </button>
+                      </div>
                       <button
                         className="rail-section-toggle"
-                        style={{ position: 'relative', zIndex: 1, width: todoistDueInput ? 'auto' : 22, padding: todoistDueInput ? '0 5px' : 0, color: todoistDueInput ? 'rgba(99,102,241,0.9)' : undefined, fontFamily: 'var(--mono)', fontSize: 10 }}
-                        title="Pick due date"
-                        onClick={() => todoistDueRef.current?.showPicker?.()}
+                        style={{ color: 'rgba(99,102,241,0.9)' }}
+                        title="Add task to Todoist"
+                        onClick={submitTodoistTask}
                       >
-                        {todoistDueInput ? (() => { const d = new Date(todoistDueInput + 'T00:00:00'); return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); })() : (
-                          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><rect x="1" y="2.5" width="14" height="12.5" rx="2"/><line x1="1" y1="7" x2="15" y2="7"/><line x1="5" y1="0" x2="5" y2="5"/><line x1="11" y1="0" x2="11" y2="5"/></svg>
-                        )}
+                        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="2" y1="8" x2="13" y2="8"/><polyline points="9 4 13 8 9 12"/></svg>
                       </button>
-                    </div>
-                    <button
-                      className="rail-section-toggle"
-                      style={{ color: todoInput.trim() ? 'rgba(99,102,241,0.9)' : undefined }}
-                      disabled={!todoInput.trim()}
-                      title="Add task to Todoist"
-                      onClick={submitTodoistTask}
-                    >
-                      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="2" y1="8" x2="13" y2="8"/><polyline points="9 4 13 8 9 12"/></svg>
-                    </button>
-                    {todoistAddError && <div style={{ fontSize: 11, color: 'var(--coral)', padding: '2px 4px 0', width: '100%' }}>{todoistAddError}</div>}
+                    </>)}
                   </>)}
                 </div>
                 <div className="today-rail-list">
-                  {sortedTodos.length === 0 && todoistTasks.length === 0 ? (
+                  {sortedTodos.length === 0 && todoistTasks.length === 0 && todoistPendingTasks.length === 0 ? (
                     <div className="today-rail-empty">{todoistLoading ? 'Loading…' : 'No todos.'}</div>
                   ) : null}
                   {sortedTodos.map(t => (
@@ -1039,6 +1074,13 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                           </div>
                         </div>
                       </div>
+                    </div>
+                  ))}
+                  {todoistPendingTasks.map(t => (
+                    <div key={t.id} className="today-todo-row is-pending" title="Waiting to sync with Todoist">
+                      <span style={{ width: 14, flexShrink: 0, textAlign: 'center', fontSize: 12, color: 'var(--muted-3)' }}>⟳</span>
+                      <div className="today-todo-title">{t.content}</div>
+                      <button className="rail-section-toggle" style={{ marginLeft: 'auto', flexShrink: 0 }} onClick={() => deletePendingTask(t.id)} title="Remove">×</button>
                     </div>
                   ))}
                 </div>
