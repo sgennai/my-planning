@@ -661,7 +661,10 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
     const cache = icsCache[key];
     if (icsRefreshing) return <span className="sm-status loading"><span className="sm-status-dot" /></span>;
     if (!cache) return null;
-    if (cache.error) return <span className="sm-status error"><span className="sm-status-dot" /><span>{cache.error.slice(0, 50)}</span></span>;
+    if (cache.error) {
+      const msg = cache.error.includes('429') ? 'Rate limited — redeploy Cloudflare Worker to enable caching' : cache.error;
+      return <span className="sm-status error"><span className="sm-status-dot" /><span>{msg}</span></span>;
+    }
     const ts = cache.lastFetched ? cache.lastFetched.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : '—';
     return <span className="sm-status ok"><span className="sm-status-dot" /><span>{cache.events.length} events · {ts}</span></span>;
   };

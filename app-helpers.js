@@ -438,7 +438,7 @@ async function fetchICS(proxyUrl, feedUrl) {
   if (!proxyUrl || !feedUrl) throw new Error('Missing proxy or feed URL');
   const url = `${proxyUrl}?url=${encodeURIComponent(feedUrl)}`;
   const resp = await fetch(url);
-  if (!resp.ok) throw new Error(`Fetch failed (${resp.status}): ${await resp.text().catch(() => '')}`);
+  if (!resp.ok) throw new Error(`Fetch failed (${resp.status})`);
   const text = await resp.text();
   if (!text.includes('BEGIN:VCALENDAR')) {
     throw new Error('Response does not look like an ICS feed');
