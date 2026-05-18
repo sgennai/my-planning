@@ -782,6 +782,7 @@ function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDele
 }
 
 function RoutineEditForm({ item, isNew, onCancel, onSave, onDelete, onCloseModal, embedded = false }) {
+  const CATS = CATEGORY_STYLES;
   const isRecurring = !!(item && item.recurrence);
   const recur = (item && item.recurrence) || null;
   const [title, setTitle] = useState(item ? item.title : '');
