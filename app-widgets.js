@@ -657,335 +657,232 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
     onClose();
   };
 
-  const renderStatus = (key, label) => {
+  const renderStatus = (key) => {
     const cache = icsCache[key];
-    if (icsRefreshing) {
-      return <div className="calendar-status loading"><span className="dot" /><span>{label}: fetching…</span></div>;
-    }
-    if (!cache) {
-      if (!calendars[key === 'work' ? 'workIcs' : 'householdIcs']) return null;
-      return <div className="calendar-status"><span className="dot" /><span>{label}: not yet fetched</span></div>;
-    }
-    if (cache.error) {
-      return <div className="calendar-status error"><span className="dot" /><span>{label}: {cache.error}</span></div>;
-    }
-    const ts = cache.lastFetched
-      ? cache.lastFetched.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
-      : '—';
-    return (
-      <div className="calendar-status ok">
-        <span className="dot" />
-        <span>{label}: {cache.events.length} events · last fetched {ts}</span>
-      </div>
-    );
+    if (icsRefreshing) return <span className="sm-status loading"><span className="sm-status-dot" /></span>;
+    if (!cache) return null;
+    if (cache.error) return <span className="sm-status error"><span className="sm-status-dot" /><span>{cache.error.slice(0, 50)}</span></span>;
+    const ts = cache.lastFetched ? cache.lastFetched.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : '—';
+    return <span className="sm-status ok"><span className="sm-status-dot" /><span>{cache.events.length} events · {ts}</span></span>;
   };
 
   return (
     <div className="modal-backdrop" onClick={handleBackdropClick}>
       <div className="modal settings-modal">
         <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
-        <div className="modal-header">
-          <div className="modal-eyebrow">Settings</div>
-          <div className="modal-title">App settings</div>
+
+        <div className="sm-header">
+          <div className="sm-header-eyebrow">App configuration</div>
+          <div className="sm-title">Settings</div>
         </div>
-        <div className="settings-tabs">
-          <button className={`settings-tab-btn ${activeTab === 'calendars' ? 'active' : ''}`} onClick={() => setActiveTab('calendars')}>Calendars & Settings</button>
-          <button className={`settings-tab-btn ${activeTab === 'routines' ? 'active' : ''}`} onClick={() => setActiveTab('routines')}>Routines</button>
+
+        <div className="sm-tabs">
+          <button className={`sm-tab ${activeTab === 'calendars' ? 'active' : ''}`} onClick={() => setActiveTab('calendars')}>Calendars & Settings</button>
+          <button className={`sm-tab ${activeTab === 'routines' ? 'active' : ''}`} onClick={() => setActiveTab('routines')}>Routines</button>
         </div>
+
         {activeTab === 'routines' ? (
-          <RoutineManagerModal
-            embedded={true}
-            routine={routine || []}
-            onClose={() => setActiveTab('calendars')}
-            onUpdateItem={onUpdateRoutineItem}
-            onAddItem={onAddRoutineItem}
-            onDeleteItem={onDeleteRoutineItem}
-            categoryStyles={categoryStyles}
-            onSetCategoryColor={onSetCategoryColor}
-            onResetCategoryColor={onResetCategoryColor}
-            userCategoryColors={userCategoryColors}
-            onSetCategoryEmoji={onSetCategoryEmoji}
-            onResetCategoryEmoji={onResetCategoryEmoji}
-            userCategoryEmojis={userCategoryEmojis}
-          />
+          <div className="sm-body">
+            <RoutineManagerModal
+              embedded={true}
+              routine={routine || []}
+              onClose={() => setActiveTab('calendars')}
+              onUpdateItem={onUpdateRoutineItem}
+              onAddItem={onAddRoutineItem}
+              onDeleteItem={onDeleteRoutineItem}
+              categoryStyles={categoryStyles}
+              onSetCategoryColor={onSetCategoryColor}
+              onResetCategoryColor={onResetCategoryColor}
+              userCategoryColors={userCategoryColors}
+              onSetCategoryEmoji={onSetCategoryEmoji}
+              onResetCategoryEmoji={onResetCategoryEmoji}
+              userCategoryEmojis={userCategoryEmojis}
+            />
+          </div>
         ) : (
-        <div className="modal-body">
-          <div className="settings-section">
-            <div className="settings-field">
-              <div className="settings-field-label">ICS Proxy URL</div>
-              <input
-                type="text"
-                className="settings-input"
-                value={proxyUrl}
-                placeholder="https://your-worker.your-subdomain.workers.dev"
-                onChange={e => setProxyUrl(e.target.value)}
-              />
-              <div className="settings-field-hint">
-                Your private Cloudflare Worker that fetches ICS feeds. Browsers block direct cross-origin calendar requests, so the Worker relays them. Setup: ~5 min — instructions below the form.
-              </div>
-            </div>
-          </div>
+          <div className="sm-body">
 
-          <div className="settings-section">
-            <div className="settings-field">
-              <div className="settings-field-label">Work calendar (ICS)</div>
-              <input
-                type="text"
-                className="settings-input"
-                value={workIcs}
-                placeholder="https://calendar.google.com/calendar/ical/.../basic.ics"
-                onChange={e => setWorkIcs(e.target.value)}
-              />
-              <div className="settings-field-hint">
-                In Google Calendar: Settings → Integrate calendar → "Secret address in iCal format". Note: company-managed calendars often disallow ICS export.
+            {/* ── PROXY ── */}
+            <div className="sm-section">
+              <div className="sm-eyebrow">Cloudflare Proxy</div>
+              <div className="sm-card">
+                <div className="sm-field">
+                  <div className="sm-field-label">Worker URL</div>
+                  <input type="text" className="sm-input" value={proxyUrl}
+                    placeholder="https://your-worker.your-subdomain.workers.dev"
+                    onChange={e => setProxyUrl(e.target.value)} />
+                  <div className="sm-hint">Relays ICS feeds and Todoist requests — required for calendar imports.</div>
+                </div>
               </div>
-              <ColorSwatchPicker value={workColor} onChange={setWorkColor} label="Color" />
-              {renderStatus('work', 'Work')}
             </div>
-            <div className="settings-field">
-              <div className="settings-field-label">Household calendar (ICS)</div>
-              <input
-                type="text"
-                className="settings-input"
-                value={householdIcs}
-                placeholder="https://calendar.google.com/calendar/ical/.../basic.ics"
-                onChange={e => setHouseholdIcs(e.target.value)}
-              />
-              <div className="settings-field-hint">
-                Same place: Settings → Integrate calendar → Secret iCal address.
-              </div>
-              <ColorSwatchPicker value={householdColor} onChange={setHouseholdColor} label="Color" />
-              {renderStatus('household', 'Household')}
-            </div>
-          </div>
 
-          <div className="settings-section">
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button className="modal-btn primary" style={{ flex: 1 }} onClick={handleSaveAndRefresh}>
-                <span>Save & fetch</span>
-              </button>
-              <button className="modal-btn" onClick={handleSave}>
-                <span>Save without fetching</span>
-              </button>
+            {/* ── CALENDARS ── */}
+            <div className="sm-section">
+              <div className="sm-eyebrow">Calendars</div>
+              <div className="sm-card">
+                <div className="sm-cal-item">
+                  <div className="sm-cal-header">
+                    <input type="color" className="sm-color-swatch" value={workColor} onChange={e => setWorkColor(e.target.value)} title="Work calendar color" />
+                    <span className="sm-cal-name">Work</span>
+                    {renderStatus('work')}
+                  </div>
+                  <input type="text" className="sm-input" value={workIcs}
+                    placeholder="https://calendar.google.com/calendar/ical/…/basic.ics"
+                    onChange={e => setWorkIcs(e.target.value)} />
+                  <div className="sm-hint" style={{ marginTop: 6 }}>Google Calendar → Settings → Integrate calendar → Secret iCal address. Company-managed calendars may disallow ICS export.</div>
+                </div>
+                <div className="sm-divider" />
+                <div className="sm-cal-item">
+                  <div className="sm-cal-header">
+                    <input type="color" className="sm-color-swatch" value={householdColor} onChange={e => setHouseholdColor(e.target.value)} title="Household calendar color" />
+                    <span className="sm-cal-name">Household</span>
+                    {renderStatus('household')}
+                  </div>
+                  <input type="text" className="sm-input" value={householdIcs}
+                    placeholder="https://calendar.google.com/calendar/ical/…/basic.ics"
+                    onChange={e => setHouseholdIcs(e.target.value)} />
+                  <div className="sm-hint" style={{ marginTop: 6 }}>Settings → Integrate calendar → Secret iCal address.</div>
+                </div>
+                <div className="sm-divider" />
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button className="sm-btn primary" onClick={handleSaveAndRefresh}>Save & fetch</button>
+                  <button className="sm-btn" onClick={handleSave}>Save</button>
+                </div>
+              </div>
             </div>
-          </div>
 
-          <div className="settings-section">
-            <div className="settings-field-label" style={{ marginBottom: 8 }}>Weather location</div>
-            <div className="settings-field-hint" style={{ marginBottom: 10 }}>
-              Used for the forecast banner at the top. {weather && weather.source === 'geolocation' ? 'Currently set from browser geolocation.' : weather && weather.source === 'manual' ? 'Currently set manually.' : weather && weather.source === 'declined' ? 'You declined geolocation. Set manually below or click "Use my location".' : 'Not yet configured.'}
-            </div>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-              <button className="modal-btn" onClick={onRequestGeo}>
-                <span>↻ Use my browser location</span>
-              </button>
-            </div>
-            <div className="routine-form-grid">
-              <div className="routine-form-row half">
-                <div className="routine-form-label">Latitude</div>
-                <input
-                  type="text"
-                  className="settings-input"
-                  value={latInput}
-                  placeholder="47.99"
-                  onChange={e => setLatInput(e.target.value)}
-                />
-              </div>
-              <div className="routine-form-row half">
-                <div className="routine-form-label">Longitude</div>
-                <input
-                  type="text"
-                  className="settings-input"
-                  value={lonInput}
-                  placeholder="-4.49"
-                  onChange={e => setLonInput(e.target.value)}
-                />
-              </div>
-              <div className="routine-form-row">
-                <div className="routine-form-label">Label (optional)</div>
-                <input
-                  type="text"
-                  className="settings-input"
-                  value={labelInput}
-                  placeholder="e.g. Plouhinec"
-                  onChange={e => setLabelInput(e.target.value)}
-                  style={{ fontFamily: 'var(--serif)' }}
-                />
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-              <button
-                className="modal-btn primary"
-                onClick={() => {
-                  const lat = parseFloat(latInput);
-                  const lon = parseFloat(lonInput);
+            {/* ── WEATHER ── */}
+            <div className="sm-section">
+              <div className="sm-eyebrow">Weather Location</div>
+              <div className="sm-card">
+                <div className="sm-hint" style={{ marginBottom: 12 }}>
+                  {weather && weather.source === 'geolocation' ? 'Currently from browser geolocation.' : weather && weather.source === 'manual' ? 'Currently set manually.' : weather && weather.source === 'declined' ? 'Geolocation declined — set manually below.' : 'Not yet configured.'}
+                </div>
+                <button className="sm-btn" style={{ marginBottom: 14 }} onClick={onRequestGeo}>↻ Use my browser location</button>
+                <div className="sm-row half" style={{ marginBottom: 12 }}>
+                  <div className="sm-field">
+                    <div className="sm-field-label">Latitude</div>
+                    <input type="text" className="sm-input" value={latInput} placeholder="47.99" onChange={e => setLatInput(e.target.value)} />
+                  </div>
+                  <div className="sm-field">
+                    <div className="sm-field-label">Longitude</div>
+                    <input type="text" className="sm-input" value={lonInput} placeholder="-4.49" onChange={e => setLonInput(e.target.value)} />
+                  </div>
+                </div>
+                <div className="sm-field" style={{ marginBottom: 14 }}>
+                  <div className="sm-field-label">Label (optional)</div>
+                  <input type="text" className="sm-input" value={labelInput} placeholder="e.g. Plouhinec" onChange={e => setLabelInput(e.target.value)} />
+                </div>
+                <button className="sm-btn primary" onClick={() => {
+                  const lat = parseFloat(latInput), lon = parseFloat(lonInput);
                   if (isNaN(lat) || isNaN(lon)) { alert('Latitude and longitude must be numbers.'); return; }
                   if (lat < -90 || lat > 90) { alert('Latitude must be between -90 and 90.'); return; }
                   if (lon < -180 || lon > 180) { alert('Longitude must be between -180 and 180.'); return; }
                   onUpdateWeather(lat, lon, labelInput.trim());
-                }}
-              >
-                <span>Save weather location</span>
-              </button>
+                }}>Save location</button>
+              </div>
             </div>
-          </div>
 
-          <div className="settings-section">
-            <div className="settings-field-label" style={{ marginBottom: 8 }}>Lunch slot</div>
-            <div className="settings-field-hint" style={{ marginBottom: 10 }}>
-              Highlighted as a tinted band in the Today calendar view. Set the start time and how long it lasts.
-            </div>
-            <div className="routine-form-grid">
-              <div className="routine-form-row half">
-                <div className="routine-form-label">Start time</div>
-                <input
-                  type="text"
-                  className="settings-input"
-                  value={lunchStart}
-                  placeholder="12:30"
-                  onChange={e => setLunchStart(e.target.value)}
-                  style={{ fontFamily: 'var(--mono)' }}
-                />
-              </div>
-              <div className="routine-form-row half">
-                <div className="routine-form-label">Duration (min)</div>
-                <input
-                  type="number"
-                  className="settings-input"
-                  value={lunchDuration}
-                  min="15" max="240" step="5"
-                  onChange={e => setLunchDuration(e.target.value)}
-                  style={{ fontFamily: 'var(--mono)' }}
-                />
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-              <button
-                className="modal-btn primary"
-                onClick={() => {
+            {/* ── LUNCH SLOT ── */}
+            <div className="sm-section">
+              <div className="sm-eyebrow">Lunch Slot</div>
+              <div className="sm-card">
+                <div className="sm-hint" style={{ marginBottom: 12 }}>Shown as a tinted band in the Today calendar view.</div>
+                <div className="sm-row half" style={{ marginBottom: 14 }}>
+                  <div className="sm-field">
+                    <div className="sm-field-label">Start time</div>
+                    <input type="text" className="sm-input" value={lunchStart} placeholder="12:30"
+                      onChange={e => setLunchStart(e.target.value)} style={{ fontFamily: 'var(--mono)' }} />
+                  </div>
+                  <div className="sm-field">
+                    <div className="sm-field-label">Duration (min)</div>
+                    <input type="number" className="sm-input" value={lunchDuration} min="15" max="240" step="5"
+                      onChange={e => setLunchDuration(e.target.value)} style={{ fontFamily: 'var(--mono)' }} />
+                  </div>
+                </div>
+                <button className="sm-btn primary" onClick={() => {
                   if (!/^\d{1,2}:\d{2}$/.test(lunchStart)) { alert('Start must be HH:MM.'); return; }
                   const d = Number(lunchDuration);
                   if (isNaN(d) || d < 15) { alert('Duration must be at least 15 minutes.'); return; }
                   onSetLunchSlot({ start: lunchStart, duration: d });
-                }}
-              >
-                <span>Save lunch slot</span>
-              </button>
+                }}>Save lunch slot</button>
+              </div>
             </div>
-          </div>
 
-          <div className="settings-section">
-            <div className="settings-field-label" style={{ marginBottom: 8 }}>Todoist</div>
-            <div className="settings-field-hint" style={{ marginBottom: 10 }}>
-              Connect your Todoist account to show matching tasks in the left rail. Get your API token from Todoist → Settings → Integrations → Developer → API token.
-            </div>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-              <input
-                type={showToken ? 'text' : 'password'}
-                className="settings-input"
-                style={{ flex: 1, fontFamily: 'var(--mono)', fontSize: 12 }}
-                value={todoistToken}
-                placeholder="Your Todoist API token…"
-                onChange={e => setTodoistToken(e.target.value)}
-                autoComplete="off"
-              />
-              <button className="modal-btn" style={{ flexShrink: 0 }} onClick={() => setShowToken(v => !v)}>
-                <span>{showToken ? 'Hide' : 'Show'}</span>
-              </button>
-            </div>
-            <div className="routine-form-grid">
-              <div className="routine-form-row">
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                  <div className="routine-form-label" style={{ margin: 0 }}>Project</div>
-                  <button
-                    className="modal-btn"
-                    style={{ padding: '2px 10px', fontSize: 12 }}
-                    disabled={!todoistToken.trim() || todoistProjectsLoading}
-                    onClick={fetchTodoistProjects}
-                  >
-                    <span>{todoistProjectsLoading ? 'Fetching…' : 'Fetch projects'}</span>
-                  </button>
+            {/* ── TODOIST ── */}
+            <div className="sm-section">
+              <div className="sm-eyebrow">Todoist</div>
+              <div className="sm-card">
+                <div className="sm-hint" style={{ marginBottom: 14 }}>Connect Todoist to surface tasks in the left rail. Get your API token from Todoist → Settings → Integrations → Developer.</div>
+                <div className="sm-field" style={{ marginBottom: 12 }}>
+                  <div className="sm-field-label">API Token</div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input type={showToken ? 'text' : 'password'} className="sm-input" style={{ flex: 1 }}
+                      value={todoistToken} placeholder="Paste your Todoist API token…"
+                      onChange={e => setTodoistToken(e.target.value)} autoComplete="off" />
+                    <button className="sm-btn" style={{ flexShrink: 0 }} onClick={() => setShowToken(v => !v)}>{showToken ? 'Hide' : 'Show'}</button>
+                  </div>
                 </div>
-                {todoistProjects.length > 0 ? (
-                  <select
-                    className="settings-input"
-                    value={todoistProjectId}
-                    onChange={e => { const p = todoistProjects.find(p => p.id === e.target.value); setTodoistProjectId(e.target.value); setTodoistProjectName(p ? p.name : ''); }}
-                  >
-                    <option value="">— pick a project —</option>
-                    {todoistProjects.map(p => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <input
-                    type="text"
-                    className="settings-input"
-                    style={{ fontFamily: 'var(--mono)' }}
-                    value={todoistProjectId}
-                    placeholder="Click 'Fetch projects' to pick one"
-                    onChange={e => setTodoistProjectId(e.target.value)}
-                  />
-                )}
-                {todoistProjectsError && (
-                  <div className="settings-field-hint" style={{ marginTop: 5, color: 'var(--coral)' }}>{todoistProjectsError}</div>
-                )}
-              </div>
-              <div className="routine-form-row half" style={{ marginTop: 8 }}>
-                <div className="routine-form-label" style={{ marginBottom: 6 }}>Days ahead (0 = all)</div>
-                <input
-                  type="number"
-                  className="settings-input"
-                  style={{ fontFamily: 'var(--mono)' }}
-                  value={todoistDaysAhead}
-                  min="0" max="365"
-                  onChange={e => setTodoistDaysAhead(e.target.value)}
-                />
+                <div className="sm-field" style={{ marginBottom: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                    <div className="sm-field-label" style={{ margin: 0 }}>Project</div>
+                    <button className="sm-btn" style={{ padding: '4px 12px', fontSize: 12 }}
+                      disabled={!todoistToken.trim() || todoistProjectsLoading} onClick={fetchTodoistProjects}>
+                      {todoistProjectsLoading ? 'Fetching…' : 'Fetch projects'}
+                    </button>
+                  </div>
+                  {todoistProjects.length > 0 ? (
+                    <select className="sm-input" value={todoistProjectId}
+                      onChange={e => { const p = todoistProjects.find(p => p.id === e.target.value); setTodoistProjectId(e.target.value); setTodoistProjectName(p ? p.name : ''); }}>
+                      <option value="">— pick a project —</option>
+                      {todoistProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                  ) : (
+                    <input type="text" className="sm-input" style={{ fontFamily: 'var(--mono)' }}
+                      value={todoistProjectId} placeholder="Click 'Fetch projects' to pick one"
+                      onChange={e => setTodoistProjectId(e.target.value)} />
+                  )}
+                  {todoistProjectsError && <div className="sm-hint" style={{ color: 'var(--coral)', marginTop: 5 }}>{todoistProjectsError}</div>}
+                </div>
+                <div className="sm-field" style={{ marginBottom: 16 }}>
+                  <div className="sm-field-label">Days ahead (0 = show all)</div>
+                  <input type="number" className="sm-input" style={{ fontFamily: 'var(--mono)', width: 100 }}
+                    value={todoistDaysAhead} min="0" max="365" onChange={e => setTodoistDaysAhead(e.target.value)} />
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button className="sm-btn primary"
+                    disabled={!todoistToken.trim() || !todoistProjectId.trim()}
+                    onClick={() => {
+                      const days = parseInt(todoistDaysAhead, 10);
+                      onUpdateTodoist({ token: todoistToken.trim(), projectId: todoistProjectId.trim(), projectName: todoistProjectName.trim(), daysAhead: isNaN(days) ? 7 : days });
+                      onClose();
+                    }}>Save Todoist settings</button>
+                  {todoist && todoist.token && (
+                    <button className="sm-btn danger" onClick={() => {
+                      if (confirm('Disconnect Todoist?')) {
+                        onUpdateTodoist({ token: '', projectId: '', daysAhead: 7 });
+                        setTodoistToken(''); setTodoistProjectId('');
+                      }
+                    }}>Disconnect</button>
+                  )}
+                </div>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-              <button
-                className="modal-btn primary"
-                disabled={!todoistToken.trim() || !todoistProjectId.trim()}
-                onClick={() => {
-                  const days = parseInt(todoistDaysAhead, 10);
-                  onUpdateTodoist({ token: todoistToken.trim(), projectId: todoistProjectId.trim(), projectName: todoistProjectName.trim(), daysAhead: isNaN(days) ? 7 : days });
-                  onClose();
-                }}
-              >
-                <span>Save Todoist settings</span>
-              </button>
-              {todoist && todoist.token && (
-                <button
-                  className="modal-btn"
-                  style={{ color: 'var(--coral)', borderColor: 'var(--coral)' }}
-                  onClick={() => {
-                    if (confirm('Disconnect Todoist?')) {
-                      onUpdateTodoist({ token: '', projectId: '', daysAhead: 7 });
-                      setTodoistToken('');
-                      setTodoistProjectId('');
-                    }
-                  }}
-                >
-                  <span>Disconnect</span>
-                </button>
-              )}
-            </div>
-          </div>
 
-          <div className="settings-section">
-            <div className="settings-field-label" style={{ marginBottom: 12 }}>Cloudflare Worker setup (5 min)</div>
-            <div className="settings-field-hint" style={{ lineHeight: 1.8 }}>
-              <ol style={{ paddingLeft: 18, margin: '8px 0', color: 'var(--muted-2)' }}>
-                <li style={{ marginBottom: 8 }}>Sign up free at <code>workers.cloudflare.com</code></li>
-                <li style={{ marginBottom: 8 }}>Create a new Worker, paste the proxy code (provided alongside this app), deploy</li>
-                <li style={{ marginBottom: 8 }}>Copy the Worker's URL (looks like <code>https://my-planning-proxy.&lt;your-subdomain&gt;.workers.dev</code>)</li>
-                <li style={{ marginBottom: 8 }}>Paste it into the Proxy URL field above</li>
-              </ol>
-              Detailed instructions are in the conversation that built this app.
+            {/* ── SETUP GUIDE ── */}
+            <div className="sm-section">
+              <div className="sm-eyebrow">Cloudflare Setup Guide</div>
+              <div className="sm-card sm-card-subtle">
+                <ol className="sm-guide-list">
+                  <li>Sign up free at <code>workers.cloudflare.com</code></li>
+                  <li>Create a Worker, paste the proxy code (provided alongside this app), deploy</li>
+                  <li>Copy the Worker URL (e.g. <code>https://my-planning-proxy.&lt;you&gt;.workers.dev</code>)</li>
+                  <li>Paste it into the Worker URL field above</li>
+                </ol>
+              </div>
             </div>
+
           </div>
-        </div>
         )}
       </div>
     </div>
