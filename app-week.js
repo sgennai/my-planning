@@ -800,8 +800,8 @@ function Legend() {
 // ═════════════════════════════════════════════════════════════
 // WEEK GRID (desktop) — supports singleCol mode for day view
 // ═════════════════════════════════════════════════════════════
-const HOUR_HEIGHT_WEEK = 56;
-const HOUR_HEIGHT_DAY  = 80;
+const HOUR_HEIGHT_WEEK = 42;
+const HOUR_HEIGHT_DAY  = 60;
 const START_HOUR = 6;
 const END_HOUR = 23;
 const HOURS_VISIBLE = END_HOUR - START_HOUR;

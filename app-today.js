@@ -85,7 +85,7 @@ function TodayMiniMonth({ viewDate, now, onSelectDate }) {
 function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemClick, onToggleRoutineComplete, CATS, onDrop, onCreateAtTime, scrollToNowTick }) {
   const HOUR_START = 6;
   const HOUR_END = 23;
-  const HOUR_HEIGHT = 64;
+  const HOUR_HEIGHT = 48;
   const totalHours = HOUR_END - HOUR_START;
   // Visual minimum: 20px min block height ≈ 20 min at 64px/hr. Use same floor as weekly view.
   const VISUAL_MIN_MIN = Math.ceil(22 / HOUR_HEIGHT * 60); // ~21 min
