@@ -379,7 +379,7 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
                 background: stripeColor,
               }}
             >
-              <div style={{ writingMode: 'vertical-lr', fontSize: 10, color: 'rgba(255,255,255,0.9)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingTop: 5, lineHeight: 1, fontFamily: 'var(--sans)' }}>
+              <div style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600, color: '#fff', letterSpacing: '0.01em', fontFamily: 'var(--serif)', whiteSpace: 'nowrap' }}>
                 {it.title}
               </div>
             </div>
