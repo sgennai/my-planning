@@ -1041,6 +1041,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                           </div>
                         </div>
                       </div>
+                      <button className="rail-section-toggle today-todo-delete" onClick={e => { e.stopPropagation(); deleteTodo(t.id); }} title="Delete">×</button>
                     </div>
                   ))}
                   {todoistError ? (
