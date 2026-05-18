@@ -1229,6 +1229,10 @@ function CalItem({ item, date, hourHeight, projects, onBlockClick, onRoutineClic
   } else {
     itemBackground = style.color;
   }
+  const itemStriped = isRoutine ? parseColorVal(style.colorVal).striped
+    : isIcs ? parseColorVal(item._ics.colorVal || item._ics.color).striped
+    : false;
+  const stripedTextStyle = itemStriped ? { textShadow: '0 1px 4px rgba(0,0,0,0.55)' } : undefined;
 
   return (
     <div
@@ -1253,13 +1257,13 @@ function CalItem({ item, date, hourHeight, projects, onBlockClick, onRoutineClic
           {item._completed ? '✓' : ''}
         </button>
       )}
-      <div className="cal-item-title">
+      <div className="cal-item-title" style={stripedTextStyle}>
         {!isBlock && style && style.emoji ? `${style.emoji} ` : ''}
         {item.title}
         {item.homeOnly && !isBlock && <span className="cal-item-home-flag" />}
       </div>
       {!isTiny && (
-        <div className="cal-item-time">{timeLabel}</div>
+        <div className="cal-item-time" style={stripedTextStyle}>{timeLabel}</div>
       )}
       {isBlock && project && !isTiny && !isShort && (
         <div className="cal-item-project">{project.name}</div>

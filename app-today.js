@@ -340,9 +340,11 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
         const leftPct = (it._col || 0) * colWidth;
         const widthPct = colWidth * (it._colspan || 1);
         const catStyle = CATS[it.category] || CATS.supplement;
-        const stripeColor = it.kind === 'routine'
-          ? colorValToBackground(catStyle.colorVal, catStyle.color)
-          : colorValToBackground(it.colorVal || it.color, it.color || 'var(--primary)');
+        const icsCV = it.kind === 'ics' && it._ics ? (it._ics.colorVal || it._ics.color) : null;
+        const effCV = it.kind === 'routine' ? catStyle.colorVal : (icsCV || it.colorVal || it.color);
+        const effHex = it.kind === 'routine' ? catStyle.color : (it._ics?.color || it.color || 'var(--primary)');
+        const stripeColor = colorValToBackground(effCV, effHex);
+        const isStriped = parseColorVal(effCV).striped;
         const isNow = isToday && it.startMin <= nowMin && (it.startMin + it.duration) > nowMin;
         const isPast = !it.completed && (
           startOfDay(viewDate).getTime() < startOfDay(now).getTime() ||
@@ -425,11 +427,11 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
                 title={it.completed ? 'Mark not done' : 'Mark done'}
               >{it.completed ? '✓' : ''}</button>
             )}
-            <div className="today-cal-block-title">
+            <div className="today-cal-block-title" style={isStriped ? { textShadow: '0 1px 4px rgba(0,0,0,0.55)' } : undefined}>
               {it.kind === 'routine' && CATS[it.category] && CATS[it.category].emoji ? `${CATS[it.category].emoji} ` : ''}
               {it.title}
             </div>
-            <div className="today-cal-block-time">{timeLabel}</div>
+            <div className="today-cal-block-time" style={isStriped ? { textShadow: '0 1px 3px rgba(0,0,0,0.5)' } : undefined}>{timeLabel}</div>
           </div>
         );
       })}
@@ -482,9 +484,10 @@ function TodayScreen({
     const isNow = it.startMin <= nowMin && (it.startMin + it.duration) > nowMin;
     const cls = `today-timeline-row ${isPast ? 'is-past' : ''} ${isNow && !it.completed ? 'is-now' : ''} ${it.completed ? 'is-completed' : ''}`;
     const catStyle2 = CATS[it.category] || CATS.supplement;
-    const stripeColor = it.kind === 'routine'
-      ? colorValToBackground(catStyle2.colorVal, catStyle2.color)
-      : colorValToBackground(it.colorVal || it.color, it.color || 'var(--primary)');
+    const icsCV2 = it.kind === 'ics' && it._ics ? (it._ics.colorVal || it._ics.color) : null;
+    const effCV2 = it.kind === 'routine' ? catStyle2.colorVal : (icsCV2 || it.colorVal || it.color);
+    const effHex2 = it.kind === 'routine' ? catStyle2.color : (it._ics?.color || it.color || 'var(--primary)');
+    const stripeColor = colorValToBackground(effCV2, effHex2);
     const tagText = it.kind === 'ics' ? it.note : (it.kind === 'block' ? it.note : null);
 
     const handleRowClick = () => {
