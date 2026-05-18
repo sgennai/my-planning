@@ -755,7 +755,7 @@
       height: 0;
       border-top: 2px solid var(--primary);
       pointer-events: none;
-      z-index: 3;
+      z-index: 5;
     }
     .now-line::before {
       content: '';
@@ -2087,7 +2087,7 @@
     .today-timeline-header {
       position: sticky;
       top: 0;
-      z-index: 5;
+      z-index: 10;
       background: var(--bg-calendar);
       padding: var(--space-4) var(--space-5) var(--space-3);
       display: flex;
@@ -2301,7 +2301,7 @@
         transparent calc(50% + 24px),
         var(--primary) calc(50% + 24px)
       );
-      z-index: 3;
+      z-index: 5;
       pointer-events: none;
     }
     .today-cal-now-dot {
