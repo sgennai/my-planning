@@ -578,15 +578,19 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     const winStart = startOfDay(weekStart);
     const winEnd = startOfDay(addDays(weekStart, 7));
     const out = [];
-    const colorByKey = {
+    const colorValByKey = {
       work: calendarSettings.workColor || '#8C8C96',
       household: calendarSettings.householdColor || '#7896AF',
+    };
+    const colorHexByKey = {
+      work: parseColorVal(colorValByKey.work).hex || '#8C8C96',
+      household: parseColorVal(colorValByKey.household).hex || '#7896AF',
     };
     ['work', 'household'].forEach(source => {
       const entry = icsCache[source];
       if (!entry || !entry.events) return;
       const occs = expandEventsForWindow(entry.events, winStart, winEnd, source);
-      occs.forEach(o => { o.color = colorByKey[source]; });
+      occs.forEach(o => { o.color = colorHexByKey[source]; o.colorVal = colorValByKey[source]; });
       out.push(...occs);
     });
     return out;

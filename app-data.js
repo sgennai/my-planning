@@ -29,6 +29,13 @@ const CATEGORY_STYLES = {
   'micro-strength': { color: '#7EB8A4', label: 'Micro-strength', bgAlpha: 0.06, emoji: '⚡' },
 };
 
+// Parse a stored color value — may be a legacy hex string or {hex,opacity,striped} object.
+function parseColorVal(v) {
+  if (!v) return { hex: null, opacity: 1, striped: false };
+  if (typeof v === 'string') return { hex: v, opacity: 1, striped: false };
+  return { hex: v.hex || null, opacity: v.opacity ?? 1, striped: v.striped ?? false };
+}
+
 function getCategoryColor(category, userColors) {
   if (userColors && typeof userColors === 'object' && userColors[category]) {
     return userColors[category];
@@ -46,7 +53,14 @@ function getCategoryEmoji(category, userEmojis) {
 function categoryStylesWith(userColors, userEmojis) {
   const out = {};
   Object.entries(CATEGORY_STYLES).forEach(([k, v]) => {
-    out[k] = { ...v, color: getCategoryColor(k, userColors), emoji: getCategoryEmoji(k, userEmojis) };
+    const rawColor = userColors && userColors[k];
+    const parsed = parseColorVal(rawColor);
+    out[k] = {
+      ...v,
+      color: parsed.hex || v.color,   // hex string — backward compat for many callers
+      colorVal: rawColor || v.color,   // full value (string or object) — for rendering
+      emoji: getCategoryEmoji(k, userEmojis),
+    };
   });
   return out;
 }

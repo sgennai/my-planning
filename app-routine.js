@@ -608,7 +608,9 @@ function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDele
           <div className="category-colors-grid">
             {Object.keys(CATEGORY_STYLES).map(cat => {
               const defaultColor = CATEGORY_STYLES[cat].color;
-              const currentColor = (userCategoryColors && userCategoryColors[cat]) || defaultColor;
+              const rawColorVal = userCategoryColors && userCategoryColors[cat];
+              const parsedColor = parseColorVal(rawColorVal || defaultColor);
+              const currentHex = parsedColor.hex || defaultColor;
               const colorOverridden = !!(userCategoryColors && userCategoryColors[cat]);
               const defaultEmoji = CATEGORY_STYLES[cat].emoji;
               const currentEmoji = (userCategoryEmojis && userCategoryEmojis[cat]) || defaultEmoji;
@@ -616,12 +618,10 @@ function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDele
               const label = CATEGORY_STYLES[cat].label;
               return (
                 <div key={cat} className="category-color-row">
-                  <input
-                    type="color"
-                    value={currentColor}
-                    onChange={e => onSetCategoryColor && onSetCategoryColor(cat, e.target.value)}
-                    className="category-color-swatch"
-                    title={`Pick color for ${label}`}
+                  <ColorPickerExtended
+                    value={rawColorVal || defaultColor}
+                    defaultHex={defaultColor}
+                    onChange={val => onSetCategoryColor && onSetCategoryColor(cat, val)}
                   />
                   <button
                     className="category-emoji-btn"
@@ -631,7 +631,7 @@ function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDele
                     {currentEmoji}
                   </button>
                   <div className="category-color-label">{label}</div>
-                  <div className="category-color-hex">{currentColor}</div>
+                  <div className="category-color-hex">{currentHex}</div>
                   {(colorOverridden || emojiOverridden) && (
                     <button
                       className="category-color-reset"

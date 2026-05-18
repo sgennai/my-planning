@@ -4461,7 +4461,7 @@
     }
     .emoji-picker-cell:hover { background: var(--bg-hover); transform: scale(1.15); }
     .emoji-picker-cell.selected { background: var(--primary-soft); border-color: var(--primary); }
-    .category-color-swatch {
+    .category-color-swatch, .cpx-swatch {
       flex-shrink: 0;
       width: 28px;
       height: 22px;
@@ -4470,6 +4470,56 @@
       background: transparent;
       cursor: pointer;
       padding: 1px;
+    }
+    .cpx {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .cpx-sep {
+      width: 1px;
+      height: 14px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+    .cpx-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .cpx-label {
+      font-size: 10px;
+      color: var(--muted-3);
+      white-space: nowrap;
+    }
+    .cpx-slider {
+      width: 52px;
+      height: 3px;
+      cursor: pointer;
+      accent-color: var(--primary);
+    }
+    .cpx-pct {
+      font-size: 10px;
+      color: var(--muted-2);
+      font-family: var(--mono);
+      min-width: 26px;
+    }
+    .cpx-stripe-btn {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: transparent;
+      cursor: pointer;
+      color: var(--muted-2);
+      white-space: nowrap;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .cpx-stripe-btn.active {
+      background: rgba(99,102,241,0.12);
+      border-color: rgba(99,102,241,0.4);
+      color: rgba(99,102,241,0.9);
     }
     .category-color-label {
       flex: 1;

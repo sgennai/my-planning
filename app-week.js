@@ -1205,7 +1205,7 @@ function CalItem({ item, date, hourHeight, projects, onBlockClick, onRoutineClic
           height,
           left: `calc(${leftPct}% + 2px)`,
           width: EW_BAR,
-          background: style.color,
+          background: colorValToBackground(style.colorVal, style.color),
         }}
       >
         <div style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600, color: '#fff', letterSpacing: '0.01em', fontFamily: 'var(--serif)', whiteSpace: 'nowrap' }}>
@@ -1216,9 +1216,19 @@ function CalItem({ item, date, hourHeight, projects, onBlockClick, onRoutineClic
   }
   const ewOffset = item._elsewhereOverlap ? EW_BAR + 4 : 0;
 
-  // Solid color fill for non-completed items; soft tint for completed.
-  const blockColor = item._completed ? '#7EB8A4' : (isBlock ? (project?.color || style.color) : style.color);
-  const isHexColor = typeof blockColor === 'string' && blockColor.startsWith('#');
+  // Background — uses full colorVal (with opacity+stripes) for routine and ICS items.
+  let itemBackground;
+  if (item._completed) {
+    itemBackground = '#7EB8A4';
+  } else if (isBlock) {
+    itemBackground = project?.color || style.color;
+  } else if (isRoutine) {
+    itemBackground = colorValToBackground(style.colorVal, style.color);
+  } else if (isIcs) {
+    itemBackground = colorValToBackground(item._ics.colorVal || item._ics.color, item._ics.color || style.color);
+  } else {
+    itemBackground = style.color;
+  }
 
   return (
     <div
@@ -1230,9 +1240,7 @@ function CalItem({ item, date, hourHeight, projects, onBlockClick, onRoutineClic
         height,
         left: `calc(${leftPct}% + 2px + ${ewOffset}px)`,
         width: `calc(${widthPct}% - 4px - ${ewOffset}px)`,
-        background: item._completed
-          ? '#7EB8A4'
-          : (isHexColor ? blockColor : style.color),
+        background: itemBackground,
       }}
     >
       {isRoutine && !isTiny && (

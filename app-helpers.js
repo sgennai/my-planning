@@ -2,6 +2,68 @@
 // ═════════════════════════════════════════════════════════════
 function pad(n) { return String(n).padStart(2, '0'); }
 
+// Convert a hex color + alpha (0-1) to an rgba() string.
+function hexToRgba(hex, a) {
+  if (!hex || !hex.startsWith('#')) return hex;
+  const h = hex.replace('#', '');
+  const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+  const r = parseInt(full.slice(0, 2), 16);
+  const g = parseInt(full.slice(2, 4), 16);
+  const b = parseInt(full.slice(4, 6), 16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+// Produce a CSS background value from a stored color value ({hex,opacity,striped} or hex string).
+function colorValToBackground(val, fallbackHex) {
+  const { hex, opacity, striped } = parseColorVal(val);
+  const base = hex || fallbackHex || '#888';
+  const rgba = hexToRgba(base, opacity);
+  if (striped) {
+    return `repeating-linear-gradient(45deg, ${rgba} 0px, ${rgba} 5px, transparent 5px, transparent 10px)`;
+  }
+  return rgba;
+}
+
+// ─── ColorPickerExtended ───────────────────────────────────────
+// Replaces a plain <input type="color"> with color + opacity + stripes.
+// `value` may be a hex string (legacy) or {hex,opacity,striped}.
+// `onChange` receives {hex,opacity,striped}.
+function ColorPickerExtended({ value, defaultHex, onChange }) {
+  const parsed = parseColorVal(value || defaultHex);
+  const currentHex = parsed.hex || defaultHex || '#888888';
+  const emit = (patch) => onChange({ hex: currentHex, opacity: parsed.opacity, striped: parsed.striped, ...patch });
+  return (
+    <span className="cpx">
+      <input
+        type="color"
+        value={currentHex}
+        onChange={e => emit({ hex: e.target.value })}
+        className="cpx-swatch"
+        title="Pick colour"
+      />
+      <span className="cpx-sep" />
+      <span className="cpx-group">
+        <span className="cpx-label">Opacity</span>
+        <input
+          type="range" min="0.1" max="1" step="0.05"
+          value={parsed.opacity}
+          onChange={e => emit({ opacity: Number(e.target.value) })}
+          className="cpx-slider"
+        />
+        <span className="cpx-pct">{Math.round(parsed.opacity * 100)}%</span>
+      </span>
+      <button
+        className={`cpx-stripe-btn${parsed.striped ? ' active' : ''}`}
+        onClick={() => emit({ striped: !parsed.striped })}
+        title="Toggle diagonal stripes"
+        type="button"
+      >
+        {parsed.striped ? '▨ On' : '▨ Off'}
+      </button>
+    </span>
+  );
+}
+
 function startOfDay(d) {
   const x = new Date(d); x.setHours(0,0,0,0); return x;
 }

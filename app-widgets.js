@@ -725,7 +725,7 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
               <div className="sm-card">
                 <div className="sm-cal-item">
                   <div className="sm-cal-header">
-                    <input type="color" className="sm-color-swatch" value={workColor} onChange={e => setWorkColor(e.target.value)} title="Work calendar color" />
+                    <ColorPickerExtended value={workColor} defaultHex="#8C8C96" onChange={setWorkColor} />
                     <span className="sm-cal-name">Work</span>
                     {renderStatus('work')}
                   </div>
@@ -737,7 +737,7 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
                 <div className="sm-divider" />
                 <div className="sm-cal-item">
                   <div className="sm-cal-header">
-                    <input type="color" className="sm-color-swatch" value={householdColor} onChange={e => setHouseholdColor(e.target.value)} title="Household calendar color" />
+                    <ColorPickerExtended value={householdColor} defaultHex="#7896AF" onChange={setHouseholdColor} />
                     <span className="sm-cal-name">Household</span>
                     {renderStatus('household')}
                   </div>

@@ -339,9 +339,10 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
         const colWidth = (100 - 8) / totalCols;
         const leftPct = (it._col || 0) * colWidth;
         const widthPct = colWidth * (it._colspan || 1);
+        const catStyle = CATS[it.category] || CATS.supplement;
         const stripeColor = it.kind === 'routine'
-          ? ((CATS[it.category] || CATS.supplement).color)
-          : (it.color || 'var(--primary)');
+          ? colorValToBackground(catStyle.colorVal, catStyle.color)
+          : colorValToBackground(it.colorVal || it.color, it.color || 'var(--primary)');
         const isHex = stripeColor.startsWith('#');
         const isNow = isToday && it.startMin <= nowMin && (it.startMin + it.duration) > nowMin;
         const isPast = !it.completed && (
@@ -375,9 +376,9 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
               className={`cal-commute-marker${isPast ? ' is-past' : ''}`}
               onClick={(e) => { e.stopPropagation(); onItemClick(it); }}
               title={`${it.title} · ${startStr}${startPeriod}`}
-              style={{ top, left: 'calc(64px + 2px)', right: 4, color: stripeColor }}
+              style={{ top, left: 'calc(64px + 2px)', right: 4, color: catStyle.color }}
             >
-              <span className="cal-commute-label">{stripeColor && CATS[it.category] && CATS[it.category].emoji ? `${CATS[it.category].emoji} ` : ''}{it.title}</span>
+              <span className="cal-commute-label">{catStyle.emoji ? `${catStyle.emoji} ` : ''}{it.title}</span>
               <div className="cal-commute-rule" />
             </div>
           );
