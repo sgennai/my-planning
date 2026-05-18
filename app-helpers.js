@@ -19,7 +19,7 @@ function colorValToBackground(val, fallbackHex) {
   const base = hex || fallbackHex || '#888';
   const rgba = hexToRgba(base, opacity);
   if (striped) {
-    return `repeating-linear-gradient(45deg, ${rgba} 0px, ${rgba} 5px, transparent 5px, transparent 10px)`;
+    return `repeating-linear-gradient(45deg, ${rgba} 0px, ${rgba} 6px, rgba(255,255,255,0.32) 6px, rgba(255,255,255,0.32) 10px)`;
   }
   return rgba;
 }

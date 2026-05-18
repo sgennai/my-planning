@@ -343,7 +343,6 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
         const stripeColor = it.kind === 'routine'
           ? colorValToBackground(catStyle.colorVal, catStyle.color)
           : colorValToBackground(it.colorVal || it.color, it.color || 'var(--primary)');
-        const isHex = stripeColor.startsWith('#');
         const isNow = isToday && it.startMin <= nowMin && (it.startMin + it.duration) > nowMin;
         const isPast = !it.completed && (
           startOfDay(viewDate).getTime() < startOfDay(now).getTime() ||
@@ -482,9 +481,10 @@ function TodayScreen({
     const isPast = (it.startMin + it.duration) <= nowMin && !it.completed;
     const isNow = it.startMin <= nowMin && (it.startMin + it.duration) > nowMin;
     const cls = `today-timeline-row ${isPast ? 'is-past' : ''} ${isNow && !it.completed ? 'is-now' : ''} ${it.completed ? 'is-completed' : ''}`;
+    const catStyle2 = CATS[it.category] || CATS.supplement;
     const stripeColor = it.kind === 'routine'
-      ? ((CATS[it.category] || CATS.supplement).color)
-      : (it.color || 'var(--primary)');
+      ? colorValToBackground(catStyle2.colorVal, catStyle2.color)
+      : colorValToBackground(it.colorVal || it.color, it.color || 'var(--primary)');
     const tagText = it.kind === 'ics' ? it.note : (it.kind === 'block' ? it.note : null);
 
     const handleRowClick = () => {
