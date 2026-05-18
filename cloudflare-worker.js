@@ -2,7 +2,7 @@
 // Deploy at: workers.cloudflare.com
 //
 // Routes:
-//   GET  /?url=<encoded-ics-url>          → proxy an ICS feed (existing behaviour)
+//   GET  /?url=<encoded-ics-url>          → proxy an ICS feed (cached 20 min)
 //   GET  /todoist/projects                → GET api.todoist.com/api/v1/projects
 //   GET  /todoist/tasks?project_id=xxx    → GET api.todoist.com/api/v1/tasks?project_id=xxx
 //   POST /todoist/tasks/:id/close         → POST api.todoist.com/api/v1/tasks/:id/close
@@ -16,11 +16,13 @@ const CORS_HEADERS = {
   'Cache-Control': 'no-store',
 };
 
+const ICS_CACHE_SECONDS = 20 * 60; // 20 minutes — avoids Google 429s
+
 addEventListener('fetch', event => {
-  event.respondWith(handleRequest(event.request));
+  event.respondWith(handleRequest(event.request, event));
 });
 
-async function handleRequest(request) {
+async function handleRequest(request, event) {
   // Preflight
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
@@ -61,7 +63,7 @@ async function handleRequest(request) {
     });
   }
 
-  // ── ICS proxy (legacy: ?url=<encoded>) ────────────────────────────────────
+  // ── ICS proxy (?url=<encoded>) ─────────────────────────────────────────────
   const feedUrl = url.searchParams.get('url');
   if (!feedUrl) {
     return new Response('Missing ?url parameter', {
@@ -70,13 +72,32 @@ async function handleRequest(request) {
     });
   }
 
+  // Use Cloudflare's Cache API to avoid hammering Google with every page load
+  const cache = caches.default;
+  const cacheKey = new Request(feedUrl, { method: 'GET' });
+  const cached = await cache.match(cacheKey);
+  if (cached) {
+    const body = await cached.text();
+    return new Response(body, {
+      status: 200,
+      headers: { ...CORS_HEADERS, 'Content-Type': 'text/calendar; charset=utf-8', 'X-Cache': 'HIT' },
+    });
+  }
+
   const icsRes = await fetch(feedUrl);
   const icsBody = await icsRes.text();
+
+  if (icsRes.ok) {
+    // Store in Cloudflare edge cache for ICS_CACHE_SECONDS
+    const toCache = new Response(icsBody, {
+      status: 200,
+      headers: { 'Content-Type': 'text/calendar; charset=utf-8', 'Cache-Control': `public, max-age=${ICS_CACHE_SECONDS}` },
+    });
+    event.waitUntil(cache.put(cacheKey, toCache));
+  }
+
   return new Response(icsBody, {
     status: icsRes.status,
-    headers: {
-      ...CORS_HEADERS,
-      'Content-Type': 'text/calendar; charset=utf-8',
-    },
+    headers: { ...CORS_HEADERS, 'Content-Type': 'text/calendar; charset=utf-8', 'X-Cache': 'MISS' },
   });
 }
