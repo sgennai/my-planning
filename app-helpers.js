@@ -648,10 +648,11 @@ function combinedDayItems(visualCol, routine, blocks, weekStart, overrides, else
       _ics: occ,
     };
   });
-  // Exclude 'elsewhere' routine items from lane layout — they render as fixed-width bars
+  // Exclude 'elsewhere' and 'commute' routine items from lane layout — they render as decorative markers
   const allItems = [...routineItems, ...blockItems, ...icsItems];
   const elsewhereItems = allItems.filter(it => it._kind === 'routine' && it.category === 'elsewhere');
-  const mainItems = allItems.filter(it => !(it._kind === 'routine' && it.category === 'elsewhere'));
+  const commuteItems = allItems.filter(it => it._kind === 'routine' && it.category === 'commute');
+  const mainItems = allItems.filter(it => !(it._kind === 'routine' && (it.category === 'elsewhere' || it.category === 'commute')));
   const laid = layoutDay(mainItems);
   // Flag main items that time-overlap with an elsewhere bar so renderers can indent them
   const ewRanges = elsewhereItems.map(ew => ({ s: toMinutes(ew.start), e: toMinutes(ew.start) + ew.duration }));
@@ -660,7 +661,8 @@ function combinedDayItems(visualCol, routine, blocks, weekStart, overrides, else
     if (ewRanges.some(ew => ew.e > s && ew.s < e)) it._elsewhereOverlap = true;
   });
   elsewhereItems.forEach(it => { it._isElsewhereBar = true; });
-  return [...laid, ...elsewhereItems];
+  commuteItems.forEach(it => { it._isCommuteMarker = true; });
+  return [...laid, ...elsewhereItems, ...commuteItems];
 }
 
 // Get the set of action IDs that are currently scheduled or completed

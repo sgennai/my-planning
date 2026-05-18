@@ -1177,6 +1177,21 @@ function CalItem({ item, date, hourHeight, projects, onBlockClick, onRoutineClic
     ? `${fmt12(startMin)} – ${fmt12(endMin)}${endPeriod}`
     : `${fmt12(startMin)}${startPeriod} – ${fmt12(endMin)}${endPeriod}`;
 
+  // Horizontal departure marker for 'commute' routine items
+  if (isRoutine && item.category === 'commute') {
+    return (
+      <div
+        className={`cal-commute-marker${cls.includes('is-past') ? ' is-past' : ''}`}
+        title={tooltipParts.join('\n')}
+        onClick={onClick}
+        style={{ top, left: `calc(${leftPct}% + 2px)`, right: 4, color: style.color }}
+      >
+        <span className="cal-commute-label">{style.emoji ? `${style.emoji} ` : ''}{item.title}</span>
+        <div className="cal-commute-rule" />
+      </div>
+    );
+  }
+
   const EW_BAR = 28; // px — wide enough for rotated title
   // Left-edge bar for 'elsewhere' routine items — rotated title, minimal footprint
   if (isRoutine && item.category === 'elsewhere') {

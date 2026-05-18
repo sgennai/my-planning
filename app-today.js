@@ -191,7 +191,8 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
   // Conflict detection uses VISUAL_MIN_MIN so very short events don't visually collide.
   // 'elsewhere' items are excluded from lane allocation and rendered as fixed-width bars.
   const elsewhereItems = items.filter(it => it.kind === 'routine' && it.category === 'elsewhere');
-  const mainItems = items.filter(it => !(it.kind === 'routine' && it.category === 'elsewhere'));
+  const commuteItems = items.filter(it => it.kind === 'routine' && it.category === 'commute');
+  const mainItems = items.filter(it => !(it.kind === 'routine' && (it.category === 'elsewhere' || it.category === 'commute')));
   const sorted = [...mainItems].sort((a, b) => {
     if (a.startMin !== b.startMin) return a.startMin - b.startMin;
     return b.duration - a.duration;
@@ -251,6 +252,9 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
   });
   elsewhereItems.forEach(it => {
     positioned.push({ ...it, _col: 0, _colspan: 1, _totalCols: 1, _isElsewhereBar: true });
+  });
+  commuteItems.forEach(it => {
+    positioned.push({ ...it, _col: 0, _colspan: 1, _totalCols: 1, _isCommuteMarker: true });
   });
 
   return (
@@ -363,6 +367,21 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
         const timeLabel = startPeriod === period
           ? `${startStr} – ${endStr}${period}`
           : `${startStr}${startPeriod} – ${endStr}${period}`;
+        // Horizontal departure marker for 'commute' routine items
+        if (it.kind === 'routine' && it.category === 'commute') {
+          return (
+            <div
+              key={it.id}
+              className={`cal-commute-marker${isPast ? ' is-past' : ''}`}
+              onClick={(e) => { e.stopPropagation(); onItemClick(it); }}
+              title={`${it.title} · ${startStr}${startPeriod}`}
+              style={{ top, left: 'calc(64px + 2px)', right: 4, color: stripeColor }}
+            >
+              <span className="cal-commute-label">{stripeColor && CATS[it.category] && CATS[it.category].emoji ? `${CATS[it.category].emoji} ` : ''}{it.title}</span>
+              <div className="cal-commute-rule" />
+            </div>
+          );
+        }
         const EW_BAR = 28; // px — wide enough for rotated title
         // Thin left-edge bar for 'elsewhere' routine items
         if (it.kind === 'routine' && it.category === 'elsewhere') {

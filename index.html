@@ -670,6 +670,35 @@
       pointer-events: none;
     }
 
+    .cal-commute-marker {
+      position: absolute;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      pointer-events: auto;
+      z-index: 2;
+      transition: opacity var(--duration-fast) var(--ease-out), filter var(--duration-fast) var(--ease-out);
+    }
+    .cal-commute-marker.is-past { filter: saturate(0.55); opacity: 0.6; }
+    .cal-commute-label {
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      color: currentColor;
+      font-family: var(--sans);
+      letter-spacing: 0.01em;
+      flex-shrink: 0;
+    }
+    .cal-commute-rule {
+      flex: 1;
+      height: 1.5px;
+      background: currentColor;
+      opacity: 0.35;
+      border-radius: 1px;
+    }
+
     .cal-elsewhere-bar {
       position: absolute;
       border-radius: 3px;
