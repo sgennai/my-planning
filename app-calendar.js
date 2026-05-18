@@ -703,7 +703,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
       const dur = Math.max(1, Math.round((occ.end - occ.start) / 60000));
       items.push({ kind: 'ics', id: `ics-${occ.uid}-${startMin}`, title: occ.summary || (occ.source === 'work' ? 'Work' : '(untitled)'),
         note: occ.source === 'work' ? 'WORK' : 'HOUSEHOLD', startMin, duration: dur,
-        color: occ.color || (occ.source === 'work' ? '#8C8C96' : '#7896AF'), allDay: occ.allDay });
+        color: occ.color || (occ.source === 'work' ? '#8C8C96' : '#7896AF'), colorVal: occ.colorVal, _ics: occ, allDay: occ.allDay });
     });
     items.sort((a, b) => a.startMin - b.startMin);
     return items.filter(it => {
