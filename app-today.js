@@ -427,11 +427,11 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
                 title={it.completed ? 'Mark not done' : 'Mark done'}
               >{it.completed ? '✓' : ''}</button>
             )}
-            <div className="today-cal-block-title" style={isStriped ? { textShadow: '0 1px 4px rgba(0,0,0,0.55)' } : undefined}>
+            <div className="today-cal-block-title" style={isStriped ? { textShadow: '0 0 3px rgba(0,0,0,0.95), 0 1px 6px rgba(0,0,0,0.85), 0 2px 10px rgba(0,0,0,0.7)' } : undefined}>
               {it.kind === 'routine' && CATS[it.category] && CATS[it.category].emoji ? `${CATS[it.category].emoji} ` : ''}
               {it.title}
             </div>
-            <div className="today-cal-block-time" style={isStriped ? { textShadow: '0 1px 3px rgba(0,0,0,0.5)' } : undefined}>{timeLabel}</div>
+            <div className="today-cal-block-time" style={isStriped ? { textShadow: '0 0 3px rgba(0,0,0,0.95), 0 1px 6px rgba(0,0,0,0.85)' } : undefined}>{timeLabel}</div>
           </div>
         );
       })}

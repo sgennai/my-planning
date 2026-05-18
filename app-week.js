@@ -1232,7 +1232,7 @@ function CalItem({ item, date, hourHeight, projects, onBlockClick, onRoutineClic
   const itemStriped = isRoutine ? parseColorVal(style.colorVal).striped
     : isIcs ? parseColorVal(item._ics.colorVal || item._ics.color).striped
     : false;
-  const stripedTextStyle = itemStriped ? { textShadow: '0 1px 4px rgba(0,0,0,0.55)' } : undefined;
+  const stripedTextStyle = itemStriped ? { textShadow: '0 0 3px rgba(0,0,0,0.95), 0 1px 6px rgba(0,0,0,0.85), 0 2px 10px rgba(0,0,0,0.7)' } : undefined;
 
   return (
     <div
