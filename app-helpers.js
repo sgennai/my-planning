@@ -24,43 +24,37 @@ function colorValToBackground(val, fallbackHex) {
   return rgba;
 }
 
-// ─── ColorPickerExtended ───────────────────────────────────────
-// Replaces a plain <input type="color"> with color + opacity + stripes.
+// ColorPickerExtended — written without JSX to avoid any Babel parse issues
+// at the top of this file before other definitions are in scope.
 // `value` may be a hex string (legacy) or {hex,opacity,striped}.
 // `onChange` receives {hex,opacity,striped}.
-function ColorPickerExtended({ value, defaultHex, onChange }) {
-  const parsed = parseColorVal(value || defaultHex);
-  const currentHex = parsed.hex || defaultHex || '#888888';
-  const emit = (patch) => onChange({ hex: currentHex, opacity: parsed.opacity, striped: parsed.striped, ...patch });
-  return (
-    <span className="cpx">
-      <input
-        type="color"
-        value={currentHex}
-        onChange={e => emit({ hex: e.target.value })}
-        className="cpx-swatch"
-        title="Pick colour"
-      />
-      <span className="cpx-sep" />
-      <span className="cpx-group">
-        <span className="cpx-label">Opacity</span>
-        <input
-          type="range" min="0.1" max="1" step="0.05"
-          value={parsed.opacity}
-          onChange={e => emit({ opacity: Number(e.target.value) })}
-          className="cpx-slider"
-        />
-        <span className="cpx-pct">{Math.round(parsed.opacity * 100)}%</span>
-      </span>
-      <button
-        className={`cpx-stripe-btn${parsed.striped ? ' active' : ''}`}
-        onClick={() => emit({ striped: !parsed.striped })}
-        title="Toggle diagonal stripes"
-        type="button"
-      >
-        {parsed.striped ? '▨ On' : '▨ Off'}
-      </button>
-    </span>
+function ColorPickerExtended(props) {
+  var value = props.value, defaultHex = props.defaultHex, onChange = props.onChange;
+  var parsed = parseColorVal(value || defaultHex);
+  var currentHex = parsed.hex || defaultHex || '#888888';
+  function emit(patch) {
+    onChange(Object.assign({ hex: currentHex, opacity: parsed.opacity, striped: parsed.striped }, patch));
+  }
+  return React.createElement('span', { className: 'cpx' },
+    React.createElement('input', {
+      type: 'color', value: currentHex, className: 'cpx-swatch', title: 'Pick colour',
+      onChange: function(e) { emit({ hex: e.target.value }); },
+    }),
+    React.createElement('span', { className: 'cpx-sep' }),
+    React.createElement('span', { className: 'cpx-group' },
+      React.createElement('span', { className: 'cpx-label' }, 'Opacity'),
+      React.createElement('input', {
+        type: 'range', min: '0.1', max: '1', step: '0.05',
+        value: parsed.opacity, className: 'cpx-slider',
+        onChange: function(e) { emit({ opacity: Number(e.target.value) }); },
+      }),
+      React.createElement('span', { className: 'cpx-pct' }, Math.round(parsed.opacity * 100) + '%')
+    ),
+    React.createElement('button', {
+      className: 'cpx-stripe-btn' + (parsed.striped ? ' active' : ''),
+      onClick: function() { emit({ striped: !parsed.striped }); },
+      title: 'Toggle diagonal stripes', type: 'button',
+    }, parsed.striped ? 'On' : 'Off')
   );
 }
 
