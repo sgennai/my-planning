@@ -68,7 +68,8 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   // Per-category color overrides — read user prefs, build merged style map
   const userCategoryColors = (data.prefs && data.prefs.categoryColors) || {};
   const userCategoryEmojis = (data.prefs && data.prefs.categoryEmojis) || {};
-  const categoryStyles = useMemo(() => categoryStylesWith(userCategoryColors, userCategoryEmojis), [userCategoryColors, userCategoryEmojis]);
+  const userCategoryLabels = (data.prefs && data.prefs.categoryLabels) || {};
+  const categoryStyles = useMemo(() => categoryStylesWith(userCategoryColors, userCategoryEmojis, userCategoryLabels), [userCategoryColors, userCategoryEmojis, userCategoryLabels]);
   const setCategoryColor = useCallback((category, color) => {
     persistData(d => ({
       ...d,
@@ -99,6 +100,23 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
       const map = { ...((d.prefs && d.prefs.categoryEmojis) || {}) };
       delete map[category];
       return { ...d, prefs: { ...(d.prefs || {}), categoryEmojis: map } };
+    });
+  }, [persistData]);
+
+  const setCategoryLabel = useCallback((category, label) => {
+    persistData(d => ({
+      ...d,
+      prefs: {
+        ...(d.prefs || {}),
+        categoryLabels: { ...((d.prefs && d.prefs.categoryLabels) || {}), [category]: label },
+      },
+    }));
+  }, [persistData]);
+  const resetCategoryLabel = useCallback((category) => {
+    persistData(d => {
+      const map = { ...((d.prefs && d.prefs.categoryLabels) || {}) };
+      delete map[category];
+      return { ...d, prefs: { ...(d.prefs || {}), categoryLabels: map } };
     });
   }, [persistData]);
 
@@ -1448,6 +1466,9 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         onSetCategoryEmoji={setCategoryEmoji}
         onResetCategoryEmoji={resetCategoryEmoji}
         userCategoryEmojis={userCategoryEmojis}
+        onSetCategoryLabel={setCategoryLabel}
+        onResetCategoryLabel={resetCategoryLabel}
+        userCategoryLabels={userCategoryLabels}
         todoist={data.todoist || _EMPTY_OBJ}
         onUpdateTodoist={updateTodoistSettings}
       />

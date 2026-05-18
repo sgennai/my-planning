@@ -24,6 +24,7 @@ function makeDefaultData() {
       theme: 'light',
       categoryColors: {},
       categoryEmojis: {},
+      categoryLabels: {},
       todayView: 'timeline',
       lunchSlot: { start: '12:30', duration: 60 },
     },
@@ -105,6 +106,10 @@ function migrate(data) {
     // v16: per-category emoji overrides
     if (!next.prefs.categoryEmojis || typeof next.prefs.categoryEmojis !== 'object') {
       next.prefs.categoryEmojis = {};
+      changed = true;
+    }
+    if (!next.prefs.categoryLabels || typeof next.prefs.categoryLabels !== 'object') {
+      next.prefs.categoryLabels = {};
       changed = true;
     }
     // v15: today view + lunch slot

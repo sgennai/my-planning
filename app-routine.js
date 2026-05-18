@@ -554,9 +554,10 @@ function EmojiPickerPopover({ currentEmoji, onPick, onClose }) {
   );
 }
 
-function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDeleteItem, categoryStyles, onSetCategoryColor, onResetCategoryColor, userCategoryColors, onSetCategoryEmoji, onResetCategoryEmoji, userCategoryEmojis, embedded = false }) {
+function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDeleteItem, categoryStyles, onSetCategoryColor, onResetCategoryColor, userCategoryColors, onSetCategoryEmoji, onResetCategoryEmoji, userCategoryEmojis, onSetCategoryLabel, onResetCategoryLabel, userCategoryLabels, embedded = false }) {
   const CATS = categoryStyles || CATEGORY_STYLES;
-  const [emojiPickerCat, setEmojiPickerCat] = useState(null); // which category's picker is open
+  const [emojiPickerCat, setEmojiPickerCat] = useState(null);
+  const [labelEdits, setLabelEdits] = useState({});
   // null = list view; 'new' = adding new; or itemId = editing existing
   const [editingId, setEditingId] = useState(null);
 
@@ -601,10 +602,7 @@ function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDele
       </div>
       <div className="modal-body" style={embedded ? { maxHeight: 'none', overflow: 'visible' } : {}}>
         <div className="category-colors-section">
-          <div className="category-colors-header">
-            <div className="category-colors-eyebrow">Category colors</div>
-            <div className="category-colors-hint">Each category has its own color. Click any swatch to customize.</div>
-          </div>
+          <div className="category-colors-eyebrow">Category colors</div>
           <div className="category-colors-grid">
             {Object.keys(CATEGORY_STYLES).map(cat => {
               const defaultColor = CATEGORY_STYLES[cat].color;
@@ -615,42 +613,68 @@ function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDele
               const defaultEmoji = CATEGORY_STYLES[cat].emoji;
               const currentEmoji = (userCategoryEmojis && userCategoryEmojis[cat]) || defaultEmoji;
               const emojiOverridden = !!(userCategoryEmojis && userCategoryEmojis[cat]);
-              const label = CATEGORY_STYLES[cat].label;
+              const defaultLabel = CATEGORY_STYLES[cat].label;
+              const savedLabel = (userCategoryLabels && userCategoryLabels[cat]) || defaultLabel;
+              const labelOverridden = !!(userCategoryLabels && userCategoryLabels[cat]);
+              const inputVal = labelEdits[cat] !== undefined ? labelEdits[cat] : savedLabel;
+              const isCustomised = colorOverridden || emojiOverridden || labelOverridden;
               return (
-                <div key={cat} className="category-color-row">
+                <div key={cat} className="category-color-card" style={{ borderLeftColor: currentHex }}>
+                  {/* Header: emoji + editable name + reset */}
+                  <div className="category-card-header">
+                    <button
+                      className="category-emoji-btn"
+                      onClick={() => setEmojiPickerCat(emojiPickerCat === cat ? null : cat)}
+                      title="Change emoji"
+                    >
+                      {currentEmoji}
+                    </button>
+                    <input
+                      className="cat-name-input"
+                      value={inputVal}
+                      onChange={e => setLabelEdits(prev => ({ ...prev, [cat]: e.target.value }))}
+                      onBlur={e => {
+                        const val = e.target.value.trim();
+                        if (val && val !== defaultLabel) {
+                          onSetCategoryLabel && onSetCategoryLabel(cat, val);
+                        } else {
+                          onResetCategoryLabel && onResetCategoryLabel(cat);
+                        }
+                        setLabelEdits(prev => { const n = { ...prev }; delete n[cat]; return n; });
+                      }}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') e.target.blur();
+                        if (e.key === 'Escape') {
+                          setLabelEdits(prev => { const n = { ...prev }; delete n[cat]; return n; });
+                          e.target.blur();
+                        }
+                      }}
+                      placeholder={defaultLabel}
+                      title="Click to rename"
+                    />
+                    {isCustomised && (
+                      <button
+                        className="category-color-reset"
+                        onClick={() => {
+                          if (colorOverridden) onResetCategoryColor && onResetCategoryColor(cat);
+                          if (emojiOverridden) onResetCategoryEmoji && onResetCategoryEmoji(cat);
+                          if (labelOverridden) onResetCategoryLabel && onResetCategoryLabel(cat);
+                          setLabelEdits(prev => { const n = { ...prev }; delete n[cat]; return n; });
+                        }}
+                        title="Reset to defaults"
+                      >↺</button>
+                    )}
+                  </div>
+                  {/* Color controls */}
                   <ColorPickerExtended
                     value={rawColorVal || defaultColor}
                     defaultHex={defaultColor}
                     onChange={val => onSetCategoryColor && onSetCategoryColor(cat, val)}
                   />
-                  <button
-                    className="category-emoji-btn"
-                    onClick={() => setEmojiPickerCat(emojiPickerCat === cat ? null : cat)}
-                    title={`Pick emoji for ${label}`}
-                  >
-                    {currentEmoji}
-                  </button>
-                  <div className="category-color-label">{label}</div>
-                  <div className="category-color-hex">{currentHex}</div>
-                  {(colorOverridden || emojiOverridden) && (
-                    <button
-                      className="category-color-reset"
-                      onClick={() => {
-                        if (colorOverridden) onResetCategoryColor && onResetCategoryColor(cat);
-                        if (emojiOverridden) onResetCategoryEmoji && onResetCategoryEmoji(cat);
-                      }}
-                      title="Reset color and emoji to defaults"
-                    >
-                      ↺
-                    </button>
-                  )}
                   {emojiPickerCat === cat && (
                     <EmojiPickerPopover
                       currentEmoji={currentEmoji}
-                      onPick={(e) => {
-                        onSetCategoryEmoji && onSetCategoryEmoji(cat, e);
-                        setEmojiPickerCat(null);
-                      }}
+                      onPick={(e) => { onSetCategoryEmoji && onSetCategoryEmoji(cat, e); setEmojiPickerCat(null); }}
                       onClose={() => setEmojiPickerCat(null)}
                     />
                   )}

@@ -50,16 +50,17 @@ function getCategoryEmoji(category, userEmojis) {
   return (CATEGORY_STYLES[category] || CATEGORY_STYLES.supplement).emoji;
 }
 
-function categoryStylesWith(userColors, userEmojis) {
+function categoryStylesWith(userColors, userEmojis, userLabels) {
   const out = {};
   Object.entries(CATEGORY_STYLES).forEach(([k, v]) => {
     const rawColor = userColors && userColors[k];
     const parsed = parseColorVal(rawColor);
     out[k] = {
       ...v,
-      color: parsed.hex || v.color,   // hex string — backward compat for many callers
-      colorVal: rawColor || v.color,   // full value (string or object) — for rendering
+      color: parsed.hex || v.color,
+      colorVal: rawColor || v.color,
       emoji: getCategoryEmoji(k, userEmojis),
+      label: (userLabels && userLabels[k]) || v.label,
     };
   });
   return out;
