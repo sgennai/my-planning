@@ -648,7 +648,19 @@ function combinedDayItems(visualCol, routine, blocks, weekStart, overrides, else
       _ics: occ,
     };
   });
-  return layoutDay([...routineItems, ...blockItems, ...icsItems]);
+  // Exclude 'elsewhere' routine items from lane layout — they render as fixed-width bars
+  const allItems = [...routineItems, ...blockItems, ...icsItems];
+  const elsewhereItems = allItems.filter(it => it._kind === 'routine' && it.category === 'elsewhere');
+  const mainItems = allItems.filter(it => !(it._kind === 'routine' && it.category === 'elsewhere'));
+  const laid = layoutDay(mainItems);
+  // Flag main items that time-overlap with an elsewhere bar so renderers can indent them
+  const ewRanges = elsewhereItems.map(ew => ({ s: toMinutes(ew.start), e: toMinutes(ew.start) + ew.duration }));
+  laid.forEach(it => {
+    const s = toMinutes(it.start), e = s + it.duration;
+    if (ewRanges.some(ew => ew.e > s && ew.s < e)) it._elsewhereOverlap = true;
+  });
+  elsewhereItems.forEach(it => { it._isElsewhereBar = true; });
+  return [...laid, ...elsewhereItems];
 }
 
 // Get the set of action IDs that are currently scheduled or completed

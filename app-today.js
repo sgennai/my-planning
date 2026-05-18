@@ -189,7 +189,10 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
 
   // Column-split layout: overlapping events placed side-by-side, each at its actual time position.
   // Conflict detection uses VISUAL_MIN_MIN so very short events don't visually collide.
-  const sorted = [...items].sort((a, b) => {
+  // 'elsewhere' items are excluded from lane allocation and rendered as fixed-width bars.
+  const elsewhereItems = items.filter(it => it.kind === 'routine' && it.category === 'elsewhere');
+  const mainItems = items.filter(it => !(it.kind === 'routine' && it.category === 'elsewhere'));
+  const sorted = [...mainItems].sort((a, b) => {
     if (a.startMin !== b.startMin) return a.startMin - b.startMin;
     return b.duration - a.duration;
   });
@@ -238,6 +241,16 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
       }
       positioned.push({ ...it, _col: myCol, _colspan: span, _totalCols: totalCols });
     });
+  });
+
+  // Flag items that overlap with an elsewhere bar, then add bars to the positioned list
+  const ewRanges = elsewhereItems.map(ew => ({ s: ew.startMin, e: ew.startMin + ew.duration }));
+  positioned.forEach(it => {
+    const e = it.startMin + it.duration;
+    if (ewRanges.some(ew => ew.e > it.startMin && ew.s < e)) it._elsewhereOverlap = true;
+  });
+  elsewhereItems.forEach(it => {
+    positioned.push({ ...it, _col: 0, _colspan: 1, _totalCols: 1, _isElsewhereBar: true });
   });
 
   return (
@@ -350,6 +363,7 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
         const timeLabel = startPeriod === period
           ? `${startStr} – ${endStr}${period}`
           : `${startStr}${startPeriod} – ${endStr}${period}`;
+        const EW_BAR = 28; // px — wide enough for rotated title
         // Thin left-edge bar for 'elsewhere' routine items
         if (it.kind === 'routine' && it.category === 'elsewhere') {
           return (
@@ -360,13 +374,18 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
               title={`${it.title} · ${timeLabel}`}
               style={{
                 top, height,
-                left: `calc(64px + ${leftPct}% - ${64 * leftPct / 100}px + 2px)`,
-                width: 6,
+                left: `calc(64px + 2px)`,
+                width: EW_BAR,
                 background: stripeColor,
               }}
-            />
+            >
+              <div style={{ writingMode: 'vertical-lr', fontSize: 10, color: 'rgba(255,255,255,0.9)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingTop: 5, lineHeight: 1, fontFamily: 'var(--sans)' }}>
+                {it.title}
+              </div>
+            </div>
           );
         }
+        const ewOffset = it._elsewhereOverlap ? EW_BAR + 4 : 0;
         return (
           <div
             key={it.id}
@@ -374,8 +393,8 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
             onClick={(e) => { e.stopPropagation(); onItemClick(it); }}
             style={{
               top, height,
-              left: `calc(64px + ${leftPct}% - ${64 * leftPct / 100}px + 2px)`,
-              width: `calc(${widthPct}% - 4px)`,
+              left: `calc(64px + ${leftPct}% - ${64 * leftPct / 100}px + 2px + ${ewOffset}px)`,
+              width: `calc(${widthPct}% - 4px - ${ewOffset}px)`,
               background: it.completed ? 'var(--bg-card-deep)' : stripeColor,
             }}
             title={`${it.title} · ${timeLabel}`}

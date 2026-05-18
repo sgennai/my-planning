@@ -1177,7 +1177,8 @@ function CalItem({ item, date, hourHeight, projects, onBlockClick, onRoutineClic
     ? `${fmt12(startMin)} – ${fmt12(endMin)}${endPeriod}`
     : `${fmt12(startMin)}${startPeriod} – ${fmt12(endMin)}${endPeriod}`;
 
-  // Thin left-edge bar for 'elsewhere' routine items — no text, minimal footprint
+  const EW_BAR = 28; // px — wide enough for rotated title
+  // Left-edge bar for 'elsewhere' routine items — rotated title, minimal footprint
   if (isRoutine && item.category === 'elsewhere') {
     return (
       <div
@@ -1188,12 +1189,17 @@ function CalItem({ item, date, hourHeight, projects, onBlockClick, onRoutineClic
           top,
           height,
           left: `calc(${leftPct}% + 2px)`,
-          width: 6,
+          width: EW_BAR,
           background: style.color,
         }}
-      />
+      >
+        <div style={{ writingMode: 'vertical-lr', fontSize: 10, color: 'rgba(255,255,255,0.9)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingTop: 5, lineHeight: 1, fontFamily: 'var(--sans)' }}>
+          {item.title}
+        </div>
+      </div>
     );
   }
+  const ewOffset = item._elsewhereOverlap ? EW_BAR + 4 : 0;
 
   // Solid color fill for non-completed items; soft tint for completed.
   const blockColor = item._completed ? '#7EB8A4' : (isBlock ? (project?.color || style.color) : style.color);
@@ -1207,8 +1213,8 @@ function CalItem({ item, date, hourHeight, projects, onBlockClick, onRoutineClic
       style={{
         top,
         height,
-        left: `calc(${leftPct}% + 2px)`,
-        width: `calc(${widthPct}% - 4px)`,
+        left: `calc(${leftPct}% + 2px + ${ewOffset}px)`,
+        width: `calc(${widthPct}% - 4px - ${ewOffset}px)`,
         background: item._completed
           ? '#7EB8A4'
           : (isHexColor ? blockColor : style.color),
