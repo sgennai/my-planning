@@ -1177,6 +1177,24 @@ function CalItem({ item, date, hourHeight, projects, onBlockClick, onRoutineClic
     ? `${fmt12(startMin)} – ${fmt12(endMin)}${endPeriod}`
     : `${fmt12(startMin)}${startPeriod} – ${fmt12(endMin)}${endPeriod}`;
 
+  // Thin left-edge bar for 'elsewhere' routine items — no text, minimal footprint
+  if (isRoutine && item.category === 'elsewhere') {
+    return (
+      <div
+        className={`cal-elsewhere-bar${cls.includes('is-past') ? ' is-past' : ''}`}
+        title={tooltipParts.join('\n')}
+        onClick={onClick}
+        style={{
+          top,
+          height,
+          left: `calc(${leftPct}% + 2px)`,
+          width: 6,
+          background: style.color,
+        }}
+      />
+    );
+  }
+
   // Solid color fill for non-completed items; soft tint for completed.
   const blockColor = item._completed ? '#7EB8A4' : (isBlock ? (project?.color || style.color) : style.color);
   const isHexColor = typeof blockColor === 'string' && blockColor.startsWith('#');

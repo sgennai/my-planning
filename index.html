@@ -670,6 +670,16 @@
       pointer-events: none;
     }
 
+    .cal-elsewhere-bar {
+      position: absolute;
+      border-radius: 3px;
+      opacity: 0.6;
+      cursor: pointer;
+      transition: opacity var(--duration-fast) var(--ease-out), filter var(--duration-fast) var(--ease-out);
+    }
+    .cal-elsewhere-bar:hover { opacity: 1; }
+    .cal-elsewhere-bar.is-past { filter: saturate(0.55); }
+
     .cal-item {
       position: absolute;
       border-radius: 6px;

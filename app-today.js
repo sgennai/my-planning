@@ -350,6 +350,23 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
         const timeLabel = startPeriod === period
           ? `${startStr} – ${endStr}${period}`
           : `${startStr}${startPeriod} – ${endStr}${period}`;
+        // Thin left-edge bar for 'elsewhere' routine items
+        if (it.kind === 'routine' && it.category === 'elsewhere') {
+          return (
+            <div
+              key={it.id}
+              className={`cal-elsewhere-bar${isPast ? ' is-past' : ''}`}
+              onClick={(e) => { e.stopPropagation(); onItemClick(it); }}
+              title={`${it.title} · ${timeLabel}`}
+              style={{
+                top, height,
+                left: `calc(64px + ${leftPct}% - ${64 * leftPct / 100}px + 2px)`,
+                width: 6,
+                background: stripeColor,
+              }}
+            />
+          );
+        }
         return (
           <div
             key={it.id}
