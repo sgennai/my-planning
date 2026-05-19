@@ -56,6 +56,9 @@ function ipComputeStats(ip) {
   const dueToday = questions.filter(ipIsDue).length;
   const total = questions.length;
   const interviewReady = questions.filter(q => q.status === 'interview_ready').length;
+  const avgConf = total > 0
+    ? (questions.reduce((s, q) => s + (q.confidence || 1), 0) / total).toFixed(1)
+    : null;
   const catStats = {};
   categories.forEach(c => {
     const qs = questions.filter(q => q.categoryId === c.id);
@@ -70,13 +73,14 @@ function ipComputeStats(ip) {
     .filter(c => (catStats[c.id] || {}).weak > 0)
     .sort((a, b) => (catStats[b.id].weak || 0) - (catStats[a.id].weak || 0))
     .slice(0, 3).map(c => c.name);
-  return { dueToday, total, interviewReady, weakCats, catStats };
+  return { dueToday, total, interviewReady, weakCats, catStats, avgConf };
 }
 
 function ipBuildQueue(questions, mode) {
   let pool;
   if (mode === 'weak') pool = questions.filter(q => q.status === 'draft' || q.status === 'needs_work' || q.confidence <= 2);
   else if (mode === 'all') pool = [...questions];
+  else if (mode === 'ready') pool = questions.filter(q => q.status === 'interview_ready');
   else {
     pool = questions.filter(ipIsDue);
     if (pool.length === 0) pool = questions.filter(q => q.confidence <= 2);
@@ -92,9 +96,12 @@ function ipBuildQueue(questions, mode) {
 function IPAnswerBlock({ field, label, placeholder, value, primary, onChange }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value || '');
+  const [saved, setSaved] = useState(false);
   const taRef = useRef(null);
+  const savedTimerRef = useRef(null);
 
   useEffect(() => { if (!editing) setDraft(value || ''); }, [value, editing]);
+  useEffect(() => () => clearTimeout(savedTimerRef.current), []);
 
   const autoResize = (el) => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } };
 
@@ -102,18 +109,27 @@ function IPAnswerBlock({ field, label, placeholder, value, primary, onChange }) 
     if (editing && taRef.current) { taRef.current.focus(); autoResize(taRef.current); }
   }, [editing]);
 
-  const save = () => { onChange(field, draft); setEditing(false); };
+  const save = () => {
+    onChange(field, draft);
+    setEditing(false);
+    setSaved(true);
+    clearTimeout(savedTimerRef.current);
+    savedTimerRef.current = setTimeout(() => setSaved(false), 2500);
+  };
   const cancel = () => { setDraft(value || ''); setEditing(false); };
 
   return (
     <div className={`ip-block${primary ? ' ip-block--primary' : ''}`}>
       <div className="ip-block-header">
         <span className="ip-block-label">{label}</span>
-        {!editing && (
-          <button className="ip-block-edit-btn" onClick={() => setEditing(true)}>
-            {value ? 'Edit' : '+ Add'}
-          </button>
-        )}
+        <div className="ip-block-header-right">
+          {saved && !editing && <span className="ip-block-saved">✓ Saved</span>}
+          {!editing && (
+            <button className="ip-block-edit-btn" onClick={() => setEditing(true)}>
+              {value ? 'Edit' : '+ Add'}
+            </button>
+          )}
+        </div>
       </div>
       {editing ? (
         <div className="ip-block-edit">
@@ -267,10 +283,18 @@ function IPRehearsalView({ queue, ip, onRate, onExit }) {
 }
 
 // ─── IPWorkspace ──────────────────────────────────────────────────
-function IPWorkspace({ question, ip, onUpdateAnswer, onUpdateQuestion, onRehearseOne, onMarkReady, onDelete }) {
+function IPWorkspace({ question, ip, onUpdateAnswer, onUpdateQuestion, onRehearseOne, onMarkReady, onDelete, onDuplicate, onMove }) {
   const [showAll, setShowAll] = useState(false);
+  const [editingQText, setEditingQText] = useState(false);
+  const [qTextDraft, setQTextDraft] = useState('');
+  const [tagInput, setTagInput] = useState('');
 
-  useEffect(() => { setShowAll(false); }, [question && question.id]);
+  const questionId = question ? question.id : null;
+  useEffect(() => {
+    setShowAll(false);
+    setEditingQText(false);
+    setTagInput('');
+  }, [questionId]);
 
   if (!question) {
     return (
@@ -288,14 +312,52 @@ function IPWorkspace({ question, ip, onUpdateAnswer, onUpdateQuestion, onRehears
   const visibleBlocks = showAll ? IP_ANSWER_BLOCKS : IP_ANSWER_BLOCKS.filter(b => b.primary || question.answer[b.field]);
   const hiddenCount = IP_ANSWER_BLOCKS.filter(b => !b.primary && !question.answer[b.field]).length;
 
-  const confirmDelete = () => {
-    if (window.confirm('Delete this question?')) onDelete(question.id);
+  const saveQText = () => {
+    const t = qTextDraft.trim();
+    if (t && t !== question.question) onUpdateQuestion(question.id, { question: t });
+    setEditingQText(false);
   };
+
+  const addTag = (raw) => {
+    const t = raw.trim().replace(/,/g, '');
+    if (!t || (question.tags || []).includes(t)) { setTagInput(''); return; }
+    onUpdateQuestion(question.id, { tags: [...(question.tags || []), t] });
+    setTagInput('');
+  };
+
+  const removeTag = (tag) => {
+    onUpdateQuestion(question.id, { tags: (question.tags || []).filter(t => t !== tag) });
+  };
+
+  const nextDueLabel = question.nextPracticeAt
+    ? new Date(question.nextPracticeAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+    : null;
 
   return (
     <div className="ip-right ip-workspace">
       <div className="ip-workspace-header">
-        <div className="ip-ws-question">{question.question}</div>
+        {editingQText ? (
+          <div className="ip-ws-q-edit">
+            <textarea
+              className="ip-ws-q-ta"
+              value={qTextDraft}
+              rows={3}
+              autoFocus
+              onChange={e => setQTextDraft(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveQText(); } }}
+            />
+            <div className="ip-ws-q-actions">
+              <button className="ip-block-save-btn" onClick={saveQText}>Save</button>
+              <button className="ip-block-cancel-btn" onClick={() => setEditingQText(false)}>Cancel</button>
+            </div>
+          </div>
+        ) : (
+          <div className="ip-ws-question" onClick={() => { setQTextDraft(question.question); setEditingQText(true); }}
+            title="Click to edit question text">
+            {question.question}
+          </div>
+        )}
+
         <div className="ip-ws-meta-row">
           {cat && <span className="ip-ws-cat-chip" style={{ background: cat.color + '22', color: cat.color }}>● {cat.name}</span>}
           <span className="ip-ws-status-chip" style={{ background: IP_STATUS_COLORS[status] + '22', color: IP_STATUS_COLORS[status] }}>
@@ -308,14 +370,46 @@ function IPWorkspace({ question, ip, onUpdateAnswer, onUpdateQuestion, onRehears
             ? <span className="ip-ws-last">Last: {new Date(question.lastPracticedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
             : <span className="ip-ws-last ip-ws-last--never">Never practiced</span>
           }
+          {nextDueLabel && <span className="ip-ws-last">Next: {nextDueLabel}</span>}
           {ipIsDue(question) && <span className="ip-ws-due-badge">● Due</span>}
         </div>
+
+        <div className="ip-ws-tags-row">
+          {(question.tags || []).map(t => (
+            <span key={t} className="ip-ws-tag-chip">
+              {t}
+              <button className="ip-ws-tag-remove" onClick={() => removeTag(t)}>×</button>
+            </span>
+          ))}
+          <input
+            className="ip-ws-tag-input"
+            value={tagInput}
+            placeholder="+ tag"
+            onChange={e => setTagInput(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag(tagInput); }
+              if (e.key === 'Backspace' && !tagInput && (question.tags || []).length > 0) {
+                removeTag(question.tags[question.tags.length - 1]);
+              }
+            }}
+          />
+        </div>
+
         <div className="ip-ws-action-row">
           <button className="ip-ws-btn ip-ws-btn--primary" onClick={() => onRehearseOne(question.id)}>▶ Rehearse</button>
           {status !== 'interview_ready' && (
             <button className="ip-ws-btn" onClick={() => onMarkReady(question.id)}>✓ Mark ready</button>
           )}
-          <button className="ip-ws-btn ip-ws-btn--danger" onClick={confirmDelete}>Delete</button>
+          <button className="ip-ws-btn" onClick={() => onDuplicate(question.id)}>⊕ Duplicate</button>
+          <select className="ip-ws-move-select"
+            value={question.categoryId || ''}
+            onChange={e => { if (e.target.value && e.target.value !== question.categoryId) onMove(question.id, e.target.value); }}>
+            <option value="" disabled>Move to…</option>
+            {(ip.categories || []).map(c => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+          <button className="ip-ws-btn ip-ws-btn--danger" onClick={() => { if (window.confirm('Delete this question?')) onDelete(question.id); }}>Delete</button>
         </div>
       </div>
 
@@ -342,7 +436,7 @@ function IPWorkspace({ question, ip, onUpdateAnswer, onUpdateQuestion, onRehears
 }
 
 // ─── IPQuestionCard ───────────────────────────────────────────────
-function IPQuestionCard({ q, selected, onClick, onRehearse }) {
+function IPQuestionCard({ q, selected, onClick }) {
   const status = q.status || 'draft';
   const due = ipIsDue(q);
   const daysAgo = q.lastPracticedAt
@@ -360,14 +454,14 @@ function IPQuestionCard({ q, selected, onClick, onRehearse }) {
         <span className="ip-q-last-label">
           {daysAgo === null ? 'Never practiced' : daysAgo === 0 ? 'Today' : `${daysAgo}d ago`}
         </span>
-        {due && <span className="ip-q-due-dot" title="Due for practice">Due</span>}
+        {due && <span className="ip-q-due-dot">Due</span>}
       </div>
     </div>
   );
 }
 
 // ─── IPQuestionList ───────────────────────────────────────────────
-function IPQuestionList({ questions, selectedId, onSelect, onAdd, onRehearseOne }) {
+function IPQuestionList({ questions, selectedId, onSelect, onAdd }) {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -439,7 +533,7 @@ function IPQuestionList({ questions, selectedId, onSelect, onAdd, onRehearseOne 
           <div className="ip-q-list-empty">No questions match this filter.</div>
         ) : filtered.map(q => (
           <IPQuestionCard key={q.id} q={q} selected={q.id === selectedId}
-            onClick={() => onSelect(q.id)} onRehearse={() => onRehearseOne(q.id)} />
+            onClick={() => onSelect(q.id)} />
         ))}
       </div>
     </div>
@@ -447,9 +541,11 @@ function IPQuestionList({ questions, selectedId, onSelect, onAdd, onRehearseOne 
 }
 
 // ─── IPCategoryList ───────────────────────────────────────────────
-function IPCategoryList({ ip, selectedId, onSelect, onAdd, stats }) {
+function IPCategoryList({ ip, selectedId, onSelect, onAdd, onRename, onDelete, stats }) {
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState('');
+  const [renamingId, setRenamingId] = useState(null);
+  const [renameVal, setRenameVal] = useState('');
   const categories = ip.categories || [];
 
   const grouped = useMemo(() => {
@@ -464,6 +560,13 @@ function IPCategoryList({ ip, selectedId, onSelect, onAdd, stats }) {
     onAdd(t);
     setNewName('');
     setShowAdd(false);
+  };
+
+  const submitRename = () => {
+    const t = renameVal.trim();
+    if (t && renamingId) onRename(renamingId, t);
+    setRenamingId(null);
+    setRenameVal('');
   };
 
   return (
@@ -493,15 +596,42 @@ function IPCategoryList({ ip, selectedId, onSelect, onAdd, stats }) {
               <div className="ip-cat-group-label">{g}</div>
               {cats.map(c => {
                 const s = stats[c.id] || { total: 0, ready: 0, due: 0 };
+                const isRenaming = renamingId === c.id;
                 return (
                   <div key={c.id} className={`ip-cat-item${selectedId === c.id ? ' active' : ''}`}
-                    onClick={() => onSelect(c.id)}>
+                    onClick={() => { if (!isRenaming) onSelect(c.id); }}>
                     <span className="ip-cat-dot" style={{ background: c.color }} />
-                    <div className="ip-cat-text">
-                      <span className="ip-cat-name">{c.name}</span>
-                      {s.due > 0 && <span className="ip-cat-due-tag">{s.due} due</span>}
+                    {isRenaming ? (
+                      <input
+                        className="ip-cat-rename-input"
+                        value={renameVal}
+                        autoFocus
+                        onChange={e => setRenameVal(e.target.value)}
+                        onBlur={submitRename}
+                        onKeyDown={e => {
+                          e.stopPropagation();
+                          if (e.key === 'Enter') submitRename();
+                          if (e.key === 'Escape') { setRenamingId(null); setRenameVal(''); }
+                        }}
+                        onClick={e => e.stopPropagation()}
+                      />
+                    ) : (
+                      <div className="ip-cat-text">
+                        <span className="ip-cat-name">{c.name}</span>
+                        {s.due > 0 && <span className="ip-cat-due-tag">{s.due} due</span>}
+                      </div>
+                    )}
+                    {!isRenaming && <span className="ip-cat-count">{s.total}</span>}
+                    <div className="ip-cat-item-actions" onClick={e => e.stopPropagation()}>
+                      <button className="ip-cat-action-btn"
+                        onClick={() => { setRenamingId(c.id); setRenameVal(c.name); }}
+                        title="Rename">✏</button>
+                      <button className="ip-cat-action-btn ip-cat-action-btn--del"
+                        onClick={() => {
+                          if (window.confirm(`Delete "${c.name}"?\nQuestions will become uncategorized.`)) onDelete(c.id);
+                        }}
+                        title="Delete">×</button>
                     </div>
-                    <span className="ip-cat-count">{s.total}</span>
                   </div>
                 );
               })}
@@ -515,17 +645,26 @@ function IPCategoryList({ ip, selectedId, onSelect, onAdd, stats }) {
 
 // ─── IPDashboard ──────────────────────────────────────────────────
 function IPDashboard({ stats, onStartRehearsal }) {
+  const noDue = stats.dueToday === 0;
   const estMin = Math.round(stats.dueToday * 2.5);
   return (
     <div className="ip-dashboard">
       <div className="ip-dash-card">
         <div className="ip-dash-val">{stats.dueToday}</div>
-        <div className="ip-dash-label">Recommended today{stats.dueToday > 0 ? ` · ~${estMin} min` : ''}</div>
+        <div className="ip-dash-label">
+          {noDue ? 'Recommended practice' : `Recommended today · ~${estMin} min`}
+        </div>
       </div>
       <div className="ip-dash-card">
         <div className="ip-dash-val">{stats.interviewReady}<span className="ip-dash-denom"> / {stats.total}</span></div>
         <div className="ip-dash-label">Interview-ready</div>
       </div>
+      {stats.avgConf && (
+        <div className="ip-dash-card">
+          <div className="ip-dash-val">{stats.avgConf}<span className="ip-dash-denom"> / 5</span></div>
+          <div className="ip-dash-label">Avg confidence</div>
+        </div>
+      )}
       {stats.weakCats.length > 0 && (
         <div className="ip-dash-card ip-dash-card--wide">
           <div className="ip-dash-val ip-dash-val--sm">{stats.weakCats.join(' · ')}</div>
@@ -533,9 +672,18 @@ function IPDashboard({ stats, onStartRehearsal }) {
         </div>
       )}
       <div className="ip-dash-cta">
-        <button className="ip-start-rehearsal-btn" onClick={() => onStartRehearsal('due')}>
-          ▶ Start rehearsal{stats.dueToday > 0 ? ` (${stats.dueToday})` : ''}
-        </button>
+        {noDue ? (
+          <div className="ip-dash-alt-actions">
+            <button className="ip-start-rehearsal-btn ip-start-rehearsal-btn--alt"
+              onClick={() => onStartRehearsal('weak')}>Practice weak</button>
+            <button className="ip-start-rehearsal-btn ip-start-rehearsal-btn--alt"
+              onClick={() => onStartRehearsal('ready')}>Review ready</button>
+          </div>
+        ) : (
+          <button className="ip-start-rehearsal-btn" onClick={() => onStartRehearsal('due')}>
+            ▶ Start rehearsal ({stats.dueToday})
+          </button>
+        )}
       </div>
     </div>
   );
@@ -573,7 +721,32 @@ function InterviewPrepScreen({ data, onPersist, onBack }) {
   const selectedQ = useMemo(() => questions.find(q => q.id === selQId) || null, [questions, selQId]);
   const stats = useMemo(() => ipComputeStats(ip), [ip]);
 
-  // ─── Handlers ─────────────────────────────
+  // ─── Category handlers ────────────────────
+  const addCategory = useCallback((name) => {
+    const COLORS = ['#3B82F6','#8B5CF6','#10B981','#F59E0B','#EC4899','#EF4444','#0D9488','#0891B2'];
+    const id = `ipc-${Date.now()}`;
+    const newCat = { id, name: name.trim(), group: 'Other', color: COLORS[categories.length % COLORS.length], order: categories.length + 1 };
+    persistIP(cur => ({ ...cur, categories: [...cur.categories, newCat] }));
+    setSelCatId(id);
+  }, [categories, persistIP]);
+
+  const renameCategory = useCallback((catId, name) => {
+    persistIP(cur => ({
+      ...cur,
+      categories: cur.categories.map(c => c.id === catId ? { ...c, name } : c),
+    }));
+  }, [persistIP]);
+
+  const deleteCategory = useCallback((catId) => {
+    persistIP(cur => ({
+      ...cur,
+      categories: cur.categories.filter(c => c.id !== catId),
+      questions: cur.questions.map(q => q.categoryId === catId ? { ...q, categoryId: null } : q),
+    }));
+    if (selCatId === catId) setSelCatId(null);
+  }, [persistIP, selCatId]);
+
+  // ─── Question handlers ────────────────────
   const addQuestion = useCallback((text) => {
     const now = new Date().toISOString();
     const newQ = {
@@ -610,6 +783,35 @@ function InterviewPrepScreen({ data, onPersist, onBack }) {
     if (selQId === qId) setSelQId(null);
   }, [persistIP, selQId]);
 
+  const duplicateQuestion = useCallback((qId) => {
+    const q = questions.find(x => x.id === qId);
+    if (!q) return;
+    const now = new Date().toISOString();
+    const copy = {
+      ...q,
+      id: `ipq-${Date.now()}`,
+      question: q.question + ' (copy)',
+      status: 'draft', confidence: 1,
+      lastPracticedAt: null, nextPracticeAt: null, rehearsalCount: 0,
+      createdAt: now, updatedAt: now,
+      answer: { ...q.answer },
+      tags: [...(q.tags || [])],
+      linkedStoryIds: [],
+    };
+    persistIP(cur => ({ ...cur, questions: [...cur.questions, copy] }));
+    setSelQId(copy.id);
+  }, [questions, persistIP]);
+
+  const moveQuestion = useCallback((qId, catId) => {
+    persistIP(cur => ({
+      ...cur,
+      questions: cur.questions.map(q =>
+        q.id === qId ? { ...q, categoryId: catId, updatedAt: new Date().toISOString() } : q
+      ),
+    }));
+    setSelQId(null);
+  }, [persistIP]);
+
   const markReady = useCallback((qId) => {
     const q = questions.find(x => x.id === qId);
     if (!q) return;
@@ -617,14 +819,7 @@ function InterviewPrepScreen({ data, onPersist, onBack }) {
     updateQuestion(qId, { status: 'interview_ready', confidence: 5, nextPracticeAt: ipNextPractice(5) });
   }, [questions, updateQuestion]);
 
-  const addCategory = useCallback((name) => {
-    const COLORS = ['#3B82F6','#8B5CF6','#10B981','#F59E0B','#EC4899','#EF4444','#0D9488','#0891B2'];
-    const id = `ipc-${Date.now()}`;
-    const newCat = { id, name: name.trim(), group: 'Other', color: COLORS[categories.length % COLORS.length], order: categories.length + 1 };
-    persistIP(cur => ({ ...cur, categories: [...cur.categories, newCat] }));
-    setSelCatId(id);
-  }, [categories, persistIP]);
-
+  // ─── Rehearsal handlers ───────────────────
   const startRehearsal = useCallback((queueMode = 'due') => {
     const pool = catQuestions.length > 0 ? catQuestions : questions;
     const queue = ipBuildQueue(pool, queueMode);
@@ -632,6 +827,13 @@ function InterviewPrepScreen({ data, onPersist, onBack }) {
     setRehearseQueue(queue);
     setMode('rehearse');
   }, [catQuestions, questions]);
+
+  const startGlobalRehearsal = useCallback((queueMode = 'due') => {
+    const queue = ipBuildQueue(questions, queueMode);
+    if (queue.length === 0) { window.alert('No questions to practice in this selection.'); return; }
+    setRehearseQueue(queue);
+    setMode('rehearse');
+  }, [questions]);
 
   const rehearseOne = useCallback((qId) => {
     const q = questions.find(x => x.id === qId);
@@ -680,7 +882,7 @@ function InterviewPrepScreen({ data, onPersist, onBack }) {
         </div>
       </div>
 
-      <IPDashboard stats={stats} onStartRehearsal={startRehearsal} />
+      <IPDashboard stats={stats} onStartRehearsal={startGlobalRehearsal} />
 
       <div className="ip-cols">
         <IPCategoryList
@@ -688,6 +890,8 @@ function InterviewPrepScreen({ data, onPersist, onBack }) {
           selectedId={selCatId}
           onSelect={(id) => { setSelCatId(id); setSelQId(null); }}
           onAdd={addCategory}
+          onRename={renameCategory}
+          onDelete={deleteCategory}
           stats={stats.catStats}
         />
         <IPQuestionList
@@ -695,7 +899,6 @@ function InterviewPrepScreen({ data, onPersist, onBack }) {
           selectedId={selQId}
           onSelect={setSelQId}
           onAdd={addQuestion}
-          onRehearseOne={rehearseOne}
         />
         <IPWorkspace
           question={selectedQ}
@@ -705,6 +908,8 @@ function InterviewPrepScreen({ data, onPersist, onBack }) {
           onRehearseOne={rehearseOne}
           onMarkReady={markReady}
           onDelete={deleteQuestion}
+          onDuplicate={duplicateQuestion}
+          onMove={moveQuestion}
         />
       </div>
     </div>

@@ -6936,6 +6936,159 @@
     .ip-conf-btn--5 { background: #16a34a; }
     .ip-rehearsal-nav { display: flex; gap: 10px; }
 
+    /* ── New additions ─────────────────────────────────────────── */
+
+    /* Answer block: saved flash */
+    .ip-block-header-right { display: flex; align-items: center; gap: 8px; }
+    .ip-block-saved {
+      font-size: 10px;
+      font-weight: 600;
+      color: #16a34a;
+      letter-spacing: 0.02em;
+    }
+
+    /* Category: rename input */
+    .ip-cat-rename-input {
+      flex: 1;
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid var(--primary);
+      border-radius: 5px;
+      padding: 2px 6px;
+      background: var(--bg-card);
+      color: var(--text);
+      outline: none;
+      min-width: 0;
+    }
+
+    /* Category: action buttons (rename / delete), shown on hover */
+    .ip-cat-item-actions {
+      display: none;
+      align-items: center;
+      gap: 2px;
+      flex-shrink: 0;
+      margin-left: auto;
+    }
+    .ip-cat-item:hover .ip-cat-item-actions { display: flex; }
+    .ip-cat-item.active .ip-cat-item-actions { display: flex; }
+    .ip-cat-action-btn {
+      background: none;
+      border: none;
+      padding: 2px 4px;
+      font-size: 11px;
+      color: var(--muted-3);
+      cursor: pointer;
+      border-radius: 4px;
+      line-height: 1;
+      touch-action: manipulation;
+      transition: color var(--duration-fast) var(--ease-out);
+    }
+    .ip-cat-action-btn:hover { color: var(--text); }
+    .ip-cat-action-btn--del:hover { color: #ef4444; }
+
+    /* Question text edit in workspace */
+    .ip-ws-q-edit { margin-bottom: 10px; }
+    .ip-ws-q-ta {
+      width: 100%;
+      box-sizing: border-box;
+      font-family: var(--sans);
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.35;
+      border: 1px solid var(--primary);
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: var(--bg-card);
+      outline: none;
+      resize: none;
+    }
+    .ip-ws-q-actions { display: flex; gap: 6px; margin-top: 6px; }
+    .ip-ws-question { cursor: text; }
+    .ip-ws-question:hover { opacity: 0.85; }
+
+    /* Tags row */
+    .ip-ws-tags-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 10px;
+      min-height: 22px;
+    }
+    .ip-ws-tag-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(37,99,235,0.10);
+      color: var(--primary);
+      border-radius: 10px;
+      padding: 2px 8px 2px 10px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    [data-theme="dark"] .ip-ws-tag-chip { background: rgba(79,142,247,0.18); }
+    .ip-ws-tag-remove {
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-size: 13px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0;
+      opacity: 0.6;
+    }
+    .ip-ws-tag-remove:hover { opacity: 1; }
+    .ip-ws-tag-input {
+      background: none;
+      border: none;
+      outline: none;
+      font-family: var(--sans);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted-3);
+      width: 60px;
+      padding: 2px 0;
+    }
+    .ip-ws-tag-input::placeholder { color: var(--muted-3); }
+
+    /* Move-to-category select */
+    .ip-ws-move-select {
+      background: none;
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      touch-action: manipulation;
+      max-width: 140px;
+    }
+    .ip-ws-move-select:focus { outline: none; border-color: var(--primary); }
+    [data-theme="dark"] .ip-ws-move-select {
+      background: rgba(255,255,255,0.07);
+      color: var(--text);
+    }
+    [data-theme="dark"] .ip-ws-move-select option {
+      background: #2c2c2e;
+    }
+
+    /* Dashboard: alternative actions (when no due questions) */
+    .ip-dash-alt-actions { display: flex; gap: 8px; }
+    .ip-start-rehearsal-btn--alt {
+      background: rgba(37,99,235,0.10);
+      color: var(--primary);
+      font-weight: 600;
+    }
+    [data-theme="dark"] .ip-start-rehearsal-btn--alt { background: rgba(79,142,247,0.18); }
+    .ip-start-rehearsal-btn--alt:hover { opacity: 0.80; }
+
+    /* Middle column: slightly wider */
+    .ip-mid { width: 340px; }
+
   </style>
 </head>
 <body>
