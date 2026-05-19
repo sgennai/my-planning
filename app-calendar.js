@@ -14,15 +14,14 @@ function MicroTracker({ tracker, onToggle, viewDate }) {
   const { slots, doneCount, total, exercises, title, nowH, nowM } = tracker;
 
   let nextLabel = '';
+  const atTopOfHour = nowM <= 3;
   const curSlot = slots.find(s => s.hour === nowH && s.status === 'upcoming');
-  if (curSlot) {
+  const nxtSlot = slots.find(s => s.status === 'upcoming' && s.hour > nowH);
+  if (curSlot && atTopOfHour) {
     nextLabel = 'now';
-  } else {
-    const nxt = slots.find(s => s.status === 'upcoming' && s.hour > nowH);
-    if (nxt) {
-      const mins = (nxt.hour - nowH) * 60 - nowM;
-      nextLabel = `next in ${mins}m`;
-    }
+  } else if (nxtSlot) {
+    const mins = (nxtSlot.hour - nowH) * 60 - nowM;
+    nextLabel = `next in ${mins}m`;
   }
 
   return (
