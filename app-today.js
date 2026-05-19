@@ -414,8 +414,8 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
             onClick={(e) => { e.stopPropagation(); onItemClick(it); }}
             style={{
               top, height,
-              left: `calc(64px + ${leftPct}% - ${64 * leftPct / 100}px + 2px + ${ewOffset}px)`,
-              width: `calc(${widthPct}% - 4px - ${ewOffset}px)`,
+              left: `calc(64px + ${leftPct}% - ${(64 * leftPct / 100).toFixed(2)}px + 2px + ${ewOffset}px)`,
+              width: `calc(${widthPct}% - ${(64 * widthPct / 100 + 4).toFixed(2)}px - ${ewOffset}px)`,
               background: it.completed ? 'var(--bg-card-deep)' : stripeColor,
             }}
             title={`${it.title} · ${timeLabel}`}
