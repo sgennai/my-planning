@@ -764,8 +764,8 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   }, [data.routine, tdOverrides, tdCompletions, elsewhere, now, viewDate, blocks, projects, icsOccurrences, calendarToggles]);
 
   const nowMin = now.getHours() * 60 + now.getMinutes();
-  const tdCurrent = todayItems.find(it => it.startMin <= nowMin && (it.startMin + it.duration) > nowMin && !it.completed);
-  const tdUpcoming = todayItems.filter(it => it.startMin > nowMin && !it.completed);
+  const tdCurrent = todayItems.find(it => it.startMin <= nowMin && (it.startMin + it.duration) > nowMin && !it.completed && it.category !== 'elsewhere');
+  const tdUpcoming = todayItems.filter(it => it.startMin > nowMin && !it.completed && it.category !== 'elsewhere');
   const tdNext = tdUpcoming[0];
   const tdThen = tdUpcoming[1];
   const fmtHeroTime = (m) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
