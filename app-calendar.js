@@ -65,16 +65,6 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     document.documentElement.setAttribute('data-theme', currentTheme);
   }, [currentTheme]);
 
-  useEffect(() => {
-    const root = document.documentElement;
-    if (nowLineColor) {
-      root.style.setProperty('--now-line-color', nowLineColor);
-      root.style.setProperty('--now-line-color-soft', hexToRgba(nowLineColor, 0.25));
-    } else {
-      root.style.removeProperty('--now-line-color');
-      root.style.removeProperty('--now-line-color-soft');
-    }
-  }, [nowLineColor]);
 
   // Per-category color overrides — read user prefs, build merged style map
   const userCategoryColors = (data.prefs && data.prefs.categoryColors) || {};
@@ -131,15 +121,26 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     });
   }, [persistData]);
 
-  const setTodayView = useCallback((view) => {
-    persistData(d => ({ ...d, prefs: { ...(d.prefs || {}), todayView: view } }));
-  }, [persistData]);
-  const todayViewMode = (data.prefs && data.prefs.todayView) || 'timeline';
-
   const nowLineColor = (data.prefs && data.prefs.nowLineColor) || '';
   const setNowLineColor = useCallback((color) => {
     persistData(d => ({ ...d, prefs: { ...(d.prefs || {}), nowLineColor: color } }));
   }, [persistData]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (nowLineColor) {
+      root.style.setProperty('--now-line-color', nowLineColor);
+      root.style.setProperty('--now-line-color-soft', hexToRgba(nowLineColor, 0.25));
+    } else {
+      root.style.removeProperty('--now-line-color');
+      root.style.removeProperty('--now-line-color-soft');
+    }
+  }, [nowLineColor]);
+
+  const setTodayView = useCallback((view) => {
+    persistData(d => ({ ...d, prefs: { ...(d.prefs || {}), todayView: view } }));
+  }, [persistData]);
+  const todayViewMode = (data.prefs && data.prefs.todayView) || 'timeline';
 
   const lunchSlot = (data.prefs && data.prefs.lunchSlot) || { start: '12:30', duration: 60 };
   const setLunchSlot = useCallback((slot) => {
