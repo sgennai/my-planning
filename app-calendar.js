@@ -67,10 +67,11 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
 
 
   // Per-category color overrides — read user prefs, build merged style map
-  const userCategoryColors = (data.prefs && data.prefs.categoryColors) || {};
-  const userCategoryEmojis = (data.prefs && data.prefs.categoryEmojis) || {};
-  const userCategoryLabels = (data.prefs && data.prefs.categoryLabels) || {};
-  const categoryStyles = useMemo(() => categoryStylesWith(userCategoryColors, userCategoryEmojis, userCategoryLabels), [userCategoryColors, userCategoryEmojis, userCategoryLabels]);
+  const userCategoryColors = (data.prefs && data.prefs.categoryColors) || _EMPTY_OBJ;
+  const userCategoryEmojis = (data.prefs && data.prefs.categoryEmojis) || _EMPTY_OBJ;
+  const userCategoryLabels = (data.prefs && data.prefs.categoryLabels) || _EMPTY_OBJ;
+  const userCategories = (data.prefs && data.prefs.userCategories) || _EMPTY_OBJ;
+  const categoryStyles = useMemo(() => categoryStylesWith(userCategoryColors, userCategoryEmojis, userCategoryLabels, userCategories), [userCategoryColors, userCategoryEmojis, userCategoryLabels, userCategories]);
   const setCategoryColor = useCallback((category, color) => {
     persistData(d => ({
       ...d,
@@ -120,6 +121,36 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
       return { ...d, prefs: { ...(d.prefs || {}), categoryLabels: map } };
     });
   }, [persistData]);
+
+  const addUserCategory = useCallback((slug, def) => {
+    persistData(d => ({
+      ...d,
+      prefs: { ...(d.prefs || {}), userCategories: { ...((d.prefs && d.prefs.userCategories) || {}), [slug]: def } },
+    }));
+  }, [persistData]);
+
+  const updateUserCategory = useCallback((slug, patch) => {
+    persistData(d => {
+      const cats = { ...((d.prefs && d.prefs.userCategories) || {}) };
+      cats[slug] = { ...(cats[slug] || {}), ...patch };
+      return { ...d, prefs: { ...(d.prefs || {}), userCategories: cats } };
+    });
+  }, [persistData]);
+
+  const deleteUserCategory = useCallback((slug) => {
+    persistData(d => {
+      const cats = { ...((d.prefs && d.prefs.userCategories) || {}) };
+      delete cats[slug];
+      return { ...d, prefs: { ...(d.prefs || {}), userCategories: cats } };
+    });
+  }, [persistData]);
+
+  const usedCategories = useMemo(() => {
+    const s = new Set();
+    (data.routine || []).forEach(r => r.category && s.add(r.category));
+    (data.scheduledBlocks || []).forEach(b => b.category && s.add(b.category));
+    return s;
+  }, [data.routine, data.scheduledBlocks]);
 
   const nowLineColor = (data.prefs && data.prefs.nowLineColor) || '';
   const setNowLineColor = useCallback((color) => {
@@ -1519,6 +1550,11 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         onSetCategoryLabel={setCategoryLabel}
         onResetCategoryLabel={resetCategoryLabel}
         userCategoryLabels={userCategoryLabels}
+        userCategories={userCategories}
+        onAddUserCategory={addUserCategory}
+        onUpdateUserCategory={updateUserCategory}
+        onDeleteUserCategory={deleteUserCategory}
+        usedCategories={usedCategories}
         todoist={data.todoist || _EMPTY_OBJ}
         onUpdateTodoist={updateTodoistSettings}
         nowLineColor={nowLineColor}

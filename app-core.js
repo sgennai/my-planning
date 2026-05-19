@@ -30,6 +30,7 @@ function makeDefaultData() {
       nowLineColor: '',
       miniMonthTodayColor: '',
       nowEventColor: '',
+      userCategories: {},
     },
   };
 }
@@ -120,6 +121,10 @@ function migrate(data) {
     if (next.prefs.nowLineColor === undefined) { next.prefs.nowLineColor = ''; changed = true; }
     if (next.prefs.miniMonthTodayColor === undefined) { next.prefs.miniMonthTodayColor = ''; changed = true; }
     if (next.prefs.nowEventColor === undefined) { next.prefs.nowEventColor = ''; changed = true; }
+    if (!next.prefs.userCategories || typeof next.prefs.userCategories !== 'object') {
+      next.prefs.userCategories = {};
+      changed = true;
+    }
     if (!next.prefs.lunchSlot || typeof next.prefs.lunchSlot !== 'object') {
       next.prefs.lunchSlot = { start: '12:30', duration: 60 };
       changed = true;

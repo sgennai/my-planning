@@ -10,7 +10,7 @@ document.documentElement.setAttribute('data-theme', 'light');
 const CLIENT_ID = '25894919429-pbtl8l6nn23vnvc8c8cbhg5f3n8gepu6.apps.googleusercontent.com';
 const SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
 const FILE_NAME = 'my-planning-data.json';
-const SCHEMA_VERSION = 21;
+const SCHEMA_VERSION = 22;
 
 // Days: JS Date.getDay() — 0=Sun, 1=Mon ... 6=Sat. Visual columns are Mon-first.
 const VISUAL_TO_JS_DAY = [1, 2, 3, 4, 5, 6, 0];
@@ -50,7 +50,7 @@ function getCategoryEmoji(category, userEmojis) {
   return (CATEGORY_STYLES[category] || CATEGORY_STYLES.supplement).emoji;
 }
 
-function categoryStylesWith(userColors, userEmojis, userLabels) {
+function categoryStylesWith(userColors, userEmojis, userLabels, userCategories) {
   const out = {};
   Object.entries(CATEGORY_STYLES).forEach(([k, v]) => {
     const rawColor = userColors && userColors[k];
@@ -61,6 +61,16 @@ function categoryStylesWith(userColors, userEmojis, userLabels) {
       colorVal: rawColor || v.color,
       emoji: getCategoryEmoji(k, userEmojis),
       label: (userLabels && userLabels[k]) || v.label,
+    };
+  });
+  Object.entries(userCategories || {}).forEach(([k, v]) => {
+    out[k] = {
+      color: v.color || '#7EB8A4',
+      colorVal: v.color || '#7EB8A4',
+      emoji: v.emoji || '📌',
+      label: v.label || k,
+      bgAlpha: 0.10,
+      _isUserCreated: true,
     };
   });
   return out;

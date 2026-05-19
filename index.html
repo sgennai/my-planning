@@ -4466,105 +4466,182 @@
     .routine-modal { max-width: 720px; }
     .routine-day-group { margin-bottom: 16px; }
 
-    /* ───────── CATEGORY COLORS PICKER (in routine manager) ───────── */
-    .category-colors-section {
-      margin-bottom: 18px;
-    }
-    .category-colors-eyebrow {
-      font-size: 9px;
-      letter-spacing: 0.28em;
-      color: var(--muted-3);
-      text-transform: uppercase;
-      font-family: var(--mono);
-      font-weight: 600;
-      margin-bottom: 12px;
-    }
-    .category-colors-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 8px;
-    }
-    /* Card — replaces old .category-color-row */
-    .category-color-card {
+    /* ───────── ROUTINE MANAGER — two-section layout ───────── */
+    .rm-sections { display: flex; flex-direction: column; }
+    .rm-section { padding: 20px 0 4px; }
+    .rm-section-header {
       display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding: 12px 14px 12px 16px;
-      background: rgba(255,255,255,0.6);
-      border: 1px solid rgba(255,255,255,0.65);
-      border-left-width: 3px;
-      border-radius: 10px;
-      position: relative;
-      transition: background var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
     }
-    [data-theme="dark"] .category-color-card {
-      background: rgba(255,255,255,0.05);
-      border-color: rgba(255,255,255,0.08);
-    }
-    .category-color-card:hover {
-      background: rgba(255,255,255,0.82);
-      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
-    }
-    [data-theme="dark"] .category-color-card:hover { background: rgba(255,255,255,0.09); }
-    /* Header row: emoji + editable name + optional reset */
-    .category-card-header {
+    .rm-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted-2);
+      font-family: var(--mono);
       display: flex;
       align-items: center;
       gap: 8px;
     }
-    .cat-name-input {
-      flex: 1;
-      min-width: 0;
-      border: none;
-      background: transparent;
-      font-size: 13px;
+    .rm-count {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--muted-3);
+      background: rgba(0,0,0,0.06);
+      border-radius: 10px;
+      padding: 1px 7px;
+      letter-spacing: 0;
+    }
+    [data-theme="dark"] .rm-count { background: rgba(255,255,255,0.08); }
+    .rm-section-btn {
+      font-size: 11px;
       font-weight: 600;
-      color: var(--text);
-      letter-spacing: 0.01em;
-      padding: 2px 5px;
-      border-radius: 5px;
-      cursor: text;
-      transition: background var(--duration-fast);
-      font-family: inherit;
+      color: var(--primary);
+      background: rgba(37,99,235,0.08);
+      border: 1px solid rgba(37,99,235,0.18);
+      border-radius: 20px;
+      padding: 4px 12px;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: background var(--duration-fast) var(--ease-out);
+      white-space: nowrap;
     }
-    .cat-name-input:hover { background: rgba(0,0,0,0.04); }
-    [data-theme="dark"] .cat-name-input:hover { background: rgba(255,255,255,0.07); }
-    .cat-name-input:focus { outline: none; background: rgba(37,99,235,0.08); }
-    /* cpx (ColorPickerExtended) expands to fill card width */
-    .category-color-card .cpx {
-      display: flex;
-      width: 100%;
+    .rm-section-btn:hover { background: rgba(37,99,235,0.14); }
+    .rm-section-divider {
+      height: 1px;
+      background: rgba(0,0,0,0.07);
+      margin: 8px 0;
     }
-    .category-color-card .cpx-group {
-      flex: 1;
-    }
-    .category-color-card .cpx-slider {
-      width: auto;
-      flex: 1;
-      min-width: 50px;
+    [data-theme="dark"] .rm-section-divider { background: rgba(255,255,255,0.07); }
+    .rm-empty {
+      font-size: 13px;
+      color: var(--muted-3);
+      font-style: italic;
+      padding: 8px 0;
     }
 
-    /* Emoji button (inline, beside swatch) */
-    .category-emoji-btn {
+    /* ───────── CATEGORY ROWS ───────── */
+    .cat-row-list { display: flex; flex-direction: column; gap: 2px; }
+    .cat-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px 6px 4px;
+      border-radius: 8px;
+      transition: background var(--duration-fast) var(--ease-out);
+    }
+    .cat-row:hover { background: rgba(0,0,0,0.03); }
+    [data-theme="dark"] .cat-row:hover { background: rgba(255,255,255,0.04); }
+    .cat-row-dot {
       flex-shrink: 0;
-      width: 30px;
-      height: 26px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .cat-row-emoji {
+      flex-shrink: 0;
+      width: 28px;
+      height: 24px;
       border: 1px solid var(--border);
       background: var(--bg-card);
-      border-radius: var(--radius-base);
+      border-radius: 6px;
       cursor: pointer;
-      font-size: 16px;
+      font-size: 14px;
       line-height: 1;
       padding: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: border-color var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
+      touch-action: manipulation;
+      transition: border-color var(--duration-fast) var(--ease-out);
     }
-    .category-emoji-btn:hover { border-color: var(--primary); transform: scale(1.05); }
+    .cat-row-emoji:hover { border-color: var(--primary); }
+    .cat-row-name {
+      flex: 1;
+      min-width: 0;
+      border: none;
+      background: transparent;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      padding: 2px 5px;
+      border-radius: 5px;
+      cursor: text;
+      font-family: inherit;
+      transition: background var(--duration-fast);
+    }
+    .cat-row-name:hover { background: rgba(0,0,0,0.04); }
+    [data-theme="dark"] .cat-row-name:hover { background: rgba(255,255,255,0.07); }
+    .cat-row-name:focus { outline: none; background: rgba(37,99,235,0.08); }
+    .cat-row-reset {
+      flex-shrink: 0;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted-3);
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 0;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: manipulation;
+    }
+    .cat-row-reset:hover { border-color: var(--primary); color: var(--primary); }
+    .cat-row-delete {
+      flex-shrink: 0;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted-3);
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 0;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: manipulation;
+      transition: border-color var(--duration-fast), color var(--duration-fast);
+    }
+    .cat-row-delete:hover { border-color: #ef4444; color: #ef4444; }
+    .cat-row-delete.disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+    .cat-new-form {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 8px;
+      margin-bottom: 10px;
+      background: rgba(37,99,235,0.04);
+      border: 1px dashed rgba(37,99,235,0.25);
+      border-radius: 10px;
+    }
+    .cat-new-add-btn {
+      flex-shrink: 0;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      padding: 5px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: opacity var(--duration-fast);
+    }
+    .cat-new-add-btn:hover { opacity: 0.88; }
+    .cat-new-add-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    /* Emoji picker popover */
-    .category-color-card { position: relative; }
+    /* Emoji picker popover — shared by category rows */
     .emoji-picker-popover {
       position: absolute;
       top: calc(100% + 6px);
@@ -4673,23 +4750,6 @@
       border-color: rgba(99,102,241,0.4);
       color: rgba(99,102,241,0.9);
     }
-    .category-color-reset {
-      flex-shrink: 0;
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--muted-3);
-      width: 22px;
-      height: 22px;
-      cursor: pointer;
-      padding: 0;
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
-    }
-    .category-color-reset:hover { border-color: var(--primary); color: var(--primary); }
-
     .routine-day-group-label {
       font-size: 10px;
       letter-spacing: 0.25em;

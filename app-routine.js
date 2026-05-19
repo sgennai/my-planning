@@ -553,21 +553,26 @@ function EmojiPickerPopover({ currentEmoji, onPick, onClose }) {
   );
 }
 
-function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDeleteItem, categoryStyles, onSetCategoryColor, onResetCategoryColor, userCategoryColors, onSetCategoryEmoji, onResetCategoryEmoji, userCategoryEmojis, onSetCategoryLabel, onResetCategoryLabel, userCategoryLabels, embedded = false }) {
+function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDeleteItem,
+  categoryStyles, onSetCategoryColor, onResetCategoryColor, userCategoryColors,
+  onSetCategoryEmoji, onResetCategoryEmoji, userCategoryEmojis,
+  onSetCategoryLabel, onResetCategoryLabel, userCategoryLabels,
+  userCategories, onAddUserCategory, onUpdateUserCategory, onDeleteUserCategory, usedCategories,
+  embedded = false }) {
   const CATS = categoryStyles || CATEGORY_STYLES;
   const [emojiPickerCat, setEmojiPickerCat] = useState(null);
   const [labelEdits, setLabelEdits] = useState({});
-  // null = list view; 'new' = adding new; or itemId = editing existing
   const [editingId, setEditingId] = useState(null);
+  const [newCatOpen, setNewCatOpen] = useState(false);
+  const [newCatLabel, setNewCatLabel] = useState('');
+  const [newCatColor, setNewCatColor] = useState('#7EB8A4');
+  const [newCatEmoji, setNewCatEmoji] = useState('📌');
+  const [newCatEmojiOpen, setNewCatEmojiOpen] = useState(false);
 
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) onClose();
   };
 
-  // Group routine items into three buckets:
-  //   1. Recurring (top-of-hour, etc.) — own section, special time semantics
-  //   2. Multi-day — items recurring on multiple days
-  //   3. Single-day — items specific to one day
   const recurringItems = routine.filter(r => r.recurrence);
   const visible = routine.filter(r => !r.recurrence);
   const multiDay = [];
@@ -584,131 +589,172 @@ function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDele
   recurringItems.sort((a, b) => a.title.localeCompare(b.title));
   multiDay.sort((a, b) => toMinutes(a.start) - toMinutes(b.start));
   Object.keys(grouped).forEach(k => grouped[k].sort((a, b) => toMinutes(a.start) - toMinutes(b.start)));
-
   const dayOrder = [1, 2, 3, 4, 5, 6, 0];
-
   const totalCount = visible.length + recurringItems.length;
 
+  const handleAddCategory = () => {
+    const label = newCatLabel.trim();
+    if (!label) return;
+    let base = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || ('cat-' + Date.now().toString(36));
+    let slug = base; let i = 2;
+    while (CATS[slug]) { slug = `${base}-${i++}`; }
+    onAddUserCategory && onAddUserCategory(slug, { label, color: newCatColor, emoji: newCatEmoji });
+    setNewCatOpen(false);
+    setNewCatLabel('');
+    setNewCatColor('#7EB8A4');
+    setNewCatEmoji('📌');
+    setNewCatEmojiOpen(false);
+  };
+
   const listContent = (
-    <>
-      <div className="modal-header" style={embedded ? { paddingLeft: 0 } : {}}>
-        {!embedded && <div className="modal-eyebrow">Manage Routine</div>}
-        <div className="modal-title">Your weekly routine</div>
-        <div className="modal-meta">
-          <span>{totalCount} items</span>
-          <span style={{ fontStyle: 'italic' }}>Click any item to edit · or add a new one below</span>
+    <div className="rm-sections">
+
+      {/* ── Section 1: Categories ── */}
+      <div className="rm-section">
+        <div className="rm-section-header">
+          <div className="rm-section-title">Categories</div>
+          <button className="rm-section-btn" onClick={() => { setNewCatOpen(v => !v); setNewCatEmojiOpen(false); }}>
+            {newCatOpen ? '✕ Cancel' : '+ New'}
+          </button>
         </div>
-      </div>
-      <div className="modal-body" style={embedded ? { maxHeight: 'none', overflow: 'visible' } : {}}>
-        <div className="category-colors-section">
-          <div className="category-colors-eyebrow">Category colors</div>
-          <div className="category-colors-grid">
-            {Object.keys(CATEGORY_STYLES).map(cat => {
-              const defaultColor = CATEGORY_STYLES[cat].color;
-              const rawColorVal = userCategoryColors && userCategoryColors[cat];
-              const parsedColor = parseColorVal(rawColorVal || defaultColor);
-              const currentHex = parsedColor.hex || defaultColor;
-              const colorOverridden = !!(userCategoryColors && userCategoryColors[cat]);
-              const defaultEmoji = CATEGORY_STYLES[cat].emoji;
-              const currentEmoji = (userCategoryEmojis && userCategoryEmojis[cat]) || defaultEmoji;
-              const emojiOverridden = !!(userCategoryEmojis && userCategoryEmojis[cat]);
-              const defaultLabel = CATEGORY_STYLES[cat].label;
-              const savedLabel = (userCategoryLabels && userCategoryLabels[cat]) || defaultLabel;
-              const labelOverridden = !!(userCategoryLabels && userCategoryLabels[cat]);
-              const inputVal = labelEdits[cat] !== undefined ? labelEdits[cat] : savedLabel;
-              const isCustomised = colorOverridden || emojiOverridden || labelOverridden;
-              return (
-                <div key={cat} className="category-color-card" style={{ borderLeftColor: currentHex }}>
-                  {/* Header: emoji + editable name + reset */}
-                  <div className="category-card-header">
-                    <button
-                      className="category-emoji-btn"
-                      onClick={() => setEmojiPickerCat(emojiPickerCat === cat ? null : cat)}
-                      title="Change emoji"
-                    >
-                      {currentEmoji}
-                    </button>
-                    <input
-                      className="cat-name-input"
-                      value={inputVal}
-                      onChange={e => setLabelEdits(prev => ({ ...prev, [cat]: e.target.value }))}
-                      onBlur={e => {
-                        const val = e.target.value.trim();
-                        if (val && val !== defaultLabel) {
-                          onSetCategoryLabel && onSetCategoryLabel(cat, val);
-                        } else {
-                          onResetCategoryLabel && onResetCategoryLabel(cat);
-                        }
-                        setLabelEdits(prev => { const n = { ...prev }; delete n[cat]; return n; });
-                      }}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter') e.target.blur();
-                        if (e.key === 'Escape') {
-                          setLabelEdits(prev => { const n = { ...prev }; delete n[cat]; return n; });
-                          e.target.blur();
-                        }
-                      }}
-                      placeholder={defaultLabel}
-                      title="Click to rename"
-                    />
-                    {isCustomised && (
-                      <button
-                        className="category-color-reset"
-                        onClick={() => {
-                          if (colorOverridden) onResetCategoryColor && onResetCategoryColor(cat);
-                          if (emojiOverridden) onResetCategoryEmoji && onResetCategoryEmoji(cat);
-                          if (labelOverridden) onResetCategoryLabel && onResetCategoryLabel(cat);
-                          setLabelEdits(prev => { const n = { ...prev }; delete n[cat]; return n; });
-                        }}
-                        title="Reset to defaults"
-                      >↺</button>
-                    )}
-                  </div>
-                  {/* Color controls */}
-                  <ColorPickerExtended
-                    value={rawColorVal || defaultColor}
-                    defaultHex={defaultColor}
-                    onChange={val => onSetCategoryColor && onSetCategoryColor(cat, val)}
-                  />
+
+        {newCatOpen && (
+          <div className="cat-new-form">
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <button className="cat-row-emoji" onClick={() => setNewCatEmojiOpen(v => !v)} title="Pick emoji">{newCatEmoji}</button>
+              {newCatEmojiOpen && (
+                <EmojiPickerPopover
+                  currentEmoji={newCatEmoji}
+                  onPick={e => { setNewCatEmoji(e); setNewCatEmojiOpen(false); }}
+                  onClose={() => setNewCatEmojiOpen(false)}
+                />
+              )}
+            </div>
+            <input
+              className="cat-row-name"
+              placeholder="Category name"
+              value={newCatLabel}
+              onChange={e => setNewCatLabel(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleAddCategory(); if (e.key === 'Escape') setNewCatOpen(false); }}
+              autoFocus
+            />
+            <input type="color" className="sm-color-swatch" value={newCatColor} onChange={e => setNewCatColor(e.target.value)} />
+            <button className="cat-new-add-btn" onClick={handleAddCategory} disabled={!newCatLabel.trim()}>Add</button>
+          </div>
+        )}
+
+        <div className="cat-row-list">
+          {Object.entries(CATS).map(([cat, style]) => {
+            const isUserCreated = !!style._isUserCreated;
+            const inUse = usedCategories && usedCategories.has(cat);
+            const colorOverridden = !isUserCreated && !!(userCategoryColors && userCategoryColors[cat]);
+            const emojiOverridden = !isUserCreated && !!(userCategoryEmojis && userCategoryEmojis[cat]);
+            const labelOverridden = !isUserCreated && !!(userCategoryLabels && userCategoryLabels[cat]);
+            const isCustomised = colorOverridden || emojiOverridden || labelOverridden;
+            const rawColorVal = !isUserCreated ? (userCategoryColors && userCategoryColors[cat]) : null;
+            const defaultColor = !isUserCreated ? (CATEGORY_STYLES[cat] && CATEGORY_STYLES[cat].color) : null;
+            const defaultLabel = !isUserCreated ? (CATEGORY_STYLES[cat] && CATEGORY_STYLES[cat].label) : null;
+            const inputVal = labelEdits[cat] !== undefined ? labelEdits[cat] : style.label;
+            return (
+              <div key={cat} className="cat-row">
+                <div className="cat-row-dot" style={{ background: style.color }} />
+                <div style={{ position: 'relative', flexShrink: 0 }}>
+                  <button className="cat-row-emoji" onClick={() => setEmojiPickerCat(emojiPickerCat === cat ? null : cat)} title="Change emoji">
+                    {style.emoji}
+                  </button>
                   {emojiPickerCat === cat && (
                     <EmojiPickerPopover
-                      currentEmoji={currentEmoji}
-                      onPick={(e) => { onSetCategoryEmoji && onSetCategoryEmoji(cat, e); setEmojiPickerCat(null); }}
+                      currentEmoji={style.emoji}
+                      onPick={e => {
+                        if (isUserCreated) { onUpdateUserCategory && onUpdateUserCategory(cat, { emoji: e }); }
+                        else { onSetCategoryEmoji && onSetCategoryEmoji(cat, e); }
+                        setEmojiPickerCat(null);
+                      }}
                       onClose={() => setEmojiPickerCat(null)}
                     />
                   )}
                 </div>
-              );
-            })}
-          </div>
+                <input
+                  className="cat-row-name"
+                  value={inputVal}
+                  onChange={e => setLabelEdits(prev => ({ ...prev, [cat]: e.target.value }))}
+                  onBlur={e => {
+                    const val = e.target.value.trim();
+                    if (isUserCreated) {
+                      if (val) onUpdateUserCategory && onUpdateUserCategory(cat, { label: val });
+                    } else {
+                      if (val && val !== defaultLabel) { onSetCategoryLabel && onSetCategoryLabel(cat, val); }
+                      else { onResetCategoryLabel && onResetCategoryLabel(cat); }
+                    }
+                    setLabelEdits(prev => { const n = { ...prev }; delete n[cat]; return n; });
+                  }}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') e.target.blur();
+                    if (e.key === 'Escape') { setLabelEdits(prev => { const n = { ...prev }; delete n[cat]; return n; }); e.target.blur(); }
+                  }}
+                  title="Click to rename"
+                />
+                <ColorPickerExtended
+                  value={isUserCreated ? style.colorVal : (rawColorVal || defaultColor)}
+                  defaultHex={isUserCreated ? style.color : defaultColor}
+                  onChange={val => {
+                    if (isUserCreated) { const p = parseColorVal(val); onUpdateUserCategory && onUpdateUserCategory(cat, { color: p.hex || val }); }
+                    else { onSetCategoryColor && onSetCategoryColor(cat, val); }
+                  }}
+                />
+                {!isUserCreated && isCustomised && (
+                  <button className="cat-row-reset" title="Reset to defaults" onClick={() => {
+                    if (colorOverridden) onResetCategoryColor && onResetCategoryColor(cat);
+                    if (emojiOverridden) onResetCategoryEmoji && onResetCategoryEmoji(cat);
+                    if (labelOverridden) onResetCategoryLabel && onResetCategoryLabel(cat);
+                    setLabelEdits(prev => { const n = { ...prev }; delete n[cat]; return n; });
+                  }}>↺</button>
+                )}
+                {isUserCreated && (
+                  <button
+                    className={`cat-row-delete${inUse ? ' disabled' : ''}`}
+                    title={inUse ? 'Remove from all routine items first' : 'Delete category'}
+                    onClick={!inUse ? () => onDeleteUserCategory && onDeleteUserCategory(cat) : undefined}
+                  >🗑</button>
+                )}
+              </div>
+            );
+          })}
         </div>
+      </div>
 
-        <div style={{ marginBottom: 18 }}>
-          <button className="modal-btn primary" onClick={() => setEditingId('new')}>
-            <span>+ Add a new routine item</span>
-          </button>
+      <div className="rm-section-divider" />
+
+      {/* ── Section 2: Routine Items ── */}
+      <div className="rm-section">
+        <div className="rm-section-header">
+          <div className="rm-section-title">
+            Routine Items
+            <span className="rm-count">{totalCount}</span>
+          </div>
+          <button className="rm-section-btn" onClick={() => setEditingId('new')}>+ Add item</button>
         </div>
+        {totalCount === 0 && (
+          <div className="rm-empty">No routine items yet — add one above.</div>
+        )}
         {recurringItems.length > 0 && (
           <div className="routine-day-group">
             <div className="routine-day-group-label">Recurring (top of every hour)</div>
             {recurringItems.map(item => {
               const cat = CATS[item.category] || {};
               const r = item.recurrence || {};
-              const window = (r.kind === 'top-of-hour' && r.startHour != null && r.endHour != null)
-                ? `${pad(r.startHour)}:00–${pad(r.endHour)}:00`
-                : '—';
+              const win = (r.kind === 'top-of-hour' && r.startHour != null && r.endHour != null)
+                ? `${pad(r.startHour)}:00–${pad(r.endHour)}:00` : '—';
               return (
                 <div key={item.id} className="routine-item-row" onClick={() => setEditingId(item.id)}>
-                  <div className="routine-item-row-time">{window}</div>
+                  <div className="routine-item-row-time">{win}</div>
                   <div className="routine-item-row-title">
                     {item.title}
                     <span style={{ fontSize: 10, color: 'var(--muted-3)', marginLeft: 8, fontFamily: 'var(--mono)' }}>
                       {describeDays(item.days)} · top of hour
                     </span>
                   </div>
-                  <div className="routine-item-row-cat" style={{ color: cat.color || 'var(--muted-3)' }}>
-                    {cat.label || item.category}
-                  </div>
+                  <div className="routine-item-row-cat" style={{ color: cat.color || 'var(--muted-3)' }}>{cat.label || item.category}</div>
                 </div>
               );
             })}
@@ -724,13 +770,9 @@ function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDele
                   <div className="routine-item-row-time">{item.start} · {item.duration}m</div>
                   <div className="routine-item-row-title">
                     {item.title}
-                    <span style={{ fontSize: 10, color: 'var(--muted-3)', marginLeft: 8, fontFamily: 'var(--mono)' }}>
-                      {describeDays(item.days)}
-                    </span>
+                    <span style={{ fontSize: 10, color: 'var(--muted-3)', marginLeft: 8, fontFamily: 'var(--mono)' }}>{describeDays(item.days)}</span>
                   </div>
-                  <div className="routine-item-row-cat" style={{ color: cat.color || 'var(--muted-3)' }}>
-                    {cat.label || item.category}
-                  </div>
+                  <div className="routine-item-row-cat" style={{ color: cat.color || 'var(--muted-3)' }}>{cat.label || item.category}</div>
                 </div>
               );
             })}
@@ -749,9 +791,7 @@ function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDele
                   <div key={item.id} className="routine-item-row" onClick={() => setEditingId(item.id)}>
                     <div className="routine-item-row-time">{item.start} · {item.duration}m</div>
                     <div className="routine-item-row-title">{item.title}</div>
-                    <div className="routine-item-row-cat" style={{ color: cat.color || 'var(--muted-3)' }}>
-                      {cat.label || item.category}
-                    </div>
+                    <div className="routine-item-row-cat" style={{ color: cat.color || 'var(--muted-3)' }}>{cat.label || item.category}</div>
                   </div>
                 );
               })}
@@ -759,7 +799,7 @@ function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDele
           );
         })}
       </div>
-    </>
+    </div>
   );
 
   if (editingId === null) {

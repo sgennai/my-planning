@@ -585,7 +585,11 @@ function ColorSwatchPicker({ value, onChange, label }) {
 }
 
 function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh, weather, onUpdateWeather, onRequestGeo, lunchSlot, onSetLunchSlot, onClose,
-  routine, onUpdateRoutineItem, onAddRoutineItem, onDeleteRoutineItem, categoryStyles, onSetCategoryColor, onResetCategoryColor, userCategoryColors, onSetCategoryEmoji, onResetCategoryEmoji, userCategoryEmojis,
+  routine, onUpdateRoutineItem, onAddRoutineItem, onDeleteRoutineItem,
+  categoryStyles, onSetCategoryColor, onResetCategoryColor, userCategoryColors,
+  onSetCategoryEmoji, onResetCategoryEmoji, userCategoryEmojis,
+  onSetCategoryLabel, onResetCategoryLabel, userCategoryLabels,
+  userCategories, onAddUserCategory, onUpdateUserCategory, onDeleteUserCategory, usedCategories,
   todoist, onUpdateTodoist,
   nowLineColor, onSetNowLineColor,
   miniMonthTodayColor, onSetMiniMonthTodayColor,
@@ -703,6 +707,14 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
               onSetCategoryEmoji={onSetCategoryEmoji}
               onResetCategoryEmoji={onResetCategoryEmoji}
               userCategoryEmojis={userCategoryEmojis}
+              onSetCategoryLabel={onSetCategoryLabel}
+              onResetCategoryLabel={onResetCategoryLabel}
+              userCategoryLabels={userCategoryLabels}
+              userCategories={userCategories}
+              onAddUserCategory={onAddUserCategory}
+              onUpdateUserCategory={onUpdateUserCategory}
+              onDeleteUserCategory={onDeleteUserCategory}
+              usedCategories={usedCategories}
             />
           </div>
         ) : (
