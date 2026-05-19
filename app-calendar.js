@@ -982,16 +982,18 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
           {/* Nav header: Today · ‹ · date · › */}
           <div className="today-rail-nav">
             <button className="app-topbar-btn" onClick={mainView === 'today' ? () => { setViewDayOffset(0); setScrollToNowTick(n => n + 1); } : goToday}>Today</button>
-            <button className="app-topbar-nav-btn" onClick={mainView === 'today' ? () => setViewDayOffset(o => o - 1) : goPrev} aria-label="Previous">‹</button>
-            <span className="today-rail-nav-date">
-              {mainView === 'today'
-                ? viewDate.toLocaleDateString(undefined, { month: 'long', day: 'numeric' })
-                : (dayView !== null
-                    ? formatDateShort(addDays(weekStart, dayView))
-                    : formatRange(weekStart, weekEnd))
-              }
-            </span>
-            <button className="app-topbar-nav-btn" onClick={mainView === 'today' ? () => setViewDayOffset(o => o + 1) : goNext} aria-label="Next">›</button>
+            <div className="today-rail-nav-group">
+              <button className="app-topbar-nav-btn" onClick={mainView === 'today' ? () => setViewDayOffset(o => o - 1) : goPrev} aria-label="Previous">‹</button>
+              <span className="today-rail-nav-date">
+                {mainView === 'today'
+                  ? viewDate.toLocaleDateString(undefined, { month: 'long', day: 'numeric' })
+                  : (dayView !== null
+                      ? formatDateShort(addDays(weekStart, dayView))
+                      : formatRange(weekStart, weekEnd))
+                }
+              </span>
+              <button className="app-topbar-nav-btn" onClick={mainView === 'today' ? () => setViewDayOffset(o => o + 1) : goNext} aria-label="Next">›</button>
+            </div>
           </div>
           <TodayMiniMonth
             viewDate={viewDate}
