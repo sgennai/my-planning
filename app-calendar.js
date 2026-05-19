@@ -55,7 +55,7 @@ function MicroTracker({ tracker, onToggle, viewDate }) {
   );
 }
 
-function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut, onPersist }) {
+function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut, onPersist, onOpenInterviewPrep }) {
   const isMobile = useMediaQuery('(max-width: 759px)');
   const now = useTickingClock(60000);
   // View routing: 'today' = daily compass (default landing), 'plan' = full week canvas
@@ -69,7 +69,6 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   const [inboxOpen, setInboxOpen] = useState(false);
   const [resetOverlayOpen, setResetOverlayOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [practiceOpen, setPracticeOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = React.useRef(null);
   const [railCollapsed, setRailCollapsed] = useState(false);
@@ -1064,7 +1063,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                 <button className="app-menu-item" onClick={() => { setResetOverlayOpen(true); setMenuOpen(false); }}>
                   {reviewDone ? '✓ Weekly Review' : 'Weekly Review'}
                 </button>
-                <button className="app-menu-item" onClick={() => { setPracticeOpen(true); setMenuOpen(false); }}>Practice</button>
+                <button className="app-menu-item" onClick={() => { if (onOpenInterviewPrep) onOpenInterviewPrep(); setMenuOpen(false); }}>Interview Prep</button>
                 <button className="app-menu-item" onClick={() => { setRefLibraryOpen(true); setMenuOpen(false); }}>Reference Library</button>
                 <button className="app-menu-item" onClick={() => { setSettingsOpen(true); setMenuOpen(false); }}>Settings</button>
                 <div className="app-menu-divider" />
@@ -1588,13 +1587,6 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
       />
     )}
 
-    {practiceOpen && (
-      <DailyPracticeHub
-        data={data}
-        onClose={() => setPracticeOpen(false)}
-        onUpdateItem={updatePracticeItem}
-      />
-    )}
 
     {settingsOpen && (
       <SettingsModal

@@ -18,6 +18,7 @@ function makeDefaultData() {
     todos: [],
     completedActions: [],
     practiceContent: SEED_PRACTICE_CONTENT,
+    interviewPrep: { categories: [...SEED_INTERVIEW_CATEGORIES], questions: [...SEED_INTERVIEW_QUESTIONS], stories: [] },
     routineCompletions: {},
     weather: { lat: null, lon: null, label: '', source: 'unset' }, // source: 'unset' | 'geolocation' | 'manual'
     prefs: {
@@ -91,6 +92,11 @@ function migrate(data) {
   }
   if (!next.routineCompletions || typeof next.routineCompletions !== 'object') {
     next.routineCompletions = {};
+    changed = true;
+  }
+  // v23: interview prep page data
+  if (!next.interviewPrep || !Array.isArray(next.interviewPrep.categories)) {
+    next.interviewPrep = { categories: [...SEED_INTERVIEW_CATEGORIES], questions: [...SEED_INTERVIEW_QUESTIONS], stories: [] };
     changed = true;
   }
   if (!next.weather || typeof next.weather !== 'object') {
@@ -187,6 +193,7 @@ function App() {
   const [data, setData] = useState(null);
   const [saving, setSaving] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState(null);
+  const [appPage, setAppPage] = useState('calendar');
 
   // Apply theme to <html data-theme="..."> whenever data.prefs.theme changes.
   // Default to 'light' before data loads so the boot/sign-in screens use the right palette.
@@ -286,6 +293,15 @@ function App() {
     return <ErrorScreen message={error} onRetry={() => setPhase('signin')} />;
   if (phase === 'signin')
     return <SignInScreen onSignIn={handleSignIn} error={error} />;
+  if (appPage === 'interview') {
+    return (
+      <InterviewPrepScreen
+        data={data}
+        onPersist={persist}
+        onBack={() => setAppPage('calendar')}
+      />
+    );
+  }
   return (
     <CalendarScreen
       data={data}
@@ -295,6 +311,7 @@ function App() {
       onReload={handleReload}
       onSignOut={handleSignOut}
       onPersist={persist}
+      onOpenInterviewPrep={() => setAppPage('interview')}
     />
   );
 }

@@ -10,7 +10,7 @@ document.documentElement.setAttribute('data-theme', 'light');
 const CLIENT_ID = '25894919429-pbtl8l6nn23vnvc8c8cbhg5f3n8gepu6.apps.googleusercontent.com';
 const SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
 const FILE_NAME = 'my-planning-data.json';
-const SCHEMA_VERSION = 22;
+const SCHEMA_VERSION = 23;
 
 // Days: JS Date.getDay() — 0=Sun, 1=Mon ... 6=Sat. Visual columns are Mon-first.
 const VISUAL_TO_JS_DAY = [1, 2, 3, 4, 5, 6, 0];
@@ -726,3 +726,119 @@ const SEED_PRACTICE_CONTENT = {
 };
 
 // ═════════════════════════════════════════════════════════════
+// SEED INTERVIEW PREP — categories and starter questions for the
+// dedicated Interview Prep page (schema v23+).
+// ═════════════════════════════════════════════════════════════
+const SEED_INTERVIEW_CATEGORIES = [
+  { id: 'ipc-meddpicc',  name: 'MEDDPICC',                   group: 'Core Sales Execution',         color: '#3B82F6', order: 1 },
+  { id: 'ipc-forecast',  name: 'Forecasting',                 group: 'Core Sales Execution',         color: '#8B5CF6', order: 2 },
+  { id: 'ipc-pipeline',  name: 'Pipeline Management',         group: 'Core Sales Execution',         color: '#6366F1', order: 3 },
+  { id: 'ipc-closing',   name: 'Closing',                     group: 'Core Sales Execution',         color: '#EC4899', order: 4 },
+  { id: 'ipc-negot',     name: 'Negotiation',                 group: 'Core Sales Execution',         color: '#F59E0B', order: 5 },
+  { id: 'ipc-objection', name: 'Objection Handling',          group: 'Core Sales Execution',         color: '#EF4444', order: 6 },
+  { id: 'ipc-account',   name: 'Account Planning',            group: 'Strategic Enterprise Selling', color: '#10B981', order: 7 },
+  { id: 'ipc-execalign', name: 'Executive Alignment',         group: 'Strategic Enterprise Selling', color: '#059669', order: 8 },
+  { id: 'ipc-clevel',    name: 'C-level Discussions',         group: 'Strategic Enterprise Selling', color: '#0D9488', order: 9 },
+  { id: 'ipc-mmdeals',   name: 'Multi-million-Dollar Deals',  group: 'Strategic Enterprise Selling', color: '#0891B2', order: 10 },
+  { id: 'ipc-bizvalue',  name: 'Business Value / ROI',        group: 'Strategic Enterprise Selling', color: '#0284C7', order: 11 },
+  { id: 'ipc-compete',   name: 'Competitive Positioning',     group: 'Strategic Enterprise Selling', color: '#2563EB', order: 12 },
+  { id: 'ipc-territory', name: 'Territory Management',        group: 'Leadership & Scale',           color: '#7C3AED', order: 13 },
+  { id: 'ipc-global',    name: 'Global Strategy',             group: 'Leadership & Scale',           color: '#6D28D9', order: 14 },
+  { id: 'ipc-crossfunc', name: 'Cross-functional Leadership', group: 'Leadership & Scale',           color: '#5B21B6', order: 15 },
+  { id: 'ipc-salesmgmt', name: 'Sales Management Scenarios',  group: 'Leadership & Scale',           color: '#7E22CE', order: 16 },
+  { id: 'ipc-prodsales', name: 'Product / Sales Alignment',   group: 'Leadership & Scale',           color: '#9333EA', order: 17 },
+  { id: 'ipc-whysf',     name: 'Why Salesforce',              group: 'Salesforce Fit',               color: '#0EA5E9', order: 18 },
+  { id: 'ipc-whyae',     name: 'Why Senior Account Executive',group: 'Salesforce Fit',               color: '#0284C7', order: 19 },
+  { id: 'ipc-whychange', name: 'Why Change Jobs',             group: 'Salesforce Fit',               color: '#0369A1', order: 20 },
+  { id: 'ipc-sfculture', name: 'Salesforce Culture / Values', group: 'Salesforce Fit',               color: '#075985', order: 21 },
+  { id: 'ipc-location',  name: 'Location / Remote / Hybrid',  group: 'Salesforce Fit',               color: '#0C4A6E', order: 22 },
+  { id: 'ipc-career',    name: 'Career Narrative',            group: 'Personal Stories',             color: '#B45309', order: 23 },
+  { id: 'ipc-resilience',name: 'Resilience',                  group: 'Personal Stories',             color: '#92400E', order: 24 },
+  { id: 'ipc-strengths', name: 'Strengths / Weaknesses',      group: 'Personal Stories',             color: '#78350F', order: 25 },
+];
+
+function _ipq(id, catId, q) {
+  return { id, categoryId: catId, question: q, status: 'draft', confidence: 1,
+    tags: [], linkedStoryIds: [], createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z', lastPracticedAt: null,
+    nextPracticeAt: null, rehearsalCount: 0, answer: {} };
+}
+
+const SEED_INTERVIEW_QUESTIONS = [
+  _ipq('ipq-med-1','ipc-meddpicc','Walk me through how you use MEDDPICC in a complex deal.'),
+  _ipq('ipq-med-2','ipc-meddpicc','Tell me about a deal where you identified the economic buyer late.'),
+  _ipq('ipq-med-3','ipc-meddpicc','How do you validate decision criteria?'),
+  _ipq('ipq-med-4','ipc-meddpicc','How do you know if a champion is real?'),
+  _ipq('ipq-med-5','ipc-meddpicc','What do you do when the paper process is unclear?'),
+  _ipq('ipq-for-1','ipc-forecast','How do you forecast a complex enterprise deal?'),
+  _ipq('ipq-for-2','ipc-forecast','Tell me about a time your forecast was wrong.'),
+  _ipq('ipq-for-3','ipc-forecast','How do you manage commit vs best case?'),
+  _ipq('ipq-for-4','ipc-forecast','What makes a deal forecastable?'),
+  _ipq('ipq-for-5','ipc-forecast','How do you inspect risk in your pipeline?'),
+  _ipq('ipq-pip-1','ipc-pipeline','How do you manage a pipeline of 8–12 enterprise accounts simultaneously?'),
+  _ipq('ipq-pip-2','ipc-pipeline','How do you prioritise time across your accounts?'),
+  _ipq('ipq-pip-3','ipc-pipeline','What does your CRM discipline look like?'),
+  _ipq('ipq-clo-1','ipc-closing','Walk me through your closing process on a complex deal.'),
+  _ipq('ipq-clo-2','ipc-closing','How do you handle a deal that goes dark at the end?'),
+  _ipq('ipq-clo-3','ipc-closing','Tell me about a time you won a deal you should not have.'),
+  _ipq('ipq-clo-4','ipc-closing','How do you use a mutual close plan to accelerate a deal?'),
+  _ipq('ipq-neg-1','ipc-negot','Tell me about a difficult negotiation.'),
+  _ipq('ipq-neg-2','ipc-negot','How do you protect value under procurement pressure?'),
+  _ipq('ipq-neg-3','ipc-negot','What concessions are you willing to make?'),
+  _ipq('ipq-neg-4','ipc-negot','How do you avoid discounting too early?'),
+  _ipq('ipq-neg-5','ipc-negot','How do you handle a customer asking for a last-minute discount?'),
+  _ipq('ipq-obj-1','ipc-objection','How do you handle "we have no budget"?'),
+  _ipq('ipq-obj-2','ipc-objection','What do you do when the decision-maker says "not now"?'),
+  _ipq('ipq-obj-3','ipc-objection','How do you respond to "your competitor is 30% cheaper"?'),
+  _ipq('ipq-acc-1','ipc-account','How do you build a strategic account plan?'),
+  _ipq('ipq-acc-2','ipc-account','How do you identify white space in an account?'),
+  _ipq('ipq-acc-3','ipc-account','How do you multi-thread across a large account?'),
+  _ipq('ipq-acc-4','ipc-account','How do you prioritize accounts in your territory?'),
+  _ipq('ipq-exe-1','ipc-execalign','How do you get executive alignment when your champion is not C-level?'),
+  _ipq('ipq-exe-2','ipc-execalign','Tell me about a time you lost executive sponsorship mid-deal.'),
+  _ipq('ipq-exe-3','ipc-execalign','How do you maintain executive access over a long sales cycle?'),
+  _ipq('ipq-clv-1','ipc-clevel','How do you engage with C-level executives?'),
+  _ipq('ipq-clv-2','ipc-clevel','Give an example of an executive conversation you led.'),
+  _ipq('ipq-clv-3','ipc-clevel','How do you move from product discussion to business value?'),
+  _ipq('ipq-clv-4','ipc-clevel','How do you handle a skeptical executive?'),
+  _ipq('ipq-mm-1','ipc-mmdeals','Describe the largest deal you have closed.'),
+  _ipq('ipq-mm-2','ipc-mmdeals','How do you manage risk in a multi-million dollar opportunity?'),
+  _ipq('ipq-mm-3','ipc-mmdeals','What makes a 7-figure deal structurally different from a mid-market deal?'),
+  _ipq('ipq-bv-1','ipc-bizvalue','How do you build a business case with a CFO?'),
+  _ipq('ipq-bv-2','ipc-bizvalue','How do you quantify the value of your solution?'),
+  _ipq('ipq-bv-3','ipc-bizvalue','What do you do when the customer says "prove the ROI"?'),
+  _ipq('ipq-cmp-1','ipc-compete','How do you position against a market leader?'),
+  _ipq('ipq-cmp-2','ipc-compete','Tell me about a deal you won against a stronger competitor.'),
+  _ipq('ipq-cmp-3','ipc-compete','How do you handle a competitor who undercuts your price?'),
+  _ipq('ipq-ter-1','ipc-territory','How do you approach territory planning at the start of a year?'),
+  _ipq('ipq-ter-2','ipc-territory','How do you decide where to focus in your territory?'),
+  _ipq('ipq-ter-3','ipc-territory','How do you build pipeline in a new territory?'),
+  _ipq('ipq-glo-1','ipc-global','How do you sell across multiple countries and cultures?'),
+  _ipq('ipq-glo-2','ipc-global','Tell me about an international deal you managed.'),
+  _ipq('ipq-crs-1','ipc-crossfunc','How do you align with marketing, product, and CS on a strategic account?'),
+  _ipq('ipq-crs-2','ipc-crossfunc','Tell me about a time you had to influence without authority.'),
+  _ipq('ipq-smg-1','ipc-salesmgmt','How would you coach an underperforming rep?'),
+  _ipq('ipq-smg-2','ipc-salesmgmt','How do you build a high-performance sales culture?'),
+  _ipq('ipq-ps-1','ipc-prodsales','How do you handle it when the product does not meet customer expectations?'),
+  _ipq('ipq-ps-2','ipc-prodsales','How do you give useful feedback to product teams?'),
+  _ipq('ipq-wsf-1','ipc-whysf','Why Salesforce?'),
+  _ipq('ipq-wsf-2','ipc-whysf','What do you know about Salesforce\'s sales culture and values?'),
+  _ipq('ipq-wsf-3','ipc-whysf','What would make you successful at Salesforce?'),
+  _ipq('ipq-wae-1','ipc-whyae','Why Senior Account Executive?'),
+  _ipq('ipq-wae-2','ipc-whyae','What does success look like in a Senior AE role for you?'),
+  _ipq('ipq-wcj-1','ipc-whychange','Why are you looking to leave your current company?'),
+  _ipq('ipq-wcj-2','ipc-whychange','What is driving your search right now?'),
+  _ipq('ipq-wcj-3','ipc-whychange','Why now?'),
+  _ipq('ipq-sfc-1','ipc-sfculture','Which of Salesforce\'s core values resonates most with you?'),
+  _ipq('ipq-sfc-2','ipc-sfculture','How do you embody trust as a sales value?'),
+  _ipq('ipq-loc-1','ipc-location','How do you think about hybrid work and location constraints?'),
+  _ipq('ipq-loc-2','ipc-location','Are you open to relocation or frequent travel for the right opportunity?'),
+  _ipq('ipq-car-1','ipc-career','Walk me through your career.'),
+  _ipq('ipq-car-2','ipc-career','What is the defining experience of your career so far?'),
+  _ipq('ipq-car-3','ipc-career','Where do you see yourself in 3 years?'),
+  _ipq('ipq-res-1','ipc-resilience','Tell me about a time you failed.'),
+  _ipq('ipq-res-2','ipc-resilience','How have you handled an unfair situation at work?'),
+  _ipq('ipq-str-1','ipc-strengths','What are your three greatest strengths?'),
+  _ipq('ipq-str-2','ipc-strengths','What is your biggest weakness and what are you doing about it?'),
+  _ipq('ipq-str-3','ipc-strengths','What makes you different from the other candidates?'),
+];
