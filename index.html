@@ -7170,6 +7170,132 @@
     [data-theme="dark"] .ip-ws-status-select { background: rgba(255,255,255,0.04); }
     [data-theme="dark"] .ip-ws-status-select option { background: #2c2c2e; }
 
+    /* ── Answer quality rubric ── */
+    .ip-rubric { margin-top: 16px; border-top: 1px solid var(--rule); padding-top: 14px; }
+    .ip-rubric-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .ip-rubric-score { font-size: 12px; font-weight: 600; color: var(--primary); font-family: var(--mono); }
+    .ip-rubric-list { display: flex; flex-direction: column; gap: 6px; }
+    .ip-rubric-item { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .ip-rubric-cb { width: 14px; height: 14px; accent-color: var(--primary); cursor: pointer; flex-shrink: 0; }
+    .ip-rubric-label { font-size: 13px; color: var(--text); }
+    .ip-rubric-label--done { color: var(--muted-3); text-decoration: line-through; }
+
+    /* ── Global search overlay ── */
+    .ip-search-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.45); backdrop-filter: blur(4px);
+      z-index: 400; display: flex; align-items: flex-start; justify-content: center; padding-top: 80px;
+    }
+    .ip-search-overlay-inner {
+      width: min(680px, 92vw); background: var(--bg-card); border-radius: 16px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.22); overflow: hidden;
+    }
+    .ip-search-bar-wrap { display: flex; align-items: center; gap: 0; border-bottom: 1px solid var(--rule); }
+    .ip-search-global {
+      flex: 1; padding: 16px 20px; border: none; background: transparent;
+      font-size: 16px; color: var(--text); font-family: inherit; outline: none;
+    }
+    .ip-search-global::placeholder { color: var(--muted-3); }
+    .ip-search-close {
+      padding: 16px 20px; background: transparent; border: none; color: var(--muted-3);
+      font-size: 20px; cursor: pointer; touch-action: manipulation;
+    }
+    .ip-search-close:hover { color: var(--text); }
+    .ip-search-results { max-height: 480px; overflow-y: auto; }
+    .ip-search-empty { padding: 20px; text-align: center; color: var(--muted-3); font-size: 14px; font-style: italic; }
+    .ip-search-hint { padding: 20px; text-align: center; color: var(--muted-3); font-size: 13px; }
+    .ip-search-section { padding: 8px 0; }
+    .ip-search-section-label {
+      padding: 6px 16px; font-size: 11px; font-weight: 600; color: var(--muted-3);
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .ip-search-result {
+      display: flex; align-items: flex-start; gap: 10px; padding: 10px 16px;
+      cursor: pointer; transition: background 0.12s;
+    }
+    .ip-search-result:hover { background: var(--primary-tint); }
+    .ip-search-result-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+    .ip-search-result-body { flex: 1; min-width: 0; }
+    .ip-search-result-text { font-size: 13px; color: var(--text); line-height: 1.4; }
+    .ip-search-result-meta { font-size: 11px; color: var(--muted-3); margin-top: 2px; }
+    .ip-topbar-btn-sm {
+      padding: 5px 8px; border-radius: 8px; border: none; background: transparent;
+      color: var(--muted-3); font-size: 16px; cursor: pointer; touch-action: manipulation;
+      transition: color 0.15s;
+    }
+    .ip-topbar-btn-sm:hover { color: var(--text); }
+
+    /* ── Progress view ── */
+    .ip-progress-view { flex: 1; overflow-y: auto; padding: 20px 24px; }
+    .ip-progress-cols { display: flex; gap: 32px; flex-wrap: wrap; }
+    .ip-progress-section { flex: 1; min-width: 280px; }
+    .ip-progress-section-title { font-size: 12px; font-weight: 600; color: var(--muted-3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px; }
+    .ip-conf-dist { display: flex; flex-direction: column; gap: 8px; }
+    .ip-conf-dist-row { display: flex; align-items: center; gap: 10px; }
+    .ip-conf-dist-label { font-size: 12px; color: var(--text); width: 80px; flex-shrink: 0; }
+    .ip-conf-dist-bar-wrap { flex: 1; height: 10px; background: var(--rule); border-radius: 6px; overflow: hidden; }
+    .ip-conf-dist-bar { height: 100%; border-radius: 6px; transition: width 0.4s var(--ease-out); min-width: 3px; }
+    .ip-conf-dist-count { font-size: 12px; color: var(--muted-3); font-family: var(--mono); width: 28px; text-align: right; flex-shrink: 0; }
+    .ip-cat-readiness { display: flex; flex-direction: column; gap: 12px; }
+    .ip-cat-ready-row { display: flex; flex-direction: column; gap: 4px; }
+    .ip-cat-ready-top { display: flex; align-items: center; gap: 6px; }
+    .ip-cat-ready-name { font-size: 12px; color: var(--text); flex: 1; }
+    .ip-cat-ready-frac { font-size: 11px; color: var(--muted-3); font-family: var(--mono); }
+    .ip-cat-ready-pct { font-size: 11px; font-weight: 600; color: var(--muted-3); font-family: var(--mono); width: 34px; text-align: right; flex-shrink: 0; }
+    .ip-cat-ready-bar-wrap { height: 6px; background: var(--rule); border-radius: 4px; overflow: hidden; }
+    .ip-cat-ready-bar { height: 100%; border-radius: 4px; opacity: 0.75; transition: width 0.4s var(--ease-out); min-width: 2px; }
+
+    /* ── Mock interview ── */
+    .ip-mock-setup { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 24px; gap: 28px; }
+    .ip-mock-setup-title { font-size: 22px; font-weight: 700; color: var(--text); }
+    .ip-mock-setup-desc { font-size: 14px; color: var(--muted-3); text-align: center; max-width: 480px; line-height: 1.6; }
+    .ip-mock-field { display: flex; flex-direction: column; gap: 10px; align-items: center; width: 100%; max-width: 480px; }
+    .ip-mock-label { font-size: 11px; font-weight: 600; color: var(--muted-3); text-transform: uppercase; letter-spacing: 0.06em; }
+    .ip-mock-options { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+    .ip-mock-opt {
+      padding: 7px 16px; border-radius: 20px; border: 1px solid var(--rule);
+      background: transparent; color: var(--text); font-size: 13px; cursor: pointer;
+      transition: all 0.15s; touch-action: manipulation;
+    }
+    .ip-mock-opt:hover { border-color: var(--primary); color: var(--primary); }
+    .ip-mock-opt.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .ip-mock-actions { display: flex; align-items: center; margin-top: 8px; }
+    .ip-mock-interview { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 0 24px 40px; }
+    .ip-mock-progress-bar { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 700px; padding: 16px 0; }
+    .ip-mock-progress-center { display: flex; align-items: center; gap: 12px; }
+    .ip-mock-timer {
+      font-size: 64px; font-weight: 700; font-family: var(--mono); color: var(--primary);
+      margin: 24px 0 16px; letter-spacing: -2px; transition: color 0.3s;
+    }
+    .ip-mock-timer--urgent { color: #ef4444; }
+    .ip-mock-timer--done { color: var(--muted-3); }
+    .ip-mock-question {
+      font-size: 22px; font-weight: 600; color: var(--text); text-align: center;
+      max-width: 640px; line-height: 1.45; margin-bottom: 28px;
+    }
+    .ip-mock-time-up { font-size: 13px; color: var(--muted-3); font-style: italic; margin-bottom: 16px; }
+    .ip-mock-controls { margin-bottom: 16px; }
+    .ip-mock-hint { font-size: 12px; color: var(--muted-3); font-style: italic; }
+    .ip-mock-review { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .ip-mock-review-header { padding: 16px 24px; border-bottom: 1px solid var(--rule); }
+    .ip-mock-review-title { font-size: 18px; font-weight: 700; color: var(--text); }
+    .ip-mock-review-sub { font-size: 13px; color: var(--muted-3); margin-top: 2px; }
+    .ip-mock-review-list { flex: 1; overflow-y: auto; padding: 8px 24px; }
+    .ip-mock-review-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--rule); }
+    .ip-mock-review-row:last-child { border-bottom: none; }
+    .ip-mock-review-q { display: flex; align-items: flex-start; gap: 10px; flex: 1; min-width: 0; }
+    .ip-mock-review-num { font-size: 11px; font-weight: 600; color: var(--muted-3); font-family: var(--mono); width: 20px; flex-shrink: 0; padding-top: 3px; }
+    .ip-mock-review-q-body { flex: 1; min-width: 0; }
+    .ip-mock-review-cat { font-size: 11px; font-weight: 600; display: block; margin-bottom: 2px; }
+    .ip-mock-review-q-text { font-size: 13px; color: var(--text); line-height: 1.4; }
+    .ip-mock-review-footer { padding: 16px 24px; border-top: 1px solid var(--rule); display: flex; align-items: center; }
+    .ip-conf-btn--sel { outline: 2px solid #fff; outline-offset: -3px; }
+
+    /* ── Story linked questions ── */
+    .ip-story-linked-qs { margin-top: 20px; border-top: 1px solid var(--rule); padding-top: 14px; }
+    .ip-story-linked-q-row { font-size: 12px; color: var(--muted-3); padding: 5px 0; border-bottom: 1px solid var(--rule); line-height: 1.4; }
+    .ip-story-linked-q-row:last-child { border-bottom: none; }
+    .ip-topbar-import-lbl { cursor: pointer; }
+
     /* ── Add-question form extras ── */
     .ip-add-q-extra { display: flex; gap: 6px; margin-top: 6px; }
     .ip-add-q-status-sel {

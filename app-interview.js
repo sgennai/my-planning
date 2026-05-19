@@ -28,13 +28,23 @@ const IP_ANSWER_BLOCKS = [
   { field: 'notes',               label: 'Notes',                primary: false, placeholder: 'Free-form notes.' },
 ];
 const IP_STORY_FIELDS = [
-  { key: 'title',     label: 'Title',         multi: false, placeholder: 'Give this story a short memorable name.' },
-  { key: 'summary',   label: 'Short summary', multi: false, placeholder: 'One sentence — the headline.' },
-  { key: 'situation', label: 'Situation',     multi: true,  placeholder: 'Context, challenge, stakes.' },
-  { key: 'action',    label: 'Action',        multi: true,  placeholder: 'What you specifically did.' },
-  { key: 'result',    label: 'Result',        multi: true,  placeholder: 'Outcome, impact, what changed.' },
-  { key: 'learning',  label: 'Learning',      multi: false, placeholder: 'What you took away from it.' },
-  { key: 'metrics',   label: 'Metrics',       multi: false, placeholder: 'Numbers, deal size, ARR impact, timeline.' },
+  { key: 'title',      label: 'Title',         multi: false, placeholder: 'Give this story a short memorable name.' },
+  { key: 'summary',    label: 'Short summary', multi: false, placeholder: 'One sentence — the headline.' },
+  { key: 'situation',  label: 'Situation',     multi: true,  placeholder: 'Context, challenge, stakes.' },
+  { key: 'action',     label: 'Action',        multi: true,  placeholder: 'What you specifically did.' },
+  { key: 'result',     label: 'Result',        multi: true,  placeholder: 'Outcome, impact, what changed.' },
+  { key: 'learning',   label: 'Learning',      multi: false, placeholder: 'What you took away from it.' },
+  { key: 'metrics',    label: 'Metrics',       multi: false, placeholder: 'Numbers, deal size, ARR impact, timeline.' },
+  { key: 'whereToUse', label: 'Where to use',  multi: false, placeholder: 'Which question types or topics this story fits best.' },
+];
+const IP_RUBRIC_ITEMS = [
+  { key: 'clearOpening',        label: 'Clear executive opening' },
+  { key: 'specificExample',     label: 'Specific personal example' },
+  { key: 'businessImpact',      label: 'Business impact included' },
+  { key: 'metricsIncluded',     label: 'Metrics included' },
+  { key: 'seniorAELevel',       label: 'Senior AE level' },
+  { key: 'salesforceRelevance', label: 'Salesforce relevance' },
+  { key: 'concise60s',          label: 'Has clear 60-second version' },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────
@@ -95,7 +105,15 @@ function ipComputeStats(ip) {
     .slice(0, 3).map(c => c.name);
   return { dueToday, total, interviewReady, weakCats, catStats, avgConf, lastPracticed, streak };
 }
-function ipBuildQueue(questions, mode) {
+function ipBuildQueue(questions, mode, limit = 12) {
+  if (mode === 'random') {
+    const arr = [...questions];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr.slice(0, limit);
+  }
   let pool;
   if (mode === 'weak') pool = questions.filter(q => q.status === 'draft' || q.status === 'needs_work' || q.confidence <= 2);
   else if (mode === 'all') pool = [...questions];
@@ -108,7 +126,7 @@ function ipBuildQueue(questions, mode) {
     if (a.confidence !== b.confidence) return a.confidence - b.confidence;
     return (a.lastPracticedAt ? new Date(a.lastPracticedAt).getTime() : 0)
          - (b.lastPracticedAt ? new Date(b.lastPracticedAt).getTime() : 0);
-  }).slice(0, 12);
+  }).slice(0, limit);
 }
 
 // ─── IPAnswerBlock ────────────────────────────────────────────────
@@ -265,7 +283,7 @@ function IPLinkedStories({ linkedStoryIds, allStories, onLink, onUnlink }) {
       {linked.length === 0 && (
         <div className="ip-linked-empty">
           {allStories.length === 0
-            ? 'No stories in Story Bank yet. Use the Story Bank button in the top bar to create reusable stories.'
+            ? 'No stories in Story Bank yet. Use the Story Bank button to create reusable stories.'
             : 'No stories linked. Click + Link to connect a reusable story to this answer.'}
         </div>
       )}
@@ -292,6 +310,29 @@ function IPLinkedStories({ linkedStoryIds, allStories, onLink, onUnlink }) {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── IPRubric ─────────────────────────────────────────────────────
+function IPRubric({ rubric, onChange }) {
+  const cur = rubric || {};
+  const score = IP_RUBRIC_ITEMS.filter(r => cur[r.key]).length;
+  return (
+    <div className="ip-rubric">
+      <div className="ip-rubric-header">
+        <span className="ip-block-label">Answer quality</span>
+        <span className="ip-rubric-score">{score} / {IP_RUBRIC_ITEMS.length}</span>
+      </div>
+      <div className="ip-rubric-list">
+        {IP_RUBRIC_ITEMS.map(r => (
+          <label key={r.key} className="ip-rubric-item">
+            <input type="checkbox" className="ip-rubric-cb" checked={!!cur[r.key]}
+              onChange={e => onChange({ ...cur, [r.key]: e.target.checked })} />
+            <span className={`ip-rubric-label${cur[r.key] ? ' ip-rubric-label--done' : ''}`}>{r.label}</span>
+          </label>
+        ))}
+      </div>
     </div>
   );
 }
@@ -409,13 +450,17 @@ function IPWorkspace({ question, ip, onUpdateAnswer, onUpdateQuestion, onRehears
           onLink={sid => onLinkStory(question.id, sid)}
           onUnlink={sid => onUnlinkStory(question.id, sid)}
         />
+        <IPRubric
+          rubric={question.rubric}
+          onChange={rubric => onUpdateQuestion(question.id, { rubric })}
+        />
       </div>
     </div>
   );
 }
 
 // ─── IPStoryEditor ────────────────────────────────────────────────
-function IPStoryEditor({ story, onUpdate, onDelete }) {
+function IPStoryEditor({ story, onUpdate, onDelete, linkedByQuestions }) {
   const [fields, setFields] = useState({ ...story });
   const saveTimer = useRef(null);
   const [saved, setSaved] = useState(false);
@@ -462,6 +507,14 @@ function IPStoryEditor({ story, onUpdate, onDelete }) {
             )}
           </div>
         ))}
+        {linkedByQuestions && linkedByQuestions.length > 0 && (
+          <div className="ip-story-linked-qs">
+            <div className="ip-story-field-label">Used in {linkedByQuestions.length} question{linkedByQuestions.length > 1 ? 's' : ''}</div>
+            {linkedByQuestions.map(q => (
+              <div key={q.id} className="ip-story-linked-q-row">{q.question}</div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -472,6 +525,11 @@ function IPStoryBankView({ ip, onAddStory, onUpdateStory, onDeleteStory }) {
   const [selId, setSelId] = useState(null);
   const stories = ip.stories || [];
   const selected = stories.find(s => s.id === selId) || null;
+
+  const linkedByQuestions = useMemo(() => {
+    if (!selId) return [];
+    return (ip.questions || []).filter(q => (q.linkedStoryIds || []).includes(selId));
+  }, [selId, ip.questions]);
 
   const handleAdd = () => { const id = onAddStory(); setSelId(id); };
 
@@ -499,12 +557,98 @@ function IPStoryBankView({ ip, onAddStory, onUpdateStory, onDeleteStory }) {
           story={selected}
           onUpdate={updates => onUpdateStory(selected.id, updates)}
           onDelete={() => { onDeleteStory(selected.id); setSelId(null); }}
+          linkedByQuestions={linkedByQuestions}
         />
       ) : (
         <div className="ip-story-editor-empty">
           {stories.length > 0 ? 'Select a story to edit it.' : 'Add your first reusable story to build your evidence bank.'}
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── IPGlobalSearch ───────────────────────────────────────────────
+function IPGlobalSearch({ questions, stories, categories, onNavigate, onClose }) {
+  const [q, setQ] = useState('');
+  const inputRef = useRef(null);
+  useEffect(() => { if (inputRef.current) inputRef.current.focus(); }, []);
+
+  const results = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    if (!term) return { questions: [], stories: [] };
+    return {
+      questions: questions.filter(x =>
+        x.question.toLowerCase().includes(term) ||
+        (x.tags || []).join(' ').toLowerCase().includes(term) ||
+        Object.values(x.answer || {}).some(v => typeof v === 'string' && v.toLowerCase().includes(term))
+      ).slice(0, 15),
+      stories: stories.filter(s =>
+        s.title.toLowerCase().includes(term) ||
+        (s.summary || '').toLowerCase().includes(term) ||
+        (s.situation || '').toLowerCase().includes(term) ||
+        (s.whereToUse || '').toLowerCase().includes(term)
+      ).slice(0, 8),
+    };
+  }, [q, questions, stories]);
+
+  const total = results.questions.length + results.stories.length;
+
+  return (
+    <div className="ip-search-overlay" onClick={onClose}>
+      <div className="ip-search-overlay-inner" onClick={e => e.stopPropagation()}>
+        <div className="ip-search-bar-wrap">
+          <input ref={inputRef} className="ip-search-global" type="text"
+            placeholder="Search all questions and stories…"
+            value={q} onChange={e => setQ(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Escape') onClose(); }} />
+          <button className="ip-search-close" onClick={onClose}>×</button>
+        </div>
+        {q.trim() && (
+          <div className="ip-search-results">
+            {total === 0 ? (
+              <div className="ip-search-empty">No results for "{q}"</div>
+            ) : (
+              <>
+                {results.questions.length > 0 && (
+                  <div className="ip-search-section">
+                    <div className="ip-search-section-label">Questions ({results.questions.length})</div>
+                    {results.questions.map(x => {
+                      const cat = categories.find(c => c.id === x.categoryId);
+                      return (
+                        <div key={x.id} className="ip-search-result" onClick={() => onNavigate('question', x.id, x.categoryId)}>
+                          <span className="ip-search-result-dot" style={{ background: IP_STATUS_COLORS[x.status || 'draft'] }} />
+                          <div className="ip-search-result-body">
+                            <div className="ip-search-result-text">{x.question}</div>
+                            {cat && <div className="ip-search-result-meta">{cat.name} · {IP_STATUS_LABELS[x.status || 'draft']}</div>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {results.stories.length > 0 && (
+                  <div className="ip-search-section">
+                    <div className="ip-search-section-label">Stories ({results.stories.length})</div>
+                    {results.stories.map(s => (
+                      <div key={s.id} className="ip-search-result" onClick={() => onNavigate('story', s.id)}>
+                        <span className="ip-search-result-dot" style={{ background: '#8b5cf6' }} />
+                        <div className="ip-search-result-body">
+                          <div className="ip-search-result-text">{s.title}</div>
+                          {s.summary && <div className="ip-search-result-meta">{s.summary}</div>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+        {!q.trim() && (
+          <div className="ip-search-hint">Type to search across all {questions.length} questions and {stories.length} stories</div>
+        )}
+      </div>
     </div>
   );
 }
@@ -692,7 +836,7 @@ function IPCategoryList({ ip, selectedId, onSelect, onAdd, onRename, onDelete, o
 }
 
 // ─── IPDashboard ──────────────────────────────────────────────────
-function IPDashboard({ stats, onStartRehearsal }) {
+function IPDashboard({ stats, onStartRehearsal, onStartMock }) {
   const noDue = stats.dueToday === 0;
   const estMin = Math.round(stats.dueToday * 2.5);
   const lastLabel = stats.lastPracticed
@@ -733,17 +877,263 @@ function IPDashboard({ stats, onStartRehearsal }) {
         </div>
       )}
       <div className="ip-dash-cta">
-        {noDue ? (
-          <div className="ip-dash-alt-actions">
-            <button className="ip-start-rehearsal-btn ip-start-rehearsal-btn--alt" onClick={() => onStartRehearsal('weak')}>Practice weak</button>
-            <button className="ip-start-rehearsal-btn ip-start-rehearsal-btn--alt" onClick={() => onStartRehearsal('ready')}>Review ready</button>
-          </div>
-        ) : (
-          <button className="ip-start-rehearsal-btn" onClick={() => onStartRehearsal('due')}>▶ Start rehearsal ({stats.dueToday})</button>
-        )}
+        <div className="ip-dash-alt-actions">
+          {noDue ? (
+            <>
+              <button className="ip-start-rehearsal-btn ip-start-rehearsal-btn--alt" onClick={() => onStartRehearsal('weak')}>Practice weak</button>
+              <button className="ip-start-rehearsal-btn ip-start-rehearsal-btn--alt" onClick={() => onStartRehearsal('ready')}>Review ready</button>
+            </>
+          ) : (
+            <button className="ip-start-rehearsal-btn" onClick={() => onStartRehearsal('due')}>▶ Start rehearsal ({stats.dueToday})</button>
+          )}
+          <button className="ip-start-rehearsal-btn ip-start-rehearsal-btn--alt" onClick={() => onStartRehearsal('random')}>🎲 Random</button>
+          <button className="ip-start-rehearsal-btn ip-start-rehearsal-btn--alt" onClick={onStartMock}>🎯 Mock interview</button>
+        </div>
       </div>
     </div>
   );
+}
+
+// ─── IPProgressView ───────────────────────────────────────────────
+function IPProgressView({ ip }) {
+  const questions = ip.questions || [];
+  const categories = ip.categories || [];
+
+  const confDist = [1, 2, 3, 4, 5].map(n => ({
+    n,
+    count: questions.filter(q => (q.confidence || 1) === n).length,
+    label: ['Weak', 'Struggling', 'Acceptable', 'Strong', 'Ready'][n - 1],
+    color: IP_STATUS_COLORS[ipStatusFromConf(n)],
+  }));
+  const maxConf = Math.max(...confDist.map(d => d.count), 1);
+
+  const catRows = categories.map(c => {
+    const qs = questions.filter(q => q.categoryId === c.id);
+    const ready = qs.filter(q => q.status === 'interview_ready').length;
+    const practiced = qs.filter(q => q.lastPracticedAt).length;
+    const pct = qs.length > 0 ? Math.round((ready / qs.length) * 100) : 0;
+    return { ...c, total: qs.length, ready, practiced, pct };
+  }).filter(c => c.total > 0).sort((a, b) => b.pct - a.pct);
+
+  const statusDist = Object.keys(IP_STATUS_LABELS).map(k => ({
+    key: k,
+    label: IP_STATUS_LABELS[k],
+    count: questions.filter(q => (q.status || 'draft') === k).length,
+    color: IP_STATUS_COLORS[k],
+  })).filter(d => d.count > 0);
+  const maxStatus = Math.max(...statusDist.map(d => d.count), 1);
+
+  return (
+    <div className="ip-progress-view">
+      <div className="ip-progress-cols">
+        <div className="ip-progress-section">
+          <div className="ip-progress-section-title">Confidence distribution</div>
+          <div className="ip-conf-dist">
+            {confDist.map(d => (
+              <div key={d.n} className="ip-conf-dist-row">
+                <span className="ip-conf-dist-label">{d.label}</span>
+                <div className="ip-conf-dist-bar-wrap">
+                  <div className="ip-conf-dist-bar" style={{ width: `${(d.count / maxConf) * 100}%`, background: d.color }} />
+                </div>
+                <span className="ip-conf-dist-count">{d.count}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="ip-progress-section-title" style={{ marginTop: 28 }}>Status breakdown</div>
+          <div className="ip-conf-dist">
+            {statusDist.map(d => (
+              <div key={d.key} className="ip-conf-dist-row">
+                <span className="ip-conf-dist-label">{d.label}</span>
+                <div className="ip-conf-dist-bar-wrap">
+                  <div className="ip-conf-dist-bar" style={{ width: `${(d.count / maxStatus) * 100}%`, background: d.color }} />
+                </div>
+                <span className="ip-conf-dist-count">{d.count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="ip-progress-section">
+          <div className="ip-progress-section-title">Category readiness</div>
+          <div className="ip-cat-readiness">
+            {catRows.map(c => (
+              <div key={c.id} className="ip-cat-ready-row">
+                <div className="ip-cat-ready-top">
+                  <span className="ip-cat-dot" style={{ background: c.color }} />
+                  <span className="ip-cat-ready-name">{c.name}</span>
+                  <span className="ip-cat-ready-frac">{c.ready}/{c.total} ready</span>
+                  <span className="ip-cat-ready-pct">{c.pct}%</span>
+                </div>
+                <div className="ip-cat-ready-bar-wrap">
+                  <div className="ip-cat-ready-bar" style={{ width: `${c.pct}%`, background: c.color }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── IPMockInterview ──────────────────────────────────────────────
+function IPMockInterview({ questions, ip, onComplete, onExit }) {
+  const [phase, setPhase] = useState('setup');
+  const [pool, setPool] = useState('all');
+  const [count, setCount] = useState(10);
+  const [timeSecs, setTimeSecs] = useState(90);
+  const [queue, setQueue] = useState([]);
+  const [qIdx, setQIdx] = useState(0);
+  const [timer, setTimer] = useState(0);
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [ratings, setRatings] = useState({});
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    if (timerRunning && timer > 0) timerRef.current = setTimeout(() => setTimer(t => t - 1), 1000);
+    else if (timerRunning && timer === 0) setTimerRunning(false);
+    return () => clearTimeout(timerRef.current);
+  }, [timerRunning, timer]);
+
+  const startMock = () => {
+    const q = ipBuildQueue(questions, pool, count);
+    if (q.length === 0) { window.alert('No questions available for this selection.'); return; }
+    setQueue(q); setQIdx(0); setTimer(timeSecs); setTimerRunning(true); setRatings({});
+    setPhase('interview');
+  };
+
+  const nextQ = () => {
+    clearTimeout(timerRef.current); setTimerRunning(false);
+    if (qIdx < queue.length - 1) {
+      setQIdx(i => i + 1); setTimer(timeSecs); setTimerRunning(true);
+    } else {
+      setPhase('review');
+    }
+  };
+
+  const submitReview = () => {
+    onComplete(queue.map(q => ({ id: q.id, rating: ratings[q.id] || 3 })));
+  };
+
+  if (phase === 'setup') {
+    return (
+      <div className="ip-mock-setup">
+        <div className="ip-mock-setup-title">Mock Interview</div>
+        <div className="ip-mock-setup-desc">
+          Simulate a real interview. Answer each question verbally — no hints, no answers shown.<br />
+          Rate yourself honestly at the end.
+        </div>
+        <div className="ip-mock-field">
+          <label className="ip-mock-label">Question pool</label>
+          <div className="ip-mock-options">
+            {[{k:'all',l:'All questions'},{k:'due',l:'Due today'},{k:'weak',l:'Weak areas'},{k:'random',l:'Random'}].map(o => (
+              <button key={o.k} className={`ip-mock-opt${pool === o.k ? ' active' : ''}`} onClick={() => setPool(o.k)}>{o.l}</button>
+            ))}
+          </div>
+        </div>
+        <div className="ip-mock-field">
+          <label className="ip-mock-label">Number of questions</label>
+          <div className="ip-mock-options">
+            {[5, 10, 15, 20].map(n => (
+              <button key={n} className={`ip-mock-opt${count === n ? ' active' : ''}`} onClick={() => setCount(n)}>{n}</button>
+            ))}
+          </div>
+        </div>
+        <div className="ip-mock-field">
+          <label className="ip-mock-label">Time per question</label>
+          <div className="ip-mock-options">
+            {[{s:60,l:'60s'},{s:90,l:'90s'},{s:120,l:'2 min'},{s:180,l:'3 min'}].map(o => (
+              <button key={o.s} className={`ip-mock-opt${timeSecs === o.s ? ' active' : ''}`} onClick={() => setTimeSecs(o.s)}>{o.l}</button>
+            ))}
+          </div>
+        </div>
+        <div className="ip-mock-actions">
+          <button className="ip-start-rehearsal-btn" onClick={startMock}>▶ Start mock interview</button>
+          <button className="ip-block-cancel-btn" style={{ marginLeft: 10 }} onClick={onExit}>Cancel</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === 'interview') {
+    const q = queue[qIdx];
+    const cat = q ? (ip.categories || []).find(c => c.id === q.categoryId) : null;
+    const urgent = timer <= 15 && timer > 0;
+    const expired = timer === 0 && !timerRunning;
+    return (
+      <div className="ip-mock-interview">
+        <div className="ip-mock-progress-bar">
+          <button className="ip-rehearsal-exit-btn" onClick={() => { if (window.confirm('End mock interview? Progress will be lost.')) onExit(); }}>End mock</button>
+          <div className="ip-mock-progress-center">
+            {cat && <span className="ip-rehearsal-cat-label" style={{ color: cat.color }}>● {cat.name}</span>}
+            <span className="ip-rehearsal-q-count">Question {qIdx + 1} of {queue.length}</span>
+          </div>
+          <div style={{ width: 80 }} />
+        </div>
+        <div className={`ip-mock-timer${urgent ? ' ip-mock-timer--urgent' : ''}${expired ? ' ip-mock-timer--done' : ''}`}>
+          {Math.floor(timer / 60)}:{pad(timer % 60)}
+        </div>
+        <div className="ip-mock-question">{q.question}</div>
+        {expired && <div className="ip-mock-time-up">Time — move to next question when ready</div>}
+        <div className="ip-mock-controls">
+          <button className="ip-rehearsal-btn ip-rehearsal-btn--primary" onClick={nextQ}>
+            {qIdx < queue.length - 1 ? 'Next question →' : 'Finish → Rate answers'}
+          </button>
+        </div>
+        <div className="ip-mock-hint">Answer verbally. Simulate the real interview — no notes.</div>
+      </div>
+    );
+  }
+
+  if (phase === 'review') {
+    const rated = Object.keys(ratings).length;
+    const avgRating = queue.length > 0
+      ? (queue.reduce((s, q) => s + (ratings[q.id] || 0), 0) / queue.length).toFixed(1)
+      : '–';
+    return (
+      <div className="ip-mock-review">
+        <div className="ip-mock-review-header">
+          <div className="ip-mock-review-title">Rate your answers</div>
+          <div className="ip-mock-review-sub">{rated}/{queue.length} rated · avg {rated > 0 ? avgRating : '–'} / 5</div>
+        </div>
+        <div className="ip-mock-review-list">
+          {queue.map((q, i) => {
+            const cat = (ip.categories || []).find(c => c.id === q.categoryId);
+            return (
+              <div key={q.id} className="ip-mock-review-row">
+                <div className="ip-mock-review-q">
+                  <span className="ip-mock-review-num">{i + 1}</span>
+                  <div className="ip-mock-review-q-body">
+                    {cat && <span className="ip-mock-review-cat" style={{ color: cat.color }}>● {cat.name}</span>}
+                    <div className="ip-mock-review-q-text">{q.question}</div>
+                  </div>
+                </div>
+                <div className="ip-rate-btns">
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <button key={n}
+                      className={`ip-conf-btn ip-conf-btn--${n}${ratings[q.id] === n ? ' ip-conf-btn--sel' : ''}`}
+                      style={{ opacity: ratings[q.id] && ratings[q.id] !== n ? 0.35 : 1 }}
+                      onClick={() => setRatings(r => ({ ...r, [q.id]: n }))}>
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="ip-mock-review-footer">
+          <button className="ip-start-rehearsal-btn" onClick={submitReview}>
+            Save ratings &amp; finish
+          </button>
+          <button className="ip-block-cancel-btn" style={{ marginLeft: 10 }} onClick={onExit}>Discard &amp; exit</button>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 }
 
 // ─── InterviewPrepScreen ──────────────────────────────────────────
@@ -764,8 +1154,9 @@ function InterviewPrepScreen({ data, onPersist, onBack }) {
 
   const [selCatId, setSelCatId] = useState(() => ((ip.categories || [])[0] || {}).id || null);
   const [selQId, setSelQId] = useState(null);
-  const [mode, setMode] = useState('browse');
+  const [mode, setMode] = useState('browse'); // 'browse'|'rehearse'|'stories'|'progress'|'mock'
   const [rehearseQueue, setRehearseQueue] = useState([]);
+  const [showSearch, setShowSearch] = useState(false);
 
   const categories = ip.categories || [];
   const questions = ip.questions || [];
@@ -861,7 +1252,7 @@ function InterviewPrepScreen({ data, onPersist, onBack }) {
   const addStory = useCallback(() => {
     const id = `ips-${Date.now()}`;
     const now = new Date().toISOString();
-    persistIP(cur => ({ ...cur, stories: [...(cur.stories || []), { id, title: 'New story', summary: '', situation: '', action: '', result: '', learning: '', metrics: '', tags: [], createdAt: now, updatedAt: now }] }));
+    persistIP(cur => ({ ...cur, stories: [...(cur.stories || []), { id, title: 'New story', summary: '', situation: '', action: '', result: '', learning: '', metrics: '', whereToUse: '', tags: [], createdAt: now, updatedAt: now }] }));
     return id;
   }, [persistIP]);
 
@@ -897,10 +1288,76 @@ function InterviewPrepScreen({ data, onPersist, onBack }) {
     updateQuestion(qId, { confidence: conf, status: ipStatusFromConf(conf), lastPracticedAt: new Date().toISOString(), nextPracticeAt: ipNextPractice(conf), rehearsalCount: ((q && q.rehearsalCount) || 0) + 1 });
   }, [questions, updateQuestion]);
 
-  // Render
+  // Mock interview handler — batch-updates all ratings in one persist call
+  const handleMockComplete = useCallback((ratings) => {
+    const now = new Date().toISOString();
+    const ratingMap = {};
+    ratings.forEach(({ id, rating }) => { ratingMap[id] = rating; });
+    persistIP(cur => ({
+      ...cur,
+      questions: cur.questions.map(q => {
+        const rating = ratingMap[q.id];
+        if (!rating) return q;
+        return { ...q, confidence: rating, status: ipStatusFromConf(rating), lastPracticedAt: now, nextPracticeAt: ipNextPractice(rating), rehearsalCount: (q.rehearsalCount || 0) + 1, updatedAt: now };
+      }),
+    }));
+    setMode('browse');
+  }, [persistIP]);
+
+  // Global search navigation
+  const navigateToResult = useCallback((type, id, catId) => {
+    if (type === 'story') {
+      setMode('stories');
+    } else {
+      if (catId) setSelCatId(catId);
+      setSelQId(id);
+      setMode('browse');
+    }
+    setShowSearch(false);
+  }, []);
+
+  // Export / Import
+  const exportData = useCallback(() => {
+    const json = JSON.stringify(ip, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `interview-prep-${new Date().toISOString().substring(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, [ip]);
+
+  const importData = useCallback((file) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        if (!Array.isArray(parsed.categories) || !Array.isArray(parsed.questions)) {
+          window.alert('Invalid file: must contain categories and questions arrays.'); return;
+        }
+        if (!window.confirm(`Import ${parsed.questions.length} questions and ${(parsed.stories || []).length} stories?\nThis replaces your current Interview Prep data.`)) return;
+        persistIP(() => ({ categories: parsed.categories, questions: parsed.questions, stories: parsed.stories || [] }));
+      } catch { window.alert('Invalid JSON file.'); }
+    };
+    reader.readAsText(file);
+  }, [persistIP]);
+
+  // Shared search overlay (renders on top of any mode)
+  const searchOverlay = showSearch && (
+    <IPGlobalSearch
+      questions={questions} stories={stories} categories={categories}
+      onNavigate={navigateToResult} onClose={() => setShowSearch(false)}
+    />
+  );
+
+  // ── Render modes ──────────────────────────────────────────────
   if (mode === 'rehearse') {
     return (
       <div className="ip-screen">
+        {searchOverlay}
         <IPRehearsalView queue={rehearseQueue} ip={ip} onRate={handleRate} onExit={() => { setMode('browse'); setRehearseQueue([]); }} />
       </div>
     );
@@ -909,21 +1366,61 @@ function InterviewPrepScreen({ data, onPersist, onBack }) {
   if (mode === 'stories') {
     return (
       <div className="ip-screen">
+        {searchOverlay}
         <div className="ip-topbar">
           <button className="ip-back-btn" onClick={() => setMode('browse')}>← Questions</button>
           <div className="ip-topbar-center">
             <span className="ip-topbar-title">Story Bank</span>
             <span className="ip-topbar-sub">{stories.length} {stories.length === 1 ? 'story' : 'stories'}</span>
           </div>
-          <div className="ip-topbar-right" />
+          <div className="ip-topbar-right">
+            <button className="ip-topbar-btn-sm" onClick={() => setShowSearch(true)} title="Search">🔍</button>
+          </div>
         </div>
         <IPStoryBankView ip={ip} onAddStory={addStory} onUpdateStory={updateStory} onDeleteStory={deleteStory} />
       </div>
     );
   }
 
+  if (mode === 'progress') {
+    return (
+      <div className="ip-screen">
+        {searchOverlay}
+        <div className="ip-topbar">
+          <button className="ip-back-btn" onClick={() => setMode('browse')}>← Questions</button>
+          <div className="ip-topbar-center">
+            <span className="ip-topbar-title">Progress</span>
+            <span className="ip-topbar-sub">{stats.total} questions · {stats.interviewReady} interview-ready</span>
+          </div>
+          <div className="ip-topbar-right">
+            <button className="ip-topbar-btn-sm" onClick={() => setShowSearch(true)} title="Search">🔍</button>
+          </div>
+        </div>
+        <IPProgressView ip={ip} />
+      </div>
+    );
+  }
+
+  if (mode === 'mock') {
+    return (
+      <div className="ip-screen">
+        <div className="ip-topbar">
+          <button className="ip-back-btn" onClick={() => setMode('browse')}>← Questions</button>
+          <div className="ip-topbar-center">
+            <span className="ip-topbar-title">Mock Interview</span>
+            <span className="ip-topbar-sub">Senior AE · Salesforce</span>
+          </div>
+          <div className="ip-topbar-right" />
+        </div>
+        <IPMockInterview questions={questions} ip={ip} onComplete={handleMockComplete} onExit={() => setMode('browse')} />
+      </div>
+    );
+  }
+
+  // ── Browse mode (main) ────────────────────────────────────────
   return (
     <div className="ip-screen">
+      {searchOverlay}
       <div className="ip-topbar">
         <button className="ip-back-btn" onClick={onBack}>← Calendar</button>
         <div className="ip-topbar-center">
@@ -931,15 +1428,23 @@ function InterviewPrepScreen({ data, onPersist, onBack }) {
           <span className="ip-topbar-sub">Senior AE · Salesforce</span>
         </div>
         <div className="ip-topbar-right">
+          <button className="ip-topbar-btn-sm" onClick={() => setShowSearch(true)} title="Search all">🔍</button>
           <button className="ip-topbar-stories-btn" onClick={() => setMode('stories')}>
             Story Bank{stories.length > 0 ? ` (${stories.length})` : ''}
           </button>
+          <button className="ip-topbar-stories-btn" onClick={() => setMode('progress')}>Progress</button>
+          <button className="ip-topbar-stories-btn" onClick={exportData}>Export</button>
+          <label className="ip-topbar-stories-btn ip-topbar-import-lbl">
+            Import
+            <input type="file" accept=".json" style={{ display: 'none' }}
+              onChange={e => { if (e.target.files[0]) { importData(e.target.files[0]); e.target.value = ''; } }} />
+          </label>
           <button className="ip-topbar-rehearse-btn" onClick={() => startRehearsal('due')}>
-            ▶ Start rehearsal{stats.dueToday > 0 ? ` (${stats.dueToday})` : ''}
+            ▶ Rehearsal{stats.dueToday > 0 ? ` (${stats.dueToday})` : ''}
           </button>
         </div>
       </div>
-      <IPDashboard stats={stats} onStartRehearsal={startGlobalRehearsal} />
+      <IPDashboard stats={stats} onStartRehearsal={startGlobalRehearsal} onStartMock={() => setMode('mock')} />
       <div className="ip-cols">
         <IPCategoryList ip={ip} selectedId={selCatId}
           onSelect={id => { setSelCatId(id); setSelQId(null); }}
