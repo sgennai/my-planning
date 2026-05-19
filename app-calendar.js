@@ -4,6 +4,58 @@ const _EMPTY_ARRAY = [];
 const _EMPTY_OBJ = {};
 const _DEFAULT_ELSEWHERE = { morning: false, afternoon: false, allDay: false, date: null };
 
+// ─── Micro-strength tracker widget ────────────────────────────────────────────
+function MicroTracker({ tracker, onToggle, viewDate }) {
+  const [showTip, setShowTip] = React.useState(false);
+  const hideTimer = React.useRef(null);
+  const enter = () => { clearTimeout(hideTimer.current); setShowTip(true); };
+  const leave = () => { hideTimer.current = setTimeout(() => setShowTip(false), 180); };
+
+  const { slots, doneCount, total, exercises, title, nowH, nowM } = tracker;
+
+  let nextLabel = '';
+  const curSlot = slots.find(s => s.hour === nowH && s.status === 'upcoming');
+  if (curSlot) {
+    nextLabel = 'now';
+  } else {
+    const nxt = slots.find(s => s.status === 'upcoming' && s.hour > nowH);
+    if (nxt) {
+      const mins = (nxt.hour - nowH) * 60 - nowM;
+      nextLabel = `next in ${mins}m`;
+    }
+  }
+
+  return (
+    <div className="micro-tracker">
+      <div className="micro-tracker-line1">
+        <span className="micro-tracker-label" onMouseEnter={enter} onMouseLeave={leave} style={{ position: 'relative' }}>
+          ⚡ {title}
+          {showTip && exercises.length > 0 && (
+            <div className="micro-tracker-tip" onMouseEnter={enter} onMouseLeave={leave}>
+              {exercises.map((ex, i) => <div key={i} className="micro-tracker-ex">{ex}</div>)}
+            </div>
+          )}
+        </span>
+        <span className="micro-tracker-meta">
+          {doneCount} / {total} done{nextLabel ? ` · ${nextLabel}` : ''}
+        </span>
+      </div>
+      <div className="micro-tracker-dots">
+        {slots.map(s => (
+          <span
+            key={s.hour}
+            title={`${pad(s.hour)}:00`}
+            className={`micro-dot micro-dot--${s.status}${s.status === 'missed' || s.status === 'done' ? ' micro-dot--clickable' : ''}`}
+            onClick={s.status === 'missed' || s.status === 'done' ? () => onToggle(s.hour, viewDate) : undefined}
+          >
+            {s.status === 'done' ? '●' : s.status === 'missed' ? '!' : '○'}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut, onPersist }) {
   const isMobile = useMediaQuery('(max-width: 759px)');
   const now = useTickingClock(60000);
@@ -399,11 +451,16 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     const key = makeCompletionKey(itemId, date);
     persistData(d => {
       const next = { ...(d.routineCompletions || {}) };
-      if (next[key]) {
-        delete next[key];
-      } else {
-        next[key] = true;
-      }
+      if (next[key]) { delete next[key]; } else { next[key] = true; }
+      return { ...d, routineCompletions: next };
+    });
+  }, [persistData]);
+
+  const toggleMicroSlot = useCallback((hour, date) => {
+    const key = `micro-strength:h${hour}:${startOfDay(date).toISOString()}`;
+    persistData(d => {
+      const next = { ...(d.routineCompletions || {}) };
+      if (next[key]) { delete next[key]; } else { next[key] = true; }
       return { ...d, routineCompletions: next };
     });
   }, [persistData]);
@@ -802,23 +859,36 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   const fmtHeroTime = (m) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
 
   const microItem = (data.routine || []).find(r => r.recurrence && r.recurrence.kind === 'top-of-hour');
-  let microBanner = null;
+  let microTracker = null;
   if (microItem) {
-    const days = microItem.days || [];
     const sh = microItem.recurrence.startHour ?? 9;
     const eh = microItem.recurrence.endHour ?? 18;
-    const jsDay = now.getDay();
-    if (days.includes(jsDay) && now.getHours() >= sh && now.getHours() <= eh && now.getMinutes() < 2) {
+    const days = microItem.days || [];
+    if (days.includes(viewDate.getDay())) {
+      const dateKey = startOfDay(viewDate).toISOString();
+      const comps = data.routineCompletions || {};
+      const nowH = isToday ? now.getHours() : (viewDayOffset > 0 ? -1 : 24);
+      const slots = [];
+      for (let h = sh; h <= eh; h++) {
+        const done = !!comps[`micro-strength:h${h}:${dateKey}`];
+        slots.push({ hour: h, status: done ? 'done' : (nowH > h ? 'missed' : 'upcoming') });
+      }
       const ref = refLibrary.find(r => r.id === 'ref-micro-strength');
-      let summary = '~60–80s · take a movement break';
+      let exercises = [];
       if (ref && ref.body) {
-        const moves = ref.body.split(/\r?\n/).map(l => l.trim())
+        exercises = ref.body.split(/\r?\n/).map(l => l.trim())
           .filter(l => /^\d+\./.test(l))
           .map(l => l.replace(/^\d+\.\s*/, '').replace(/\s*—.*$/, '').trim())
           .filter(Boolean);
-        if (moves.length) summary = `~60–80s · ${moves.join(' · ')}`;
       }
-      microBanner = { title: microItem.title, summary };
+      microTracker = {
+        slots, title: microItem.title,
+        doneCount: slots.filter(s => s.status === 'done').length,
+        total: slots.length,
+        exercises,
+        nowH: isToday ? now.getHours() : -1,
+        nowM: isToday ? now.getMinutes() : 0,
+      };
     }
   }
 
@@ -1290,17 +1360,14 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                 <div className="today-hero-now" style={{ color: 'var(--muted-3)' }}>Nothing else scheduled.</div>
               </>
             )}
-            {microBanner && (
-              <div className="today-hero-micro">⚡ {microBanner.title} · {microBanner.summary}</div>
-            )}
           </div>
 
-          {/* Card 2: Routine — supplements only, checkable */}
+          {/* Card 2: Routine — supplements + micro-strength tracker */}
           <div className="today-hero today-hero--secondary">
             <div className="today-hero-eyebrow">Routine</div>
             {(() => {
               const supplements = todayItems.filter(it => it.kind === 'routine' && it.category === 'supplement');
-              if (supplements.length === 0) return <div className="today-hero-empty">No supplements today.</div>;
+              if (supplements.length === 0 && !microTracker) return <div className="today-hero-empty">No supplements today.</div>;
               const half = Math.ceil(supplements.length / 2);
               const col1 = supplements.slice(0, half);
               const col2 = supplements.slice(half);
@@ -1318,10 +1385,17 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                 </div>
               );
               return (
-                <div className="today-hero-sup-cols">
-                  <div className="today-hero-list">{col1.map(renderRow)}</div>
-                  <div className="today-hero-list">{col2.map(renderRow)}</div>
-                </div>
+                <>
+                  {supplements.length > 0 && (
+                    <div className="today-hero-sup-cols">
+                      <div className="today-hero-list">{col1.map(renderRow)}</div>
+                      <div className="today-hero-list">{col2.map(renderRow)}</div>
+                    </div>
+                  )}
+                  {microTracker && (
+                    <MicroTracker tracker={microTracker} onToggle={toggleMicroSlot} viewDate={viewDate} />
+                  )}
+                </>
               );
             })()}
           </div>

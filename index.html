@@ -2033,15 +2033,75 @@
       flex-shrink: 0;
       font-weight: 500;
     }
-    .today-hero-micro {
+    /* Micro-strength tracker — lives at bottom of Routine hero card */
+    .micro-tracker {
       margin-top: var(--space-4);
-      padding: var(--space-3) var(--space-4);
-      background: var(--primary-soft);
-      border-radius: var(--radius-base);
-      font-size: var(--text-sm);
-      color: var(--primary-hover);
-      letter-spacing: var(--tracking-base);
-      font-weight: 500;
+      padding-top: var(--space-3);
+      border-top: 1px solid var(--rule);
+    }
+    .micro-tracker-line1 {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .micro-tracker-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      cursor: default;
+      white-space: nowrap;
+    }
+    .micro-tracker-meta {
+      font-size: 11px;
+      color: var(--muted-3);
+      font-family: var(--mono);
+      white-space: nowrap;
+    }
+    .micro-tracker-dots {
+      display: flex;
+      gap: 5px;
+    }
+    .micro-dot {
+      font-size: 13px;
+      line-height: 1;
+      transition: transform 0.12s;
+      user-select: none;
+    }
+    .micro-dot--done   { color: #7EB8A4; }
+    .micro-dot--upcoming { color: var(--muted-3); }
+    .micro-dot--missed { color: #f97316; }
+    .micro-dot--clickable { cursor: pointer; }
+    .micro-dot--clickable:hover { transform: scale(1.35); }
+    /* Tooltip showing exercise list */
+    .micro-tracker-tip {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 0;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(20px) saturate(1.4);
+      -webkit-backdrop-filter: blur(20px) saturate(1.4);
+      border: 1px solid rgba(0,0,0,0.09);
+      border-radius: 12px;
+      padding: 10px 14px;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.12);
+      z-index: 120;
+      min-width: 180px;
+      white-space: nowrap;
+    }
+    [data-theme="dark"] .micro-tracker-tip {
+      background: rgba(30,30,34,0.92);
+      border-color: rgba(255,255,255,0.10);
+    }
+    .micro-tracker-ex {
+      font-size: 12px;
+      color: var(--text);
+      padding: 2px 0;
+      font-family: var(--sans);
+    }
+    .micro-tracker-ex + .micro-tracker-ex {
+      border-top: 1px solid var(--rule);
     }
 
     /* Body layout: left rail + timeline main — no gap, rail divides */
