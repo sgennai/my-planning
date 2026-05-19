@@ -27,6 +27,7 @@ function makeDefaultData() {
       categoryLabels: {},
       todayView: 'timeline',
       lunchSlot: { start: '12:30', duration: 60 },
+      nowLineColor: '',
     },
   };
 }
@@ -114,6 +115,7 @@ function migrate(data) {
     }
     // v15: today view + lunch slot
     if (!next.prefs.todayView) { next.prefs.todayView = 'timeline'; changed = true; }
+    if (next.prefs.nowLineColor === undefined) { next.prefs.nowLineColor = ''; changed = true; }
     if (!next.prefs.lunchSlot || typeof next.prefs.lunchSlot !== 'object') {
       next.prefs.lunchSlot = { start: '12:30', duration: 60 };
       changed = true;

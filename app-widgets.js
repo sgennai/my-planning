@@ -586,7 +586,8 @@ function ColorSwatchPicker({ value, onChange, label }) {
 
 function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh, weather, onUpdateWeather, onRequestGeo, lunchSlot, onSetLunchSlot, onClose,
   routine, onUpdateRoutineItem, onAddRoutineItem, onDeleteRoutineItem, categoryStyles, onSetCategoryColor, onResetCategoryColor, userCategoryColors, onSetCategoryEmoji, onResetCategoryEmoji, userCategoryEmojis,
-  todoist, onUpdateTodoist
+  todoist, onUpdateTodoist,
+  nowLineColor, onSetNowLineColor
 }) {
   const [activeTab, setActiveTab] = useState('calendars');
   const [lunchStart, setLunchStart] = useState((lunchSlot && lunchSlot.start) || '12:30');
@@ -715,6 +716,27 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
                     placeholder="https://your-worker.your-subdomain.workers.dev"
                     onChange={e => setProxyUrl(e.target.value)} />
                   <div className="sm-hint">Relays ICS feeds and Todoist requests — required for calendar imports.</div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── APPEARANCE ── */}
+            <div className="sm-section">
+              <div className="sm-eyebrow">Appearance</div>
+              <div className="sm-card">
+                <div className="sm-field sm-nowline-row">
+                  <span className="sm-field-label">Now line color</span>
+                  <div className="sm-nowline-controls">
+                    <input
+                      type="color"
+                      className="sm-color-swatch"
+                      value={nowLineColor || '#2563EB'}
+                      onChange={e => onSetNowLineColor && onSetNowLineColor(e.target.value)}
+                    />
+                    {nowLineColor && (
+                      <button className="sm-reset-btn" onClick={() => onSetNowLineColor && onSetNowLineColor('')} title="Reset to default">↺</button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
