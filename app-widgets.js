@@ -587,7 +587,8 @@ function ColorSwatchPicker({ value, onChange, label }) {
 function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh, weather, onUpdateWeather, onRequestGeo, lunchSlot, onSetLunchSlot, onClose,
   routine, onUpdateRoutineItem, onAddRoutineItem, onDeleteRoutineItem, categoryStyles, onSetCategoryColor, onResetCategoryColor, userCategoryColors, onSetCategoryEmoji, onResetCategoryEmoji, userCategoryEmojis,
   todoist, onUpdateTodoist,
-  nowLineColor, onSetNowLineColor
+  nowLineColor, onSetNowLineColor,
+  miniMonthTodayColor, onSetMiniMonthTodayColor
 }) {
   const [activeTab, setActiveTab] = useState('calendars');
   const [lunchStart, setLunchStart] = useState((lunchSlot && lunchSlot.start) || '12:30');
@@ -735,6 +736,21 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
                     />
                     {nowLineColor && (
                       <button className="sm-reset-btn" onClick={() => onSetNowLineColor && onSetNowLineColor('')} title="Reset to default">↺</button>
+                    )}
+                  </div>
+                </div>
+                <div className="sm-divider" />
+                <div className="sm-field sm-nowline-row">
+                  <span className="sm-field-label">Today highlight</span>
+                  <div className="sm-nowline-controls">
+                    <input
+                      type="color"
+                      className="sm-color-swatch"
+                      value={miniMonthTodayColor || '#2563EB'}
+                      onChange={e => onSetMiniMonthTodayColor && onSetMiniMonthTodayColor(e.target.value)}
+                    />
+                    {miniMonthTodayColor && (
+                      <button className="sm-reset-btn" onClick={() => onSetMiniMonthTodayColor && onSetMiniMonthTodayColor('')} title="Reset to default">↺</button>
                     )}
                   </div>
                 </div>
