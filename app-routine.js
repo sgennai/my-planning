@@ -568,13 +568,15 @@ function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDele
   const [newCatColor, setNewCatColor] = useState('#7EB8A4');
   const [newCatEmoji, setNewCatEmoji] = useState('📌');
   const [newCatEmojiOpen, setNewCatEmojiOpen] = useState(false);
+  const [filterCat, setFilterCat] = useState('all');
 
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) onClose();
   };
 
-  const recurringItems = routine.filter(r => r.recurrence);
-  const visible = routine.filter(r => !r.recurrence);
+  const catFilterFn = item => filterCat === 'all' || item.category === filterCat;
+  const recurringItems = routine.filter(r => r.recurrence).filter(catFilterFn);
+  const visible = routine.filter(r => !r.recurrence).filter(catFilterFn);
   const multiDay = [];
   const grouped = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 0: [] };
   visible.forEach(item => {
@@ -657,8 +659,10 @@ function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDele
             const inputVal = labelEdits[cat] !== undefined ? labelEdits[cat] : style.label;
             return (
               <div key={cat} className="cat-row">
+                {/* col 1: dot */}
                 <div className="cat-row-dot" style={{ background: style.color }} />
-                <div style={{ position: 'relative', flexShrink: 0 }}>
+                {/* col 2: emoji + popover */}
+                <div style={{ position: 'relative' }}>
                   <button className="cat-row-emoji" onClick={() => setEmojiPickerCat(emojiPickerCat === cat ? null : cat)} title="Change emoji">
                     {style.emoji}
                   </button>
@@ -674,6 +678,7 @@ function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDele
                     />
                   )}
                 </div>
+                {/* col 3: name */}
                 <input
                   className="cat-row-name"
                   value={inputVal}
@@ -694,6 +699,7 @@ function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDele
                   }}
                   title="Click to rename"
                 />
+                {/* col 4: color picker */}
                 <ColorPickerExtended
                   value={isUserCreated ? style.colorVal : (rawColorVal || defaultColor)}
                   defaultHex={isUserCreated ? style.color : defaultColor}
@@ -702,21 +708,25 @@ function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDele
                     else { onSetCategoryColor && onSetCategoryColor(cat, val); }
                   }}
                 />
-                {!isUserCreated && isCustomised && (
-                  <button className="cat-row-reset" title="Reset to defaults" onClick={() => {
+                {/* col 5: reset — always present, hidden when not applicable */}
+                <button
+                  className="cat-row-action reset"
+                  style={{ visibility: (!isUserCreated && isCustomised) ? 'visible' : 'hidden' }}
+                  title="Reset to defaults"
+                  onClick={() => {
                     if (colorOverridden) onResetCategoryColor && onResetCategoryColor(cat);
                     if (emojiOverridden) onResetCategoryEmoji && onResetCategoryEmoji(cat);
                     if (labelOverridden) onResetCategoryLabel && onResetCategoryLabel(cat);
                     setLabelEdits(prev => { const n = { ...prev }; delete n[cat]; return n; });
-                  }}>↺</button>
-                )}
-                {isUserCreated && (
-                  <button
-                    className={`cat-row-delete${inUse ? ' disabled' : ''}`}
-                    title={inUse ? 'Remove from all routine items first' : 'Delete category'}
-                    onClick={!inUse ? () => onDeleteUserCategory && onDeleteUserCategory(cat) : undefined}
-                  >🗑</button>
-                )}
+                  }}
+                >↺</button>
+                {/* col 6: delete — always present, hidden for builtins */}
+                <button
+                  className={`cat-row-action delete${inUse ? ' disabled' : ''}`}
+                  style={{ visibility: isUserCreated ? 'visible' : 'hidden' }}
+                  title={inUse ? 'Remove from all routine items first' : 'Delete category'}
+                  onClick={!inUse ? () => onDeleteUserCategory && onDeleteUserCategory(cat) : undefined}
+                >🗑</button>
               </div>
             );
           })}
@@ -728,14 +738,23 @@ function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDele
       {/* ── Section 2: Routine Items ── */}
       <div className="rm-section">
         <div className="rm-section-header">
-          <div className="rm-section-title">
-            Routine Items
-            <span className="rm-count">{totalCount}</span>
+          <div className="rm-section-title">Routine Items</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <select
+              className="rm-filter-select"
+              value={filterCat}
+              onChange={e => setFilterCat(e.target.value)}
+            >
+              <option value="all">All categories</option>
+              {Object.entries(CATS).map(([cat, style]) => (
+                <option key={cat} value={cat}>{style.emoji} {style.label}</option>
+              ))}
+            </select>
+            <button className="rm-section-btn" onClick={() => setEditingId('new')}>+ Add item</button>
           </div>
-          <button className="rm-section-btn" onClick={() => setEditingId('new')}>+ Add item</button>
         </div>
-        {totalCount === 0 && (
-          <div className="rm-empty">No routine items yet — add one above.</div>
+        {recurringItems.length === 0 && multiDay.length === 0 && dayOrder.every(d => (grouped[d] || []).length === 0) && (
+          <div className="rm-empty">{filterCat === 'all' ? 'No routine items yet — add one above.' : 'No items in this category.'}</div>
         )}
         {recurringItems.length > 0 && (
           <div className="routine-day-group">
