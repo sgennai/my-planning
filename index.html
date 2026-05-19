@@ -2061,17 +2061,24 @@
     }
     .micro-tracker-dots {
       display: flex;
-      gap: 5px;
+      gap: 8px;
+      padding-left: 18px; /* align first dot under M of Micro-Strength */
     }
     .micro-dot {
-      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      font-size: 12px;
       line-height: 1;
+      flex-shrink: 0;
       transition: transform 0.12s;
       user-select: none;
     }
-    .micro-dot--done   { color: #7EB8A4; }
+    .micro-dot--done     { color: #7EB8A4; }
     .micro-dot--upcoming { color: var(--muted-3); }
-    .micro-dot--missed { color: #f97316; }
+    .micro-dot--missed   { color: var(--muted-2); }
     .micro-dot--clickable { cursor: pointer; }
     .micro-dot--clickable:hover { transform: scale(1.35); }
     /* Tooltip showing exercise list */
