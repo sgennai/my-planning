@@ -965,6 +965,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                   {reviewDone ? '✓ Weekly Review' : 'Weekly Review'}
                 </button>
                 <button className="app-menu-item" onClick={() => { setPracticeOpen(true); setMenuOpen(false); }}>Practice</button>
+                <button className="app-menu-item" onClick={() => { setRefLibraryOpen(true); setMenuOpen(false); }}>Reference Library</button>
                 <button className="app-menu-item" onClick={() => { setSettingsOpen(true); setMenuOpen(false); }}>Settings</button>
                 <div className="app-menu-divider" />
                 <button className="app-menu-item app-menu-item--danger" onClick={() => { onSignOut(); setMenuOpen(false); }}>Sign out</button>
