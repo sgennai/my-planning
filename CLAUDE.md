@@ -17,11 +17,12 @@ Scripts load in this exact order (global scope — later files can use symbols f
 
 ```
 index.html          — CSS only + ordered <script> tags (no component logic)
-app-data.js         — SCHEMA_VERSION, CATEGORY_STYLES, SEED_PROJECTS, makeDefaultData(), migrate()
+app-data.js         — SCHEMA_VERSION, CATEGORY_STYLES, SEED_PROJECTS, SEED_INTERVIEW_*, makeDefaultData(), migrate()
 app-helpers.js      — shared utils (pad, startOfDay, toMinutes, layoutDay, combinedDayItems…), ViewSwitcher, ProjectsRailPanel, ICS parser
-app-core.js         — root App component, Google Drive OAuth, state persistence, auth
+app-core.js         — root App component, Google Drive OAuth, state persistence, auth; appPage state ('calendar'|'interview')
 app-today.js        — TodayScreen (timeline pane only), TodayCalendarView, TodayMiniMonth
-app-practice.js     — DailyPracticeHub overlay (Interview Prep, Personal Narrative, C-Level Qs tabs)
+app-practice.js     — DailyPracticeHub overlay (Personal Narrative, C-Level Qs tabs)
+app-interview.js    — InterviewPrepScreen full page + all sub-components (IPDashboard, IPCategoryList, IPQuestionList, IPWorkspace, IPRehearsalView, IPMockInterview, IPProgressView, IPStoryBankView, IPGlobalSearch, IPRubric, IPLinkedStories)
 app-calendar.js     — CalendarScreen (single layout shell for both views), all shared state
 app-week.js         — WeekGrid, AgendaView, CalendarHeader, BlockPopover, RoutineItemPopover, CalItem, NowLine
 app-routine.js      — RoutineManagerModal, RoutineEditForm, routine resolution logic
@@ -30,7 +31,7 @@ app-widgets.js      — SettingsModal (with Routines tab), InboxModal, WeatherSt
 
 All files share one global scope (no ES modules). Variables defined in one file are visible in others — global naming discipline matters. If a new shared component is needed by both app-today.js and app-week.js, define it in app-helpers.js (loads before both).
 
-## Core data shape (schema v18)
+## Core data shape (schema v23)
 
 ```
 {
@@ -39,8 +40,18 @@ All files share one global scope (no ES modules). Variables defined in one file 
   weeklyResets, projects, scheduledBlocks,
   referenceLibrary, inbox, elsewhereToggles,
   todos, routineCompletions, weather,
-  practiceContent: { interviewPrep[], personalNarrative[], clevelQs[] },
-  prefs: { theme, categoryColors, categoryEmojis, todayView, lunchSlot }
+  practiceContent: { personalNarrative[], clevelQs[] },
+  interviewPrep: {
+    categories: [{ id, name, group, color, order }],
+    questions:  [{ id, categoryId, question, status, confidence, tags, linkedStoryIds,
+                   rubric, lastPracticedAt, nextPracticeAt, rehearsalCount, answer: {
+                     coreMessage, answer60Sec, proofStory, metrics, salesforceRelevance,
+                     answer30Sec, expandedAnswer, keywords, watchOuts, notes } }],
+    stories:    [{ id, title, summary, situation, action, result, learning, metrics,
+                   whereToUse, tags, createdAt, updatedAt }],
+  },
+  prefs: { theme, categoryColors, categoryEmojis, categoryLabels, todayView, lunchSlot,
+           nowLineColor, miniMonthTodayColor, nowEventColor, userCategories }
 }
 ```
 
@@ -72,7 +83,7 @@ Schema migrations are non-destructive at every version bump. `migrate()` in `app
 
 Fixed .app-topbar  (56px, left: 300px → right: 0  — does NOT overlap rail)
   Center: [Today / Week switcher]
-  Right:  [◐] [☁] [At home] [Practice] [Inbox] [Settings]
+  Right:  [◐] [☁] [At home] [⋮ menu → Interview Prep] [Inbox] [Settings]
 ```
 
 `TodayScreen` (`app-today.js`) renders only the `today-timeline` div — no wrapper, no topbar, no rail. All shared layout lives in `CalendarScreen`.
@@ -122,9 +133,28 @@ Tier 1 NEXT (master, 6h/week, 13 modules). Tier 2 APP - AI FOR SALES. Tier 3 Gym
 
 Projects rail (`ProjectsRailPanel` in `app-helpers.js`) shows next actions per module with complete/add/delete controls. `completedActions[]` tracks history.
 
+## Interview Prep page
+
+Full-page feature accessible via the ⋮ menu → "Interview Prep". `App` component (`app-core.js`) holds `appPage` state (`'calendar'` | `'interview'`); switching renders `InterviewPrepScreen` in place of `CalendarScreen`.
+
+Three-column layout: Categories (left) → Questions (middle) → Answer workspace (right). Key features:
+
+- **25 seed categories** in 5 groups (Core Sales Execution, Strategic Enterprise Selling, Leadership & Scale, Salesforce Fit, Personal Stories). 73 seed questions across all categories.
+- **Question statuses**: draft → needs_work → practice → strong → interview_ready. Confidence 1–5 drives spaced repetition (conf 1→1d, 2→2d, 3→4d, 4→7d, 5→14d).
+- **Answer workspace**: 10 structured blocks (core message, 60s answer, proof story, metrics, Salesforce relevance, 30s, 2–3min, keywords, watch-outs, notes). Inline editing per block, autosave + "Saved" indicator. Progressive disclosure — primary blocks shown first.
+- **Answer quality rubric**: 7-item Salesforce-focused checklist per question (stored as `question.rubric`), score shown as X/7.
+- **Rehearsal mode**: focused full-page view, optional timer (30s/60s/90s/3min), hints (core message + keywords), confidence rating → spaced repetition update.
+- **Mock interview mode**: setup (pool/count/time) → timed interview (no answers shown) → batch rating review screen → all ratings saved in one persist call.
+- **Progress view**: confidence distribution bars, status breakdown, category readiness bars sorted by % interview-ready.
+- **Story Bank**: full CRUD story editor (title, summary, STAR fields, metrics, where-to-use). Stories linked to questions via `linkedStoryIds[]`. Story editor shows reverse index of which questions use it.
+- **Global search**: Spotlight-style overlay (🔍), searches question text + answer content + tags + story fields, navigates directly to result.
+- **Category management**: colored dots, groups, reorder ↑↓, rename, delete with confirmation.
+- **Import/Export**: downloads `interviewPrep` as JSON; import validates and replaces with confirmation.
+- All state lives in `data.interviewPrep` in Google Drive JSON. `persistIP(fn)` pattern wraps `persistData`.
+
 ## Daily Practice Hub
 
-Overlay accessible via "Practice" button in topbar. Three tabs: Interview Prep (15 items), Personal Narrative (7 items), C-Level Qs (15 items). Two modes per tab: Full Answer (editable) and Flashcard (question → reveal → knew it / needs work). Mastery tracked via `streak` counter. All content lives in `data.practiceContent` in Google Drive JSON.
+Overlay in `app-practice.js`. Two tabs: Personal Narrative (7 items), C-Level Qs (15 items). Two modes per tab: Full Answer (editable) and Flashcard. Mastery tracked via `streak` counter. Content in `data.practiceContent`.
 
 ## Settings modal
 
@@ -168,12 +198,12 @@ Stephane edits via Claude Code. Deploy: `git add`, `git commit`, `git push` — 
 - ~~Todos dropdown: transparent, auto-sized to selected label (ch units)~~ COMPLETED
 - ~~AM/PM slot buttons: single + that reveals AM/PM on hover, + centered between choices~~ COMPLETED
 - ~~Add-task controls (calendar icon + submit arrow): only show when input is non-empty~~ COMPLETED
+- ~~Next actions edit mode for Projects Rail (complete/add/archive actions live)~~ COMPLETED — schema v17, completedActions[]
+- ~~Interview Prep full page~~ COMPLETED — three-column workspace, rehearsal, mock interview, progress charts, story bank, rubric, global search, import/export
+- ~~Story Vault~~ COMPLETED — Story Bank inside Interview Prep page
 - Persistent Google sign-in
-- Next actions edit mode for Projects Rail (complete/add/archive actions live)
 - Past weekly resets browser
-- Story Vault
 - Habit streaks/analytics
-- Voice memo capture
 - Multi-device conflict handling
 - Offline fallback
 - RSS article feed for modules #5/#6 (extend Cloudflare Worker + in-app widget)
