@@ -166,12 +166,12 @@ function CaptureBar({ inbox, onAdd, onOpenInbox }) {
 // ═════════════════════════════════════════════════════════════
 // INBOX MODAL — review captured thoughts
 // ═════════════════════════════════════════════════════════════
-function InboxModal({ inbox, onClose, onToggle, onDelete }) {
+function InboxModal({ inbox, onClose, onDelete }) {
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) onClose();
   };
-  const open = inbox.filter(i => !i.actioned);
-  const actioned = inbox.filter(i => i.actioned);
+
+  const items = [...inbox].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   const formatTimestamp = (iso) => {
     const d = new Date(iso);
@@ -186,69 +186,34 @@ function InboxModal({ inbox, onClose, onToggle, onDelete }) {
 
   return (
     <div className="modal-backdrop" onClick={handleBackdropClick}>
-      <div className="modal inbox-modal">
+      <div className="inbox-modal">
         <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
-        <div className="modal-header">
-          <div className="modal-eyebrow">Capture Inbox</div>
-          <div className="modal-title">{open.length} open · {inbox.length} total</div>
-          <div className="modal-meta">
-            <span style={{ fontStyle: 'italic' }}>If a thought becomes an action, re-create it on a project card</span>
+        <div className="inbox-modal-header">
+          <div className="inbox-modal-eyebrow">Capture Inbox</div>
+          <div className="inbox-modal-title">
+            {items.length === 0 ? 'All clear' : `${items.length} capture${items.length === 1 ? '' : 's'}`}
           </div>
         </div>
-        <div className="modal-body">
-          {inbox.length === 0 ? (
-            <div className="inbox-empty">No captures yet. Use the bar above the calendar to drop thoughts in.</div>
+        <div className="inbox-modal-body">
+          {items.length === 0 ? (
+            <div className="inbox-empty">Nothing captured yet. Drop a thought in the bar above the calendar.</div>
           ) : (
-            <>
-              {open.length > 0 && (
-                <div style={{ marginBottom: 16 }}>
-                  <div className="modal-section-label">Open</div>
-                  <div className="inbox-list">
-                    {open.map(item => (
-                      <div key={item.id} className="inbox-item">
-                        <input
-                          type="checkbox"
-                          className="inbox-item-checkbox"
-                          checked={false}
-                          onChange={() => onToggle(item.id)}
-                        />
-                        <div className="inbox-item-text">{item.text}</div>
-                        <div className="inbox-item-time">{formatTimestamp(item.createdAt)}</div>
-                        <button
-                          className="inbox-item-delete"
-                          onClick={() => { if (confirm('Delete this capture?')) onDelete(item.id); }}
-                          title="Delete"
-                        >×</button>
-                      </div>
-                    ))}
-                  </div>
+            <div className="inbox-list">
+              {items.map(item => (
+                <div key={item.id} className="inbox-item">
+                  <input
+                    type="checkbox"
+                    className="inbox-item-check"
+                    checked={false}
+                    onChange={() => onDelete(item.id)}
+                    title="Mark done and remove"
+                  />
+                  <div className="inbox-item-text">{item.text}</div>
+                  <div className="inbox-item-time">{formatTimestamp(item.createdAt)}</div>
+                  <button className="inbox-item-del" onClick={() => onDelete(item.id)} title="Delete">×</button>
                 </div>
-              )}
-              {actioned.length > 0 && (
-                <div>
-                  <div className="modal-section-label">Done</div>
-                  <div className="inbox-list">
-                    {actioned.map(item => (
-                      <div key={item.id} className="inbox-item actioned">
-                        <input
-                          type="checkbox"
-                          className="inbox-item-checkbox"
-                          checked={true}
-                          onChange={() => onToggle(item.id)}
-                        />
-                        <div className="inbox-item-text">{item.text}</div>
-                        <div className="inbox-item-time">{formatTimestamp(item.createdAt)}</div>
-                        <button
-                          className="inbox-item-delete"
-                          onClick={() => onDelete(item.id)}
-                          title="Delete"
-                        >×</button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
+              ))}
+            </div>
           )}
         </div>
       </div>

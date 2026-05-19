@@ -1501,7 +1501,6 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
       <InboxModal
         inbox={data.inbox || []}
         onClose={() => setInboxOpen(false)}
-        onToggle={toggleInboxItem}
         onDelete={deleteInboxItem}
       />
     )}

@@ -5328,66 +5328,120 @@
     .capture-count:hover { color: var(--primary); }
     .capture-count.has-items { color: var(--primary); }
 
-    .inbox-modal { max-width: 640px; }
+    /* ───────── CAPTURE INBOX MODAL ───────── */
+    .inbox-modal {
+      position: relative;
+      width: min(560px, 94vw);
+      max-height: min(78vh, 640px);
+      background: rgba(255,255,255,0.82);
+      backdrop-filter: blur(28px) saturate(1.6);
+      -webkit-backdrop-filter: blur(28px) saturate(1.6);
+      border: 1px solid rgba(255,255,255,0.72);
+      border-radius: 20px;
+      box-shadow: var(--shadow-card), 0 0 0 1px rgba(255,255,255,0.18) inset;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    [data-theme="dark"] .inbox-modal {
+      background: rgba(30,30,34,0.82);
+      border-color: rgba(255,255,255,0.10);
+    }
+    .inbox-modal-header {
+      flex-shrink: 0;
+      padding: 24px 28px 16px;
+      border-bottom: 1px solid rgba(0,0,0,0.07);
+    }
+    [data-theme="dark"] .inbox-modal-header { border-bottom-color: rgba(255,255,255,0.07); }
+    .inbox-modal-eyebrow {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--muted-3);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .inbox-modal-title {
+      font-family: var(--serif);
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+    .inbox-modal-body {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 12px 16px 16px;
+    }
     .inbox-list {
       display: flex;
       flex-direction: column;
-      gap: 1px;
+      gap: 6px;
     }
     .inbox-item {
       display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 10px 14px;
-      background: var(--bg-card-deep);
-      border-left: 2px solid var(--border);
-      transition: background var(--duration-fast) var(--ease-out);
+      align-items: center;
+      gap: 12px;
+      padding: 11px 14px;
+      background: rgba(255,255,255,0.62);
+      border: 1px solid rgba(255,255,255,0.65);
+      border-radius: 10px;
+      transition: background var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
     }
-    .inbox-item:hover { background: var(--bg-hover); }
-    .inbox-item.actioned {
-      opacity: 0.45;
+    [data-theme="dark"] .inbox-item {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(255,255,255,0.09);
     }
-    .inbox-item.actioned .inbox-item-text {
-      text-decoration: line-through;
+    .inbox-item:hover {
+      background: rgba(255,255,255,0.82);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
     }
-    .inbox-item-checkbox {
+    [data-theme="dark"] .inbox-item:hover { background: rgba(255,255,255,0.09); }
+    .inbox-item-check {
       flex-shrink: 0;
-      width: 16px; height: 16px;
-      margin-top: 1px;
+      width: 16px;
+      height: 16px;
       accent-color: var(--primary);
       cursor: pointer;
     }
     .inbox-item-text {
       flex: 1;
-      font-size: 13px;
+      font-size: 13.5px;
       color: var(--text);
-      line-height: 1.5;
+      line-height: 1.45;
     }
     .inbox-item-time {
       font-size: 10px;
-      color: var(--muted-4);
+      color: var(--muted-3);
       font-family: var(--mono);
       letter-spacing: 0.05em;
       flex-shrink: 0;
-      padding-top: 2px;
+      white-space: nowrap;
     }
-    .inbox-item-delete {
+    .inbox-item-del {
       background: none;
       border: none;
       color: var(--muted-4);
       cursor: pointer;
-      font-size: 14px;
-      padding: 0 4px;
+      font-size: 16px;
+      padding: 0 2px;
       line-height: 1;
       flex-shrink: 0;
+      opacity: 0;
+      transition: opacity var(--duration-fast), color var(--duration-fast);
+      touch-action: manipulation;
     }
-    .inbox-item-delete:hover { color: var(--coral); }
+    .inbox-item:hover .inbox-item-del { opacity: 1; }
+    .inbox-item-del:hover { color: #ef4444; }
     .inbox-empty {
-      padding: 40px 20px;
+      padding: 36px 20px;
       text-align: center;
-      color: var(--muted-4);
+      color: var(--muted-3);
       font-style: italic;
       font-size: 13px;
+      font-family: var(--serif);
     }
 
     /* ───────── WEEKLY RESET OVERLAY (full-screen) ───────── */
