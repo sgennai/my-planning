@@ -1502,6 +1502,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         inbox={data.inbox || []}
         onClose={() => setInboxOpen(false)}
         onDelete={deleteInboxItem}
+        onAdd={addInboxItem}
       />
     )}
 

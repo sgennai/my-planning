@@ -166,9 +166,24 @@ function CaptureBar({ inbox, onAdd, onOpenInbox }) {
 // ═════════════════════════════════════════════════════════════
 // INBOX MODAL — review captured thoughts
 // ═════════════════════════════════════════════════════════════
-function InboxModal({ inbox, onClose, onDelete }) {
+function InboxModal({ inbox, onClose, onDelete, onAdd }) {
+  const [draft, setDraft] = React.useState('');
+  const inputRef = React.useRef(null);
+
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) onClose();
+  };
+
+  const submitDraft = () => {
+    const text = draft.trim();
+    if (!text) return;
+    onAdd(text);
+    setDraft('');
+    inputRef.current && inputRef.current.focus();
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') submitDraft();
   };
 
   const items = [...inbox].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -194,27 +209,40 @@ function InboxModal({ inbox, onClose, onDelete }) {
             {items.length === 0 ? 'All clear' : `${items.length} capture${items.length === 1 ? '' : 's'}`}
           </div>
         </div>
+        <div className="inbox-modal-compose">
+          <input
+            ref={inputRef}
+            className="inbox-compose-input"
+            type="text"
+            placeholder="Capture a thought…"
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            onKeyDown={handleKeyDown}
+          />
+          <button
+            className="inbox-compose-submit"
+            onClick={submitDraft}
+            style={{ opacity: draft.trim() ? 1 : 0, pointerEvents: draft.trim() ? 'auto' : 'none' }}
+            aria-label="Add"
+          >↑</button>
+        </div>
         <div className="inbox-modal-body">
-          {items.length === 0 ? (
-            <div className="inbox-empty">Nothing captured yet. Drop a thought in the bar above the calendar.</div>
-          ) : (
-            <div className="inbox-list">
-              {items.map(item => (
-                <div key={item.id} className="inbox-item">
-                  <input
-                    type="checkbox"
-                    className="inbox-item-check"
-                    checked={false}
-                    onChange={() => onDelete(item.id)}
-                    title="Mark done and remove"
-                  />
-                  <div className="inbox-item-text">{item.text}</div>
-                  <div className="inbox-item-time">{formatTimestamp(item.createdAt)}</div>
-                  <button className="inbox-item-del" onClick={() => onDelete(item.id)} title="Delete">×</button>
-                </div>
-              ))}
-            </div>
-          )}
+          <div className="inbox-list">
+            {items.map(item => (
+              <div key={item.id} className="inbox-item">
+                <input
+                  type="checkbox"
+                  className="inbox-item-check"
+                  checked={false}
+                  onChange={() => onDelete(item.id)}
+                  title="Mark done and remove"
+                />
+                <div className="inbox-item-text">{item.text}</div>
+                <div className="inbox-item-time">{formatTimestamp(item.createdAt)}</div>
+                <button className="inbox-item-del" onClick={() => onDelete(item.id)} title="Delete">×</button>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
