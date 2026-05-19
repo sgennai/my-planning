@@ -267,6 +267,16 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
       onDrop={onGridDrop}
       onClick={onGridClick}
     >
+      {/* Lunch banner — rendered first so hour labels paint over it */}
+      {lunchHeight > 0 && (
+        <div
+          className="today-cal-lunch"
+          style={{ top: lunchTop, height: lunchHeight }}
+          title={`Lunch · ${lunchSlot.start} for ${lunchSlot.duration} min`}
+        >
+          <span className="today-cal-lunch-label">Lunch</span>
+        </div>
+      )}
       {/* Hour lines + labels */}
       {Array.from({ length: totalHours + 1 }, (_, i) => {
         const hour = HOUR_START + i;
@@ -278,16 +288,6 @@ function TodayCalendarView({ items, now, viewDate, isToday, lunchSlot, onItemCli
           </div>
         );
       })}
-      {/* Lunch slot tint */}
-      {lunchHeight > 0 && (
-        <div
-          className="today-cal-lunch"
-          style={{ top: lunchTop, height: lunchHeight }}
-          title={`Lunch · ${lunchSlot.start} for ${lunchSlot.duration} min`}
-        >
-          <span className="today-cal-lunch-label">Lunch</span>
-        </div>
-      )}
       {/* Drag ghost preview */}
       {dragGhost && (
         <div

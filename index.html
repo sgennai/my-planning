@@ -2313,9 +2313,11 @@
     /* Lunch slot — soft warm tint band */
     .today-cal-lunch {
       position: absolute;
-      left: 64px; right: var(--space-3);
-      background: rgba(245, 158, 11, 0.08);
-      border-radius: var(--radius-base);
+      left: 0; right: 0;
+      background: rgba(245, 158, 11, 0.07);
+      border-top: 1px solid rgba(245, 158, 11, 0.18);
+      border-bottom: 1px solid rgba(245, 158, 11, 0.18);
+      border-radius: 0;
       pointer-events: none;
       display: flex;
       align-items: center;
@@ -2325,7 +2327,7 @@
     .today-cal-lunch-label {
       font-size: 10px;
       letter-spacing: var(--tracking-wider);
-      color: rgba(217, 119, 6, 0.7);
+      color: rgba(217, 119, 6, 0.65);
       text-transform: uppercase;
       font-weight: 600;
     }
