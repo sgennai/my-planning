@@ -588,7 +588,8 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
   routine, onUpdateRoutineItem, onAddRoutineItem, onDeleteRoutineItem, categoryStyles, onSetCategoryColor, onResetCategoryColor, userCategoryColors, onSetCategoryEmoji, onResetCategoryEmoji, userCategoryEmojis,
   todoist, onUpdateTodoist,
   nowLineColor, onSetNowLineColor,
-  miniMonthTodayColor, onSetMiniMonthTodayColor
+  miniMonthTodayColor, onSetMiniMonthTodayColor,
+  nowEventColor, onSetNowEventColor
 }) {
   const [activeTab, setActiveTab] = useState('calendars');
   const [lunchStart, setLunchStart] = useState((lunchSlot && lunchSlot.start) || '12:30');
@@ -751,6 +752,21 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
                     />
                     {miniMonthTodayColor && (
                       <button className="sm-reset-btn" onClick={() => onSetMiniMonthTodayColor && onSetMiniMonthTodayColor('')} title="Reset to default">↺</button>
+                    )}
+                  </div>
+                </div>
+                <div className="sm-divider" />
+                <div className="sm-field sm-nowline-row">
+                  <span className="sm-field-label">Current event ring</span>
+                  <div className="sm-nowline-controls">
+                    <input
+                      type="color"
+                      className="sm-color-swatch"
+                      value={nowEventColor || '#2563EB'}
+                      onChange={e => onSetNowEventColor && onSetNowEventColor(e.target.value)}
+                    />
+                    {nowEventColor && (
+                      <button className="sm-reset-btn" onClick={() => onSetNowEventColor && onSetNowEventColor('')} title="Reset to default">↺</button>
                     )}
                   </div>
                 </div>

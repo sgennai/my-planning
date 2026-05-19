@@ -137,6 +137,22 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     }
   }, [nowLineColor]);
 
+  const nowEventColor = (data.prefs && data.prefs.nowEventColor) || '';
+  const setNowEventColor = useCallback((color) => {
+    persistData(d => ({ ...d, prefs: { ...(d.prefs || {}), nowEventColor: color } }));
+  }, [persistData]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (nowEventColor) {
+      root.style.setProperty('--now-event-color', nowEventColor);
+      root.style.setProperty('--now-event-color-soft', hexToRgba(nowEventColor, 0.15));
+    } else {
+      root.style.removeProperty('--now-event-color');
+      root.style.removeProperty('--now-event-color-soft');
+    }
+  }, [nowEventColor]);
+
   const miniMonthTodayColor = (data.prefs && data.prefs.miniMonthTodayColor) || '';
   const setMiniMonthTodayColor = useCallback((color) => {
     persistData(d => ({ ...d, prefs: { ...(d.prefs || {}), miniMonthTodayColor: color } }));
@@ -1506,6 +1522,8 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         onSetNowLineColor={setNowLineColor}
         miniMonthTodayColor={miniMonthTodayColor}
         onSetMiniMonthTodayColor={setMiniMonthTodayColor}
+        nowEventColor={nowEventColor}
+        onSetNowEventColor={setNowEventColor}
       />
     )}
 
