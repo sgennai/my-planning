@@ -642,6 +642,7 @@ function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem, onDele
             />
             <input type="color" className="sm-color-swatch" value={newCatColor} onChange={e => setNewCatColor(e.target.value)} />
             <button className="cat-new-add-btn" onClick={handleAddCategory} disabled={!newCatLabel.trim()}>Add</button>
+            <button className="cat-new-cancel-btn" onClick={() => { setNewCatOpen(false); setNewCatLabel(''); setNewCatColor('#7EB8A4'); setNewCatEmoji('📌'); setNewCatEmojiOpen(false); }}>Cancel</button>
           </div>
         )}
 

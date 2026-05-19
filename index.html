@@ -4623,6 +4623,19 @@
     }
     .cat-new-add-btn:hover { opacity: 0.88; }
     .cat-new-add-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .cat-new-cancel-btn {
+      flex-shrink: 0;
+      background: none;
+      color: var(--muted-2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 5px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: border-color var(--duration-fast), color var(--duration-fast);
+    }
+    .cat-new-cancel-btn:hover { border-color: var(--muted-2); color: var(--text); }
 
     /* Emoji picker popover — shared by category rows */
     .emoji-picker-popover {
