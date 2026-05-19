@@ -1031,24 +1031,34 @@
       z-index: 300;
       width: 20px;
       height: 24px;
-      background: rgba(255,255,255,0.88);
+      background: linear-gradient(160deg, rgba(99,102,241,0.18) 0%, rgba(168,85,247,0.12) 100%);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      border: none;
+      border: 1px solid rgba(99,102,241,0.18);
+      border-left: none;
       border-radius: 0 8px 8px 0;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--muted-3);
-      font-size: 11px;
-      box-shadow: 3px 0 8px rgba(0,0,0,0.12);
-      transition: left 0.28s cubic-bezier(0.25,0,0,1), color 0.15s;
+      color: rgba(109,86,218,0.65);
+      font-size: 14px;
+      box-shadow: 3px 0 8px rgba(0,0,0,0.08);
+      transition: left 0.28s cubic-bezier(0.25,0,0,1), color 0.15s, background 0.15s;
       touch-action: manipulation;
     }
-    .rail-collapse-btn:hover { color: var(--primary); }
+    .rail-collapse-btn:hover {
+      color: rgba(99,102,241,1);
+      background: linear-gradient(160deg, rgba(99,102,241,0.28) 0%, rgba(168,85,247,0.20) 100%);
+    }
     :root[data-theme="dark"] .rail-collapse-btn {
-      background: rgba(44,44,46,0.88);
+      background: linear-gradient(160deg, rgba(99,102,241,0.22) 0%, rgba(168,85,247,0.14) 100%);
+      border-color: rgba(99,102,241,0.25);
+      color: rgba(139,116,248,0.75);
+    }
+    :root[data-theme="dark"] .rail-collapse-btn:hover {
+      color: rgba(139,116,248,1);
+      background: linear-gradient(160deg, rgba(99,102,241,0.35) 0%, rgba(168,85,247,0.25) 100%);
     }
 
     /* ───────── FIXED APP TOPBAR ───────── */
