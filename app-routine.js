@@ -468,13 +468,13 @@ function ReferenceLibraryModal({ entries, expandedId, onChangeExpanded, onClose,
 
   return (
     <div className="modal-backdrop" onClick={handleBackdropClick}>
-      <div className="modal ref-modal">
+      <div className="ref-modal">
         <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
-        <div className="modal-header">
-          <div className="modal-eyebrow">Reference Library</div>
-          <div className="modal-title">Things worth keeping handy</div>
+        <div className="ref-modal-header">
+          <div className="ref-modal-eyebrow">Reference Library</div>
+          <div className="ref-modal-title">Things worth keeping handy</div>
         </div>
-        <div className="modal-body">
+        <div className="ref-modal-body">
           <div className="ref-list">
             {entries.map(entry => {
               const isExpanded = expandedId === entry.id;
@@ -486,28 +486,27 @@ function ReferenceLibraryModal({ entries, expandedId, onChangeExpanded, onClose,
                     <div className="ref-entry-chevron">›</div>
                   </div>
                   <div className="ref-entry-body">
-                    {isEditing ? (
-                      <div className="ref-entry-edit">
-                        <textarea
-                          value={editBuffer}
-                          onChange={e => setEditBuffer(e.target.value)}
-                          autoFocus
-                        />
-                        <div className="ref-entry-edit-actions">
-                          <button className="modal-btn primary" onClick={saveEdit}>
-                            <span>Save</span>
-                          </button>
-                          <button className="modal-btn" onClick={cancelEdit}>
-                            <span>Cancel</span>
-                          </button>
+                    <div className="ref-entry-inner">
+                      {isEditing ? (
+                        <div className="ref-entry-edit">
+                          <textarea
+                            className="ref-entry-textarea"
+                            value={editBuffer}
+                            onChange={e => setEditBuffer(e.target.value)}
+                            autoFocus
+                          />
+                          <div className="ref-entry-edit-actions">
+                            <button className="ref-entry-save-btn" onClick={saveEdit}>Save</button>
+                            <button className="ref-entry-cancel-btn" onClick={cancelEdit}>Cancel</button>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="ref-entry-content">{entry.body}</div>
-                        <button className="ref-entry-edit-btn" onClick={() => startEdit(entry)}>✎ Edit</button>
-                      </>
-                    )}
+                      ) : (
+                        <>
+                          <div className="ref-entry-content">{entry.body}</div>
+                          <button className="ref-entry-edit-btn" onClick={() => startEdit(entry)}>✎ Edit</button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
