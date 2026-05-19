@@ -1,9 +1,7 @@
 // ═══════════════════════════════════════════════════════════════════
 // INTERVIEW PREP PAGE
-// Full-page interview rehearsal cockpit for Senior AE / Salesforce prep.
 // ═══════════════════════════════════════════════════════════════════
 
-// ─── Constants ────────────────────────────────────────────────────
 const IP_STATUS_LABELS = {
   draft: 'Draft', needs_work: 'Needs work', practice: 'Practice',
   strong: 'Strong', interview_ready: 'Interview-ready',
@@ -18,16 +16,25 @@ const IP_CAT_GROUPS = [
   'Leadership & Scale', 'Salesforce Fit', 'Personal Stories', 'Other',
 ];
 const IP_ANSWER_BLOCKS = [
-  { field: 'coreMessage',        label: 'Core message',          primary: true,  placeholder: 'One or two sentences. The spine of your answer.' },
-  { field: 'answer60Sec',        label: '60-second answer',      primary: true,  placeholder: 'The main version to master. Clear, structured, confident.' },
-  { field: 'proofStory',         label: 'Proof story',           primary: true,  placeholder: 'Situation:\nAction:\nResult:\nLearning:' },
-  { field: 'metrics',            label: 'Metrics / evidence',    primary: true,  placeholder: 'Specific numbers, deal sizes, business impact…' },
-  { field: 'salesforceRelevance',label: 'Salesforce relevance',  primary: false, placeholder: 'How this connects to Salesforce, enterprise SaaS, Senior AE expectations.' },
-  { field: 'answer30Sec',        label: '30-second answer',      primary: false, placeholder: 'For fast screening questions. Short and sharp.' },
-  { field: 'expandedAnswer',     label: '2–3 minute answer',     primary: false, placeholder: 'When the interviewer asks for depth or follow-up.' },
-  { field: 'keywords',           label: 'Keywords to include',   primary: false, placeholder: 'MEDDPICC · Mutual action plan · Economic buyer · Close plan…' },
-  { field: 'watchOuts',          label: 'Watch-outs / avoid',    primary: false, placeholder: 'Mistakes to avoid. Things not to say.' },
-  { field: 'notes',              label: 'Notes',                 primary: false, placeholder: 'Free-form notes.' },
+  { field: 'coreMessage',         label: 'Core message',         primary: true,  placeholder: 'One or two sentences. The spine of your answer.' },
+  { field: 'answer60Sec',         label: '60-second answer',     primary: true,  placeholder: 'The main version to master. Clear, structured, confident.' },
+  { field: 'proofStory',          label: 'Proof story',          primary: true,  placeholder: 'Situation:\nAction:\nResult:\nLearning:' },
+  { field: 'metrics',             label: 'Metrics / evidence',   primary: true,  placeholder: 'Specific numbers, deal sizes, business impact…' },
+  { field: 'salesforceRelevance', label: 'Salesforce relevance', primary: false, placeholder: 'How this connects to Salesforce, enterprise SaaS, Senior AE expectations.' },
+  { field: 'answer30Sec',         label: '30-second answer',     primary: false, placeholder: 'For fast screening questions. Short and sharp.' },
+  { field: 'expandedAnswer',      label: '2–3 minute answer',    primary: false, placeholder: 'When the interviewer asks for depth or follow-up.' },
+  { field: 'keywords',            label: 'Keywords to include',  primary: false, placeholder: 'MEDDPICC · Mutual action plan · Economic buyer · Close plan…' },
+  { field: 'watchOuts',           label: 'Watch-outs / avoid',   primary: false, placeholder: 'Mistakes to avoid. Things not to say.' },
+  { field: 'notes',               label: 'Notes',                primary: false, placeholder: 'Free-form notes.' },
+];
+const IP_STORY_FIELDS = [
+  { key: 'title',     label: 'Title',         multi: false, placeholder: 'Give this story a short memorable name.' },
+  { key: 'summary',   label: 'Short summary', multi: false, placeholder: 'One sentence — the headline.' },
+  { key: 'situation', label: 'Situation',     multi: true,  placeholder: 'Context, challenge, stakes.' },
+  { key: 'action',    label: 'Action',        multi: true,  placeholder: 'What you specifically did.' },
+  { key: 'result',    label: 'Result',        multi: true,  placeholder: 'Outcome, impact, what changed.' },
+  { key: 'learning',  label: 'Learning',      multi: false, placeholder: 'What you took away from it.' },
+  { key: 'metrics',   label: 'Metrics',       multi: false, placeholder: 'Numbers, deal size, ARR impact, timeline.' },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────
@@ -37,19 +44,16 @@ function ipStatusFromConf(c) {
   if (c === 4) return 'strong';
   return 'interview_ready';
 }
-
 function ipNextPractice(conf) {
   const d = new Date();
   d.setDate(d.getDate() + (IP_NEXT_DAYS[conf] || 7));
   d.setHours(0, 0, 0, 0);
   return d.toISOString();
 }
-
 function ipIsDue(q) {
   if (!q.nextPracticeAt) return true;
   return new Date(q.nextPracticeAt) <= new Date();
 }
-
 function ipComputeStats(ip) {
   const questions = ip.questions || [];
   const categories = ip.categories || [];
@@ -59,6 +63,22 @@ function ipComputeStats(ip) {
   const avgConf = total > 0
     ? (questions.reduce((s, q) => s + (q.confidence || 1), 0) / total).toFixed(1)
     : null;
+  const lastPracticed = questions
+    .filter(q => q.lastPracticedAt).map(q => q.lastPracticedAt).sort().pop() || null;
+  const practiceDates = new Set(
+    questions.filter(q => q.lastPracticedAt).map(q => q.lastPracticedAt.substring(0, 10))
+  );
+  let streak = 0;
+  const todayD = new Date(); todayD.setHours(0, 0, 0, 0);
+  const ystD = new Date(todayD); ystD.setDate(ystD.getDate() - 1);
+  const todayStr = todayD.toISOString().substring(0, 10);
+  const ystStr = ystD.toISOString().substring(0, 10);
+  let check = practiceDates.has(todayStr) ? new Date(todayD) : (practiceDates.has(ystStr) ? new Date(ystD) : null);
+  while (check) {
+    const ds = check.toISOString().substring(0, 10);
+    if (practiceDates.has(ds)) { streak++; check.setDate(check.getDate() - 1); }
+    else break;
+  }
   const catStats = {};
   categories.forEach(c => {
     const qs = questions.filter(q => q.categoryId === c.id);
@@ -73,9 +93,8 @@ function ipComputeStats(ip) {
     .filter(c => (catStats[c.id] || {}).weak > 0)
     .sort((a, b) => (catStats[b.id].weak || 0) - (catStats[a.id].weak || 0))
     .slice(0, 3).map(c => c.name);
-  return { dueToday, total, interviewReady, weakCats, catStats, avgConf };
+  return { dueToday, total, interviewReady, weakCats, catStats, avgConf, lastPracticed, streak };
 }
-
 function ipBuildQueue(questions, mode) {
   let pool;
   if (mode === 'weak') pool = questions.filter(q => q.status === 'draft' || q.status === 'needs_work' || q.confidence <= 2);
@@ -98,49 +117,30 @@ function IPAnswerBlock({ field, label, placeholder, value, primary, onChange }) 
   const [draft, setDraft] = useState(value || '');
   const [saved, setSaved] = useState(false);
   const taRef = useRef(null);
-  const savedTimerRef = useRef(null);
-
+  const savedTimer = useRef(null);
   useEffect(() => { if (!editing) setDraft(value || ''); }, [value, editing]);
-  useEffect(() => () => clearTimeout(savedTimerRef.current), []);
-
-  const autoResize = (el) => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } };
-
-  useEffect(() => {
-    if (editing && taRef.current) { taRef.current.focus(); autoResize(taRef.current); }
-  }, [editing]);
-
+  useEffect(() => () => clearTimeout(savedTimer.current), []);
+  const autoResize = el => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } };
+  useEffect(() => { if (editing && taRef.current) { taRef.current.focus(); autoResize(taRef.current); } }, [editing]);
   const save = () => {
-    onChange(field, draft);
-    setEditing(false);
-    setSaved(true);
-    clearTimeout(savedTimerRef.current);
-    savedTimerRef.current = setTimeout(() => setSaved(false), 2500);
+    onChange(field, draft); setEditing(false); setSaved(true);
+    clearTimeout(savedTimer.current);
+    savedTimer.current = setTimeout(() => setSaved(false), 2500);
   };
   const cancel = () => { setDraft(value || ''); setEditing(false); };
-
   return (
     <div className={`ip-block${primary ? ' ip-block--primary' : ''}`}>
       <div className="ip-block-header">
         <span className="ip-block-label">{label}</span>
         <div className="ip-block-header-right">
           {saved && !editing && <span className="ip-block-saved">✓ Saved</span>}
-          {!editing && (
-            <button className="ip-block-edit-btn" onClick={() => setEditing(true)}>
-              {value ? 'Edit' : '+ Add'}
-            </button>
-          )}
+          {!editing && <button className="ip-block-edit-btn" onClick={() => setEditing(true)}>{value ? 'Edit' : '+ Add'}</button>}
         </div>
       </div>
       {editing ? (
         <div className="ip-block-edit">
-          <textarea
-            ref={taRef}
-            className="ip-block-ta"
-            value={draft}
-            rows={4}
-            placeholder={placeholder}
-            onChange={e => { setDraft(e.target.value); autoResize(e.target); }}
-          />
+          <textarea ref={taRef} className="ip-block-ta" value={draft} rows={4} placeholder={placeholder}
+            onChange={e => { setDraft(e.target.value); autoResize(e.target); }} />
           <div className="ip-block-edit-actions">
             <button className="ip-block-save-btn" onClick={save}>Save</button>
             <button className="ip-block-cancel-btn" onClick={cancel}>Cancel</button>
@@ -165,30 +165,17 @@ function IPRehearsalView({ queue, ip, onRate, onExit }) {
   const [timerSecs, setTimerSecs] = useState(null);
   const [timerRunning, setTimerRunning] = useState(false);
   const timerRef = useRef(null);
-
   const q = queue[idx];
   const cat = q ? (ip.categories || []).find(c => c.id === q.categoryId) : null;
-
   useEffect(() => {
-    if (timerRunning && timerSecs > 0) {
-      timerRef.current = setTimeout(() => setTimerSecs(s => s - 1), 1000);
-    } else if (timerRunning && timerSecs === 0) {
-      setTimerRunning(false);
-    }
+    if (timerRunning && timerSecs > 0) timerRef.current = setTimeout(() => setTimerSecs(s => s - 1), 1000);
+    else if (timerRunning && timerSecs === 0) setTimerRunning(false);
     return () => clearTimeout(timerRef.current);
   }, [timerRunning, timerSecs]);
-
-  const startTimer = (s) => { clearTimeout(timerRef.current); setTimerSecs(s); setTimerRunning(true); };
+  const startTimer = s => { clearTimeout(timerRef.current); setTimerSecs(s); setTimerRunning(true); };
   const resetState = () => { setPhase('question'); setShowHints(false); setTimerSecs(null); setTimerRunning(false); clearTimeout(timerRef.current); };
-
-  const handleRate = (conf) => {
-    onRate(q.id, conf);
-    if (idx < queue.length - 1) { setIdx(i => i + 1); resetState(); }
-    else onExit();
-  };
-
+  const handleRate = conf => { onRate(q.id, conf); if (idx < queue.length - 1) { setIdx(i => i + 1); resetState(); } else onExit(); };
   if (!q) { onExit(); return null; }
-
   return (
     <div className="ip-rehearsal">
       <div className="ip-rehearsal-topbar">
@@ -199,52 +186,34 @@ function IPRehearsalView({ queue, ip, onRate, onExit }) {
         </div>
         <div className="ip-timer-group">
           {[30, 60, 90, 180].map(s => (
-            <button key={s} className={`ip-timer-preset${timerSecs !== null && timerRunning ? ' active' : ''}`}
-              onClick={() => startTimer(s)}>
+            <button key={s} className={`ip-timer-preset${timerSecs !== null && timerRunning ? ' active' : ''}`} onClick={() => startTimer(s)}>
               {s < 60 ? `${s}s` : `${s / 60}min`}
             </button>
           ))}
         </div>
       </div>
-
       <div className="ip-rehearsal-body">
         {timerSecs !== null && (
           <div className={`ip-timer-display${timerSecs === 0 ? ' done' : ''}`}>
-            {timerSecs > 0
-              ? `${Math.floor(timerSecs / 60)}:${pad(timerSecs % 60)}`
-              : 'Time — show your answer'}
+            {timerSecs > 0 ? `${Math.floor(timerSecs / 60)}:${pad(timerSecs % 60)}` : 'Time — show your answer'}
           </div>
         )}
-
         <div className="ip-rehearsal-question">{q.question}</div>
-
         {phase === 'question' && (
           <div className="ip-rehearsal-controls">
-            <button className="ip-rehearsal-btn ip-rehearsal-btn--secondary"
-              onClick={() => setShowHints(h => !h)}>
+            <button className="ip-rehearsal-btn ip-rehearsal-btn--secondary" onClick={() => setShowHints(h => !h)}>
               {showHints ? 'Hide hints' : 'Show hints'}
             </button>
-            <button className="ip-rehearsal-btn ip-rehearsal-btn--primary"
-              onClick={() => setPhase('answer')}>
-              Show answer
-            </button>
+            <button className="ip-rehearsal-btn ip-rehearsal-btn--primary" onClick={() => setPhase('answer')}>Show answer</button>
           </div>
         )}
-
         {showHints && phase === 'question' && (
           <div className="ip-rehearsal-hints">
-            {q.answer.coreMessage && (
-              <div className="ip-hint-row"><span className="ip-hint-icon">💡</span><span>{q.answer.coreMessage}</span></div>
-            )}
-            {q.answer.keywords && (
-              <div className="ip-hint-row"><span className="ip-hint-icon">🔑</span><span>{q.answer.keywords}</span></div>
-            )}
-            {!q.answer.coreMessage && !q.answer.keywords && (
-              <div className="ip-hint-row" style={{ color: 'var(--muted-3)' }}>No hints yet — add a core message or keywords first.</div>
-            )}
+            {q.answer.coreMessage && <div className="ip-hint-row"><span className="ip-hint-icon">💡</span><span>{q.answer.coreMessage}</span></div>}
+            {q.answer.keywords && <div className="ip-hint-row"><span className="ip-hint-icon">🔑</span><span>{q.answer.keywords}</span></div>}
+            {!q.answer.coreMessage && !q.answer.keywords && <div className="ip-hint-row" style={{ color: 'var(--muted-3)' }}>No hints yet — add a core message or keywords first.</div>}
           </div>
         )}
-
         {phase === 'answer' && (
           <div className="ip-rehearsal-answer-area">
             {IP_ANSWER_BLOCKS.filter(b => b.primary && q.answer[b.field]).map(b => (
@@ -259,7 +228,7 @@ function IPRehearsalView({ queue, ip, onRate, onExit }) {
             <div className="ip-rehearsal-rate-section">
               <div className="ip-rate-prompt">How confident are you?</div>
               <div className="ip-rate-btns">
-                {[1, 2, 3, 4, 5].map(n => (
+                {[1,2,3,4,5].map(n => (
                   <button key={n} className={`ip-conf-btn ip-conf-btn--${n}`} onClick={() => handleRate(n)}>
                     {n === 1 ? '1 Weak' : n === 5 ? '5 Ready' : n}
                   </button>
@@ -268,10 +237,7 @@ function IPRehearsalView({ queue, ip, onRate, onExit }) {
               <div className="ip-rehearsal-nav">
                 <button className="ip-rehearsal-btn ip-rehearsal-btn--secondary" onClick={resetState}>Practice again</button>
                 {idx < queue.length - 1 && (
-                  <button className="ip-rehearsal-btn ip-rehearsal-btn--secondary"
-                    onClick={() => { setIdx(i => i + 1); resetState(); }}>
-                    Skip →
-                  </button>
+                  <button className="ip-rehearsal-btn ip-rehearsal-btn--secondary" onClick={() => { setIdx(i => i + 1); resetState(); }}>Skip →</button>
                 )}
               </div>
             </div>
@@ -282,19 +248,62 @@ function IPRehearsalView({ queue, ip, onRate, onExit }) {
   );
 }
 
+// ─── IPLinkedStories ──────────────────────────────────────────────
+function IPLinkedStories({ linkedStoryIds, allStories, onLink, onUnlink }) {
+  const [showPicker, setShowPicker] = useState(false);
+  const ids = linkedStoryIds || [];
+  const linked = allStories.filter(s => ids.includes(s.id));
+  const unlinked = allStories.filter(s => !ids.includes(s.id));
+  return (
+    <div className="ip-linked-stories">
+      <div className="ip-linked-stories-header">
+        <span className="ip-block-label">Linked stories</span>
+        <button className="ip-linked-link-btn" onClick={() => setShowPicker(p => !p)}>
+          {showPicker ? 'Close' : '+ Link'}
+        </button>
+      </div>
+      {linked.length === 0 && (
+        <div className="ip-linked-empty">
+          {allStories.length === 0
+            ? 'No stories in Story Bank yet. Use the Story Bank button in the top bar to create reusable stories.'
+            : 'No stories linked. Click + Link to connect a reusable story to this answer.'}
+        </div>
+      )}
+      {linked.map(s => (
+        <div key={s.id} className="ip-linked-story-row">
+          <div className="ip-linked-story-info">
+            <div className="ip-linked-story-title">{s.title}</div>
+            {s.summary && <div className="ip-linked-story-summary">{s.summary}</div>}
+          </div>
+          <button className="ip-linked-story-unlink" onClick={() => onUnlink(s.id)} title="Unlink">×</button>
+        </div>
+      ))}
+      {showPicker && (
+        <div className="ip-story-picker">
+          {unlinked.length === 0 ? (
+            <div className="ip-story-picker-empty">
+              {allStories.length === 0 ? 'No stories yet. Go to Story Bank to create one.' : 'All stories already linked.'}
+            </div>
+          ) : unlinked.map(s => (
+            <div key={s.id} className="ip-story-picker-item" onClick={() => { onLink(s.id); setShowPicker(false); }}>
+              <div className="ip-story-picker-title">{s.title}</div>
+              {s.summary && <div className="ip-story-picker-summary">{s.summary}</div>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── IPWorkspace ──────────────────────────────────────────────────
-function IPWorkspace({ question, ip, onUpdateAnswer, onUpdateQuestion, onRehearseOne, onMarkReady, onDelete, onDuplicate, onMove }) {
+function IPWorkspace({ question, ip, onUpdateAnswer, onUpdateQuestion, onRehearseOne, onMarkReady, onDelete, onDuplicate, onMove, onLinkStory, onUnlinkStory }) {
   const [showAll, setShowAll] = useState(false);
   const [editingQText, setEditingQText] = useState(false);
   const [qTextDraft, setQTextDraft] = useState('');
   const [tagInput, setTagInput] = useState('');
-
   const questionId = question ? question.id : null;
-  useEffect(() => {
-    setShowAll(false);
-    setEditingQText(false);
-    setTagInput('');
-  }, [questionId]);
+  useEffect(() => { setShowAll(false); setEditingQText(false); setTagInput(''); }, [questionId]);
 
   if (!question) {
     return (
@@ -317,18 +326,13 @@ function IPWorkspace({ question, ip, onUpdateAnswer, onUpdateQuestion, onRehears
     if (t && t !== question.question) onUpdateQuestion(question.id, { question: t });
     setEditingQText(false);
   };
-
-  const addTag = (raw) => {
+  const addTag = raw => {
     const t = raw.trim().replace(/,/g, '');
     if (!t || (question.tags || []).includes(t)) { setTagInput(''); return; }
     onUpdateQuestion(question.id, { tags: [...(question.tags || []), t] });
     setTagInput('');
   };
-
-  const removeTag = (tag) => {
-    onUpdateQuestion(question.id, { tags: (question.tags || []).filter(t => t !== tag) });
-  };
-
+  const removeTag = tag => onUpdateQuestion(question.id, { tags: (question.tags || []).filter(t => t !== tag) });
   const nextDueLabel = question.nextPracticeAt
     ? new Date(question.nextPracticeAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
     : null;
@@ -338,99 +342,169 @@ function IPWorkspace({ question, ip, onUpdateAnswer, onUpdateQuestion, onRehears
       <div className="ip-workspace-header">
         {editingQText ? (
           <div className="ip-ws-q-edit">
-            <textarea
-              className="ip-ws-q-ta"
-              value={qTextDraft}
-              rows={3}
-              autoFocus
+            <textarea className="ip-ws-q-ta" value={qTextDraft} rows={3} autoFocus
               onChange={e => setQTextDraft(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveQText(); } }}
-            />
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveQText(); } }} />
             <div className="ip-ws-q-actions">
               <button className="ip-block-save-btn" onClick={saveQText}>Save</button>
               <button className="ip-block-cancel-btn" onClick={() => setEditingQText(false)}>Cancel</button>
             </div>
           </div>
         ) : (
-          <div className="ip-ws-question" onClick={() => { setQTextDraft(question.question); setEditingQText(true); }}
-            title="Click to edit question text">
+          <div className="ip-ws-question" onClick={() => { setQTextDraft(question.question); setEditingQText(true); }} title="Click to edit">
             {question.question}
           </div>
         )}
-
         <div className="ip-ws-meta-row">
           {cat && <span className="ip-ws-cat-chip" style={{ background: cat.color + '22', color: cat.color }}>● {cat.name}</span>}
-          <span className="ip-ws-status-chip" style={{ background: IP_STATUS_COLORS[status] + '22', color: IP_STATUS_COLORS[status] }}>
-            {IP_STATUS_LABELS[status]}
-          </span>
-          <span className="ip-ws-conf-stars">
-            {'★'.repeat(conf)}{'☆'.repeat(5 - conf)}
-          </span>
+          <span className="ip-ws-status-chip" style={{ background: IP_STATUS_COLORS[status] + '22', color: IP_STATUS_COLORS[status] }}>{IP_STATUS_LABELS[status]}</span>
+          <span className="ip-ws-conf-stars">{'★'.repeat(conf)}{'☆'.repeat(5 - conf)}</span>
           {question.lastPracticedAt
             ? <span className="ip-ws-last">Last: {new Date(question.lastPracticedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
-            : <span className="ip-ws-last ip-ws-last--never">Never practiced</span>
-          }
+            : <span className="ip-ws-last ip-ws-last--never">Never practiced</span>}
           {nextDueLabel && <span className="ip-ws-last">Next: {nextDueLabel}</span>}
           {ipIsDue(question) && <span className="ip-ws-due-badge">● Due</span>}
         </div>
-
         <div className="ip-ws-tags-row">
           {(question.tags || []).map(t => (
-            <span key={t} className="ip-ws-tag-chip">
-              {t}
-              <button className="ip-ws-tag-remove" onClick={() => removeTag(t)}>×</button>
-            </span>
+            <span key={t} className="ip-ws-tag-chip">{t}<button className="ip-ws-tag-remove" onClick={() => removeTag(t)}>×</button></span>
           ))}
-          <input
-            className="ip-ws-tag-input"
-            value={tagInput}
-            placeholder="+ tag"
+          <input className="ip-ws-tag-input" value={tagInput} placeholder="+ tag"
             onChange={e => setTagInput(e.target.value)}
             onKeyDown={e => {
               if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag(tagInput); }
-              if (e.key === 'Backspace' && !tagInput && (question.tags || []).length > 0) {
-                removeTag(question.tags[question.tags.length - 1]);
-              }
-            }}
-          />
+              if (e.key === 'Backspace' && !tagInput && (question.tags || []).length > 0) removeTag(question.tags[question.tags.length - 1]);
+            }} />
         </div>
-
         <div className="ip-ws-action-row">
           <button className="ip-ws-btn ip-ws-btn--primary" onClick={() => onRehearseOne(question.id)}>▶ Rehearse</button>
-          {status !== 'interview_ready' && (
-            <button className="ip-ws-btn" onClick={() => onMarkReady(question.id)}>✓ Mark ready</button>
-          )}
+          <select className="ip-ws-status-select" value={status}
+            onChange={e => onUpdateQuestion(question.id, { status: e.target.value })}>
+            {Object.entries(IP_STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+          {status !== 'interview_ready' && <button className="ip-ws-btn" onClick={() => onMarkReady(question.id)}>✓ Mark ready</button>}
           <button className="ip-ws-btn" onClick={() => onDuplicate(question.id)}>⊕ Duplicate</button>
-          <select className="ip-ws-move-select"
-            value={question.categoryId || ''}
+          <select className="ip-ws-move-select" value={question.categoryId || ''}
             onChange={e => { if (e.target.value && e.target.value !== question.categoryId) onMove(question.id, e.target.value); }}>
             <option value="" disabled>Move to…</option>
-            {(ip.categories || []).map(c => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
+            {(ip.categories || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
           <button className="ip-ws-btn ip-ws-btn--danger" onClick={() => { if (window.confirm('Delete this question?')) onDelete(question.id); }}>Delete</button>
         </div>
       </div>
-
       <div className="ip-blocks-area">
         {visibleBlocks.map(b => (
-          <IPAnswerBlock
-            key={b.field}
-            field={b.field}
-            label={b.label}
-            placeholder={b.placeholder}
-            value={question.answer[b.field] || ''}
-            primary={b.primary}
-            onChange={(field, val) => onUpdateAnswer(question.id, field, val)}
-          />
+          <IPAnswerBlock key={b.field} field={b.field} label={b.label} placeholder={b.placeholder}
+            value={question.answer[b.field] || ''} primary={b.primary}
+            onChange={(field, val) => onUpdateAnswer(question.id, field, val)} />
         ))}
         {!showAll && hiddenCount > 0 && (
           <button className="ip-show-all-btn" onClick={() => setShowAll(true)}>
             + Show {hiddenCount} more section{hiddenCount > 1 ? 's' : ''}
           </button>
         )}
+        <IPLinkedStories
+          linkedStoryIds={question.linkedStoryIds}
+          allStories={ip.stories || []}
+          onLink={sid => onLinkStory(question.id, sid)}
+          onUnlink={sid => onUnlinkStory(question.id, sid)}
+        />
       </div>
+    </div>
+  );
+}
+
+// ─── IPStoryEditor ────────────────────────────────────────────────
+function IPStoryEditor({ story, onUpdate, onDelete }) {
+  const [fields, setFields] = useState({ ...story });
+  const saveTimer = useRef(null);
+  const [saved, setSaved] = useState(false);
+  const savedTimer = useRef(null);
+  useEffect(() => { setFields({ ...story }); }, [story.id]);
+  useEffect(() => () => { clearTimeout(saveTimer.current); clearTimeout(savedTimer.current); }, []);
+
+  const handleChange = (key, val) => {
+    const next = { ...fields, [key]: val };
+    setFields(next);
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      onUpdate(next);
+      setSaved(true);
+      clearTimeout(savedTimer.current);
+      savedTimer.current = setTimeout(() => setSaved(false), 2000);
+    }, 600);
+  };
+
+  return (
+    <div className="ip-story-editor-panel">
+      <div className="ip-story-editor-header">
+        <span className="ip-story-editor-title">{fields.title || 'Untitled story'}</span>
+        <div className="ip-story-editor-header-right">
+          {saved && <span className="ip-block-saved">✓ Saved</span>}
+          <button className="ip-ws-btn ip-ws-btn--danger"
+            onClick={() => { if (window.confirm('Delete this story? It will be unlinked from all questions.')) onDelete(); }}>
+            Delete
+          </button>
+        </div>
+      </div>
+      <div className="ip-story-editor-body">
+        {IP_STORY_FIELDS.map(f => (
+          <div key={f.key} className="ip-story-field">
+            <label className="ip-story-field-label">{f.label}</label>
+            {f.multi ? (
+              <textarea className="ip-story-field-ta" rows={3} placeholder={f.placeholder}
+                value={fields[f.key] || ''}
+                onChange={e => handleChange(f.key, e.target.value)} />
+            ) : (
+              <input className="ip-story-field-input" type="text" placeholder={f.placeholder}
+                value={fields[f.key] || ''}
+                onChange={e => handleChange(f.key, e.target.value)} />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── IPStoryBankView ──────────────────────────────────────────────
+function IPStoryBankView({ ip, onAddStory, onUpdateStory, onDeleteStory }) {
+  const [selId, setSelId] = useState(null);
+  const stories = ip.stories || [];
+  const selected = stories.find(s => s.id === selId) || null;
+
+  const handleAdd = () => { const id = onAddStory(); setSelId(id); };
+
+  return (
+    <div className="ip-story-view">
+      <div className="ip-story-list-col">
+        <div className="ip-story-list-header">
+          <span className="ip-left-title">Stories</span>
+          <button className="ip-left-add-btn" onClick={handleAdd} title="New story">+</button>
+        </div>
+        {stories.length === 0 ? (
+          <div className="ip-story-empty">
+            <div style={{ fontSize: 12, color: 'var(--muted-3)', marginBottom: 12 }}>No stories yet.</div>
+            <button className="ip-add-q-btn" onClick={handleAdd}>+ Add first story</button>
+          </div>
+        ) : stories.map(s => (
+          <div key={s.id} className={`ip-story-card${selId === s.id ? ' active' : ''}`} onClick={() => setSelId(s.id)}>
+            <div className="ip-story-card-title">{s.title || 'Untitled story'}</div>
+            {s.summary && <div className="ip-story-card-summary">{s.summary}</div>}
+          </div>
+        ))}
+      </div>
+      {selected ? (
+        <IPStoryEditor
+          story={selected}
+          onUpdate={updates => onUpdateStory(selected.id, updates)}
+          onDelete={() => { onDeleteStory(selected.id); setSelId(null); }}
+        />
+      ) : (
+        <div className="ip-story-editor-empty">
+          {stories.length > 0 ? 'Select a story to edit it.' : 'Add your first reusable story to build your evidence bank.'}
+        </div>
+      )}
     </div>
   );
 }
@@ -438,11 +512,9 @@ function IPWorkspace({ question, ip, onUpdateAnswer, onUpdateQuestion, onRehears
 // ─── IPQuestionCard ───────────────────────────────────────────────
 function IPQuestionCard({ q, selected, onClick }) {
   const status = q.status || 'draft';
-  const due = ipIsDue(q);
   const daysAgo = q.lastPracticedAt
     ? Math.floor((Date.now() - new Date(q.lastPracticedAt)) / 86400000)
     : null;
-
   return (
     <div className={`ip-q-card${selected ? ' active' : ''}`} onClick={onClick}>
       <div className="ip-q-card-top">
@@ -451,10 +523,8 @@ function IPQuestionCard({ q, selected, onClick }) {
       </div>
       <div className="ip-q-card-meta">
         <span className="ip-q-conf">{'★'.repeat(q.confidence || 0)}{'☆'.repeat(5 - (q.confidence || 0))}</span>
-        <span className="ip-q-last-label">
-          {daysAgo === null ? 'Never practiced' : daysAgo === 0 ? 'Today' : `${daysAgo}d ago`}
-        </span>
-        {due && <span className="ip-q-due-dot">Due</span>}
+        <span className="ip-q-last-label">{daysAgo === null ? 'Never' : daysAgo === 0 ? 'Today' : `${daysAgo}d ago`}</span>
+        {ipIsDue(q) && <span className="ip-q-due-dot">Due</span>}
       </div>
     </div>
   );
@@ -466,6 +536,8 @@ function IPQuestionList({ questions, selectedId, onSelect, onAdd }) {
   const [filter, setFilter] = useState('all');
   const [showAddForm, setShowAddForm] = useState(false);
   const [newQText, setNewQText] = useState('');
+  const [newQStatus, setNewQStatus] = useState('draft');
+  const [newQTags, setNewQTags] = useState('');
 
   const filtered = useMemo(() => {
     let qs = questions;
@@ -477,10 +549,10 @@ function IPQuestionList({ questions, selectedId, onSelect, onAdd }) {
   }, [questions, search, filter]);
 
   const submitNew = () => {
-    const t = newQText.trim();
-    if (!t) return;
-    onAdd(t);
-    setNewQText('');
+    const t = newQText.trim(); if (!t) return;
+    const tags = newQTags.split(',').map(x => x.trim()).filter(Boolean);
+    onAdd(t, { status: newQStatus, tags });
+    setNewQText(''); setNewQTags(''); setNewQStatus('draft');
     setShowAddForm(false);
   };
 
@@ -500,29 +572,31 @@ function IPQuestionList({ questions, selectedId, onSelect, onAdd }) {
         </div>
         <button className="ip-add-q-btn" onClick={() => setShowAddForm(s => !s)}>+ Add</button>
       </div>
-
       <div className="ip-filter-row">
         {FILTERS.map(f => (
           <button key={f.key} className={`ip-filter-btn${filter === f.key ? ' active' : ''}`}
             onClick={() => setFilter(f.key)}>{f.label}</button>
         ))}
       </div>
-
       {showAddForm && (
         <div className="ip-add-q-form">
           <textarea className="ip-add-q-ta" placeholder="Type the interview question…"
-            value={newQText} rows={3}
+            value={newQText} rows={3} autoFocus
             onChange={e => setNewQText(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitNew(); } }}
-            autoFocus
-          />
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitNew(); } }} />
+          <div className="ip-add-q-extra">
+            <select className="ip-add-q-status-sel" value={newQStatus} onChange={e => setNewQStatus(e.target.value)}>
+              {Object.entries(IP_STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            </select>
+            <input className="ip-add-q-tags-in" type="text" placeholder="Tags (comma-separated)"
+              value={newQTags} onChange={e => setNewQTags(e.target.value)} />
+          </div>
           <div className="ip-add-q-form-actions">
             <button className="ip-add-q-submit" onClick={submitNew} disabled={!newQText.trim()}>Add question</button>
-            <button className="ip-add-q-cancel" onClick={() => { setShowAddForm(false); setNewQText(''); }}>Cancel</button>
+            <button className="ip-add-q-cancel" onClick={() => { setShowAddForm(false); setNewQText(''); setNewQTags(''); setNewQStatus('draft'); }}>Cancel</button>
           </div>
         </div>
       )}
-
       <div className="ip-q-list">
         {questions.length === 0 ? (
           <div className="ip-q-list-empty">
@@ -532,8 +606,7 @@ function IPQuestionList({ questions, selectedId, onSelect, onAdd }) {
         ) : filtered.length === 0 ? (
           <div className="ip-q-list-empty">No questions match this filter.</div>
         ) : filtered.map(q => (
-          <IPQuestionCard key={q.id} q={q} selected={q.id === selectedId}
-            onClick={() => onSelect(q.id)} />
+          <IPQuestionCard key={q.id} q={q} selected={q.id === selectedId} onClick={() => onSelect(q.id)} />
         ))}
       </div>
     </div>
@@ -541,7 +614,7 @@ function IPQuestionList({ questions, selectedId, onSelect, onAdd }) {
 }
 
 // ─── IPCategoryList ───────────────────────────────────────────────
-function IPCategoryList({ ip, selectedId, onSelect, onAdd, onRename, onDelete, stats }) {
+function IPCategoryList({ ip, selectedId, onSelect, onAdd, onRename, onDelete, onReorder, stats }) {
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState('');
   const [renamingId, setRenamingId] = useState(null);
@@ -554,20 +627,8 @@ function IPCategoryList({ ip, selectedId, onSelect, onAdd, onRename, onDelete, s
     return m;
   }, [categories]);
 
-  const submitNew = () => {
-    const t = newName.trim();
-    if (!t) return;
-    onAdd(t);
-    setNewName('');
-    setShowAdd(false);
-  };
-
-  const submitRename = () => {
-    const t = renameVal.trim();
-    if (t && renamingId) onRename(renamingId, t);
-    setRenamingId(null);
-    setRenameVal('');
-  };
+  const submitNew = () => { const t = newName.trim(); if (!t) return; onAdd(t); setNewName(''); setShowAdd(false); };
+  const submitRename = () => { const t = renameVal.trim(); if (t && renamingId) onRename(renamingId, t); setRenamingId(null); setRenameVal(''); };
 
   return (
     <div className="ip-left">
@@ -575,18 +636,15 @@ function IPCategoryList({ ip, selectedId, onSelect, onAdd, onRename, onDelete, s
         <span className="ip-left-title">Categories</span>
         <button className="ip-left-add-btn" onClick={() => setShowAdd(s => !s)} title="New category">+</button>
       </div>
-
       {showAdd && (
         <div className="ip-add-cat-row">
-          <input className="ip-add-cat-input" placeholder="Category name…" value={newName}
+          <input className="ip-add-cat-input" placeholder="Category name…" value={newName} autoFocus
             onChange={e => setNewName(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') submitNew(); if (e.key === 'Escape') { setShowAdd(false); setNewName(''); } }}
-            autoFocus />
+            onKeyDown={e => { if (e.key === 'Enter') submitNew(); if (e.key === 'Escape') { setShowAdd(false); setNewName(''); } }} />
           <button className="ip-add-cat-ok" onClick={submitNew}>Add</button>
           <button className="ip-add-cat-x" onClick={() => { setShowAdd(false); setNewName(''); }}>×</button>
         </div>
       )}
-
       <div className="ip-cat-scroll">
         {IP_CAT_GROUPS.map(g => {
           const cats = (grouped[g] || []).sort((a, b) => a.order - b.order);
@@ -594,27 +652,19 @@ function IPCategoryList({ ip, selectedId, onSelect, onAdd, onRename, onDelete, s
           return (
             <div key={g} className="ip-cat-group">
               <div className="ip-cat-group-label">{g}</div>
-              {cats.map(c => {
-                const s = stats[c.id] || { total: 0, ready: 0, due: 0 };
+              {cats.map((c, i) => {
+                const s = stats[c.id] || { total: 0, due: 0 };
                 const isRenaming = renamingId === c.id;
                 return (
                   <div key={c.id} className={`ip-cat-item${selectedId === c.id ? ' active' : ''}`}
                     onClick={() => { if (!isRenaming) onSelect(c.id); }}>
                     <span className="ip-cat-dot" style={{ background: c.color }} />
                     {isRenaming ? (
-                      <input
-                        className="ip-cat-rename-input"
-                        value={renameVal}
-                        autoFocus
+                      <input className="ip-cat-rename-input" value={renameVal} autoFocus
                         onChange={e => setRenameVal(e.target.value)}
                         onBlur={submitRename}
-                        onKeyDown={e => {
-                          e.stopPropagation();
-                          if (e.key === 'Enter') submitRename();
-                          if (e.key === 'Escape') { setRenamingId(null); setRenameVal(''); }
-                        }}
-                        onClick={e => e.stopPropagation()}
-                      />
+                        onKeyDown={e => { e.stopPropagation(); if (e.key === 'Enter') submitRename(); if (e.key === 'Escape') { setRenamingId(null); setRenameVal(''); } }}
+                        onClick={e => e.stopPropagation()} />
                     ) : (
                       <div className="ip-cat-text">
                         <span className="ip-cat-name">{c.name}</span>
@@ -623,13 +673,11 @@ function IPCategoryList({ ip, selectedId, onSelect, onAdd, onRename, onDelete, s
                     )}
                     {!isRenaming && <span className="ip-cat-count">{s.total}</span>}
                     <div className="ip-cat-item-actions" onClick={e => e.stopPropagation()}>
-                      <button className="ip-cat-action-btn"
-                        onClick={() => { setRenamingId(c.id); setRenameVal(c.name); }}
-                        title="Rename">✏</button>
+                      <button className="ip-cat-action-btn" onClick={() => onReorder(c.id, 'up')} title="Move up" disabled={i === 0}>↑</button>
+                      <button className="ip-cat-action-btn" onClick={() => onReorder(c.id, 'down')} title="Move down" disabled={i === cats.length - 1}>↓</button>
+                      <button className="ip-cat-action-btn" onClick={() => { setRenamingId(c.id); setRenameVal(c.name); }} title="Rename">✏</button>
                       <button className="ip-cat-action-btn ip-cat-action-btn--del"
-                        onClick={() => {
-                          if (window.confirm(`Delete "${c.name}"?\nQuestions will become uncategorized.`)) onDelete(c.id);
-                        }}
+                        onClick={() => { if (window.confirm(`Delete "${c.name}"?\nQuestions will become uncategorized.`)) onDelete(c.id); }}
                         title="Delete">×</button>
                     </div>
                   </div>
@@ -647,13 +695,14 @@ function IPCategoryList({ ip, selectedId, onSelect, onAdd, onRename, onDelete, s
 function IPDashboard({ stats, onStartRehearsal }) {
   const noDue = stats.dueToday === 0;
   const estMin = Math.round(stats.dueToday * 2.5);
+  const lastLabel = stats.lastPracticed
+    ? new Date(stats.lastPracticed).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+    : null;
   return (
     <div className="ip-dashboard">
       <div className="ip-dash-card">
         <div className="ip-dash-val">{stats.dueToday}</div>
-        <div className="ip-dash-label">
-          {noDue ? 'Recommended practice' : `Recommended today · ~${estMin} min`}
-        </div>
+        <div className="ip-dash-label">{noDue ? 'Recommended practice' : `Recommended today · ~${estMin} min`}</div>
       </div>
       <div className="ip-dash-card">
         <div className="ip-dash-val">{stats.interviewReady}<span className="ip-dash-denom"> / {stats.total}</span></div>
@@ -665,6 +714,18 @@ function IPDashboard({ stats, onStartRehearsal }) {
           <div className="ip-dash-label">Avg confidence</div>
         </div>
       )}
+      {stats.streak > 0 && (
+        <div className="ip-dash-card">
+          <div className="ip-dash-val">{stats.streak}<span className="ip-dash-denom">d</span></div>
+          <div className="ip-dash-label">Practice streak</div>
+        </div>
+      )}
+      {lastLabel && (
+        <div className="ip-dash-card">
+          <div className="ip-dash-val ip-dash-val--sm">{lastLabel}</div>
+          <div className="ip-dash-label">Last practiced</div>
+        </div>
+      )}
       {stats.weakCats.length > 0 && (
         <div className="ip-dash-card ip-dash-card--wide">
           <div className="ip-dash-val ip-dash-val--sm">{stats.weakCats.join(' · ')}</div>
@@ -674,15 +735,11 @@ function IPDashboard({ stats, onStartRehearsal }) {
       <div className="ip-dash-cta">
         {noDue ? (
           <div className="ip-dash-alt-actions">
-            <button className="ip-start-rehearsal-btn ip-start-rehearsal-btn--alt"
-              onClick={() => onStartRehearsal('weak')}>Practice weak</button>
-            <button className="ip-start-rehearsal-btn ip-start-rehearsal-btn--alt"
-              onClick={() => onStartRehearsal('ready')}>Review ready</button>
+            <button className="ip-start-rehearsal-btn ip-start-rehearsal-btn--alt" onClick={() => onStartRehearsal('weak')}>Practice weak</button>
+            <button className="ip-start-rehearsal-btn ip-start-rehearsal-btn--alt" onClick={() => onStartRehearsal('ready')}>Review ready</button>
           </div>
         ) : (
-          <button className="ip-start-rehearsal-btn" onClick={() => onStartRehearsal('due')}>
-            ▶ Start rehearsal ({stats.dueToday})
-          </button>
+          <button className="ip-start-rehearsal-btn" onClick={() => onStartRehearsal('due')}>▶ Start rehearsal ({stats.dueToday})</button>
         )}
       </div>
     </div>
@@ -712,70 +769,60 @@ function InterviewPrepScreen({ data, onPersist, onBack }) {
 
   const categories = ip.categories || [];
   const questions = ip.questions || [];
+  const stories = ip.stories || [];
 
   const catQuestions = useMemo(
     () => selCatId ? questions.filter(q => q.categoryId === selCatId) : questions,
     [questions, selCatId]
   );
-
   const selectedQ = useMemo(() => questions.find(q => q.id === selQId) || null, [questions, selQId]);
   const stats = useMemo(() => ipComputeStats(ip), [ip]);
 
-  // ─── Category handlers ────────────────────
+  // Category handlers
   const addCategory = useCallback((name) => {
     const COLORS = ['#3B82F6','#8B5CF6','#10B981','#F59E0B','#EC4899','#EF4444','#0D9488','#0891B2'];
     const id = `ipc-${Date.now()}`;
-    const newCat = { id, name: name.trim(), group: 'Other', color: COLORS[categories.length % COLORS.length], order: categories.length + 1 };
-    persistIP(cur => ({ ...cur, categories: [...cur.categories, newCat] }));
+    persistIP(cur => ({ ...cur, categories: [...cur.categories, { id, name: name.trim(), group: 'Other', color: COLORS[categories.length % COLORS.length], order: categories.length + 1 }] }));
     setSelCatId(id);
   }, [categories, persistIP]);
 
   const renameCategory = useCallback((catId, name) => {
-    persistIP(cur => ({
-      ...cur,
-      categories: cur.categories.map(c => c.id === catId ? { ...c, name } : c),
-    }));
+    persistIP(cur => ({ ...cur, categories: cur.categories.map(c => c.id === catId ? { ...c, name } : c) }));
   }, [persistIP]);
 
   const deleteCategory = useCallback((catId) => {
-    persistIP(cur => ({
-      ...cur,
-      categories: cur.categories.filter(c => c.id !== catId),
-      questions: cur.questions.map(q => q.categoryId === catId ? { ...q, categoryId: null } : q),
-    }));
+    persistIP(cur => ({ ...cur, categories: cur.categories.filter(c => c.id !== catId), questions: cur.questions.map(q => q.categoryId === catId ? { ...q, categoryId: null } : q) }));
     if (selCatId === catId) setSelCatId(null);
   }, [persistIP, selCatId]);
 
-  // ─── Question handlers ────────────────────
-  const addQuestion = useCallback((text) => {
+  const reorderCategory = useCallback((catId, direction) => {
+    persistIP(cur => {
+      const target = cur.categories.find(c => c.id === catId);
+      if (!target) return cur;
+      const groupCats = cur.categories.filter(c => (c.group || 'Other') === (target.group || 'Other')).sort((a, b) => a.order - b.order);
+      const idx = groupCats.findIndex(c => c.id === catId);
+      const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+      if (swapIdx < 0 || swapIdx >= groupCats.length) return cur;
+      const sw = groupCats[swapIdx];
+      const ao = target.order, bo = sw.order;
+      return { ...cur, categories: cur.categories.map(c => c.id === catId ? { ...c, order: bo } : c.id === sw.id ? { ...c, order: ao } : c) };
+    });
+  }, [persistIP]);
+
+  // Question handlers
+  const addQuestion = useCallback((text, opts = {}) => {
     const now = new Date().toISOString();
-    const newQ = {
-      id: `ipq-${Date.now()}`,
-      categoryId: selCatId || (categories[0] || {}).id,
-      question: text.trim(), status: 'draft', confidence: 1,
-      tags: [], linkedStoryIds: [], createdAt: now, updatedAt: now,
-      lastPracticedAt: null, nextPracticeAt: null, rehearsalCount: 0, answer: {},
-    };
+    const newQ = { id: `ipq-${Date.now()}`, categoryId: selCatId || (categories[0] || {}).id, question: text.trim(), status: opts.status || 'draft', confidence: 1, tags: opts.tags || [], linkedStoryIds: [], createdAt: now, updatedAt: now, lastPracticedAt: null, nextPracticeAt: null, rehearsalCount: 0, answer: {} };
     persistIP(cur => ({ ...cur, questions: [...cur.questions, newQ] }));
     setSelQId(newQ.id);
   }, [selCatId, categories, persistIP]);
 
   const updateAnswer = useCallback((qId, field, val) => {
-    persistIP(cur => ({
-      ...cur,
-      questions: cur.questions.map(q =>
-        q.id === qId ? { ...q, answer: { ...q.answer, [field]: val }, updatedAt: new Date().toISOString() } : q
-      ),
-    }));
+    persistIP(cur => ({ ...cur, questions: cur.questions.map(q => q.id === qId ? { ...q, answer: { ...q.answer, [field]: val }, updatedAt: new Date().toISOString() } : q) }));
   }, [persistIP]);
 
   const updateQuestion = useCallback((qId, updates) => {
-    persistIP(cur => ({
-      ...cur,
-      questions: cur.questions.map(q =>
-        q.id === qId ? { ...q, ...updates, updatedAt: new Date().toISOString() } : q
-      ),
-    }));
+    persistIP(cur => ({ ...cur, questions: cur.questions.map(q => q.id === qId ? { ...q, ...updates, updatedAt: new Date().toISOString() } : q) }));
   }, [persistIP]);
 
   const deleteQuestion = useCallback((qId) => {
@@ -784,85 +831,93 @@ function InterviewPrepScreen({ data, onPersist, onBack }) {
   }, [persistIP, selQId]);
 
   const duplicateQuestion = useCallback((qId) => {
-    const q = questions.find(x => x.id === qId);
-    if (!q) return;
+    const q = questions.find(x => x.id === qId); if (!q) return;
     const now = new Date().toISOString();
-    const copy = {
-      ...q,
-      id: `ipq-${Date.now()}`,
-      question: q.question + ' (copy)',
-      status: 'draft', confidence: 1,
-      lastPracticedAt: null, nextPracticeAt: null, rehearsalCount: 0,
-      createdAt: now, updatedAt: now,
-      answer: { ...q.answer },
-      tags: [...(q.tags || [])],
-      linkedStoryIds: [],
-    };
+    const copy = { ...q, id: `ipq-${Date.now()}`, question: q.question + ' (copy)', status: 'draft', confidence: 1, lastPracticedAt: null, nextPracticeAt: null, rehearsalCount: 0, createdAt: now, updatedAt: now, answer: { ...q.answer }, tags: [...(q.tags || [])], linkedStoryIds: [] };
     persistIP(cur => ({ ...cur, questions: [...cur.questions, copy] }));
     setSelQId(copy.id);
   }, [questions, persistIP]);
 
   const moveQuestion = useCallback((qId, catId) => {
-    persistIP(cur => ({
-      ...cur,
-      questions: cur.questions.map(q =>
-        q.id === qId ? { ...q, categoryId: catId, updatedAt: new Date().toISOString() } : q
-      ),
-    }));
+    persistIP(cur => ({ ...cur, questions: cur.questions.map(q => q.id === qId ? { ...q, categoryId: catId, updatedAt: new Date().toISOString() } : q) }));
     setSelQId(null);
   }, [persistIP]);
 
   const markReady = useCallback((qId) => {
-    const q = questions.find(x => x.id === qId);
-    if (!q) return;
+    const q = questions.find(x => x.id === qId); if (!q) return;
     if ((q.confidence || 1) < 4 && !window.confirm('Confidence is below 4. Mark as interview-ready anyway?')) return;
     updateQuestion(qId, { status: 'interview_ready', confidence: 5, nextPracticeAt: ipNextPractice(5) });
   }, [questions, updateQuestion]);
 
-  // ─── Rehearsal handlers ───────────────────
+  const linkStory = useCallback((qId, storyId) => {
+    persistIP(cur => ({ ...cur, questions: cur.questions.map(q => q.id === qId ? { ...q, linkedStoryIds: [...new Set([...(q.linkedStoryIds || []), storyId])] } : q) }));
+  }, [persistIP]);
+
+  const unlinkStory = useCallback((qId, storyId) => {
+    persistIP(cur => ({ ...cur, questions: cur.questions.map(q => q.id === qId ? { ...q, linkedStoryIds: (q.linkedStoryIds || []).filter(id => id !== storyId) } : q) }));
+  }, [persistIP]);
+
+  // Story handlers
+  const addStory = useCallback(() => {
+    const id = `ips-${Date.now()}`;
+    const now = new Date().toISOString();
+    persistIP(cur => ({ ...cur, stories: [...(cur.stories || []), { id, title: 'New story', summary: '', situation: '', action: '', result: '', learning: '', metrics: '', tags: [], createdAt: now, updatedAt: now }] }));
+    return id;
+  }, [persistIP]);
+
+  const updateStory = useCallback((storyId, updates) => {
+    persistIP(cur => ({ ...cur, stories: (cur.stories || []).map(s => s.id === storyId ? { ...s, ...updates, updatedAt: new Date().toISOString() } : s) }));
+  }, [persistIP]);
+
+  const deleteStory = useCallback((storyId) => {
+    persistIP(cur => ({ ...cur, stories: (cur.stories || []).filter(s => s.id !== storyId), questions: cur.questions.map(q => ({ ...q, linkedStoryIds: (q.linkedStoryIds || []).filter(id => id !== storyId) })) }));
+  }, [persistIP]);
+
+  // Rehearsal handlers
   const startRehearsal = useCallback((queueMode = 'due') => {
     const pool = catQuestions.length > 0 ? catQuestions : questions;
     const queue = ipBuildQueue(pool, queueMode);
     if (queue.length === 0) { window.alert('No questions to practice in this selection.'); return; }
-    setRehearseQueue(queue);
-    setMode('rehearse');
+    setRehearseQueue(queue); setMode('rehearse');
   }, [catQuestions, questions]);
 
   const startGlobalRehearsal = useCallback((queueMode = 'due') => {
     const queue = ipBuildQueue(questions, queueMode);
     if (queue.length === 0) { window.alert('No questions to practice in this selection.'); return; }
-    setRehearseQueue(queue);
-    setMode('rehearse');
+    setRehearseQueue(queue); setMode('rehearse');
   }, [questions]);
 
   const rehearseOne = useCallback((qId) => {
-    const q = questions.find(x => x.id === qId);
-    if (!q) return;
-    setRehearseQueue([q]);
-    setMode('rehearse');
+    const q = questions.find(x => x.id === qId); if (!q) return;
+    setRehearseQueue([q]); setMode('rehearse');
   }, [questions]);
 
   const handleRate = useCallback((qId, conf) => {
     const q = questions.find(x => x.id === qId);
-    updateQuestion(qId, {
-      confidence: conf,
-      status: ipStatusFromConf(conf),
-      lastPracticedAt: new Date().toISOString(),
-      nextPracticeAt: ipNextPractice(conf),
-      rehearsalCount: ((q && q.rehearsalCount) || 0) + 1,
-    });
+    updateQuestion(qId, { confidence: conf, status: ipStatusFromConf(conf), lastPracticedAt: new Date().toISOString(), nextPracticeAt: ipNextPractice(conf), rehearsalCount: ((q && q.rehearsalCount) || 0) + 1 });
   }, [questions, updateQuestion]);
 
-  // ─── Render ───────────────────────────────
+  // Render
   if (mode === 'rehearse') {
     return (
       <div className="ip-screen">
-        <IPRehearsalView
-          queue={rehearseQueue}
-          ip={ip}
-          onRate={handleRate}
-          onExit={() => { setMode('browse'); setRehearseQueue([]); }}
-        />
+        <IPRehearsalView queue={rehearseQueue} ip={ip} onRate={handleRate} onExit={() => { setMode('browse'); setRehearseQueue([]); }} />
+      </div>
+    );
+  }
+
+  if (mode === 'stories') {
+    return (
+      <div className="ip-screen">
+        <div className="ip-topbar">
+          <button className="ip-back-btn" onClick={() => setMode('browse')}>← Questions</button>
+          <div className="ip-topbar-center">
+            <span className="ip-topbar-title">Story Bank</span>
+            <span className="ip-topbar-sub">{stories.length} {stories.length === 1 ? 'story' : 'stories'}</span>
+          </div>
+          <div className="ip-topbar-right" />
+        </div>
+        <IPStoryBankView ip={ip} onAddStory={addStory} onUpdateStory={updateStory} onDeleteStory={deleteStory} />
       </div>
     );
   }
@@ -876,41 +931,26 @@ function InterviewPrepScreen({ data, onPersist, onBack }) {
           <span className="ip-topbar-sub">Senior AE · Salesforce</span>
         </div>
         <div className="ip-topbar-right">
+          <button className="ip-topbar-stories-btn" onClick={() => setMode('stories')}>
+            Story Bank{stories.length > 0 ? ` (${stories.length})` : ''}
+          </button>
           <button className="ip-topbar-rehearse-btn" onClick={() => startRehearsal('due')}>
             ▶ Start rehearsal{stats.dueToday > 0 ? ` (${stats.dueToday})` : ''}
           </button>
         </div>
       </div>
-
       <IPDashboard stats={stats} onStartRehearsal={startGlobalRehearsal} />
-
       <div className="ip-cols">
-        <IPCategoryList
-          ip={ip}
-          selectedId={selCatId}
-          onSelect={(id) => { setSelCatId(id); setSelQId(null); }}
-          onAdd={addCategory}
-          onRename={renameCategory}
-          onDelete={deleteCategory}
-          stats={stats.catStats}
-        />
-        <IPQuestionList
-          questions={catQuestions}
-          selectedId={selQId}
-          onSelect={setSelQId}
-          onAdd={addQuestion}
-        />
-        <IPWorkspace
-          question={selectedQ}
-          ip={ip}
-          onUpdateAnswer={updateAnswer}
-          onUpdateQuestion={updateQuestion}
-          onRehearseOne={rehearseOne}
-          onMarkReady={markReady}
-          onDelete={deleteQuestion}
-          onDuplicate={duplicateQuestion}
-          onMove={moveQuestion}
-        />
+        <IPCategoryList ip={ip} selectedId={selCatId}
+          onSelect={id => { setSelCatId(id); setSelQId(null); }}
+          onAdd={addCategory} onRename={renameCategory} onDelete={deleteCategory} onReorder={reorderCategory}
+          stats={stats.catStats} />
+        <IPQuestionList questions={catQuestions} selectedId={selQId} onSelect={setSelQId} onAdd={addQuestion} />
+        <IPWorkspace question={selectedQ} ip={ip}
+          onUpdateAnswer={updateAnswer} onUpdateQuestion={updateQuestion}
+          onRehearseOne={rehearseOne} onMarkReady={markReady}
+          onDelete={deleteQuestion} onDuplicate={duplicateQuestion} onMove={moveQuestion}
+          onLinkStory={linkStory} onUnlinkStory={unlinkStory} />
       </div>
     </div>
   );

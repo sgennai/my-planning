@@ -7089,6 +7089,103 @@
     /* Middle column: slightly wider */
     .ip-mid { width: 340px; }
 
+    /* ── Story Bank view ── */
+    .ip-topbar-stories-btn {
+      padding: 5px 13px; border-radius: 20px; border: 1px solid var(--rule);
+      background: transparent; color: var(--text); font-size: 13px; cursor: pointer;
+      transition: background 0.15s; touch-action: manipulation;
+    }
+    .ip-topbar-stories-btn:hover { background: var(--primary-tint); color: var(--primary); }
+    .ip-story-view { display: flex; height: 100%; overflow: hidden; }
+    .ip-story-list-col { width: 260px; flex-shrink: 0; display: flex; flex-direction: column; border-right: 1px solid var(--rule); overflow: hidden; }
+    .ip-story-list-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--rule); }
+    .ip-story-list-header span { font-size: 12px; font-weight: 600; color: var(--muted-3); text-transform: uppercase; letter-spacing: 0.05em; }
+    .ip-story-list-header button { padding: 4px 10px; border-radius: 14px; border: 1px solid var(--primary); background: transparent; color: var(--primary); font-size: 12px; cursor: pointer; touch-action: manipulation; }
+    .ip-story-list-header button:hover { background: var(--primary-tint); }
+    .ip-story-card {
+      padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(--rule);
+      transition: background 0.12s;
+    }
+    .ip-story-card:hover { background: rgba(0,0,0,0.03); }
+    [data-theme="dark"] .ip-story-card:hover { background: rgba(255,255,255,0.04); }
+    .ip-story-card.active { background: var(--primary-tint); }
+    .ip-story-card-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+    .ip-story-card-summary { font-size: 12px; color: var(--muted-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ip-story-empty { padding: 32px 20px; text-align: center; color: var(--muted-3); font-size: 13px; font-style: italic; }
+    .ip-story-editor-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .ip-story-editor-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--rule); gap: 10px; }
+    .ip-story-editor-title { font-size: 14px; font-weight: 600; color: var(--text); }
+    .ip-story-editor-header-right { display: flex; align-items: center; gap: 8px; }
+    .ip-story-editor-saved { font-size: 11px; color: var(--muted-3); font-style: italic; }
+    .ip-story-editor-del { padding: 4px 10px; border-radius: 14px; border: 1px solid #ef4444; background: transparent; color: #ef4444; font-size: 12px; cursor: pointer; touch-action: manipulation; }
+    .ip-story-editor-del:hover { background: rgba(239,68,68,0.08); }
+    .ip-story-editor-body { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+    .ip-story-field { display: flex; flex-direction: column; gap: 4px; }
+    .ip-story-field-label { font-size: 11px; font-weight: 600; color: var(--muted-3); text-transform: uppercase; letter-spacing: 0.05em; }
+    .ip-story-field-input {
+      width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--rule);
+      background: rgba(0,0,0,0.02); color: var(--text); font-size: 13px; font-family: inherit;
+      transition: border-color 0.15s; box-sizing: border-box;
+    }
+    [data-theme="dark"] .ip-story-field-input { background: rgba(255,255,255,0.04); }
+    .ip-story-field-input:focus { outline: none; border-color: var(--primary); }
+    .ip-story-field-ta {
+      width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--rule);
+      background: rgba(0,0,0,0.02); color: var(--text); font-size: 13px; font-family: inherit;
+      resize: vertical; min-height: 72px; transition: border-color 0.15s; box-sizing: border-box;
+    }
+    [data-theme="dark"] .ip-story-field-ta { background: rgba(255,255,255,0.04); }
+    .ip-story-field-ta:focus { outline: none; border-color: var(--primary); }
+    .ip-story-editor-empty { display: flex; align-items: center; justify-content: center; flex: 1; color: var(--muted-3); font-size: 14px; font-style: italic; }
+
+    /* ── Linked stories (in workspace) ── */
+    .ip-linked-stories { margin-top: 16px; border-top: 1px solid var(--rule); padding-top: 14px; }
+    .ip-linked-stories-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .ip-linked-stories-header span { font-size: 11px; font-weight: 600; color: var(--muted-3); text-transform: uppercase; letter-spacing: 0.05em; }
+    .ip-linked-link-btn { padding: 3px 9px; border-radius: 12px; border: 1px solid var(--primary); background: transparent; color: var(--primary); font-size: 11px; cursor: pointer; touch-action: manipulation; }
+    .ip-linked-link-btn:hover { background: var(--primary-tint); }
+    .ip-linked-empty { font-size: 12px; color: var(--muted-3); font-style: italic; padding: 4px 0; }
+    .ip-linked-story-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--rule); gap: 8px; }
+    .ip-linked-story-row:last-of-type { border-bottom: none; }
+    .ip-linked-story-info { flex: 1; min-width: 0; }
+    .ip-linked-story-title { font-size: 13px; font-weight: 600; color: var(--text); }
+    .ip-linked-story-summary { font-size: 12px; color: var(--muted-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ip-linked-story-unlink { padding: 2px 7px; border-radius: 10px; border: 1px solid var(--rule); background: transparent; color: var(--muted-3); font-size: 11px; cursor: pointer; touch-action: manipulation; flex-shrink: 0; }
+    .ip-linked-story-unlink:hover { border-color: #ef4444; color: #ef4444; }
+    .ip-story-picker { position: relative; margin-top: 8px; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; background: var(--bg-card); box-shadow: var(--shadow-card); max-height: 200px; overflow-y: auto; }
+    .ip-story-picker-empty { padding: 12px; font-size: 12px; color: var(--muted-3); text-align: center; font-style: italic; }
+    .ip-story-picker-item { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--rule); transition: background 0.12s; }
+    .ip-story-picker-item:last-child { border-bottom: none; }
+    .ip-story-picker-item:hover { background: var(--primary-tint); }
+    .ip-story-picker-title { font-size: 13px; font-weight: 600; color: var(--text); }
+    .ip-story-picker-summary { font-size: 12px; color: var(--muted-3); }
+
+    /* ── Workspace status select ── */
+    .ip-ws-status-select {
+      padding: 4px 8px; border-radius: 12px; border: 1px solid var(--rule);
+      background: transparent; color: var(--text); font-size: 12px; cursor: pointer;
+      font-family: inherit; touch-action: manipulation;
+    }
+    .ip-ws-status-select:focus { outline: none; border-color: var(--primary); }
+    [data-theme="dark"] .ip-ws-status-select { background: rgba(255,255,255,0.04); }
+    [data-theme="dark"] .ip-ws-status-select option { background: #2c2c2e; }
+
+    /* ── Add-question form extras ── */
+    .ip-add-q-extra { display: flex; gap: 6px; margin-top: 6px; }
+    .ip-add-q-status-sel {
+      padding: 4px 8px; border-radius: 10px; border: 1px solid var(--rule);
+      background: transparent; color: var(--text); font-size: 12px; font-family: inherit; cursor: pointer;
+    }
+    .ip-add-q-status-sel:focus { outline: none; border-color: var(--primary); }
+    [data-theme="dark"] .ip-add-q-status-sel { background: rgba(255,255,255,0.04); }
+    [data-theme="dark"] .ip-add-q-status-sel option { background: #2c2c2e; }
+    .ip-add-q-tags-in {
+      flex: 1; padding: 4px 8px; border-radius: 10px; border: 1px solid var(--rule);
+      background: transparent; color: var(--text); font-size: 12px; font-family: inherit;
+    }
+    .ip-add-q-tags-in:focus { outline: none; border-color: var(--primary); }
+    .ip-add-q-tags-in::placeholder { color: var(--muted-3); }
+
   </style>
 </head>
 <body>
