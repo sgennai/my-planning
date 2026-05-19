@@ -72,9 +72,10 @@ async function handleRequest(request, event) {
     });
   }
 
-  // Use Cloudflare's Cache API to avoid hammering Google with every page load
+  // Cache key = the Worker's own request URL (must be on the Worker's domain for
+  // Cloudflare's Cache API to work reliably — external URLs as keys are not guaranteed).
   const cache = caches.default;
-  const cacheKey = new Request(feedUrl, { method: 'GET' });
+  const cacheKey = new Request(request.url);
   const cached = await cache.match(cacheKey);
   if (cached) {
     const body = await cached.text();
@@ -88,10 +89,14 @@ async function handleRequest(request, event) {
   const icsBody = await icsRes.text();
 
   if (icsRes.ok) {
-    // Store in Cloudflare edge cache for ICS_CACHE_SECONDS
+    // Store in Cloudflare edge cache. stale-while-revalidate gives a 10-min grace
+    // window so a single expired-cache request doesn't immediately hit Google.
     const toCache = new Response(icsBody, {
       status: 200,
-      headers: { 'Content-Type': 'text/calendar; charset=utf-8', 'Cache-Control': `public, max-age=${ICS_CACHE_SECONDS}` },
+      headers: {
+        'Content-Type': 'text/calendar; charset=utf-8',
+        'Cache-Control': `public, max-age=${ICS_CACHE_SECONDS}, stale-while-revalidate=600`,
+      },
     });
     event.waitUntil(cache.put(cacheKey, toCache));
   }
