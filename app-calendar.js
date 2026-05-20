@@ -1288,7 +1288,9 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                   className={`cal-toggle-btn ${calendarToggles[key] ? 'active' : ''}`}
                   onClick={() => setCalendarToggles(t => ({ ...t, [key]: !t[key] }))}
                 >
-                  <span className="cal-toggle-check" style={{ '--cal-check-color': color }}>
+                  <span className="cal-toggle-check" style={calendarToggles[key]
+                    ? { background: color, borderColor: color }
+                    : { borderColor: color }}>
                     {calendarToggles[key] && <span className="cal-toggle-check-mark">✓</span>}
                   </span>
                   {label}
