@@ -1134,9 +1134,15 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
             </div>
             {todoistToken && todoistProjectId && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 var(--space-4) 8px' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 3, border: '1px solid var(--border)', borderRadius: 'var(--radius-pill)', padding: '2px 7px 2px 9px', background: 'transparent' }}>
+                <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 3, border: '1px solid var(--border)', borderRadius: 'var(--radius-pill)', padding: '2px 7px 2px 9px', background: 'transparent', cursor: 'pointer' }}>
+                  {/* Visible label — pointer-events off so clicks fall through to the select */}
+                  <span style={{ color: 'var(--muted-2)', fontSize: 11, fontFamily: 'var(--serif)', pointerEvents: 'none', userSelect: 'none' }}>
+                    {({ 0:'All', 1:'Today', 3:'3 days', 7:'7 days', 14:'14 days', 30:'30 days' }[todoistDaysAhead] || 'Today')}
+                  </span>
+                  <span style={{ color: 'var(--muted-3)', fontSize: 9, lineHeight: 1, pointerEvents: 'none', userSelect: 'none' }}>⌄</span>
+                  {/* Invisible select covers the full pill — any click opens the native dropdown */}
                   <select
-                    style={{ width: `${({ 0:'All',1:'Today',3:'3 days',7:'7 days',14:'14 days',30:'30 days' }[todoistDaysAhead] || '7 days').length + 1}ch`, background: 'transparent', border: 'none', outline: 'none', color: 'var(--muted-2)', fontSize: 11, fontFamily: 'var(--serif)', cursor: 'pointer', padding: 0, appearance: 'none', WebkitAppearance: 'none' }}
+                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
                     value={String(todoistDaysAhead)}
                     onChange={e => updateTodoistSettings({ daysAhead: Number(e.target.value) })}
                   >
@@ -1147,7 +1153,6 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                     <option value="14">14 days</option>
                     <option value="30">30 days</option>
                   </select>
-                  <span style={{ color: 'var(--muted-3)', fontSize: 9, lineHeight: 1, pointerEvents: 'none', userSelect: 'none' }}>⌄</span>
                 </div>
                 <button className="rail-section-toggle" onClick={() => setTodoistRefreshTick(v => v + 1)} disabled={todoistLoading} title="Refresh Todoist" style={{ opacity: todoistLoading ? 0.3 : 0.45, fontSize: 10 }}>
                   ↻
