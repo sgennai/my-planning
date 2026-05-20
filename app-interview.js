@@ -1449,7 +1449,12 @@ function InterviewPrepScreen({ data, onPersist, onBack, onSignOut }) {
             <button className="app-topbar-btn app-topbar-btn-icon" onClick={() => setMenuOpen(v => !v)} aria-label="Menu" title="Menu">☰</button>
             {menuOpen && (
               <div className="app-menu-dropdown">
-                <button className="app-menu-item" onClick={() => { onBack(); setMenuOpen(false); }}>← Calendar</button>
+                <button className="app-menu-item" onClick={() => { onBack(); setMenuOpen(false); }}>Calendar</button>
+                <button className="app-menu-item app-menu-item--disabled" disabled>Interview Prep</button>
+                <div className="app-menu-divider" />
+                <button className="app-menu-item" onClick={() => { onBack('weeklyReview'); setMenuOpen(false); }}>Weekly Review</button>
+                <button className="app-menu-item" onClick={() => { onBack('refLibrary'); setMenuOpen(false); }}>Reference Library</button>
+                <button className="app-menu-item" onClick={() => { onBack('settings'); setMenuOpen(false); }}>Settings</button>
                 <div className="app-menu-divider" />
                 <button className="app-menu-item app-menu-item--danger" onClick={() => { onSignOut(); setMenuOpen(false); }}>Sign out</button>
               </div>

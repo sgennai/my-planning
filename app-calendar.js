@@ -55,7 +55,7 @@ function MicroTracker({ tracker, onToggle, viewDate }) {
   );
 }
 
-function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut, onPersist, onOpenInterviewPrep }) {
+function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut, onPersist, onOpenInterviewPrep, pendingCalAction, onClearPendingAction }) {
   const isMobile = useMediaQuery('(max-width: 759px)');
   const now = useTickingClock(60000);
   // View routing: 'today' = daily compass (default landing), 'plan' = full week canvas
@@ -909,6 +909,15 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     return () => document.removeEventListener('mousedown', handler);
   }, [menuOpen]);
 
+  // Open overlay requested by the IP page menu before navigating back
+  React.useEffect(() => {
+    if (!pendingCalAction) return;
+    if (pendingCalAction === 'weeklyReview') setResetOverlayOpen(true);
+    else if (pendingCalAction === 'refLibrary') setRefLibraryOpen(true);
+    else if (pendingCalAction === 'settings') setSettingsOpen(true);
+    if (onClearPendingAction) onClearPendingAction();
+  }, [pendingCalAction]);
+
   const todoistToken = (data.todoist || {}).token || '';
   const todoistProjectId = (data.todoist || {}).projectId || '';
   const todoistProjectName = (data.todoist || {}).projectName || '';
@@ -1060,10 +1069,12 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
             const reviewDone = (data.weeklyResets || []).some(r => r.weekStart && startOfDay(new Date(r.weekStart)).getTime() === thisWeekStart.getTime());
             return (
               <div className="app-menu-dropdown">
+                <button className="app-menu-item app-menu-item--disabled" disabled>Calendar</button>
+                <button className="app-menu-item" onClick={() => { if (onOpenInterviewPrep) onOpenInterviewPrep(); setMenuOpen(false); }}>Interview Prep</button>
+                <div className="app-menu-divider" />
                 <button className="app-menu-item" onClick={() => { setResetOverlayOpen(true); setMenuOpen(false); }}>
                   {reviewDone ? '✓ Weekly Review' : 'Weekly Review'}
                 </button>
-                <button className="app-menu-item" onClick={() => { if (onOpenInterviewPrep) onOpenInterviewPrep(); setMenuOpen(false); }}>Interview Prep</button>
                 <button className="app-menu-item" onClick={() => { setRefLibraryOpen(true); setMenuOpen(false); }}>Reference Library</button>
                 <button className="app-menu-item" onClick={() => { setSettingsOpen(true); setMenuOpen(false); }}>Settings</button>
                 <div className="app-menu-divider" />

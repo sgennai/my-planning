@@ -194,6 +194,7 @@ function App() {
   const [saving, setSaving] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState(null);
   const [appPage, setAppPage] = useState('calendar');
+  const [pendingCalAction, setPendingCalAction] = useState(null);
 
   // Apply theme to <html data-theme="..."> whenever data.prefs.theme changes.
   // Default to 'light' before data loads so the boot/sign-in screens use the right palette.
@@ -298,7 +299,8 @@ function App() {
       <InterviewPrepScreen
         data={data}
         onPersist={persist}
-        onBack={() => setAppPage('calendar')}
+        onBack={(action) => { if (action) setPendingCalAction(action); setAppPage('calendar'); }}
+        onSignOut={handleSignOut}
       />
     );
   }
@@ -312,6 +314,8 @@ function App() {
       onSignOut={handleSignOut}
       onPersist={persist}
       onOpenInterviewPrep={() => setAppPage('interview')}
+      pendingCalAction={pendingCalAction}
+      onClearPendingAction={() => setPendingCalAction(null)}
     />
   );
 }

@@ -1178,6 +1178,18 @@
       background: var(--border);
       margin: 4px 6px;
     }
+    .app-menu-item--disabled {
+      opacity: 0.35;
+      cursor: default;
+      pointer-events: none;
+    }
+    /* IP page: dropdown is inside a static flex container, use fixed positioning
+       so it always appears at the top-right of the viewport */
+    .ip-topbar .app-menu-dropdown {
+      position: fixed;
+      top: 64px;
+      right: 16px;
+    }
     .app-topbar-nav-btn {
       background: transparent;
       border: none;
