@@ -662,7 +662,7 @@ function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, onRefresh
     if (icsRefreshing) return <span className="sm-status loading"><span className="sm-status-dot" /></span>;
     if (!cache) return null;
     if (cache.error) {
-      const msg = cache.error.includes('429') ? 'Google rate limit hit — will retry next refresh (redeploy Worker to fix caching)' : cache.error;
+      const msg = cache.error.includes('429') ? 'Google rate limit — stale data will be served until quota resets' : cache.error;
       return <span className="sm-status error"><span className="sm-status-dot" /><span>{msg}</span></span>;
     }
     const ts = cache.lastFetched ? cache.lastFetched.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : '—';

@@ -2,7 +2,7 @@
 // Deploy at: workers.cloudflare.com
 //
 // Routes:
-//   GET  /?url=<encoded-ics-url>          → proxy an ICS feed (cached 20 min)
+//   GET  /?url=<encoded-ics-url>          → proxy an ICS feed (cached 20 min, stale-on-error up to 7 days)
 //   GET  /todoist/projects                → GET api.todoist.com/api/v1/projects
 //   GET  /todoist/tasks?project_id=xxx    → GET api.todoist.com/api/v1/tasks?project_id=xxx
 //   POST /todoist/tasks/:id/close         → POST api.todoist.com/api/v1/tasks/:id/close
@@ -16,7 +16,11 @@ const CORS_HEADERS = {
   'Cache-Control': 'no-store',
 };
 
-const ICS_CACHE_SECONDS = 20 * 60; // 20 minutes — avoids Google 429s
+// Revalidate after 20 min; keep stale entry for up to 7 days as a 429 fallback.
+// The X-Cached-At header (unix seconds) drives freshness checks instead of HTTP
+// max-age, because the programmatic Cache API doesn't honour stale-if-error.
+const ICS_FRESH_SECONDS  = 20 * 60;           // 20 minutes — revalidate threshold
+const ICS_MAX_AGE_SECONDS = 7 * 24 * 60 * 60; // 7 days  — how long to keep in cache
 
 addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request, event));
@@ -40,7 +44,6 @@ async function handleRequest(request, event) {
       });
     }
 
-    // Strip /todoist prefix, keep the rest of the path + query string
     const todoistPath = url.pathname.replace(/^\/todoist/, '');
     const todoistUrl = `https://api.todoist.com/api/v1${todoistPath}${url.search}`;
 
@@ -50,7 +53,9 @@ async function handleRequest(request, event) {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: (request.method === 'POST' || request.method === 'PUT' || request.method === 'PATCH') ? await request.text() : undefined,
+      body: (request.method === 'POST' || request.method === 'PUT' || request.method === 'PATCH')
+        ? await request.text()
+        : undefined,
     });
 
     const body = await todoistRes.text();
@@ -66,43 +71,74 @@ async function handleRequest(request, event) {
   // ── ICS proxy (?url=<encoded>) ─────────────────────────────────────────────
   const feedUrl = url.searchParams.get('url');
   if (!feedUrl) {
-    return new Response('Missing ?url parameter', {
-      status: 400,
-      headers: CORS_HEADERS,
-    });
+    return new Response('Missing ?url parameter', { status: 400, headers: CORS_HEADERS });
   }
 
-  // Cache key = the Worker's own request URL (must be on the Worker's domain for
-  // Cloudflare's Cache API to work reliably — external URLs as keys are not guaranteed).
-  const cache = caches.default;
+  const cache    = caches.default;
   const cacheKey = new Request(request.url);
+  const nowSec   = Math.floor(Date.now() / 1000);
+
   const cached = await cache.match(cacheKey);
+
   if (cached) {
-    const body = await cached.text();
-    return new Response(body, {
-      status: 200,
-      headers: { ...CORS_HEADERS, 'Content-Type': 'text/calendar; charset=utf-8', 'X-Cache': 'HIT' },
-    });
+    const cachedAt = parseInt(cached.headers.get('X-Cached-At') || '0', 10);
+    const age = nowSec - cachedAt;
+    const cachedBody = await cached.text();
+
+    if (age < ICS_FRESH_SECONDS) {
+      // Still fresh — serve directly.
+      return icsResponse(cachedBody, 'HIT');
+    }
+
+    // Stale — attempt revalidation; fall back to stale on any failure.
+    try {
+      const icsRes = await fetch(feedUrl);
+      if (icsRes.ok) {
+        const freshBody = await icsRes.text();
+        event.waitUntil(cache.put(cacheKey, makeCacheEntry(freshBody, nowSec)));
+        return icsResponse(freshBody, 'REVALIDATED');
+      }
+      // Google returned an error (e.g. 429) — serve stale rather than failing.
+      return icsResponse(cachedBody, 'STALE');
+    } catch (_) {
+      return icsResponse(cachedBody, 'STALE');
+    }
   }
 
-  const icsRes = await fetch(feedUrl);
+  // Cache miss — fetch fresh from Google.
+  const icsRes  = await fetch(feedUrl);
   const icsBody = await icsRes.text();
 
   if (icsRes.ok) {
-    // Store in Cloudflare edge cache. stale-while-revalidate gives a 10-min grace
-    // window so a single expired-cache request doesn't immediately hit Google.
-    const toCache = new Response(icsBody, {
-      status: 200,
-      headers: {
-        'Content-Type': 'text/calendar; charset=utf-8',
-        'Cache-Control': `public, max-age=${ICS_CACHE_SECONDS}, stale-while-revalidate=600`,
-      },
-    });
-    event.waitUntil(cache.put(cacheKey, toCache));
+    event.waitUntil(cache.put(cacheKey, makeCacheEntry(icsBody, nowSec)));
   }
 
   return new Response(icsBody, {
     status: icsRes.status,
     headers: { ...CORS_HEADERS, 'Content-Type': 'text/calendar; charset=utf-8', 'X-Cache': 'MISS' },
+  });
+}
+
+function makeCacheEntry(body, nowSec) {
+  return new Response(body, {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/calendar; charset=utf-8',
+      // Long max-age keeps the entry in the CF cache for up to 7 days so we
+      // always have a stale fallback. Freshness is managed via X-Cached-At.
+      'Cache-Control': `public, max-age=${ICS_MAX_AGE_SECONDS}`,
+      'X-Cached-At': String(nowSec),
+    },
+  });
+}
+
+function icsResponse(body, cacheStatus) {
+  return new Response(body, {
+    status: 200,
+    headers: {
+      ...CORS_HEADERS,
+      'Content-Type': 'text/calendar; charset=utf-8',
+      'X-Cache': cacheStatus,
+    },
   });
 }
