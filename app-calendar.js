@@ -1284,18 +1284,18 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
             </div>
             {calendarsExpanded && <div className="today-cal-toggles">
               {[
-                { key: 'routine', label: 'Routine', color: 'var(--primary)' },
-                { key: 'work', label: 'Work', color: calendarSettings.workColor || '#8C8C96' },
-                { key: 'household', label: 'Household', color: calendarSettings.householdColor || '#7896AF' },
-              ].map(({ key, label, color }) => (
+                { key: 'routine', label: 'Routine', hex: 'var(--primary)', bg: 'var(--primary)' },
+                { key: 'work',    label: 'Work',    hex: parseColorVal(calendarSettings.workColor).hex || '#8C8C96',      bg: colorValToBackground(calendarSettings.workColor, '#8C8C96') },
+                { key: 'household', label: 'Household', hex: parseColorVal(calendarSettings.householdColor).hex || '#7896AF', bg: colorValToBackground(calendarSettings.householdColor, '#7896AF') },
+              ].map(({ key, label, hex, bg }) => (
                 <button
                   key={key}
                   className={`cal-toggle-btn ${calendarToggles[key] ? 'active' : ''}`}
                   onClick={() => setCalendarToggles(t => ({ ...t, [key]: !t[key] }))}
                 >
                   <span className="cal-toggle-check" style={{
-                    border: `1.5px solid ${color}`,
-                    background: calendarToggles[key] ? color : 'transparent',
+                    border: `1.5px solid ${hex}`,
+                    background: calendarToggles[key] ? bg : 'transparent',
                   }}>
                     {calendarToggles[key] && <span className="cal-toggle-check-mark">✓</span>}
                   </span>
