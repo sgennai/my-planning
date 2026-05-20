@@ -1506,7 +1506,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
             )}
             {isMobile ? (
               <AgendaView
-                routine={data.routine}
+                routine={(data.routine || []).filter(it => it.category !== 'supplement')}
                 overrides={data.overrides || {}}
                 scheduledBlocks={blocks}
                 projects={projects}
@@ -1522,7 +1522,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
               />
             ) : (
               <WeekGrid
-                routine={data.routine}
+                routine={(data.routine || []).filter(it => it.category !== 'supplement')}
                 overrides={data.overrides || {}}
                 scheduledBlocks={blocks}
                 projects={projects}
@@ -1542,7 +1542,6 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                 calendarToggles={calendarToggles}
               />
             )}
-            <Legend />
           </div>
         )}
 
