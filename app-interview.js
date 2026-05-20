@@ -1137,7 +1137,7 @@ function IPMockInterview({ questions, ip, onComplete, onExit }) {
 }
 
 // ─── InterviewPrepScreen ──────────────────────────────────────────
-function InterviewPrepScreen({ data, onPersist, onBack }) {
+function InterviewPrepScreen({ data, onPersist, onBack, onSignOut }) {
   const ip = data.interviewPrep || { categories: [], questions: [], stories: [] };
 
   const persistData = useCallback((mutator) => {
@@ -1157,6 +1157,15 @@ function InterviewPrepScreen({ data, onPersist, onBack }) {
   const [mode, setMode] = useState('browse'); // 'browse'|'rehearse'|'stories'|'progress'|'mock'
   const [rehearseQueue, setRehearseQueue] = useState([]);
   const [showSearch, setShowSearch] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handler = e => { if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [menuOpen]);
 
   const categories = ip.categories || [];
   const questions = ip.questions || [];
@@ -1421,7 +1430,6 @@ function InterviewPrepScreen({ data, onPersist, onBack }) {
     <div className="ip-screen">
       {searchOverlay}
       <div className="ip-topbar">
-        <button className="ip-back-btn" onClick={onBack}>← Calendar</button>
         <div className="ip-topbar-center">
           <span className="ip-topbar-title">Interview Prep</span>
         </div>
@@ -1437,9 +1445,16 @@ function InterviewPrepScreen({ data, onPersist, onBack }) {
             <input type="file" accept=".json" style={{ display: 'none' }}
               onChange={e => { if (e.target.files[0]) { importData(e.target.files[0]); e.target.value = ''; } }} />
           </label>
-          <button className="ip-topbar-rehearse-btn" onClick={() => startRehearsal('due')}>
-            ▶ Rehearsal{stats.dueToday > 0 ? ` (${stats.dueToday})` : ''}
-          </button>
+          <div className="app-menu-wrap" ref={menuRef}>
+            <button className="app-topbar-btn app-topbar-btn-icon" onClick={() => setMenuOpen(v => !v)} aria-label="Menu" title="Menu">☰</button>
+            {menuOpen && (
+              <div className="app-menu-dropdown">
+                <button className="app-menu-item" onClick={() => { onBack(); setMenuOpen(false); }}>← Calendar</button>
+                <div className="app-menu-divider" />
+                <button className="app-menu-item app-menu-item--danger" onClick={() => { onSignOut(); setMenuOpen(false); }}>Sign out</button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       <IPDashboard stats={stats} onStartRehearsal={startGlobalRehearsal} onStartMock={() => setMode('mock')} />
