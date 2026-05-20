@@ -1127,25 +1127,28 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
           />
           <div className="today-rail-section">
             <div className="today-rail-header">
-              <div className="today-rail-eyebrow">Todos</div>
+              <div className="today-rail-eyebrow">To-dos</div>
               <button className="rail-section-toggle" onClick={() => setTodosExpanded(v => !v)} aria-label={todosExpanded ? 'Collapse todos' : 'Expand todos'}>
                 <span className={`rail-section-toggle-icon${todosExpanded ? '' : ' collapsed'}`}>⌄</span>
               </button>
             </div>
             {todoistToken && todoistProjectId && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 var(--space-4) 8px' }}>
-                <select
-                  style={{ width: `${({ 0:'All',1:'Today',3:'3 days',7:'7 days',14:'14 days',30:'30 days' }[todoistDaysAhead] || '7 days').length + 1}ch`, background: 'transparent', border: 'none', outline: 'none', color: 'var(--muted-3)', fontSize: 10, fontFamily: 'var(--mono)', cursor: 'pointer', padding: 0, appearance: 'none', WebkitAppearance: 'none' }}
-                  value={String(todoistDaysAhead)}
-                  onChange={e => updateTodoistSettings({ daysAhead: Number(e.target.value) })}
-                >
-                  <option value="0">All</option>
-                  <option value="1">Today</option>
-                  <option value="3">3 days</option>
-                  <option value="7">7 days</option>
-                  <option value="14">14 days</option>
-                  <option value="30">30 days</option>
-                </select>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 3, border: '1px solid var(--border)', borderRadius: 'var(--radius-pill)', padding: '2px 7px 2px 9px', background: 'transparent' }}>
+                  <select
+                    style={{ width: `${({ 0:'All',1:'Today',3:'3 days',7:'7 days',14:'14 days',30:'30 days' }[todoistDaysAhead] || '7 days').length + 1}ch`, background: 'transparent', border: 'none', outline: 'none', color: 'var(--muted-2)', fontSize: 11, fontFamily: 'var(--serif)', cursor: 'pointer', padding: 0, appearance: 'none', WebkitAppearance: 'none' }}
+                    value={String(todoistDaysAhead)}
+                    onChange={e => updateTodoistSettings({ daysAhead: Number(e.target.value) })}
+                  >
+                    <option value="0">All</option>
+                    <option value="1">Today</option>
+                    <option value="3">3 days</option>
+                    <option value="7">7 days</option>
+                    <option value="14">14 days</option>
+                    <option value="30">30 days</option>
+                  </select>
+                  <span style={{ color: 'var(--muted-3)', fontSize: 9, lineHeight: 1, pointerEvents: 'none', userSelect: 'none' }}>⌄</span>
+                </div>
                 <button className="rail-section-toggle" onClick={() => setTodoistRefreshTick(v => v + 1)} disabled={todoistLoading} title="Refresh Todoist" style={{ opacity: todoistLoading ? 0.3 : 0.45, fontSize: 10 }}>
                   ↻
                 </button>

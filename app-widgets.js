@@ -403,7 +403,7 @@ function TodosPane({ todos, scheduledBlocks, onAdd, onUpdate, onDelete }) {
   return (
     <div className="todos-pane">
       <div className="todos-pane-header">
-        <div className="todos-pane-eyebrow">Todos</div>
+        <div className="todos-pane-eyebrow">To-dos</div>
         <div className="todos-pane-count">{openCount} open · {todos.length} total</div>
       </div>
       <div className="todos-add-bar">
