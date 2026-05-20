@@ -1408,8 +1408,7 @@ function InterviewPrepScreen({ data, onPersist, onBack }) {
           <button className="ip-back-btn" onClick={() => setMode('browse')}>← Questions</button>
           <div className="ip-topbar-center">
             <span className="ip-topbar-title">Mock Interview</span>
-            <span className="ip-topbar-sub">Senior AE · Salesforce</span>
-          </div>
+            </div>
           <div className="ip-topbar-right" />
         </div>
         <IPMockInterview questions={questions} ip={ip} onComplete={handleMockComplete} onExit={() => setMode('browse')} />
@@ -1425,7 +1424,6 @@ function InterviewPrepScreen({ data, onPersist, onBack }) {
         <button className="ip-back-btn" onClick={onBack}>← Calendar</button>
         <div className="ip-topbar-center">
           <span className="ip-topbar-title">Interview Prep</span>
-          <span className="ip-topbar-sub">Senior AE · Salesforce</span>
         </div>
         <div className="ip-topbar-right">
           <button className="ip-topbar-btn-sm" onClick={() => setShowSearch(true)} title="Search all">🔍</button>
