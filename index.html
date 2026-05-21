@@ -596,6 +596,7 @@
     }
     .time-gutter-header { border-right: 1px solid var(--rule); }
     .day-header {
+      position: relative;
       padding: 12px 8px;
       text-align: center;
       border-left: 1px solid var(--rule);
@@ -636,6 +637,32 @@
       font-weight: 600;
     }
     .day-header.weekend .day-header-date { color: var(--muted-3); }
+
+    .weekend-toggle-btn {
+      position: absolute;
+      top: 50%;
+      right: 6px;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.55);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: var(--muted-2);
+      font-size: 13px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: border-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out);
+      touch-action: manipulation;
+    }
+    .weekend-toggle-btn:hover { border-color: var(--primary); color: var(--primary); background: rgba(255,255,255,0.75); }
+    [data-theme="dark"] .weekend-toggle-btn { background: rgba(255,255,255,0.08); color: var(--muted-3); }
+    [data-theme="dark"] .weekend-toggle-btn:hover { background: rgba(255,255,255,0.14); border-color: var(--primary); color: var(--primary); }
 
     .week-grid-body {
       display: grid;
