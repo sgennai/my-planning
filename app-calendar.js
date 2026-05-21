@@ -1357,7 +1357,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                     <div className="today-hero-now-meta">ends {fmtHeroTime(tdCurrent.startMin + tdCurrent.duration)}</div>
                   </>
                 ) : (
-                  <div className="today-hero-list">
+                  <div className="today-hero-list today-hero-list--now">
                     {tdCurrentItems.map(it => (
                       <div key={it.id} className="today-hero-list-item">
                         <span className="today-hero-list-time">–{fmtHeroTime(it.startMin + it.duration)}</span>
