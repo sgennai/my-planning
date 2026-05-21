@@ -47,7 +47,7 @@ function MicroTracker({ tracker, onToggle, viewDate }) {
             className={`micro-dot micro-dot--${s.status}${s.status === 'missed' || s.status === 'done' ? ' micro-dot--clickable' : ''}`}
             onClick={s.status === 'missed' || s.status === 'done' ? () => onToggle(s.hour, viewDate) : undefined}
           >
-            {s.status === 'done' ? '●' : s.status === 'missed' ? '!' : '○'}
+            {s.status === 'done' ? '●' : s.status === 'missed' ? '●' : '○'}
           </span>
         ))}
       </div>
