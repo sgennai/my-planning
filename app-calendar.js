@@ -1512,7 +1512,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         ) : (
           <div className="calendar-panel">
             {dayView !== null && !isMobile && (
-              <button className="day-view-back" onClick={() => setDayView(null)}>← Back to week</button>
+              <button className="day-view-back" onClick={() => setDayView(null)}>← Week</button>
             )}
             {isMobile ? (
               <AgendaView
