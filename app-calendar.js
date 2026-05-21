@@ -1345,22 +1345,27 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
 
           {/* Card 1: Next up / Right now */}
           <div className="today-hero">
-            {tdCurrent ? (
+            {tdCurrentItems.length > 0 ? (
               <>
                 <div className="today-hero-eyebrow">Right now</div>
-                <div className="today-hero-now">
-                  {tdCurrent.kind === 'routine' && CATS[tdCurrent.category] && CATS[tdCurrent.category].emoji ? `${CATS[tdCurrent.category].emoji} ` : ''}
-                  {tdCurrent.title}
-                </div>
-                <div className="today-hero-now-meta">
-                  ends {fmtHeroTime(tdCurrent.startMin + tdCurrent.duration)}
-                </div>
-                {tdCurrentItems.slice(1).map(it => (
-                  <div key={it.id} className="today-hero-next">
-                    <span className="today-hero-next-label">Also</span>
-                    <span>{it.kind === 'routine' && CATS[it.category] && CATS[it.category].emoji ? `${CATS[it.category].emoji} ` : ''}{it.title}</span>
+                {tdCurrentItems.length === 1 ? (
+                  <>
+                    <div className="today-hero-now">
+                      {tdCurrent.kind === 'routine' && CATS[tdCurrent.category] && CATS[tdCurrent.category].emoji ? `${CATS[tdCurrent.category].emoji} ` : ''}
+                      {tdCurrent.title}
+                    </div>
+                    <div className="today-hero-now-meta">ends {fmtHeroTime(tdCurrent.startMin + tdCurrent.duration)}</div>
+                  </>
+                ) : (
+                  <div className="today-hero-list">
+                    {tdCurrentItems.map(it => (
+                      <div key={it.id} className="today-hero-list-item">
+                        <span className="today-hero-list-time">–{fmtHeroTime(it.startMin + it.duration)}</span>
+                        <span className="today-hero-list-title">{it.kind === 'routine' && CATS[it.category] && CATS[it.category].emoji ? `${CATS[it.category].emoji} ` : ''}{it.title}</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
                 {tdNext && (
                   <div className="today-hero-next">
                     <span className="today-hero-next-label">Next</span>
