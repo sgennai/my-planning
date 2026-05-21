@@ -648,6 +648,7 @@
       align-items: center;
       justify-content: center;
       border-left: 1px solid var(--rule);
+      background: rgba(0,0,0,0.035);
       cursor: pointer;
       color: var(--muted-3);
       font-size: 13px;
@@ -660,6 +661,7 @@
       color: var(--primary);
       background: var(--primary-tint);
     }
+    [data-theme="dark"] .weekend-toggle-zone { background: rgba(255,255,255,0.04); }
 
     .week-grid-body {
       display: grid;
@@ -668,7 +670,8 @@
       transition: grid-template-columns 300ms var(--ease-out);
     }
     .day-column.weekend,
-    .day-header.weekend { overflow: hidden; }
+    .day-header.weekend { overflow: hidden; min-width: 0; }
+    .day-header.weekend-hidden { visibility: hidden; pointer-events: none; }
     .time-gutter {
       position: relative;
       border-right: 1px solid var(--rule);

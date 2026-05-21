@@ -930,7 +930,7 @@ function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, no
           return (
             <div
               key={col}
-              className={`day-header ${isToday ? 'today' : ''} ${isWeekend ? 'weekend' : ''} ${col === 4 && !isDayView ? 'has-weekend-toggle' : ''}`}
+              className={`day-header ${isToday ? 'today' : ''} ${isWeekend ? 'weekend' : ''} ${col === 4 && !isDayView ? 'has-weekend-toggle' : ''} ${weekendCollapsed && isWeekend ? 'weekend-hidden' : ''}`}
               onClick={() => onDayClick && onDayClick(col)}
               title={isDayView ? 'Click to return to week view' : 'Click to zoom into this day'}
             >
