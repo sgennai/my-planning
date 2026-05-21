@@ -1268,9 +1268,7 @@ function CalItem({ item, date, hourHeight, projects, onBlockClick, onRoutineClic
       {isBlock && project && !isTiny && !isShort && (
         <div className="cal-item-project">{project.name}</div>
       )}
-      {item.note && !isTiny && !isShort && !isBlock && (
-        <div className="cal-item-note">{item.note}</div>
-      )}
+      {/* Notes hidden in week view — title only, matching daily view */}
       {isBlock && block.status !== 'completed' && (
         <div className="cal-item-resize-handle" onMouseDown={onResizeStart} />
       )}
