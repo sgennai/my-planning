@@ -741,7 +741,11 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
       const entry = icsCache[source];
       if (!entry || !entry.events) return;
       const occs = expandEventsForWindow(entry.events, winStart, winEnd, source);
-      occs.forEach(o => { o.color = colorHexByKey[source]; o.colorVal = colorValByKey[source]; });
+      occs.forEach(o => {
+        o.color = colorHexByKey[source];
+        o.colorVal = colorValByKey[source];
+        if (source === 'work' && o.title && o.title.trim().toLowerCase() === 'busy') o.title = 'Busy · Work';
+      });
       out.push(...occs);
     });
     return out;
@@ -834,8 +838,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
       if (!isSameDay(occ.start, viewDate)) return;
       const startMin = occ.start.getHours() * 60 + occ.start.getMinutes();
       const dur = Math.max(1, Math.round((occ.end - occ.start) / 60000));
-      const rawTitle = occ.title || (occ.source === 'work' ? 'Work' : '(untitled)');
-      const icsTitle = (occ.source === 'work' && rawTitle.trim().toLowerCase() === 'busy') ? 'Busy · Work' : rawTitle;
+      const icsTitle = occ.title || (occ.source === 'work' ? 'Work' : '(untitled)');
       items.push({ kind: 'ics', id: `ics-${occ.uid}-${startMin}`, title: icsTitle,
         note: occ.source === 'work' ? 'WORK' : 'HOUSEHOLD', startMin, duration: dur,
         color: occ.color || (occ.source === 'work' ? '#8C8C96' : '#7896AF'), colorVal: occ.colorVal, _ics: occ, allDay: occ.allDay });
