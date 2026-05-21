@@ -1343,7 +1343,6 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                 </div>
                 <div className="today-hero-now-meta">
                   ends {fmtHeroTime(tdCurrent.startMin + tdCurrent.duration)}
-                  {tdCurrent.note && <span> · {tdCurrent.note}</span>}
                 </div>
                 {tdNext && (
                   <div className="today-hero-next">
@@ -1367,7 +1366,6 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                   <span className="today-hero-next-time" style={{ marginRight: 'var(--space-3)' }}>{fmtHeroTime(tdNext.startMin)}</span>
                   {tdNext.kind === 'routine' && CATS[tdNext.category] && CATS[tdNext.category].emoji ? `${CATS[tdNext.category].emoji} ` : ''}{tdNext.title}
                 </div>
-                {tdNext.note && <div className="today-hero-now-meta">{tdNext.note}</div>}
                 {tdThen && (
                   <div className="today-hero-then">
                     <span className="today-hero-then-label">Then</span>
