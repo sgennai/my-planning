@@ -74,6 +74,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   const [railCollapsed, setRailCollapsed] = useState(false);
   const [scrollToNowTick, setScrollToNowTick] = useState(0);
   const [heroDropTarget, setHeroDropTarget] = useState(null);
+  const [heroTaskDetail, setHeroTaskDetail] = useState(null); // { id, title } task detail modal
   const [allTodoistTasks, setAllTodoistTasks] = useState([]);
   const [todoistLoading, setTodoistLoading] = useState(false);
   const [todoistError, setTodoistError] = useState(null);
@@ -1494,7 +1495,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                               onChange={() => item.source === 'todoist' ? completeTodoistTask(item.id) : updateTodo(item.id, { done: !item.done })}
                               onClick={e => e.stopPropagation()}
                             />
-                            <span className="today-hero-list-title">{item.title}</span>
+                            <span className="today-hero-list-title today-hero-list-title--link" onClick={e => { e.stopPropagation(); setHeroTaskDetail(item); }}>{item.title}</span>
                             <button className="today-hero-pt-remove" onClick={() => item.source === 'todoist' ? setTodoistTaskSlot(item.id, null) : setTodoSlot(item.id, null)} title="Unpromote">×</button>
                           </div>
                         ))
@@ -1672,6 +1673,15 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         nowEventColor={nowEventColor}
         onSetNowEventColor={setNowEventColor}
       />
+    )}
+
+    {heroTaskDetail && (
+      <div className="hero-task-modal-backdrop" onClick={() => setHeroTaskDetail(null)}>
+        <div className="hero-task-modal" onClick={e => e.stopPropagation()}>
+          <div className="hero-task-modal-title">{heroTaskDetail.title}</div>
+          <button className="hero-task-modal-close" onClick={() => setHeroTaskDetail(null)} aria-label="Close">×</button>
+        </div>
+      </div>
     )}
 
     </>
