@@ -1361,7 +1361,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                   <div className="today-hero-list today-hero-list--now">
                     {tdCurrentItems.map(it => (
                       <div key={it.id} className="today-hero-list-item">
-                        <span className="today-hero-list-time">until {fmtHeroTime(it.startMin + it.duration)}</span>
+                        <span className="today-hero-list-time">ends {fmtHeroTime(it.startMin + it.duration)}</span>
                         <span className="today-hero-list-title">{it.kind === 'routine' && CATS[it.category] && CATS[it.category].emoji ? `${CATS[it.category].emoji} ` : ''}{it.title}</span>
                       </div>
                     ))}
