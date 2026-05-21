@@ -3437,8 +3437,12 @@
       display: flex;
       align-items: center;
       gap: 5px;
-      padding: 2px 0;
+      padding: 2px 4px;
+      border-radius: var(--radius-sm);
+      transition: background var(--duration-fast) var(--ease-out);
     }
+    .today-hero-pt-item:hover { background: rgba(0,0,0,0.05); }
+    [data-theme="dark"] .today-hero-pt-item:hover { background: rgba(255,255,255,0.07); }
     .today-hero-pt-item.done .today-hero-list-title {
       opacity: 0.45;
       text-decoration: line-through;
