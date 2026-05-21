@@ -639,29 +639,26 @@
     }
     .day-header.weekend .day-header-date { color: var(--muted-3); }
 
-    .weekend-divider {
+    .day-header.has-weekend-toggle { padding-right: 25%; }
+    .weekend-toggle-zone {
       position: absolute;
-      top: 50%;
-      right: -2px;
-      transform: translateY(-50%);
-      width: 4px;
-      height: 28px;
-      border-radius: 2px;
-      background: var(--border);
-      cursor: col-resize;
-      z-index: 5;
-      transition: background 150ms var(--ease-out), height 150ms var(--ease-out), box-shadow 150ms var(--ease-out);
+      top: 0; right: 0; bottom: 0;
+      width: 25%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-left: 1px solid var(--rule);
+      cursor: pointer;
+      color: var(--muted-3);
+      font-size: 13px;
+      font-weight: 500;
+      transition: color 150ms var(--ease-out), background 150ms var(--ease-out);
       touch-action: manipulation;
+      user-select: none;
     }
-    .weekend-divider:hover,
-    .weekend-divider.is-collapsed {
-      background: var(--primary);
-      height: 36px;
-      box-shadow: 0 0 8px rgba(37,99,235,0.35);
-    }
-    [data-theme="dark"] .weekend-divider.is-collapsed,
-    [data-theme="dark"] .weekend-divider:hover {
-      box-shadow: 0 0 8px rgba(79,142,247,0.4);
+    .weekend-toggle-zone:hover {
+      color: var(--primary);
+      background: var(--primary-tint);
     }
 
     .week-grid-body {
