@@ -856,8 +856,9 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   }, [data.routine, tdOverrides, tdCompletions, elsewhere, now, viewDate, blocks, projects, icsOccurrences, calendarToggles]);
 
   const nowMin = now.getHours() * 60 + now.getMinutes();
-  const tdCurrent = todayItems.find(it => it.startMin <= nowMin && (it.startMin + it.duration) > nowMin && !it.completed && it.category !== 'elsewhere');
-  const tdUpcoming = todayItems.filter(it => it.startMin > nowMin && !it.completed && it.category !== 'elsewhere');
+  const tdCurrentItems = todayItems.filter(it => it.startMin <= nowMin && (it.startMin + it.duration) > nowMin && !it.completed && it.category !== 'elsewhere' && it.category !== 'supplement');
+  const tdCurrent = tdCurrentItems[0];
+  const tdUpcoming = todayItems.filter(it => it.startMin > nowMin && !it.completed && it.category !== 'elsewhere' && it.category !== 'supplement');
   const tdNext = tdUpcoming[0];
   const tdThen = tdUpcoming[1];
   const fmtHeroTime = (m) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
@@ -1354,6 +1355,12 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
                 <div className="today-hero-now-meta">
                   ends {fmtHeroTime(tdCurrent.startMin + tdCurrent.duration)}
                 </div>
+                {tdCurrentItems.slice(1).map(it => (
+                  <div key={it.id} className="today-hero-next">
+                    <span className="today-hero-next-label">Also</span>
+                    <span>{it.kind === 'routine' && CATS[it.category] && CATS[it.category].emoji ? `${CATS[it.category].emoji} ` : ''}{it.title}</span>
+                  </div>
+                ))}
                 {tdNext && (
                   <div className="today-hero-next">
                     <span className="today-hero-next-label">Next</span>
