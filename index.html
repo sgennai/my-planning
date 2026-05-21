@@ -593,6 +593,7 @@
       border-bottom: 1px solid var(--border);
       position: sticky; top: 0; z-index: 4;
       background: var(--bg-calendar);
+      transition: grid-template-columns 300ms var(--ease-out);
     }
     .time-gutter-header { border-right: 1px solid var(--rule); }
     .day-header {
@@ -638,37 +639,39 @@
     }
     .day-header.weekend .day-header-date { color: var(--muted-3); }
 
-    .weekend-toggle-btn {
+    .weekend-divider {
       position: absolute;
       top: 50%;
-      right: 6px;
+      right: -2px;
       transform: translateY(-50%);
-      width: 20px;
-      height: 20px;
-      border-radius: var(--radius-pill);
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.55);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      color: var(--muted-2);
-      font-size: 13px;
-      line-height: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: border-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out);
+      width: 4px;
+      height: 28px;
+      border-radius: 2px;
+      background: var(--border);
+      cursor: col-resize;
+      z-index: 5;
+      transition: background 150ms var(--ease-out), height 150ms var(--ease-out), box-shadow 150ms var(--ease-out);
       touch-action: manipulation;
     }
-    .weekend-toggle-btn:hover { border-color: var(--primary); color: var(--primary); background: rgba(255,255,255,0.75); }
-    [data-theme="dark"] .weekend-toggle-btn { background: rgba(255,255,255,0.08); color: var(--muted-3); }
-    [data-theme="dark"] .weekend-toggle-btn:hover { background: rgba(255,255,255,0.14); border-color: var(--primary); color: var(--primary); }
+    .weekend-divider:hover,
+    .weekend-divider.is-collapsed {
+      background: var(--primary);
+      height: 36px;
+      box-shadow: 0 0 8px rgba(37,99,235,0.35);
+    }
+    [data-theme="dark"] .weekend-divider.is-collapsed,
+    [data-theme="dark"] .weekend-divider:hover {
+      box-shadow: 0 0 8px rgba(79,142,247,0.4);
+    }
 
     .week-grid-body {
       display: grid;
       grid-template-columns: 64px repeat(7, 1fr);
       position: relative;
+      transition: grid-template-columns 300ms var(--ease-out);
     }
+    .day-column.weekend,
+    .day-header.weekend { overflow: hidden; }
     .time-gutter {
       position: relative;
       border-right: 1px solid var(--rule);

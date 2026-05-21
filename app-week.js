@@ -813,7 +813,12 @@ function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, no
   const isCurrentWeek = isSameDay(weekStart, startOfWeek(now));
 
   const [weekendCollapsed, setWeekendCollapsed] = useState(false);
-  const cols = isDayView ? [singleCol] : (weekendCollapsed ? [0, 1, 2, 3, 4] : [0, 1, 2, 3, 4, 5, 6]);
+  const cols = isDayView ? [singleCol] : [0, 1, 2, 3, 4, 5, 6];
+  const gridCols = isDayView
+    ? '64px 1fr'
+    : weekendCollapsed
+      ? '64px repeat(5, 1fr) 0fr 0fr'
+      : '64px repeat(7, 1fr)';
 
   const [activeDropCol, setActiveDropCol] = useState(null);
   const [dropPreview, setDropPreview] = useState(null); // { col, top, height }
@@ -916,7 +921,7 @@ function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, no
 
   return (
     <div ref={weekGridRef} className="week-grid">
-      <div className="week-grid-header" style={{ gridTemplateColumns: `64px repeat(${cols.length}, 1fr)` }}>
+      <div className="week-grid-header" style={{ gridTemplateColumns: gridCols }}>
         <div className="time-gutter-header" />
         {cols.map(col => {
           const date = addDays(weekStart, col);
@@ -932,20 +937,18 @@ function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, no
               <div className="day-header-name">{DAY_NAMES_SHORT[col]}</div>
               <div className="day-header-date">{date.getDate()}</div>
               {col === 4 && !isDayView && (
-                <button
-                  className="weekend-toggle-btn"
+                <div
+                  className={`weekend-divider${weekendCollapsed ? ' is-collapsed' : ''}`}
                   onClick={e => { e.stopPropagation(); setWeekendCollapsed(v => !v); }}
                   title={weekendCollapsed ? 'Show weekend' : 'Hide weekend'}
-                >
-                  {weekendCollapsed ? '›' : '‹'}
-                </button>
+                />
               )}
             </div>
           );
         })}
       </div>
 
-      <div className="week-grid-body" style={{ height: totalHeight, gridTemplateColumns: `64px repeat(${cols.length}, 1fr)` }}>
+      <div className="week-grid-body" style={{ height: totalHeight, gridTemplateColumns: gridCols }}>
         <div className="time-gutter">
           {Array.from({ length: HOURS_VISIBLE + 1 }, (_, i) => {
             const h = START_HOUR + i;
