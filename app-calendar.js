@@ -89,6 +89,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
   const [weatherError, setWeatherError] = useState('');
   const [weatherDayTab, setWeatherDayTab] = useState(0); // 0=today, 1=tomorrow, 2=day-after
   const [weatherVisible, setWeatherVisible] = useState(false);
+  const [heroVisible, setHeroVisible] = useState(true); // daily=true, weekly=false by default
   const [calendarToggles, setCalendarToggles] = useState({ routine: true, work: true, household: true });
   const [todosExpanded, setTodosExpanded] = useState(true);
   const [calendarsExpanded, setCalendarsExpanded] = useState(true);
@@ -914,6 +915,11 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
     return () => document.removeEventListener('mousedown', handler);
   }, [menuOpen]);
 
+  // Reset hero visibility to view-appropriate default when switching between daily and weekly
+  React.useEffect(() => {
+    setHeroVisible(mainView === 'today');
+  }, [mainView]);
+
   // Open overlay requested by the IP page menu before navigating back
   React.useEffect(() => {
     if (!pendingCalAction) return;
@@ -1065,6 +1071,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
       <div className="app-topbar-right">
         <button className="app-topbar-btn app-topbar-btn-icon" onClick={() => setTheme(currentTheme === 'light' ? 'dark' : 'light')} title="Toggle theme" aria-label="Toggle theme">{currentTheme === 'light' ? '◐' : '◑'}</button>
         <button className="app-topbar-btn app-topbar-btn-icon" style={{ opacity: weatherVisible ? 1 : 0.4 }} onClick={() => setWeatherVisible(v => !v)} title={weatherVisible ? 'Hide weather' : 'Show weather'} aria-label={weatherVisible ? 'Hide weather' : 'Show weather'}>☁</button>
+        <button className="app-topbar-btn app-topbar-btn-icon" style={{ opacity: heroVisible ? 1 : 0.4 }} onClick={() => setHeroVisible(v => !v)} title={heroVisible ? 'Hide overview panels' : 'Show overview panels'} aria-label={heroVisible ? 'Hide overview panels' : 'Show overview panels'}>▤</button>
         <button className={`app-topbar-btn ${isWorkingAway ? 'active' : ''}`} onClick={toggleWorkingAway}>{isWorkingAway ? 'Away' : 'At home'}</button>
         <button className="app-topbar-btn" onClick={() => setInboxOpen(true)}>{openInboxCount > 0 ? `Inbox · ${openInboxCount}` : 'Inbox'}</button>
         <div className="app-menu-wrap" ref={menuRef}>
@@ -1333,7 +1340,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
         )}
 
         {/* HERO BANNER — 3 cards side by side */}
-        <div className="today-hero-row">
+        {heroVisible && <div className="today-hero-row">
 
           {/* Card 1: Next up / Right now */}
           <div className="today-hero">
@@ -1487,7 +1494,7 @@ function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut
             </div>
           </div>
 
-        </div>
+        </div>}
 
         {mainView === 'today' ? (
           <TodayScreen
