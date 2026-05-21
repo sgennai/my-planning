@@ -927,10 +927,11 @@ function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, no
           const date = addDays(weekStart, col);
           const isToday = isCurrentWeek && isSameDay(date, now);
           const isWeekend = col === 5 || col === 6;
+          if (weekendCollapsed && isWeekend) return null;
           return (
             <div
               key={col}
-              className={`day-header ${isToday ? 'today' : ''} ${isWeekend ? 'weekend' : ''} ${col === 4 && !isDayView ? 'has-weekend-toggle' : ''} ${weekendCollapsed && isWeekend ? 'weekend-hidden' : ''}`}
+              className={`day-header ${isToday ? 'today' : ''} ${isWeekend ? 'weekend' : ''} ${col === 4 && !isDayView ? 'has-weekend-toggle' : ''}`}
               onClick={() => onDayClick && onDayClick(col)}
               title={isDayView ? 'Click to return to week view' : 'Click to zoom into this day'}
             >
@@ -983,6 +984,7 @@ function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, no
             <div
               key={col}
               className={`day-column ${isToday ? 'today' : ''} ${isWeekend ? 'weekend' : ''} ${activeDropCol === col ? 'drop-active' : ''}`}
+              style={weekendCollapsed && isWeekend ? { borderLeft: 'none' } : undefined}
               onDragOver={(e) => onColDragOver(e, col)}
               onDragLeave={onColDragLeave}
               onDrop={(e) => onColDrop(e, col)}
