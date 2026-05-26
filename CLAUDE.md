@@ -83,7 +83,7 @@ Schema migrations are non-destructive at every version bump. `migrate()` in `app
 
 Fixed .app-topbar  (56px, left: 300px → right: 0  — does NOT overlap rail)
   Center: [Today / Week switcher]
-  Right:  [◐] [☁] [At home] [⋮ menu → Interview Prep] [Inbox] [Settings]
+  Right:  [◐] [☁] [▤ hero toggle] [At home] [⋮ menu → Interview Prep] [Inbox] [Settings]
 ```
 
 `TodayScreen` (`app-today.js`) renders only the `today-timeline` div — no wrapper, no topbar, no rail. All shared layout lives in `CalendarScreen`.
@@ -106,8 +106,12 @@ The `viewDayOffset` state (today view's day navigation) and `todayItems` computa
 - `weekStart` — Monday of the displayed week (plan view)
 - `dayView` — null (week) or 0–6 (single-day column) in plan view
 - `todayItems` — computed timeline items for viewDate (routine + blocks + ICS)
-- `tdCurrent`, `tdNext`, `tdThen` — hero banner data
+- `tdCurrentItems` — array of all concurrent events right now (`filter`, not `find`); excludes `elsewhere` and `supplement` categories
+- `tdCurrent` — first item of `tdCurrentItems` (used for single-event prominent display)
+- `tdNext`, `tdThen` — hero banner upcoming events
+- `heroVisible` — bool; `useEffect` resets to `mainView === 'today'` on view switch (today=true, week=false). Toggled via `▤` topbar button
 - `sortedTodos`, `todoInput` — shared left-rail todos state
+- `heroTaskDetail` — task object when user clicks a task title in the Personal tasks hero pane; drives the task-detail glass modal
 
 ## Visual language
 
@@ -125,6 +129,10 @@ The `viewDayOffset` state (today view's day navigation) and `todayItems` computa
 - **Now-line**: 2px blue with soft halo.
 - **Topbar buttons**: `.app-topbar-btn` — pill, same size for all actions.
 - **Weather**: hidden by default (`useState(false)`), toggled via ☁ button in topbar.
+- **Hero panels**: `heroVisible` state, default true in today view / false in week view (resets on view switch). `▤` topbar button toggles all three hero panes at once.
+- **Concurrent events (Right Now pane)**: if multiple events overlap right now, renders an equal-weight flat list (`today-hero-list--now`) at 20px/700 weight, each row showing `ends HH:MM`. Single event gets the larger prominent 24px/700 treatment. Supplements and elsewhere events excluded.
+- **Micro-tracker missed slots**: grey filled circle (`var(--muted-4)`) instead of `!`; clicking turns it green (completed).
+- **Personal task hover**: `rgba(0,0,0,0.05)` rounded bg on the task row. Click title → `heroTaskDetail` modal (small glass panel with full title).
 - **Work calendar untitled events**: `occ.summary || (occ.source === 'work' ? 'Work' : '(untitled)')` — avoids blank event titles.
 
 ## Project portfolio
@@ -151,6 +159,35 @@ Three-column layout: Categories (left) → Questions (middle) → Answer workspa
 - **Category management**: colored dots, groups, reorder ↑↓, rename, delete with confirmation.
 - **Import/Export**: downloads `interviewPrep` as JSON; import validates and replaces with confirmation.
 - All state lives in `data.interviewPrep` in Google Drive JSON. `persistIP(fn)` pattern wraps `persistData`.
+
+## WeekGrid weekend collapse
+
+`WeekGrid` in `app-week.js` has a `weekendCollapsed` bool state. The Friday column header is split 75/25: the right 25% (`weekend-toggle-zone`, `position: absolute`) shows `›` (expand) or `‹` (collapse). Clicking toggles `weekendCollapsed`.
+
+- Grid columns: `weekendCollapsed ? '64px repeat(5, 1fr) 0fr 0fr' : '64px repeat(7, 1fr)'` — CSS `grid-template-columns` transition at 300ms collapses SAT/SUN smoothly.
+- SAT/SUN header cells return `null` when collapsed (not `visibility: hidden`) to avoid phantom 1px border artifacts.
+- SAT/SUN body columns get `style={{ borderLeft: 'none' }}` when collapsed so the border doesn't bleed through at `0fr`.
+
+## RoutineItemPopover (app-routine.js)
+
+5-mode state machine. Default mode on click is `'details'` (read-only). The user chooses an action before any form opens.
+
+```
+Mode          | What shows
+--------------|--------------------------------------------------
+details       | event info + Quick actions + Edit buttons + Advanced toggle
+confirm_skip  | "Skip X on date?" + Cancel / Skip occurrence
+move_occurrence | day-chip picker for this week; moves only this occurrence
+edit_occurrence | title/start/duration/note only — NO home-only, NO recurrence
+edit_future_routine | title/start/duration/note/home-only — clearly labeled "future weeks"
+```
+
+- Home-only checkbox appears **only** in `edit_future_routine`.
+- Delete actions are under a collapsed `rp-advanced-toggle` ("Advanced ▼").
+- `handleDeleteFutureRoutine` uses `window.confirm` for final confirmation before `onDeleteItem`.
+- Scope labels are explicit at every step: "Applies only to Thursday, May 21", "Future routine is unchanged", etc.
+- CSS classes: `.rp-note` (italic muted note), `.rp-scope-note` (blue-left-border scope explanation), `.rp-advanced-toggle` (text-only muted button), `.rp-btn-row` (flex Cancel + action).
+- This popover is only mounted for routine-generated events (`onRoutineClick`), never for ICS/work/household events.
 
 ## Daily Practice Hub
 
@@ -201,6 +238,12 @@ Stephane edits via Claude Code. Deploy: `git add`, `git commit`, `git push` — 
 - ~~Next actions edit mode for Projects Rail (complete/add/archive actions live)~~ COMPLETED — schema v17, completedActions[]
 - ~~Interview Prep full page~~ COMPLETED — three-column workspace, rehearsal, mock interview, progress charts, story bank, rubric, global search, import/export
 - ~~Story Vault~~ COMPLETED — Story Bank inside Interview Prep page
+- ~~WeekGrid weekend collapse~~ COMPLETED — Friday header 75/25 toggle zone, CSS grid-template-columns transition, SAT/SUN return null when collapsed
+- ~~Hero panels toggle~~ COMPLETED — `▤` topbar button, default true in today view / false in week view
+- ~~Concurrent events in Right Now pane~~ COMPLETED — filter (not find), equal-weight flat list, `ends HH:MM`, supplements excluded
+- ~~Micro-tracker missed slots~~ COMPLETED — grey filled circle (muted-4) instead of `!`
+- ~~Personal task hover + title modal~~ COMPLETED — hover bg, click title → glass detail modal
+- ~~Routine event click panel UX redesign~~ COMPLETED — progressive disclosure, 5-mode state machine, scope labels, home-only in future routine editor only, destructive actions under Advanced
 - Persistent Google sign-in
 - Past weekly resets browser
 - Habit streaks/analytics
