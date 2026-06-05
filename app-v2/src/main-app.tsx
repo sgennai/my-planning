@@ -4,7 +4,9 @@ import { SCHEMA_VERSION, SEED_ROUTINE, SEED_PROJECTS, SEED_REFERENCE_LIBRARY, SE
 import { pad } from './ui/helpers';
 import { InterviewPrepScreen } from './practice/InterviewPrep';
 import { CalendarScreen } from './calendar/CalendarScreen';
+import { ModuleDashboard } from './modules/ModuleDashboard';
 import { loadData, saveData, syncData } from './storage/db';
+import { DEFAULT_MODULES } from './modules/seed-modules';
 
 // DEFAULT DATA + MIGRATION
 // ═════════════════════════════════════════════════════════════
@@ -50,7 +52,7 @@ export function makeDefaultData() {
       geos: [],
       switchDeadline: '',
     },
-    modules: [],
+    modules: DEFAULT_MODULES,
     learning: [],
     content: [],
     create: { ideas: [], posts: [] },
@@ -393,6 +395,19 @@ export function App() {
     </div>
   );
 
+  if (appPage === 'modules') {
+    return (
+      <>
+        <ModuleDashboard
+          data={data}
+          onPersist={persist}
+          onClose={() => setAppPage('calendar')}
+        />
+        {conflictNotice}
+      </>
+    );
+  }
+
   if (appPage === 'interview') {
     return (
       <>
@@ -417,6 +432,7 @@ export function App() {
         onSignOut={handleSignOut}
         onPersist={persist}
         onOpenInterviewPrep={() => setAppPage('interview')}
+        onOpenModules={() => setAppPage('modules')}
         pendingCalAction={pendingCalAction}
         onClearPendingAction={() => setPendingCalAction(null)}
       />

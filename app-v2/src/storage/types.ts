@@ -25,12 +25,17 @@ export interface Project extends BaseRecord {
 }
 
 export interface Module extends BaseRecord {
+  name: string;
   family: string;
   type: 'native' | 'light' | 'generator' | 'external';
   contentRef?: string;
   projectRef?: string;
-  cadence?: any;
-  status: string;
+  cadence?: {
+    frequency: 'daily' | 'weekly' | 'monthly';
+    preferredDay?: string; // e.g. 'Tuesday'
+    durationMin: number;
+  };
+  status: 'active' | 'paused' | 'archived' | 'pending';
 }
 
 export interface Action extends BaseRecord {
@@ -85,7 +90,7 @@ export interface TimeBlock extends BaseRecord {
   start: string;
   durationMin: number;
   category: string;
-  origin: 'manual' | 'practice' | 'create' | 'intake';
+  origin: 'manual' | 'practice' | 'create' | 'intake' | 'generator';
   refId?: string;
 }
 
