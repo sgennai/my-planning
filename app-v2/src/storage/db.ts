@@ -23,6 +23,10 @@ export const STORES = {
 let dbPromise: Promise<IDBPDatabase> | null = null;
 let currentSnapshot: any = null;
 
+export function _resetForTest() {
+  currentSnapshot = null;
+}
+
 export async function initDB() {
   if (!dbPromise) {
     dbPromise = openDB(DB_NAME, DB_VERSION, {
@@ -261,8 +265,8 @@ export async function importDataBlob(file: File): Promise<any> {
   });
 }
 
-export async function syncData(syncUrl: string, secret: string): Promise<boolean> {
-  if (!syncUrl || !secret) return false;
+export async function syncData(syncUrl: string, secret: string): Promise<{id: string, storeName: string}[]> {
+  if (!syncUrl || !secret) return [];
   
   const normalizedUrl = syncUrl.replace(/\/+$/, '');
   const db = await initDB();
@@ -291,46 +295,53 @@ export async function syncData(syncUrl: string, secret: string): Promise<boolean
   }
   await txGather.done;
 
-  // Push
-  if (pushPayload.length > 0) {
-    const pushRes = await fetch(`${normalizedUrl}/sync/push`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Sync-Secret': secret },
-      body: JSON.stringify(pushPayload)
-    });
-    if (!pushRes.ok) throw new Error(`Push failed: ${pushRes.statusText}`);
-  }
-
-  // Pull
-  const pullRes = await fetch(`${normalizedUrl}/sync/pull?since=${lastSyncStr}`, {
-    headers: { 'X-Sync-Secret': secret }
-  });
-  if (!pullRes.ok) throw new Error(`Pull failed: ${pullRes.statusText}`);
-  const pullData = await pullRes.json();
-  const remoteRecords = pullData.records || [];
-
-  let didApplyChanges = false;
-
-  if (remoteRecords.length > 0) {
-    const txApply = db.transaction(Object.values(STORES), 'readwrite');
-    for (const rec of remoteRecords) {
-      if (!Object.values(STORES).includes(rec.storeName)) continue;
-      const store = txApply.objectStore(rec.storeName);
-      const localRec = await store.get(rec.id);
-
-      if (!localRec || rec.updatedAt > localRec.updatedAt) {
-        if (rec.deleted) {
-          await store.put({ id: rec.id, _deleted: true, updatedAt: rec.updatedAt });
-        } else {
-          await store.put({ ...rec.payload, updatedAt: rec.updatedAt });
-        }
-        didApplyChanges = true;
-      }
+  try {
+    // Push
+    if (pushPayload.length > 0) {
+      const pushRes = await fetch(`${normalizedUrl}/sync/push`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Sync-Secret': secret },
+        body: JSON.stringify(pushPayload)
+      });
+      if (!pushRes.ok) throw new Error(`Push failed: ${pushRes.statusText}`);
     }
-    await txApply.done;
-  }
 
-  // If push succeeded and pull succeeded, we update our sync time.
-  localStorage.setItem('my-planning-sync-time', now);
-  return didApplyChanges;
+    // Pull
+    const pullRes = await fetch(`${normalizedUrl}/sync/pull?since=${lastSyncStr}`, {
+      headers: { 'X-Sync-Secret': secret }
+    });
+    if (!pullRes.ok) throw new Error(`Pull failed: ${pullRes.statusText}`);
+    const pullData = await pullRes.json();
+    const remoteRecords = pullData.records || [];
+
+    const changedEntities: {id: string, storeName: string}[] = [];
+
+    if (remoteRecords.length > 0) {
+      const txApply = db.transaction(Object.values(STORES), 'readwrite');
+      for (const rec of remoteRecords) {
+        if (!Object.values(STORES).includes(rec.storeName)) continue;
+        const store = txApply.objectStore(rec.storeName);
+        const localRec = await store.get(rec.id);
+
+        if (!localRec || rec.updatedAt > localRec.updatedAt) {
+          if (rec.deleted) {
+            await store.put({ id: rec.id, _deleted: true, updatedAt: rec.updatedAt });
+          } else {
+            await store.put({ ...rec.payload, updatedAt: rec.updatedAt });
+          }
+          changedEntities.push({ id: rec.id, storeName: rec.storeName });
+        }
+      }
+      await txApply.done;
+    }
+
+    // If push succeeded and pull succeeded, we update our sync time.
+    localStorage.setItem('my-planning-sync-time', now);
+    return changedEntities;
+  } catch (e) {
+    // Fail silently (offline or server error). Changes remain dirty for next sync.
+    console.warn('Sync failed silently (will retry next time):', e);
+    return [];
+  }
 }
+

@@ -247,6 +247,7 @@ export function App() {
   const [lastSyncedAt, setLastSyncedAt] = useState(null);
   const [appPage, setAppPage] = useState('calendar');
   const [pendingCalAction, setPendingCalAction] = useState(null);
+  const [remoteConflicts, setRemoteConflicts] = useState([]);
 
   // Apply theme to <html data-theme="..."> whenever data.prefs.theme changes.
   // Default to 'light' before data loads so the boot/sign-in screens use the right palette.
@@ -294,12 +295,24 @@ export function App() {
   const runBackgroundSync = useCallback(async () => {
     if (!data?.calendars?.syncUrl || !data?.calendars?.syncSecret) return;
     try {
-      const didChange = await syncData(data.calendars.syncUrl, data.calendars.syncSecret);
-      if (didChange) {
+      const changedEntities = await syncData(data.calendars.syncUrl, data.calendars.syncSecret);
+      if (changedEntities.length > 0) {
         // Re-hydrate memory from IDB silently
         const freshData = await loadData();
         if (freshData) {
           setData(freshData);
+          
+          // Only show notice if the user is actively editing a text field right now
+          const activeTag = document.activeElement ? document.activeElement.tagName : '';
+          const isActivelyEditing = activeTag === 'INPUT' || activeTag === 'TEXTAREA';
+          
+          if (isActivelyEditing) {
+            setRemoteConflicts(prev => {
+              const newConflicts = new Set(prev);
+              for (const ce of changedEntities) newConflicts.add(ce.id);
+              return Array.from(newConflicts);
+            });
+          }
         }
       }
     } catch (e) {
@@ -330,6 +343,8 @@ export function App() {
     setData(nextData); // optimistic — render reflects change immediately
     setSaving(true);
     setError('');
+    // Clear conflicts when we save, as we've presumably reconciled locally
+    setRemoteConflicts([]);
     try {
       await saveData(nextData);
       setLastSyncedAt(new Date());
@@ -348,11 +363,9 @@ export function App() {
   }, [runBackgroundSync]);
 
   const handleSignIn = async () => {
-    // No longer needed
     setPhase('ready');
   };
   const handleSignOut = async () => {
-    // No longer needed
     setPhase('signin');
   };
   const handleReload = async () => {
@@ -368,29 +381,47 @@ export function App() {
     return <ErrorScreen message={error} onRetry={() => setPhase('signin')} />;
   if (phase === 'signin')
     return <SignInScreen onSignIn={handleSignIn} error={error} />;
+
+  const hasConflict = remoteConflicts.length > 0;
+  const conflictNotice = hasConflict && (
+    <div style={{ position: 'fixed', bottom: 20, right: 20, background: 'var(--bg-card)', border: '1px solid var(--border)', padding: '12px 16px', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 9999, display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div>
+        <div style={{ fontWeight: 600, fontSize: 14 }}>Updated elsewhere</div>
+        <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Changes synced from another device.</div>
+      </div>
+      <button className="btn-primary" style={{ padding: '6px 12px', fontSize: 13 }} onClick={() => setRemoteConflicts([])}>Dismiss</button>
+    </div>
+  );
+
   if (appPage === 'interview') {
     return (
-      <InterviewPrepScreen
-        data={data}
-        onPersist={persist}
-        onBack={(action) => { if (action) setPendingCalAction(action); setAppPage('calendar'); }}
-        onSignOut={handleSignOut}
-      />
+      <>
+        <InterviewPrepScreen
+          data={data}
+          onPersist={persist}
+          onBack={(action) => { if (action) setPendingCalAction(action); setAppPage('calendar'); }}
+          onSignOut={handleSignOut}
+        />
+        {conflictNotice}
+      </>
     );
   }
   return (
-    <CalendarScreen
-      data={data}
-      saving={saving}
-      lastSyncedAt={lastSyncedAt}
-      error={error}
-      onReload={handleReload}
-      onSignOut={handleSignOut}
-      onPersist={persist}
-      onOpenInterviewPrep={() => setAppPage('interview')}
-      pendingCalAction={pendingCalAction}
-      onClearPendingAction={() => setPendingCalAction(null)}
-    />
+    <>
+      <CalendarScreen
+        data={data}
+        saving={saving}
+        lastSyncedAt={lastSyncedAt}
+        error={error}
+        onReload={handleReload}
+        onSignOut={handleSignOut}
+        onPersist={persist}
+        onOpenInterviewPrep={() => setAppPage('interview')}
+        pendingCalAction={pendingCalAction}
+        onClearPendingAction={() => setPendingCalAction(null)}
+      />
+      {conflictNotice}
+    </>
   );
 }
 
