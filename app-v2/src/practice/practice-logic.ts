@@ -73,7 +73,8 @@ export function searchPracticeItems(items: PracticeItem[], query: string, trackF
   
   const q = query.toLowerCase();
   return filtered.filter(i => {
-    const promptMatch = i.prompt?.toLowerCase().includes(q);
+    const pStr = typeof i.prompt === 'string' ? i.prompt : Object.values(i.prompt || {}).join(' ');
+    const promptMatch = pStr.toLowerCase().includes(q);
     const answerMatch = typeof i.answer?.raw === 'string' && i.answer.raw.toLowerCase().includes(q);
     const tagMatch = i.tags?.some(t => t.toLowerCase().includes(q));
     return promptMatch || answerMatch || tagMatch;

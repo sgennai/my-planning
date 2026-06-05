@@ -2,14 +2,18 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo, Fragment, useContext } from 'react';
 import { pad } from '../ui/helpers';
 import interviewJson from '../content/interview.json';
+import clevelJson from '../content/clevel.json';
 import { getStatusFromConfidence, getNextPracticeDate, isDueForPractice, selectPracticeBatch, searchPracticeItems } from './practice-logic';
 
 export const LangContext = React.createContext<'en'|'fr'>('en');
 
-export function localize(field: any, lang: string) {
+export function localize(field: any, lang: string): string {
   if (!field) return '';
   if (typeof field === 'string') return field;
-  return field[lang] ?? field.en ?? '';
+  if (Array.isArray(field)) return field.join(', ');
+  const val = field[lang] ?? field.en ?? '';
+  if (Array.isArray(val)) return val.join(', ');
+  return val;
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -448,6 +452,9 @@ export function IPWorkspace({ question, ip, onUpdateAnswer, onUpdateQuestion, on
         />
       </div>
     </div>
+  );
+}
+
 // ─── IPStoryEditor ────────────────────────────────────────────────
 export function IPStoryEditor({ story, onUpdate, onDelete, linkedByQuestions }) {
   const lang = useContext(LangContext);
@@ -640,6 +647,9 @@ export function IPGlobalSearch({ questions, stories, categories, onNavigate, onC
         )}
       </div>
     </div>
+  );
+}
+
 // ─── IPQuestionCard ───────────────────────────────────────────────
 export function IPQuestionCard({ q, selected, onClick }) {
   const lang = useContext(LangContext);
@@ -1135,7 +1145,7 @@ export function PracticeScreen({ data, onPersist, onBack, onSignOut }) {
   const tracks = [
     { id: 'interview', name: 'Practice Hub', categories: interviewJson.categories },
     { id: 'sales', name: 'Core Sales Execution', categories: [] },
-    { id: 'clevel', name: 'C-Level Discussions', categories: [] },
+    { id: 'clevel', name: 'C-Level Discussions', categories: clevelJson.categories || [] },
     { id: 'execpresence', name: 'Executive Presence', categories: [] }
   ];
   

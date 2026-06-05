@@ -1,21 +1,23 @@
 import type { AppDataV24, PracticeItem } from '../storage/types';
 import interviewJson from '../content/interview.json';
+import clevelJson from '../content/clevel.json';
 
 // Define the shape of our external content files
 interface ContentTrack {
   track: string;
-  categories: any[];
+  categories?: { id: string; name: string; color: string }[];
   items: {
     id: string;
-    prompt: string;
+    prompt: string | Record<string, string>;
     tags?: string[];
     rubric?: string;
-    reference?: Record<string, string | Record<string, string>>;
+    reference?: Record<string, any>;
   }[];
 }
 
 const TRACKS: ContentTrack[] = [
-  interviewJson as ContentTrack
+  interviewJson as ContentTrack,
+  clevelJson as ContentTrack
 ];
 
 /**
@@ -75,7 +77,6 @@ export function mergePracticeContent(data: AppDataV24): boolean {
           tags: item.tags || [],
           rubric: item.rubric,
           reference: item.reference,
-          createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
         data.practiceItems.push(newItem);

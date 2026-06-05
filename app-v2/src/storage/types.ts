@@ -1,6 +1,7 @@
 export interface BaseRecord {
   id: string;
   updatedAt?: string;
+  _deleted?: boolean;
 }
 
 export interface UserProfile extends BaseRecord {
@@ -106,7 +107,8 @@ export interface PracticeItem extends BaseRecord {
   rehearsalCount?: number;
   linkedStoryIds?: string[];
   tags?: string[];
-  reference?: Record<string, string | Record<string, string>>;
+  reference?: Record<string, any>;
+  createdAt?: string;
 }
 
 export interface InterviewStory extends BaseRecord {
