@@ -23,16 +23,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: Inject cache-busting version into script tags
         run: |
           VERSION=$(git rev-parse --short HEAD)
-          sed -i "s|src=\"\(app-[^\"]*\.js\)\"|src=\"\1?v=${VERSION}\"|g" index.html
+          sed -i "s|src=\"\\(app-[^\"]*\\.js\\)\"|src=\"\\1?v=${VERSION}\"|g" index.html
+
+      - name: Build App V2
+        run: |
+          cd app-v2
+          npm ci
+          npm run build
+
+      - name: Prepare Deployment Artifact
+        run: |
+          mkdir _site
+          rsync -av --exclude='app-v2' --exclude='.git' --exclude='_site' --exclude='.github' ./ _site/
+          mkdir -p _site/v2
+          cp -a app-v2/dist/* _site/v2/
 
       - uses: actions/configure-pages@v4
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_site'
 
       - uses: actions/deploy-pages@v4
         id: deployment
