@@ -1,8 +1,8 @@
 // @ts-nocheck
 import React, { useState, useEffect, useRef, useCallback, useMemo, Fragment } from 'react';
-import { SCHEMA_VERSION, SEED_ROUTINE, SEED_PROJECTS, SEED_REFERENCE_LIBRARY, SEED_PRACTICE_CONTENT, SEED_INTERVIEW_CATEGORIES, SEED_INTERVIEW_QUESTIONS } from './storage/data';
-import { pad } from './ui/helpers';
-import { InterviewPrepScreen } from './practice/InterviewPrep';
+import { SCHEMA_VERSION, SEED_ROUTINE, SEED_PROJECTS, SEED_REFERENCE_LIBRARY, SEED_PRACTICE_CONTENT } from './storage/data';
+import { migrate } from './storage/migrations';
+import { PracticeScreen } from './practice/PracticeScreen';
 import { CalendarScreen } from './calendar/CalendarScreen';
 import { ModuleDashboard } from './modules/ModuleDashboard';
 import { loadData, saveData, syncData } from './storage/db';
@@ -28,7 +28,7 @@ export function makeDefaultData() {
     todos: [],
     completedActions: [],
     practiceContent: SEED_PRACTICE_CONTENT,
-    interviewPrep: { categories: [...SEED_INTERVIEW_CATEGORIES], questions: [...SEED_INTERVIEW_QUESTIONS], stories: [] },
+    interviewPrep: { categories: [], questions: [], stories: [] },
     routineCompletions: {},
     weather: { lat: null, lon: null, label: '', source: 'unset' },
     prefs: {
@@ -61,156 +61,7 @@ export function makeDefaultData() {
   };
 }
 
-export function migrate(data) {
-  let changed = false;
-  const next = { ...data };
-  const prevVersion = next.schemaVersion || 0;
-  if (prevVersion < SCHEMA_VERSION) { next.schemaVersion = SCHEMA_VERSION; changed = true; }
-  // v2: re-seed routine
-  if (prevVersion < 2) { next.routine = SEED_ROUTINE; changed = true; }
-  else if (next.routine == null || (Array.isArray(next.routine) && next.routine.length === 0)) {
-    next.routine = SEED_ROUTINE; changed = true;
-  }
-  // v3: seed projects + scheduledBlocks
-  if (prevVersion < 3) {
-    next.projects = SEED_PROJECTS;
-    next.scheduledBlocks = next.scheduledBlocks || [];
-    changed = true;
-  } else if (!Array.isArray(next.projects) || next.projects.length === 0) {
-    next.projects = SEED_PROJECTS; changed = true;
-  }
-  // v4: seed referenceLibrary (only if missing — preserves user edits)
-  if (!Array.isArray(next.referenceLibrary) || next.referenceLibrary.length === 0) {
-    next.referenceLibrary = SEED_REFERENCE_LIBRARY;
-    changed = true;
-  }
-  // v5: replace the meeting-reset placeholder entry with real content.
-  // We only replace this one entry — other entries keep any edits.
-  if (prevVersion < 5 && Array.isArray(next.referenceLibrary)) {
-    const meetingReset = SEED_REFERENCE_LIBRARY.find(r => r.id === 'ref-meeting-reset');
-    if (meetingReset) {
-      const idx = next.referenceLibrary.findIndex(r => r.id === 'ref-meeting-reset');
-      if (idx >= 0) {
-        next.referenceLibrary[idx] = meetingReset;
-      } else {
-        next.referenceLibrary.push(meetingReset);
-      }
-      changed = true;
-    }
-  }
-  if (!Array.isArray(next.scheduledBlocks)) { next.scheduledBlocks = []; changed = true; }
-  if (!next.overrides) { next.overrides = {}; changed = true; }
-  if (!next.calendars) { next.calendars = { workIcs: '', householdIcs: '', proxyUrl: '', syncUrl: '', syncSecret: '', workColor: '#8C8C96', householdColor: '#7896AF' }; changed = true; }
-  else {
-    if (next.calendars.proxyUrl === undefined) { next.calendars.proxyUrl = ''; changed = true; }
-    if (next.calendars.syncUrl === undefined) { next.calendars.syncUrl = ''; changed = true; }
-    if (next.calendars.syncSecret === undefined) { next.calendars.syncSecret = ''; changed = true; }
-    if (next.calendars.workColor === undefined) { next.calendars.workColor = '#8C8C96'; changed = true; }
-    if (next.calendars.householdColor === undefined) { next.calendars.householdColor = '#7896AF'; changed = true; }
-  }
-  if (!next.weeklyResets) { next.weeklyResets = []; changed = true; }
-  if (!next.inbox) { next.inbox = []; changed = true; }
-  if (!next.elsewhereToggles) { next.elsewhereToggles = { morning: false, afternoon: false, allDay: false, date: null }; changed = true; }
-  if (!Array.isArray(next.todos)) { next.todos = []; changed = true; }
-  if (!Array.isArray(next.completedActions)) { next.completedActions = []; changed = true; }
-  if (!next.practiceContent || typeof next.practiceContent !== 'object' ||
-      !next.practiceContent.interviewPrep || !next.practiceContent.personalNarrative || !next.practiceContent.clevelQs) {
-    next.practiceContent = SEED_PRACTICE_CONTENT; changed = true;
-  }
-  if (!next.routineCompletions || typeof next.routineCompletions !== 'object') {
-    next.routineCompletions = {};
-    changed = true;
-  }
-  // v23: interview prep page data
-  if (!next.interviewPrep || !Array.isArray(next.interviewPrep.categories)) {
-    next.interviewPrep = { categories: [...SEED_INTERVIEW_CATEGORIES], questions: [...SEED_INTERVIEW_QUESTIONS], stories: [] };
-    changed = true;
-  }
-  if (!next.weather || typeof next.weather !== 'object') {
-    next.weather = { lat: null, lon: null, label: '', source: 'unset' };
-    changed = true;
-  }
-  // v13: theme preference. Existing users get light by default (the new default surface).
-  if (!next.prefs || typeof next.prefs !== 'object') {
-    next.prefs = { theme: 'light', categoryColors: {}, todayView: 'timeline', lunchSlot: { start: '12:30', duration: 60 } };
-    changed = true;
-  } else {
-    if (!next.prefs.theme) { next.prefs.theme = 'light'; changed = true; }
-    if (!next.prefs.categoryColors || typeof next.prefs.categoryColors !== 'object') {
-      next.prefs.categoryColors = {};
-      changed = true;
-    }
-    // v16: per-category emoji overrides
-    if (!next.prefs.categoryEmojis || typeof next.prefs.categoryEmojis !== 'object') {
-      next.prefs.categoryEmojis = {};
-      changed = true;
-    }
-    if (!next.prefs.categoryLabels || typeof next.prefs.categoryLabels !== 'object') {
-      next.prefs.categoryLabels = {};
-      changed = true;
-    }
-    // v15: today view + lunch slot
-    if (!next.prefs.todayView) { next.prefs.todayView = 'timeline'; changed = true; }
-    if (next.prefs.nowLineColor === undefined) { next.prefs.nowLineColor = ''; changed = true; }
-    if (next.prefs.miniMonthTodayColor === undefined) { next.prefs.miniMonthTodayColor = ''; changed = true; }
-    if (next.prefs.nowEventColor === undefined) { next.prefs.nowEventColor = ''; changed = true; }
-    if (!next.prefs.userCategories || typeof next.prefs.userCategories !== 'object') {
-      next.prefs.userCategories = {};
-      changed = true;
-    }
-    if (!next.prefs.lunchSlot || typeof next.prefs.lunchSlot !== 'object') {
-      next.prefs.lunchSlot = { start: '12:30', duration: 60 };
-      changed = true;
-    }
-  }
-  // v11: routine items with string recurrence get structured form
-  if (Array.isArray(next.routine)) {
-    next.routine = next.routine.map(item => {
-      if (typeof item.recurrence === 'string') {
-        // Try to parse 'top-of-hour-9-18' style
-        const m = item.recurrence.match(/top-of-hour-(\d+)-(\d+)/);
-        if (m) {
-          changed = true;
-          return { ...item, recurrence: { kind: 'top-of-hour', startHour: +m[1], endHour: +m[2] } };
-        }
-        // Unknown string — clear it
-        changed = true;
-        const { recurrence, ...rest } = item;
-        return rest;
-      }
-      return item;
-    });
-  }
-  if ('testCounter' in next) { delete next.testCounter; changed = true; }
 
-  // v24: new engines
-  if (!next.userProfile || typeof next.userProfile !== 'object') {
-    next.userProfile = {
-      id: 'singleton-user-profile',
-      targetRoles: [],
-      competencyFramework: [],
-      positioningThesis: '',
-      industries: [],
-      geos: [],
-      switchDeadline: '',
-    };
-    changed = true;
-  }
-  if (!Array.isArray(next.modules)) { next.modules = []; changed = true; }
-  if (!Array.isArray(next.learning)) { next.learning = []; changed = true; }
-  if (!Array.isArray(next.content)) { next.content = []; changed = true; }
-  if (!next.create || typeof next.create !== 'object') {
-    next.create = { ideas: [], posts: [] };
-    changed = true;
-  }
-  if (!Array.isArray(next.progressLog)) { next.progressLog = []; changed = true; }
-  if (!next.featureFlags || typeof next.featureFlags !== 'object') {
-    next.featureFlags = {};
-    changed = true;
-  }
-
-  return { data: next, migrated: changed };
-}
 
 // ═════════════════════════════════════════════════════════════
 // HOOKS
@@ -298,10 +149,20 @@ export function App() {
     if (!data?.calendars?.syncUrl || !data?.calendars?.syncSecret) return;
     try {
       const changedEntities = await syncData(data.calendars.syncUrl, data.calendars.syncSecret);
-      if (changedEntities.length > 0) {
-        // Re-hydrate memory from IDB silently
-        const freshData = await loadData();
+      
+      const freshData = await loadData() || data;
+      const { mergePracticeContent } = await import('./practice/content-loader');
+      let didContentChange = false;
+      if (freshData) {
+        didContentChange = mergePracticeContent(freshData);
+      }
+      
+      if (changedEntities.length > 0 || didContentChange) {
         if (freshData) {
+          if (didContentChange) {
+            freshData.lastModified = new Date().toISOString();
+            await saveData(freshData);
+          }
           setData(freshData);
           
           // Only show notice if the user is actively editing a text field right now
@@ -408,17 +269,14 @@ export function App() {
     );
   }
 
-  if (appPage === 'interview') {
+  if (appPage === 'practice') {
     return (
-      <>
-        <InterviewPrepScreen
+        <PracticeScreen
           data={data}
           onPersist={persist}
           onBack={(action) => { if (action) setPendingCalAction(action); setAppPage('calendar'); }}
           onSignOut={handleSignOut}
         />
-        {conflictNotice}
-      </>
     );
   }
   return (
@@ -431,7 +289,7 @@ export function App() {
         onReload={handleReload}
         onSignOut={handleSignOut}
         onPersist={persist}
-        onOpenInterviewPrep={() => setAppPage('interview')}
+        onOpenPractice={() => setAppPage('practice')}
         onOpenModules={() => setAppPage('modules')}
         pendingCalAction={pendingCalAction}
         onClearPendingAction={() => setPendingCalAction(null)}

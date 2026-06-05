@@ -13,6 +13,7 @@ import { BlockPopover } from './week/BlockPopover';
 import { AgendaView, ReferenceLibraryModal } from '../routine/Routine';
 import { RoutineItemPopover } from '../routine/RoutineItemPopover';
 import { WeatherStrip, InboxModal, SettingsModal, WeeklyResetOverlay } from '../ui/widgets';
+import { scheduleModuleBlocks } from '../modules/generator';
 
 // Stable empty defaults — hoisted so inline `|| []`/`|| {}` don't create
 // new references on every render and silently invalidate useMemo deps.
@@ -71,7 +72,7 @@ export function MicroTracker({ tracker, onToggle, viewDate }) {
   );
 }
 
-export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut, onPersist, onOpenInterviewPrep, onOpenModules, pendingCalAction, onClearPendingAction }) {
+export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut, onPersist, onOpenPractice, onOpenModules, pendingCalAction, onClearPendingAction }) {
   const isMobile = useMediaQuery('(max-width: 759px)');
   const now = useTickingClock(60000);
   // View routing: 'today' = daily compass (default landing), 'plan' = full week canvas
@@ -1100,7 +1101,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
             return (
               <div className="app-menu-dropdown">
                 <button className="app-menu-item app-menu-item--disabled" disabled>Calendar</button>
-                <button className="app-menu-item" onClick={() => { if (onOpenInterviewPrep) onOpenInterviewPrep(); setMenuOpen(false); }}>Interview Prep</button>
+                <button className="app-menu-item" onClick={() => { if (onOpenPractice) onOpenPractice(); setMenuOpen(false); }}>Practice Hub</button>
                 <button className="app-menu-item" onClick={() => { if (onOpenModules) onOpenModules(); setMenuOpen(false); }}>Module Dashboard</button>
                 <div className="app-menu-divider" />
                 <button className="app-menu-item" onClick={() => { setResetOverlayOpen(true); setMenuOpen(false); }}>
@@ -1645,6 +1646,18 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
         now={now}
         onClose={() => setResetOverlayOpen(false)}
         onSave={(answers) => { saveWeeklyReset(answers); }}
+        onGenerateBlocks={() => {
+          let nextData = data;
+          const weekStartIso = weekStart.toISOString();
+          (data.modules || []).forEach(m => {
+            if (m.type === 'generator' && m.status === 'active') {
+              nextData = scheduleModuleBlocks(nextData, m.id, weekStartIso);
+            }
+          });
+          if (nextData !== data) {
+            onPersist(nextData);
+          }
+        }}
       />
     )}
 

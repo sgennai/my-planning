@@ -1047,7 +1047,7 @@ export function FridayReviewLauncher({ now, weeklyResets, onLaunch }) {
 // ═════════════════════════════════════════════════════════════
 // WEEKLY RESET OVERLAY — full-screen guided reflection
 // ═════════════════════════════════════════════════════════════
-export function WeeklyResetOverlay({ weekStart, now, onClose, onSave }) {
+export function WeeklyResetOverlay({ weekStart, now, onClose, onSave, onGenerateBlocks }) {
   const [phaseIdx, setPhaseIdx] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(WEEKLY_RESET_PHASES[0].duration);
   const [running, setRunning] = useState(false);
@@ -1203,7 +1203,14 @@ export function WeeklyResetOverlay({ weekStart, now, onClose, onSave }) {
               State your experiment for next week aloud.<br />
               You are done. Go rest.
             </div>
-            <button className="btn-primary" onClick={onClose}>Close</button>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 16 }}>
+              {onGenerateBlocks && (
+                <button className="btn-secondary" onClick={() => { onGenerateBlocks(); onClose(); }}>
+                  Schedule this week's modules
+                </button>
+              )}
+              <button className="btn-primary" onClick={onClose}>Close</button>
+            </div>
           </div>
         )}
       </div>

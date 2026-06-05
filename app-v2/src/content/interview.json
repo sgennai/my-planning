@@ -1,0 +1,714 @@
+{
+  "track": "interview",
+  "categories": [
+    {
+      "id": "ipc-meddpicc",
+      "name": "MEDDPICC",
+      "group": "Core Sales Execution",
+      "color": "#3B82F6",
+      "order": 1
+    },
+    {
+      "id": "ipc-forecast",
+      "name": "Forecasting",
+      "group": "Core Sales Execution",
+      "color": "#8B5CF6",
+      "order": 2
+    },
+    {
+      "id": "ipc-pipeline",
+      "name": "Pipeline Management",
+      "group": "Core Sales Execution",
+      "color": "#6366F1",
+      "order": 3
+    },
+    {
+      "id": "ipc-closing",
+      "name": "Closing",
+      "group": "Core Sales Execution",
+      "color": "#EC4899",
+      "order": 4
+    },
+    {
+      "id": "ipc-negot",
+      "name": "Negotiation",
+      "group": "Core Sales Execution",
+      "color": "#F59E0B",
+      "order": 5
+    },
+    {
+      "id": "ipc-objection",
+      "name": "Objection Handling",
+      "group": "Core Sales Execution",
+      "color": "#EF4444",
+      "order": 6
+    },
+    {
+      "id": "ipc-account",
+      "name": "Account Planning",
+      "group": "Strategic Enterprise Selling",
+      "color": "#10B981",
+      "order": 7
+    },
+    {
+      "id": "ipc-execalign",
+      "name": "Executive Alignment",
+      "group": "Strategic Enterprise Selling",
+      "color": "#059669",
+      "order": 8
+    },
+    {
+      "id": "ipc-clevel",
+      "name": "C-level Discussions",
+      "group": "Strategic Enterprise Selling",
+      "color": "#0D9488",
+      "order": 9
+    },
+    {
+      "id": "ipc-mmdeals",
+      "name": "Multi-million-Dollar Deals",
+      "group": "Strategic Enterprise Selling",
+      "color": "#0891B2",
+      "order": 10
+    },
+    {
+      "id": "ipc-bizvalue",
+      "name": "Business Value / ROI",
+      "group": "Strategic Enterprise Selling",
+      "color": "#0284C7",
+      "order": 11
+    },
+    {
+      "id": "ipc-compete",
+      "name": "Competitive Positioning",
+      "group": "Strategic Enterprise Selling",
+      "color": "#2563EB",
+      "order": 12
+    },
+    {
+      "id": "ipc-territory",
+      "name": "Territory Management",
+      "group": "Leadership & Scale",
+      "color": "#7C3AED",
+      "order": 13
+    },
+    {
+      "id": "ipc-global",
+      "name": "Global Strategy",
+      "group": "Leadership & Scale",
+      "color": "#6D28D9",
+      "order": 14
+    },
+    {
+      "id": "ipc-crossfunc",
+      "name": "Cross-functional Leadership",
+      "group": "Leadership & Scale",
+      "color": "#5B21B6",
+      "order": 15
+    },
+    {
+      "id": "ipc-salesmgmt",
+      "name": "Sales Management Scenarios",
+      "group": "Leadership & Scale",
+      "color": "#7E22CE",
+      "order": 16
+    },
+    {
+      "id": "ipc-prodsales",
+      "name": "Product / Sales Alignment",
+      "group": "Leadership & Scale",
+      "color": "#9333EA",
+      "order": 17
+    },
+    {
+      "id": "ipc-whysf",
+      "name": "Why Salesforce",
+      "group": "Salesforce Fit",
+      "color": "#0EA5E9",
+      "order": 18
+    },
+    {
+      "id": "ipc-whyae",
+      "name": "Why Senior Account Executive",
+      "group": "Salesforce Fit",
+      "color": "#0284C7",
+      "order": 19
+    },
+    {
+      "id": "ipc-whychange",
+      "name": "Why Change Jobs",
+      "group": "Salesforce Fit",
+      "color": "#0369A1",
+      "order": 20
+    },
+    {
+      "id": "ipc-sfculture",
+      "name": "Salesforce Culture / Values",
+      "group": "Salesforce Fit",
+      "color": "#075985",
+      "order": 21
+    },
+    {
+      "id": "ipc-location",
+      "name": "Location / Remote / Hybrid",
+      "group": "Salesforce Fit",
+      "color": "#0C4A6E",
+      "order": 22
+    },
+    {
+      "id": "ipc-career",
+      "name": "Career Narrative",
+      "group": "Personal Stories",
+      "color": "#B45309",
+      "order": 23
+    },
+    {
+      "id": "ipc-resilience",
+      "name": "Resilience",
+      "group": "Personal Stories",
+      "color": "#92400E",
+      "order": 24
+    },
+    {
+      "id": "ipc-strengths",
+      "name": "Strengths / Weaknesses",
+      "group": "Personal Stories",
+      "color": "#78350F",
+      "order": 25
+    }
+  ],
+  "items": [
+    {
+      "id": "ipq-med-1",
+      "prompt": "Walk me through how you use MEDDPICC in a complex deal.",
+      "tags": [
+        "ipc-meddpicc"
+      ]
+    },
+    {
+      "id": "ipq-med-2",
+      "prompt": "Tell me about a deal where you identified the economic buyer late.",
+      "tags": [
+        "ipc-meddpicc"
+      ]
+    },
+    {
+      "id": "ipq-med-3",
+      "prompt": "How do you validate decision criteria?",
+      "tags": [
+        "ipc-meddpicc"
+      ]
+    },
+    {
+      "id": "ipq-med-4",
+      "prompt": "How do you know if a champion is real?",
+      "tags": [
+        "ipc-meddpicc"
+      ]
+    },
+    {
+      "id": "ipq-med-5",
+      "prompt": "What do you do when the paper process is unclear?",
+      "tags": [
+        "ipc-meddpicc"
+      ]
+    },
+    {
+      "id": "ipq-for-1",
+      "prompt": "How do you forecast a complex enterprise deal?",
+      "tags": [
+        "ipc-forecast"
+      ]
+    },
+    {
+      "id": "ipq-for-2",
+      "prompt": "Tell me about a time your forecast was wrong.",
+      "tags": [
+        "ipc-forecast"
+      ]
+    },
+    {
+      "id": "ipq-for-3",
+      "prompt": "How do you manage commit vs best case?",
+      "tags": [
+        "ipc-forecast"
+      ]
+    },
+    {
+      "id": "ipq-for-4",
+      "prompt": "What makes a deal forecastable?",
+      "tags": [
+        "ipc-forecast"
+      ]
+    },
+    {
+      "id": "ipq-for-5",
+      "prompt": "How do you inspect risk in your pipeline?",
+      "tags": [
+        "ipc-forecast"
+      ]
+    },
+    {
+      "id": "ipq-pip-1",
+      "prompt": "How do you manage a pipeline of 8–12 enterprise accounts simultaneously?",
+      "tags": [
+        "ipc-pipeline"
+      ]
+    },
+    {
+      "id": "ipq-pip-2",
+      "prompt": "How do you prioritise time across your accounts?",
+      "tags": [
+        "ipc-pipeline"
+      ]
+    },
+    {
+      "id": "ipq-pip-3",
+      "prompt": "What does your CRM discipline look like?",
+      "tags": [
+        "ipc-pipeline"
+      ]
+    },
+    {
+      "id": "ipq-clo-1",
+      "prompt": "Walk me through your closing process on a complex deal.",
+      "tags": [
+        "ipc-closing"
+      ]
+    },
+    {
+      "id": "ipq-clo-2",
+      "prompt": "How do you handle a deal that goes dark at the end?",
+      "tags": [
+        "ipc-closing"
+      ]
+    },
+    {
+      "id": "ipq-clo-3",
+      "prompt": "Tell me about a time you won a deal you should not have.",
+      "tags": [
+        "ipc-closing"
+      ]
+    },
+    {
+      "id": "ipq-clo-4",
+      "prompt": "How do you use a mutual close plan to accelerate a deal?",
+      "tags": [
+        "ipc-closing"
+      ]
+    },
+    {
+      "id": "ipq-neg-1",
+      "prompt": "Tell me about a difficult negotiation.",
+      "tags": [
+        "ipc-negot"
+      ]
+    },
+    {
+      "id": "ipq-neg-2",
+      "prompt": "How do you protect value under procurement pressure?",
+      "tags": [
+        "ipc-negot"
+      ]
+    },
+    {
+      "id": "ipq-neg-3",
+      "prompt": "What concessions are you willing to make?",
+      "tags": [
+        "ipc-negot"
+      ]
+    },
+    {
+      "id": "ipq-neg-4",
+      "prompt": "How do you avoid discounting too early?",
+      "tags": [
+        "ipc-negot"
+      ]
+    },
+    {
+      "id": "ipq-neg-5",
+      "prompt": "How do you handle a customer asking for a last-minute discount?",
+      "tags": [
+        "ipc-negot"
+      ]
+    },
+    {
+      "id": "ipq-obj-1",
+      "prompt": "How do you handle \"we have no budget\"?",
+      "tags": [
+        "ipc-objection"
+      ]
+    },
+    {
+      "id": "ipq-obj-2",
+      "prompt": "What do you do when the decision-maker says \"not now\"?",
+      "tags": [
+        "ipc-objection"
+      ]
+    },
+    {
+      "id": "ipq-obj-3",
+      "prompt": "How do you respond to \"your competitor is 30% cheaper\"?",
+      "tags": [
+        "ipc-objection"
+      ]
+    },
+    {
+      "id": "ipq-acc-1",
+      "prompt": "How do you build a strategic account plan?",
+      "tags": [
+        "ipc-account"
+      ]
+    },
+    {
+      "id": "ipq-acc-2",
+      "prompt": "How do you identify white space in an account?",
+      "tags": [
+        "ipc-account"
+      ]
+    },
+    {
+      "id": "ipq-acc-3",
+      "prompt": "How do you multi-thread across a large account?",
+      "tags": [
+        "ipc-account"
+      ]
+    },
+    {
+      "id": "ipq-acc-4",
+      "prompt": "How do you prioritize accounts in your territory?",
+      "tags": [
+        "ipc-account"
+      ]
+    },
+    {
+      "id": "ipq-exe-1",
+      "prompt": "How do you get executive alignment when your champion is not C-level?",
+      "tags": [
+        "ipc-execalign"
+      ]
+    },
+    {
+      "id": "ipq-exe-2",
+      "prompt": "Tell me about a time you lost executive sponsorship mid-deal.",
+      "tags": [
+        "ipc-execalign"
+      ]
+    },
+    {
+      "id": "ipq-exe-3",
+      "prompt": "How do you maintain executive access over a long sales cycle?",
+      "tags": [
+        "ipc-execalign"
+      ]
+    },
+    {
+      "id": "ipq-clv-1",
+      "prompt": "How do you engage with C-level executives?",
+      "tags": [
+        "ipc-clevel"
+      ]
+    },
+    {
+      "id": "ipq-clv-2",
+      "prompt": "Give an example of an executive conversation you led.",
+      "tags": [
+        "ipc-clevel"
+      ]
+    },
+    {
+      "id": "ipq-clv-3",
+      "prompt": "How do you move from product discussion to business value?",
+      "tags": [
+        "ipc-clevel"
+      ]
+    },
+    {
+      "id": "ipq-clv-4",
+      "prompt": "How do you handle a skeptical executive?",
+      "tags": [
+        "ipc-clevel"
+      ]
+    },
+    {
+      "id": "ipq-mm-1",
+      "prompt": "Describe the largest deal you have closed.",
+      "tags": [
+        "ipc-mmdeals"
+      ]
+    },
+    {
+      "id": "ipq-mm-2",
+      "prompt": "How do you manage risk in a multi-million dollar opportunity?",
+      "tags": [
+        "ipc-mmdeals"
+      ]
+    },
+    {
+      "id": "ipq-mm-3",
+      "prompt": "What makes a 7-figure deal structurally different from a mid-market deal?",
+      "tags": [
+        "ipc-mmdeals"
+      ]
+    },
+    {
+      "id": "ipq-bv-1",
+      "prompt": "How do you build a business case with a CFO?",
+      "tags": [
+        "ipc-bizvalue"
+      ]
+    },
+    {
+      "id": "ipq-bv-2",
+      "prompt": "How do you quantify the value of your solution?",
+      "tags": [
+        "ipc-bizvalue"
+      ]
+    },
+    {
+      "id": "ipq-bv-3",
+      "prompt": "What do you do when the customer says \"prove the ROI\"?",
+      "tags": [
+        "ipc-bizvalue"
+      ]
+    },
+    {
+      "id": "ipq-cmp-1",
+      "prompt": "How do you position against a market leader?",
+      "tags": [
+        "ipc-compete"
+      ]
+    },
+    {
+      "id": "ipq-cmp-2",
+      "prompt": "Tell me about a deal you won against a stronger competitor.",
+      "tags": [
+        "ipc-compete"
+      ]
+    },
+    {
+      "id": "ipq-cmp-3",
+      "prompt": "How do you handle a competitor who undercuts your price?",
+      "tags": [
+        "ipc-compete"
+      ]
+    },
+    {
+      "id": "ipq-ter-1",
+      "prompt": "How do you approach territory planning at the start of a year?",
+      "tags": [
+        "ipc-territory"
+      ]
+    },
+    {
+      "id": "ipq-ter-2",
+      "prompt": "How do you decide where to focus in your territory?",
+      "tags": [
+        "ipc-territory"
+      ]
+    },
+    {
+      "id": "ipq-ter-3",
+      "prompt": "How do you build pipeline in a new territory?",
+      "tags": [
+        "ipc-territory"
+      ]
+    },
+    {
+      "id": "ipq-glo-1",
+      "prompt": "How do you sell across multiple countries and cultures?",
+      "tags": [
+        "ipc-global"
+      ]
+    },
+    {
+      "id": "ipq-glo-2",
+      "prompt": "Tell me about an international deal you managed.",
+      "tags": [
+        "ipc-global"
+      ]
+    },
+    {
+      "id": "ipq-crs-1",
+      "prompt": "How do you align with marketing, product, and CS on a strategic account?",
+      "tags": [
+        "ipc-crossfunc"
+      ]
+    },
+    {
+      "id": "ipq-crs-2",
+      "prompt": "Tell me about a time you had to influence without authority.",
+      "tags": [
+        "ipc-crossfunc"
+      ]
+    },
+    {
+      "id": "ipq-smg-1",
+      "prompt": "How would you coach an underperforming rep?",
+      "tags": [
+        "ipc-salesmgmt"
+      ]
+    },
+    {
+      "id": "ipq-smg-2",
+      "prompt": "How do you build a high-performance sales culture?",
+      "tags": [
+        "ipc-salesmgmt"
+      ]
+    },
+    {
+      "id": "ipq-ps-1",
+      "prompt": "How do you handle it when the product does not meet customer expectations?",
+      "tags": [
+        "ipc-prodsales"
+      ]
+    },
+    {
+      "id": "ipq-ps-2",
+      "prompt": "How do you give useful feedback to product teams?",
+      "tags": [
+        "ipc-prodsales"
+      ]
+    },
+    {
+      "id": "ipq-wsf-1",
+      "prompt": "Why Salesforce?",
+      "tags": [
+        "ipc-whysf"
+      ]
+    },
+    {
+      "id": "ipq-wsf-2",
+      "prompt": "What do you know about Salesforce's sales culture and values?",
+      "tags": [
+        "ipc-whysf"
+      ]
+    },
+    {
+      "id": "ipq-wsf-3",
+      "prompt": "What would make you successful at Salesforce?",
+      "tags": [
+        "ipc-whysf"
+      ]
+    },
+    {
+      "id": "ipq-wae-1",
+      "prompt": "Why Senior Account Executive?",
+      "tags": [
+        "ipc-whyae"
+      ]
+    },
+    {
+      "id": "ipq-wae-2",
+      "prompt": "What does success look like in a Senior AE role for you?",
+      "tags": [
+        "ipc-whyae"
+      ]
+    },
+    {
+      "id": "ipq-wcj-1",
+      "prompt": "Why are you looking to leave your current company?",
+      "tags": [
+        "ipc-whychange"
+      ]
+    },
+    {
+      "id": "ipq-wcj-2",
+      "prompt": "What is driving your search right now?",
+      "tags": [
+        "ipc-whychange"
+      ]
+    },
+    {
+      "id": "ipq-wcj-3",
+      "prompt": "Why now?",
+      "tags": [
+        "ipc-whychange"
+      ]
+    },
+    {
+      "id": "ipq-sfc-1",
+      "prompt": "Which of Salesforce's core values resonates most with you?",
+      "tags": [
+        "ipc-sfculture"
+      ]
+    },
+    {
+      "id": "ipq-sfc-2",
+      "prompt": "How do you embody trust as a sales value?",
+      "tags": [
+        "ipc-sfculture"
+      ]
+    },
+    {
+      "id": "ipq-loc-1",
+      "prompt": "How do you think about hybrid work and location constraints?",
+      "tags": [
+        "ipc-location"
+      ]
+    },
+    {
+      "id": "ipq-loc-2",
+      "prompt": "Are you open to relocation or frequent travel for the right opportunity?",
+      "tags": [
+        "ipc-location"
+      ]
+    },
+    {
+      "id": "ipq-car-1",
+      "prompt": "Walk me through your career.",
+      "tags": [
+        "ipc-career"
+      ]
+    },
+    {
+      "id": "ipq-car-2",
+      "prompt": "What is the defining experience of your career so far?",
+      "tags": [
+        "ipc-career"
+      ]
+    },
+    {
+      "id": "ipq-car-3",
+      "prompt": "Where do you see yourself in 3 years?",
+      "tags": [
+        "ipc-career"
+      ]
+    },
+    {
+      "id": "ipq-res-1",
+      "prompt": "Tell me about a time you failed.",
+      "tags": [
+        "ipc-resilience"
+      ]
+    },
+    {
+      "id": "ipq-res-2",
+      "prompt": "How have you handled an unfair situation at work?",
+      "tags": [
+        "ipc-resilience"
+      ]
+    },
+    {
+      "id": "ipq-str-1",
+      "prompt": "What are your three greatest strengths?",
+      "tags": [
+        "ipc-strengths"
+      ]
+    },
+    {
+      "id": "ipq-str-2",
+      "prompt": "What is your biggest weakness and what are you doing about it?",
+      "tags": [
+        "ipc-strengths"
+      ]
+    },
+    {
+      "id": "ipq-str-3",
+      "prompt": "What makes you different from the other candidates?",
+      "tags": [
+        "ipc-strengths"
+      ]
+    }
+  ]
+}

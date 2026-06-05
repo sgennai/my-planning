@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { AppDataV24, Module, UserProfile } from '../storage/types';
 import { scheduleModuleBlocks } from './generator';
-import { startOfWeek } from 'date-fns';
+import { startOfWeek } from '../helpers/calendar-utils';
 
 interface Props {
   data: AppDataV24;

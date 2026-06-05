@@ -1,6 +1,8 @@
 // @ts-nocheck
 import React, { useState, useEffect, useRef, useCallback, useMemo, Fragment } from 'react';
 import { pad } from '../ui/helpers';
+import interviewJson from '../content/interview.json';
+import { getStatusFromConfidence, getNextPracticeDate, isDueForPractice, selectPracticeBatch, searchPracticeItems } from './practice-logic';
 
 // ═══════════════════════════════════════════════════════════════════
 // INTERVIEW PREP PAGE
@@ -52,26 +54,13 @@ export const IP_RUBRIC_ITEMS = [
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────
-export function ipStatusFromConf(c) {
-  if (c <= 2) return 'needs_work';
-  if (c === 3) return 'practice';
-  if (c === 4) return 'strong';
-  return 'interview_ready';
-}
-export function ipNextPractice(conf) {
-  const d = new Date();
-  d.setDate(d.getDate() + (IP_NEXT_DAYS[conf] || 7));
-  d.setHours(0, 0, 0, 0);
-  return d.toISOString();
-}
-export function ipIsDue(q) {
-  if (!q.nextPracticeAt) return true;
-  return new Date(q.nextPracticeAt) <= new Date();
-}
+
+
+
 export function ipComputeStats(ip) {
   const questions = ip.questions || [];
   const categories = ip.categories || [];
-  const dueToday = questions.filter(ipIsDue).length;
+  const dueToday = questions.filter(isDueForPractice).length;
   const total = questions.length;
   const interviewReady = questions.filter(q => q.status === 'interview_ready').length;
   const avgConf = total > 0
@@ -99,7 +88,7 @@ export function ipComputeStats(ip) {
     catStats[c.id] = {
       total: qs.length,
       ready: qs.filter(q => q.status === 'interview_ready').length,
-      due: qs.filter(ipIsDue).length,
+      due: qs.filter(isDueForPractice).length,
       weak: qs.filter(q => q.status === 'draft' || q.status === 'needs_work').length,
     };
   });
@@ -109,29 +98,7 @@ export function ipComputeStats(ip) {
     .slice(0, 3).map(c => c.name);
   return { dueToday, total, interviewReady, weakCats, catStats, avgConf, lastPracticed, streak };
 }
-export function ipBuildQueue(questions, mode, limit = 12) {
-  if (mode === 'random') {
-    const arr = [...questions];
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr.slice(0, limit);
-  }
-  let pool;
-  if (mode === 'weak') pool = questions.filter(q => q.status === 'draft' || q.status === 'needs_work' || q.confidence <= 2);
-  else if (mode === 'all') pool = [...questions];
-  else if (mode === 'ready') pool = questions.filter(q => q.status === 'interview_ready');
-  else {
-    pool = questions.filter(ipIsDue);
-    if (pool.length === 0) pool = questions.filter(q => q.confidence <= 2);
-  }
-  return pool.sort((a, b) => {
-    if (a.confidence !== b.confidence) return a.confidence - b.confidence;
-    return (a.lastPracticedAt ? new Date(a.lastPracticedAt).getTime() : 0)
-         - (b.lastPracticedAt ? new Date(b.lastPracticedAt).getTime() : 0);
-  }).slice(0, limit);
-}
+
 
 // ─── IPAnswerBlock ────────────────────────────────────────────────
 export function IPAnswerBlock({ field, label, placeholder, value, primary, onChange }) {
@@ -220,7 +187,7 @@ export function IPRehearsalView({ queue, ip, onRate, onExit }) {
             {timerSecs > 0 ? `${Math.floor(timerSecs / 60)}:${pad(timerSecs % 60)}` : 'Time — show your answer'}
           </div>
         )}
-        <div className="ip-rehearsal-question">{q.question}</div>
+        <div className="ip-rehearsal-question">{(q.prompt || q.question)}</div>
         {phase === 'question' && (
           <div className="ip-rehearsal-controls">
             <button className="ip-rehearsal-btn ip-rehearsal-btn--secondary" onClick={() => setShowHints(h => !h)}>
@@ -368,7 +335,7 @@ export function IPWorkspace({ question, ip, onUpdateAnswer, onUpdateQuestion, on
 
   const saveQText = () => {
     const t = qTextDraft.trim();
-    if (t && t !== question.question) onUpdateQuestion(question.id, { question: t });
+    if (t && t !== question.question) onUpdateQuestion(question.id, { prompt: t });
     setEditingQText(false);
   };
   const addTag = raw => {
@@ -408,7 +375,7 @@ export function IPWorkspace({ question, ip, onUpdateAnswer, onUpdateQuestion, on
             ? <span className="ip-ws-last">Last: {new Date(question.lastPracticedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
             : <span className="ip-ws-last ip-ws-last--never">Never practiced</span>}
           {nextDueLabel && <span className="ip-ws-last">Next: {nextDueLabel}</span>}
-          {ipIsDue(question) && <span className="ip-ws-due-badge">● Due</span>}
+          {isDueForPractice(question) && <span className="ip-ws-due-badge">● Due</span>}
         </div>
         <div className="ip-ws-tags-row">
           {(question.tags || []).map(t => (
@@ -515,7 +482,7 @@ export function IPStoryEditor({ story, onUpdate, onDelete, linkedByQuestions }) 
           <div className="ip-story-linked-qs">
             <div className="ip-story-field-label">Used in {linkedByQuestions.length} question{linkedByQuestions.length > 1 ? 's' : ''}</div>
             {linkedByQuestions.map(q => (
-              <div key={q.id} className="ip-story-linked-q-row">{q.question}</div>
+              <div key={q.id} className="ip-story-linked-q-row">{(q.prompt || q.question)}</div>
             ))}
           </div>
         )}
@@ -667,12 +634,12 @@ export function IPQuestionCard({ q, selected, onClick }) {
     <div className={`ip-q-card${selected ? ' active' : ''}`} onClick={onClick}>
       <div className="ip-q-card-top">
         <span className="ip-q-status-dot" style={{ background: IP_STATUS_COLORS[status] }} title={IP_STATUS_LABELS[status]} />
-        <span className="ip-q-text">{q.question}</span>
+        <span className="ip-q-text">{(q.prompt || q.question)}</span>
       </div>
       <div className="ip-q-card-meta">
         <span className="ip-q-conf">{'★'.repeat(q.confidence || 0)}{'☆'.repeat(5 - (q.confidence || 0))}</span>
         <span className="ip-q-last-label">{daysAgo === null ? 'Never' : daysAgo === 0 ? 'Today' : `${daysAgo}d ago`}</span>
-        {ipIsDue(q) && <span className="ip-q-due-dot">Due</span>}
+        {isDueForPractice(q) && <span className="ip-q-due-dot">Due</span>}
       </div>
     </div>
   );
@@ -689,8 +656,8 @@ export function IPQuestionList({ questions, selectedId, onSelect, onAdd }) {
 
   const filtered = useMemo(() => {
     let qs = questions;
-    if (search) qs = qs.filter(q => q.question.toLowerCase().includes(search.toLowerCase()));
-    if (filter === 'due') qs = qs.filter(ipIsDue);
+    if (search) qs = qs.filter(q => (q.prompt || q.question).toLowerCase().includes(search.toLowerCase()));
+    if (filter === 'due') qs = qs.filter(isDueForPractice);
     else if (filter === 'weak') qs = qs.filter(q => q.status === 'draft' || q.status === 'needs_work' || q.confidence <= 2);
     else if (filter !== 'all') qs = qs.filter(q => q.status === filter);
     return qs;
@@ -907,7 +874,7 @@ export function IPProgressView({ ip }) {
     n,
     count: questions.filter(q => (q.confidence || 1) === n).length,
     label: ['Weak', 'Struggling', 'Acceptable', 'Strong', 'Ready'][n - 1],
-    color: IP_STATUS_COLORS[ipStatusFromConf(n)],
+    color: IP_STATUS_COLORS[getStatusFromConfidence(n)],
   }));
   const maxConf = Math.max(...confDist.map(d => d.count), 1);
 
@@ -1001,7 +968,7 @@ export function IPMockInterview({ questions, ip, onComplete, onExit }) {
   }, [timerRunning, timer]);
 
   const startMock = () => {
-    const q = ipBuildQueue(questions, pool, count);
+    const q = selectPracticeBatch(questions, pool, count);
     if (q.length === 0) { window.alert('No questions available for this selection.'); return; }
     setQueue(q); setQIdx(0); setTimer(timeSecs); setTimerRunning(true); setRatings({});
     setPhase('interview');
@@ -1078,7 +1045,7 @@ export function IPMockInterview({ questions, ip, onComplete, onExit }) {
         <div className={`ip-mock-timer${urgent ? ' ip-mock-timer--urgent' : ''}${expired ? ' ip-mock-timer--done' : ''}`}>
           {Math.floor(timer / 60)}:{pad(timer % 60)}
         </div>
-        <div className="ip-mock-question">{q.question}</div>
+        <div className="ip-mock-question">{(q.prompt || q.question)}</div>
         {expired && <div className="ip-mock-time-up">Time — move to next question when ready</div>}
         <div className="ip-mock-controls">
           <button className="ip-rehearsal-btn ip-rehearsal-btn--primary" onClick={nextQ}>
@@ -1110,7 +1077,7 @@ export function IPMockInterview({ questions, ip, onComplete, onExit }) {
                   <span className="ip-mock-review-num">{i + 1}</span>
                   <div className="ip-mock-review-q-body">
                     {cat && <span className="ip-mock-review-cat" style={{ color: cat.color }}>● {cat.name}</span>}
-                    <div className="ip-mock-review-q-text">{q.question}</div>
+                    <div className="ip-mock-review-q-text">{(q.prompt || q.question)}</div>
                   </div>
                 </div>
                 <div className="ip-rate-btns">
@@ -1141,8 +1108,26 @@ export function IPMockInterview({ questions, ip, onComplete, onExit }) {
 }
 
 // ─── InterviewPrepScreen ──────────────────────────────────────────
-export function InterviewPrepScreen({ data, onPersist, onBack, onSignOut }) {
-  const ip = data.interviewPrep || { categories: [], questions: [], stories: [] };
+export function PracticeScreen({ data, onPersist, onBack, onSignOut }) {
+  const [activeTrack, setActiveTrack] = useState('interview');
+  
+  const tracks = [
+    { id: 'interview', name: 'Practice Hub', categories: interviewJson.categories },
+    { id: 'sales', name: 'Core Sales Execution', categories: [] },
+    { id: 'clevel', name: 'C-Level Discussions', categories: [] },
+    { id: 'execpresence', name: 'Executive Presence', categories: [] }
+  ];
+  
+  const currentTrackDef = tracks.find(t => t.id === activeTrack) || tracks[0];
+  const allPracticeItems = data.practiceItems || [];
+  const trackItems = allPracticeItems.filter(i => i.track === activeTrack);
+  const stories = data.stories || [];
+
+  const ip = {
+    categories: currentTrackDef.categories,
+    questions: trackItems,
+    stories: stories
+  };
 
   const persistData = useCallback((mutator) => {
     const next = typeof mutator === 'function' ? mutator(data) : mutator;
@@ -1151,10 +1136,11 @@ export function InterviewPrepScreen({ data, onPersist, onBack, onSignOut }) {
 
   const persistIP = useCallback((fn) => {
     persistData(d => {
-      const cur = d.interviewPrep || { categories: [], questions: [], stories: [] };
-      return { ...d, interviewPrep: fn(cur) };
+      const curIP = { categories: currentTrackDef.categories, questions: d.practiceItems || [], stories: d.stories || [] };
+      const nextIP = fn(curIP);
+      return { ...d, practiceItems: nextIP.questions, stories: nextIP.stories };
     });
-  }, [persistData]);
+  }, [persistData, currentTrackDef]);
 
   const [selCatId, setSelCatId] = useState(() => ((ip.categories || [])[0] || {}).id || null);
   const [selQId, setSelQId] = useState(null);
@@ -1171,9 +1157,7 @@ export function InterviewPrepScreen({ data, onPersist, onBack, onSignOut }) {
     return () => document.removeEventListener('mousedown', handler);
   }, [menuOpen]);
 
-  const categories = ip.categories || [];
-  const questions = ip.questions || [];
-  const stories = ip.stories || [];
+  const { categories, questions } = ip;
 
   const catQuestions = useMemo(
     () => selCatId ? questions.filter(q => q.categoryId === selCatId) : questions,
@@ -1186,16 +1170,16 @@ export function InterviewPrepScreen({ data, onPersist, onBack, onSignOut }) {
   const addCategory = useCallback((name) => {
     const COLORS = ['#3B82F6','#8B5CF6','#10B981','#F59E0B','#EC4899','#EF4444','#0D9488','#0891B2'];
     const id = `ipc-${Date.now()}`;
-    persistIP(cur => ({ ...cur, categories: [...cur.categories, { id, name: name.trim(), group: 'Other', color: COLORS[categories.length % COLORS.length], order: categories.length + 1 }] }));
+    /* Read-only categories */
     setSelCatId(id);
   }, [categories, persistIP]);
 
   const renameCategory = useCallback((catId, name) => {
-    persistIP(cur => ({ ...cur, categories: cur.categories.map(c => c.id === catId ? { ...c, name } : c) }));
+    /* Read-only categories */
   }, [persistIP]);
 
   const deleteCategory = useCallback((catId) => {
-    persistIP(cur => ({ ...cur, categories: cur.categories.filter(c => c.id !== catId), questions: cur.questions.map(q => q.categoryId === catId ? { ...q, categoryId: null } : q) }));
+    /* Read-only categories */
     if (selCatId === catId) setSelCatId(null);
   }, [persistIP, selCatId]);
 
@@ -1216,7 +1200,7 @@ export function InterviewPrepScreen({ data, onPersist, onBack, onSignOut }) {
   // Question handlers
   const addQuestion = useCallback((text, opts = {}) => {
     const now = new Date().toISOString();
-    const newQ = { id: `ipq-${Date.now()}`, categoryId: selCatId || (categories[0] || {}).id, question: text.trim(), status: opts.status || 'draft', confidence: 1, tags: opts.tags || [], linkedStoryIds: [], createdAt: now, updatedAt: now, lastPracticedAt: null, nextPracticeAt: null, rehearsalCount: 0, answer: {} };
+    const newQ = { id: `ipq-${Date.now()}`, track: activeTrack, categoryId: selCatId || (categories[0] || {}).id, prompt: text.trim(), status: opts.status || 'draft', confidence: 1, tags: opts.tags || [], linkedStoryIds: [], createdAt: now, updatedAt: now, lastPracticedAt: null, nextPracticeAt: null, rehearsalCount: 0, answer: {} };
     persistIP(cur => ({ ...cur, questions: [...cur.questions, newQ] }));
     setSelQId(newQ.id);
   }, [selCatId, categories, persistIP]);
@@ -1237,7 +1221,7 @@ export function InterviewPrepScreen({ data, onPersist, onBack, onSignOut }) {
   const duplicateQuestion = useCallback((qId) => {
     const q = questions.find(x => x.id === qId); if (!q) return;
     const now = new Date().toISOString();
-    const copy = { ...q, id: `ipq-${Date.now()}`, question: q.question + ' (copy)', status: 'draft', confidence: 1, lastPracticedAt: null, nextPracticeAt: null, rehearsalCount: 0, createdAt: now, updatedAt: now, answer: { ...q.answer }, tags: [...(q.tags || [])], linkedStoryIds: [] };
+    const copy = { ...q, id: `ipq-${Date.now()}`, prompt: (q.prompt || q.question) + ' (copy)', status: 'draft', confidence: 1, lastPracticedAt: null, nextPracticeAt: null, rehearsalCount: 0, createdAt: now, updatedAt: now, answer: { ...q.answer }, tags: [...(q.tags || [])], linkedStoryIds: [] };
     persistIP(cur => ({ ...cur, questions: [...cur.questions, copy] }));
     setSelQId(copy.id);
   }, [questions, persistIP]);
@@ -1250,7 +1234,7 @@ export function InterviewPrepScreen({ data, onPersist, onBack, onSignOut }) {
   const markReady = useCallback((qId) => {
     const q = questions.find(x => x.id === qId); if (!q) return;
     if ((q.confidence || 1) < 4 && !window.confirm('Confidence is below 4. Mark as interview-ready anyway?')) return;
-    updateQuestion(qId, { status: 'interview_ready', confidence: 5, nextPracticeAt: ipNextPractice(5) });
+    updateQuestion(qId, { status: 'interview_ready', confidence: 5, nextPracticeAt: getNextPracticeDate(5) });
   }, [questions, updateQuestion]);
 
   const linkStory = useCallback((qId, storyId) => {
@@ -1280,13 +1264,13 @@ export function InterviewPrepScreen({ data, onPersist, onBack, onSignOut }) {
   // Rehearsal handlers
   const startRehearsal = useCallback((queueMode = 'due') => {
     const pool = catQuestions.length > 0 ? catQuestions : questions;
-    const queue = ipBuildQueue(pool, queueMode);
+    const queue = selectPracticeBatch(pool, queueMode);
     if (queue.length === 0) { window.alert('No questions to practice in this selection.'); return; }
     setRehearseQueue(queue); setMode('rehearse');
   }, [catQuestions, questions]);
 
   const startGlobalRehearsal = useCallback((queueMode = 'due') => {
-    const queue = ipBuildQueue(questions, queueMode);
+    const queue = selectPracticeBatch(questions, queueMode);
     if (queue.length === 0) { window.alert('No questions to practice in this selection.'); return; }
     setRehearseQueue(queue); setMode('rehearse');
   }, [questions]);
@@ -1298,7 +1282,7 @@ export function InterviewPrepScreen({ data, onPersist, onBack, onSignOut }) {
 
   const handleRate = useCallback((qId, conf) => {
     const q = questions.find(x => x.id === qId);
-    updateQuestion(qId, { confidence: conf, status: ipStatusFromConf(conf), lastPracticedAt: new Date().toISOString(), nextPracticeAt: ipNextPractice(conf), rehearsalCount: ((q && q.rehearsalCount) || 0) + 1 });
+    updateQuestion(qId, { confidence: conf, status: getStatusFromConfidence(conf), lastPracticedAt: new Date().toISOString(), nextPracticeAt: getNextPracticeDate(conf), rehearsalCount: ((q && q.rehearsalCount) || 0) + 1 });
   }, [questions, updateQuestion]);
 
   // Mock interview handler — batch-updates all ratings in one persist call
@@ -1311,7 +1295,7 @@ export function InterviewPrepScreen({ data, onPersist, onBack, onSignOut }) {
       questions: cur.questions.map(q => {
         const rating = ratingMap[q.id];
         if (!rating) return q;
-        return { ...q, confidence: rating, status: ipStatusFromConf(rating), lastPracticedAt: now, nextPracticeAt: ipNextPractice(rating), rehearsalCount: (q.rehearsalCount || 0) + 1, updatedAt: now };
+        return { ...q, confidence: rating, status: getStatusFromConfidence(rating), lastPracticedAt: now, nextPracticeAt: getNextPracticeDate(rating), rehearsalCount: (q.rehearsalCount || 0) + 1, updatedAt: now };
       }),
     }));
     setMode('browse');
@@ -1351,7 +1335,7 @@ export function InterviewPrepScreen({ data, onPersist, onBack, onSignOut }) {
         if (!Array.isArray(parsed.categories) || !Array.isArray(parsed.questions)) {
           window.alert('Invalid file: must contain categories and questions arrays.'); return;
         }
-        if (!window.confirm(`Import ${parsed.questions.length} questions and ${(parsed.stories || []).length} stories?\nThis replaces your current Interview Prep data.`)) return;
+        if (!window.confirm(`Import ${parsed.questions.length} questions and ${(parsed.stories || []).length} stories?\nThis replaces your current Practice Hub data.`)) return;
         persistIP(() => ({ categories: parsed.categories, questions: parsed.questions, stories: parsed.stories || [] }));
       } catch { window.alert('Invalid JSON file.'); }
     };
@@ -1435,7 +1419,13 @@ export function InterviewPrepScreen({ data, onPersist, onBack, onSignOut }) {
       {searchOverlay}
       <div className="ip-topbar">
         <div className="ip-topbar-center">
-          <span className="ip-topbar-title">Interview Prep</span>
+          <div className="ip-topbar-tabs">
+     {tracks.map(t => (
+       <button key={t.id} className={`ip-topbar-tab${activeTrack === t.id ? ' active' : ''}`} onClick={() => { setActiveTrack(t.id); setSelCatId(null); setSelQId(null); }}>
+         {t.name}
+       </button>
+     ))}
+   </div>
         </div>
         <div className="ip-topbar-right">
           <button className="ip-topbar-btn-sm" onClick={() => setShowSearch(true)} title="Search all">🔍</button>
@@ -1454,7 +1444,7 @@ export function InterviewPrepScreen({ data, onPersist, onBack, onSignOut }) {
             {menuOpen && (
               <div className="app-menu-dropdown">
                 <button className="app-menu-item" onClick={() => { onBack(); setMenuOpen(false); }}>Calendar</button>
-                <button className="app-menu-item app-menu-item--disabled" disabled>Interview Prep</button>
+                <button className="app-menu-item app-menu-item--disabled" disabled>Practice Hub</button>
                 <div className="app-menu-divider" />
                 <button className="app-menu-item" onClick={() => { onBack('weeklyReview'); setMenuOpen(false); }}>Weekly Review</button>
                 <button className="app-menu-item" onClick={() => { onBack('refLibrary'); setMenuOpen(false); }}>Reference Library</button>
