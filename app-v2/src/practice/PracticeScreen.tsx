@@ -1,8 +1,16 @@
 // @ts-nocheck
-import React, { useState, useEffect, useRef, useCallback, useMemo, Fragment } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, Fragment, useContext } from 'react';
 import { pad } from '../ui/helpers';
 import interviewJson from '../content/interview.json';
 import { getStatusFromConfidence, getNextPracticeDate, isDueForPractice, selectPracticeBatch, searchPracticeItems } from './practice-logic';
+
+export const LangContext = React.createContext<'en'|'fr'>('en');
+
+export function localize(field: any, lang: string) {
+  if (!field) return '';
+  if (typeof field === 'string') return field;
+  return field[lang] ?? field.en ?? '';
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // INTERVIEW PREP PAGE
@@ -148,6 +156,7 @@ export function IPAnswerBlock({ field, label, placeholder, value, primary, onCha
 
 // ─── IPRehearsalView ──────────────────────────────────────────────
 export function IPRehearsalView({ queue, ip, onRate, onExit }) {
+  const lang = useContext(LangContext);
   const [idx, setIdx] = useState(0);
   const [phase, setPhase] = useState('question');
   const [showHints, setShowHints] = useState(false);
@@ -187,7 +196,7 @@ export function IPRehearsalView({ queue, ip, onRate, onExit }) {
             {timerSecs > 0 ? `${Math.floor(timerSecs / 60)}:${pad(timerSecs % 60)}` : 'Time — show your answer'}
           </div>
         )}
-        <div className="ip-rehearsal-question">{(q.prompt || q.question)}</div>
+        <div className="ip-rehearsal-question">{localize(q.prompt || q.question, lang)}</div>
         {phase === 'question' && (
           <div className="ip-rehearsal-controls">
             <button className="ip-rehearsal-btn ip-rehearsal-btn--secondary" onClick={() => setShowHints(h => !h)}>
@@ -310,6 +319,7 @@ export function IPRubric({ rubric, onChange }) {
 
 // ─── IPWorkspace ──────────────────────────────────────────────────
 export function IPWorkspace({ question, ip, onUpdateAnswer, onUpdateQuestion, onRehearseOne, onMarkReady, onDelete, onDuplicate, onMove, onLinkStory, onUnlinkStory }) {
+  const lang = useContext(LangContext);
   const [showAll, setShowAll] = useState(false);
   const [editingQText, setEditingQText] = useState(false);
   const [qTextDraft, setQTextDraft] = useState('');
@@ -363,8 +373,8 @@ export function IPWorkspace({ question, ip, onUpdateAnswer, onUpdateQuestion, on
             </div>
           </div>
         ) : (
-          <div className="ip-ws-question" onClick={() => { setQTextDraft(question.question); setEditingQText(true); }} title="Click to edit">
-            {question.question}
+          <div className="ip-ws-question" onClick={() => { setQTextDraft(localize(question.prompt || question.question, lang)); setEditingQText(true); }} title="Click to edit">
+            {localize(question.prompt || question.question, lang)}
           </div>
         )}
         <div className="ip-ws-meta-row">
@@ -404,6 +414,17 @@ export function IPWorkspace({ question, ip, onUpdateAnswer, onUpdateQuestion, on
           <button className="ip-ws-btn ip-ws-btn--danger" onClick={() => { if (window.confirm('Delete this question?')) onDelete(question.id); }}>Delete</button>
         </div>
       </div>
+      {question.reference && Object.keys(question.reference).length > 0 && (
+        <div className="ip-reference-blocks">
+          <div className="ip-reference-header">Reference</div>
+          {Object.entries(question.reference).map(([key, val]) => (
+            <div key={key} className="ip-rehearsal-answer-block">
+              <div className="ip-ra-label" style={{ textTransform: 'capitalize' }}>{key.replace(/([A-Z])/g, ' $1')}</div>
+              <div className="ip-ra-text">{localize(val, lang)}</div>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="ip-blocks-area">
         {visibleBlocks.map(b => (
           <IPAnswerBlock key={b.field} field={b.field} label={b.label} placeholder={b.placeholder}
@@ -427,11 +448,9 @@ export function IPWorkspace({ question, ip, onUpdateAnswer, onUpdateQuestion, on
         />
       </div>
     </div>
-  );
-}
-
 // ─── IPStoryEditor ────────────────────────────────────────────────
 export function IPStoryEditor({ story, onUpdate, onDelete, linkedByQuestions }) {
+  const lang = useContext(LangContext);
   const [fields, setFields] = useState({ ...story });
   const saveTimer = useRef(null);
   const [saved, setSaved] = useState(false);
@@ -482,7 +501,7 @@ export function IPStoryEditor({ story, onUpdate, onDelete, linkedByQuestions }) 
           <div className="ip-story-linked-qs">
             <div className="ip-story-field-label">Used in {linkedByQuestions.length} question{linkedByQuestions.length > 1 ? 's' : ''}</div>
             {linkedByQuestions.map(q => (
-              <div key={q.id} className="ip-story-linked-q-row">{(q.prompt || q.question)}</div>
+              <div key={q.id} className="ip-story-linked-q-row">{localize(q.prompt || q.question, lang)}</div>
             ))}
           </div>
         )}
@@ -621,11 +640,10 @@ export function IPGlobalSearch({ questions, stories, categories, onNavigate, onC
         )}
       </div>
     </div>
-  );
-}
-
 // ─── IPQuestionCard ───────────────────────────────────────────────
 export function IPQuestionCard({ q, selected, onClick }) {
+  const lang = useContext(LangContext);
+  const isPrac = q.status === 'practice';
   const status = q.status || 'draft';
   const daysAgo = q.lastPracticedAt
     ? Math.floor((Date.now() - new Date(q.lastPracticedAt)) / 86400000)
@@ -634,7 +652,7 @@ export function IPQuestionCard({ q, selected, onClick }) {
     <div className={`ip-q-card${selected ? ' active' : ''}`} onClick={onClick}>
       <div className="ip-q-card-top">
         <span className="ip-q-status-dot" style={{ background: IP_STATUS_COLORS[status] }} title={IP_STATUS_LABELS[status]} />
-        <span className="ip-q-text">{(q.prompt || q.question)}</span>
+        <span className="ip-q-text">{localize(q.prompt || q.question, lang)}</span>
       </div>
       <div className="ip-q-card-meta">
         <span className="ip-q-conf">{'★'.repeat(q.confidence || 0)}{'☆'.repeat(5 - (q.confidence || 0))}</span>
@@ -647,6 +665,7 @@ export function IPQuestionCard({ q, selected, onClick }) {
 
 // ─── IPQuestionList ───────────────────────────────────────────────
 export function IPQuestionList({ questions, selectedId, onSelect, onAdd }) {
+  const lang = useContext(LangContext);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -656,7 +675,7 @@ export function IPQuestionList({ questions, selectedId, onSelect, onAdd }) {
 
   const filtered = useMemo(() => {
     let qs = questions;
-    if (search) qs = qs.filter(q => (q.prompt || q.question).toLowerCase().includes(search.toLowerCase()));
+    if (search) qs = qs.filter(q => localize(q.prompt || q.question, lang).toLowerCase().includes(search.toLowerCase()));
     if (filter === 'due') qs = qs.filter(isDueForPractice);
     else if (filter === 'weak') qs = qs.filter(q => q.status === 'draft' || q.status === 'needs_work' || q.confidence <= 2);
     else if (filter !== 'all') qs = qs.filter(q => q.status === filter);
@@ -950,6 +969,7 @@ export function IPProgressView({ ip }) {
 
 // ─── IPMockInterview ──────────────────────────────────────────────
 export function IPMockInterview({ questions, ip, onComplete, onExit }) {
+  const lang = useContext(LangContext);
   const [phase, setPhase] = useState('setup');
   const [pool, setPool] = useState('all');
   const [count, setCount] = useState(10);
@@ -1045,7 +1065,7 @@ export function IPMockInterview({ questions, ip, onComplete, onExit }) {
         <div className={`ip-mock-timer${urgent ? ' ip-mock-timer--urgent' : ''}${expired ? ' ip-mock-timer--done' : ''}`}>
           {Math.floor(timer / 60)}:{pad(timer % 60)}
         </div>
-        <div className="ip-mock-question">{(q.prompt || q.question)}</div>
+        <div className="ip-mock-question">{localize(q.prompt || q.question, lang)}</div>
         {expired && <div className="ip-mock-time-up">Time — move to next question when ready</div>}
         <div className="ip-mock-controls">
           <button className="ip-rehearsal-btn ip-rehearsal-btn--primary" onClick={nextQ}>
@@ -1077,7 +1097,7 @@ export function IPMockInterview({ questions, ip, onComplete, onExit }) {
                   <span className="ip-mock-review-num">{i + 1}</span>
                   <div className="ip-mock-review-q-body">
                     {cat && <span className="ip-mock-review-cat" style={{ color: cat.color }}>● {cat.name}</span>}
-                    <div className="ip-mock-review-q-text">{(q.prompt || q.question)}</div>
+                    <div className="ip-mock-review-q-text">{localize(q.prompt || q.question, lang)}</div>
                   </div>
                 </div>
                 <div className="ip-rate-btns">
@@ -1110,6 +1130,7 @@ export function IPMockInterview({ questions, ip, onComplete, onExit }) {
 // ─── InterviewPrepScreen ──────────────────────────────────────────
 export function PracticeScreen({ data, onPersist, onBack, onSignOut }) {
   const [activeTrack, setActiveTrack] = useState('interview');
+  const [lang, setLang] = useState<'en'|'fr'>('en');
   
   const tracks = [
     { id: 'interview', name: 'Practice Hub', categories: interviewJson.categories },
@@ -1415,6 +1436,7 @@ export function PracticeScreen({ data, onPersist, onBack, onSignOut }) {
 
   // ── Browse mode (main) ────────────────────────────────────────
   return (
+    <LangContext.Provider value={lang}>
     <div className="ip-screen">
       {searchOverlay}
       <div className="ip-topbar">
@@ -1428,6 +1450,9 @@ export function PracticeScreen({ data, onPersist, onBack, onSignOut }) {
    </div>
         </div>
         <div className="ip-topbar-right">
+          <button className="ip-topbar-btn-sm" onClick={() => setLang(l => l === 'en' ? 'fr' : 'en')} title="Toggle Language">
+            {lang.toUpperCase()}
+          </button>
           <button className="ip-topbar-btn-sm" onClick={() => setShowSearch(true)} title="Search all">🔍</button>
           <button className="ip-topbar-stories-btn" onClick={() => setMode('stories')}>
             Story Bank{stories.length > 0 ? ` (${stories.length})` : ''}
@@ -1470,5 +1495,6 @@ export function PracticeScreen({ data, onPersist, onBack, onSignOut }) {
           onLinkStory={linkStory} onUnlinkStory={unlinkStory} />
       </div>
     </div>
+    </LangContext.Provider>
   );
 }

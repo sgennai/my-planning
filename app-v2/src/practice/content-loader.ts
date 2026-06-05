@@ -10,6 +10,7 @@ interface ContentTrack {
     prompt: string;
     tags?: string[];
     rubric?: string;
+    reference?: Record<string, string | Record<string, string>>;
   }[];
 }
 
@@ -51,10 +52,11 @@ export function mergePracticeContent(data: AppDataV24): boolean {
         const newTags = item.tags || [];
         const tagsChanged = existingTags.length !== newTags.length || !existingTags.every((t, i) => t === newTags[i]);
         
-        if (promptChanged || rubricChanged || tagsChanged || trackChanged) {
+        if (promptChanged || rubricChanged || tagsChanged || trackChanged || item.reference !== undefined) {
           // Mutate the existing object in-place for content fields
           if (item.prompt !== undefined) existing.prompt = item.prompt;
           if (item.rubric !== undefined) existing.rubric = item.rubric;
+          if (item.reference !== undefined) existing.reference = item.reference;
           existing.tags = item.tags || [];
           existing.track = trackId;
           changed = true;
@@ -72,6 +74,7 @@ export function mergePracticeContent(data: AppDataV24): boolean {
           linkedStoryIds: [],
           tags: item.tags || [],
           rubric: item.rubric,
+          reference: item.reference,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };

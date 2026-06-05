@@ -7928,3 +7928,19 @@
     .ip-add-q-tags-in:focus { outline: none; border-color: var(--primary); }
     .ip-add-q-tags-in::placeholder { color: var(--muted-3); }
 
+
+.ip-reference-blocks {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: var(--surface-1);
+  border-radius: 8px;
+  border: 1px solid var(--border-1);
+}
+.ip-reference-header {
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--muted-2);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}

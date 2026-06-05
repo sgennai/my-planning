@@ -96,7 +96,7 @@ export interface TimeBlock extends BaseRecord {
 
 export interface PracticeItem extends BaseRecord {
   track: string;
-  prompt: string;
+  prompt: string | Record<string, string>;
   answer: Record<string, any>;
   status?: string;
   confidence?: number;
@@ -106,6 +106,7 @@ export interface PracticeItem extends BaseRecord {
   rehearsalCount?: number;
   linkedStoryIds?: string[];
   tags?: string[];
+  reference?: Record<string, string | Record<string, string>>;
 }
 
 export interface InterviewStory extends BaseRecord {
