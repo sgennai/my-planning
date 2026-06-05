@@ -39,9 +39,8 @@ describe('Migrations', () => {
     expect(data.interviewPrep).toBeUndefined();
     
     // Check practice items
-    expect(data.practiceItems.length).toBe(1);
-    const item = data.practiceItems[0];
-    expect(item.id).toBe('ipq-med-1');
+    expect(data.practiceItems.length).toBe(23); // 1 interviewPrep + 15 clevel + 7 narrative
+    const item = data.practiceItems.find(p => p.id === 'ipq-med-1');
     expect(item.track).toBe('interview');
     expect(item.prompt).toBe('Walk me through how you use MEDDPICC in a complex deal.');
     expect(item.status).toBe('practicing');
@@ -55,5 +54,17 @@ describe('Migrations', () => {
     // Check stories
     expect(data.stories.length).toBe(1);
     expect(data.stories[0].id).toBe('story-123');
+
+    // Check clevel
+    const clevelItem = data.practiceItems.find(p => p.id === 'cl-01');
+    expect(clevelItem).toBeDefined();
+    expect(clevelItem.track).toBe('clevel');
+    expect(clevelItem.answer.bullets.length).toBeGreaterThan(0);
+
+    // Check narrative
+    const narrativeItem = data.practiceItems.find(p => p.id === 'pn-01');
+    expect(narrativeItem).toBeDefined();
+    expect(narrativeItem.track).toBe('narrative');
+    expect(narrativeItem.answer.bullets.length).toBeGreaterThan(0);
   });
 });

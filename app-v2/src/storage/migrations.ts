@@ -190,11 +190,53 @@ export function migrate(data: any): { data: any, migrated: boolean } {
       delete next.interviewPrep;
     }
     
-    // Convert Practice Hub items if any
+    // Convert Practice Hub items
     if (next.practiceContent) {
-       // Old PracticeHub data only had prompts, no answers or confidence tracked natively in an array
-       // We'll skip migrating hardcoded JSON content, we'll let the loader handle generating base items.
-       delete next.practiceContent;
+      if (Array.isArray(next.practiceContent.clevelQs)) {
+        for (const q of next.practiceContent.clevelQs) {
+          next.practiceItems.push({
+            id: q.id,
+            track: 'clevel',
+            prompt: q.question || '',
+            answer: {
+              fullContent: q.fullContent || '',
+              bullets: q.bullets || [],
+              profile: q.profile || ''
+            },
+            status: q.streak > 0 ? 'practice' : 'draft',
+            confidence: q.streak > 0 ? 3 : 1,
+            lastPracticedAt: q.lastPracticed,
+            rehearsalCount: q.streak || 0,
+            tags: q.profile ? [q.profile] : [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          });
+        }
+      }
+
+      if (Array.isArray(next.practiceContent.personalNarrative)) {
+        for (const q of next.practiceContent.personalNarrative) {
+          next.practiceItems.push({
+            id: q.id,
+            track: 'narrative',
+            prompt: q.question || '',
+            answer: {
+              fullContent: q.fullContent || '',
+              bullets: q.bullets || [],
+              category: q.category || ''
+            },
+            status: q.streak > 0 ? 'practice' : 'draft',
+            confidence: q.streak > 0 ? 3 : 1,
+            lastPracticedAt: q.lastPracticed,
+            rehearsalCount: q.streak || 0,
+            tags: q.category ? [q.category] : [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          });
+        }
+      }
+      
+      delete next.practiceContent;
     }
     
     changed = true;
