@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import type { AppDataV24, LearningItem, TimeBlock } from '../storage/types';
+import type { AppDataV26, LearningItem, TimeBlock, ContentIdea } from '../storage/types';
 
 interface IntakeScreenProps {
-  data: AppDataV24;
-  onPersist: (data: AppDataV24) => void;
+  data: AppDataV26;
+  onPersist: (data: AppDataV26) => void;
   onClose: () => void;
   onScheduleBlock: (block: TimeBlock) => void;
 }
@@ -59,6 +59,21 @@ export function IntakeScreen({ data, onPersist, onClose, onScheduleBlock }: Inta
   const handleDelete = (id: string) => {
     const updated = items.map(x => x.id === id ? { ...x, _deleted: true } as any : x);
     onPersist({ ...data, learning: updated });
+  };
+
+  const handleCreateIdea = (item: LearningItem) => {
+    const newIdea: ContentIdea = {
+      id: 'idea-' + Date.now(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      hook: `Lessons from: ${item.title || 'Intake'}`,
+      angle: 'Draft angle here...',
+      sourceRef: item.id,
+      status: 'active'
+    };
+    const ideas = data.create?.ideas || [];
+    onPersist({ ...data, create: { ...data.create!, ideas: [newIdea, ...ideas] } });
+    alert("Post idea created in the Create Engine!");
   };
 
   const handleAddBlock = (item: LearningItem) => {
@@ -186,6 +201,7 @@ export function IntakeScreen({ data, onPersist, onClose, onScheduleBlock }: Inta
               )}
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
+              <button className="btn" onClick={() => handleCreateIdea(item)} title="Turn into Post Idea">💡 Post Idea</button>
               <button className="btn" onClick={() => handleAddBlock(item)} title="Add Consume Block">📅 Block</button>
               <button className="btn" onClick={() => handleToggleComplete(item)} title="Mark Complete">✓ Done</button>
               <button className="btn" onClick={() => handleDelete(item.id)} title="Delete">🗑</button>

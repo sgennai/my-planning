@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { DAY_NAMES_LONG } from '../../storage/data';
 import { pad } from '../../ui/helpers';
 import { startOfDay, toMinutes, formatDateShort } from '../../helpers/calendar-utils';

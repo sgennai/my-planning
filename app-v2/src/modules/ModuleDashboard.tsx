@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import type { AppDataV24, Module, UserProfile } from '../storage/types';
+import { useState } from 'react';
+import type { AppDataV26, Module, UserProfile } from '../storage/types';
 import { scheduleModuleBlocks } from './generator';
 import { startOfWeek } from '../helpers/calendar-utils';
 
 interface Props {
-  data: AppDataV24;
-  onPersist: (data: AppDataV24) => void;
+  data: AppDataV26;
+  onPersist: (data: AppDataV26) => void;
   onClose: () => void;
 }
 

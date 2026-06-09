@@ -72,7 +72,7 @@ export function MicroTracker({ tracker, onToggle, viewDate }) {
   );
 }
 
-export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut, onPersist, onOpenPractice, onOpenModules, onOpenIntake, pendingCalAction, onClearPendingAction }) {
+export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut, onPersist, onOpenPractice, onOpenModules, onOpenIntake, onOpenCreate, pendingCalAction, onClearPendingAction }) {
   const isMobile = useMediaQuery('(max-width: 759px)');
   const now = useTickingClock(60000);
   // View routing: 'today' = daily compass (default landing), 'plan' = full week canvas
@@ -1104,6 +1104,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
                 <button className="app-menu-item" onClick={() => { if (onOpenPractice) onOpenPractice(); setMenuOpen(false); }}>Practice Hub</button>
                 <button className="app-menu-item" onClick={() => { if (onOpenModules) onOpenModules(); setMenuOpen(false); }}>Module Dashboard</button>
                 <button className="app-menu-item" onClick={() => { if (onOpenIntake) onOpenIntake(); setMenuOpen(false); }}>Intake</button>
+                <button className="app-menu-item" onClick={() => { if (onOpenCreate) onOpenCreate(); setMenuOpen(false); }}>Create</button>
                 <div className="app-menu-divider" />
                 <button className="app-menu-item" onClick={() => { setResetOverlayOpen(true); setMenuOpen(false); }}>
                   {reviewDone ? '✓ Weekly Review' : 'Weekly Review'}

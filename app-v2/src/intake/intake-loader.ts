@@ -1,4 +1,4 @@
-import type { AppDataV24, PodcastEpisode } from '../storage/types';
+import type { AppDataV26, PodcastEpisode } from '../storage/types';
 import opmlRaw from '../content/podcasts.opml?raw';
 
 function stableHash(str: string): string {
@@ -11,7 +11,7 @@ function stableHash(str: string): string {
   return Math.abs(hash).toString(36);
 }
 
-export function mergeIntakeContent(data: AppDataV24): boolean {
+export function mergeIntakeContent(data: AppDataV26): boolean {
   let changed = false;
   if (!Array.isArray(data.learning)) {
     data.learning = [];

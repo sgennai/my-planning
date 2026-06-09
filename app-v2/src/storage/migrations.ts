@@ -1,5 +1,5 @@
 import { SCHEMA_VERSION, SEED_ROUTINE, SEED_PROJECTS, SEED_REFERENCE_LIBRARY, SEED_PRACTICE_CONTENT } from './data';
-import type { PracticeItem, InterviewStory, AppDataV24 } from './types';
+import type { PracticeItem } from './types';
 
 export function migrate(data: any): { data: any, migrated: boolean } {
   let changed = false;
@@ -27,9 +27,9 @@ export function migrate(data: any): { data: any, migrated: boolean } {
   // v5: replace the meeting-reset placeholder entry with real content.
   // We only replace this one entry — other entries keep any edits.
   if (prevVersion < 5 && Array.isArray(next.referenceLibrary)) {
-    const meetingReset = SEED_REFERENCE_LIBRARY.find(r => r.id === 'ref-meeting-reset');
+    const meetingReset = SEED_REFERENCE_LIBRARY.find((r: any) => r.id === 'ref-meeting-reset');
     if (meetingReset) {
-      const idx = next.referenceLibrary.findIndex(r => r.id === 'ref-meeting-reset');
+      const idx = next.referenceLibrary.findIndex((r: any) => r.id === 'ref-meeting-reset');
       if (idx >= 0) {
         next.referenceLibrary[idx] = meetingReset;
       } else {
@@ -105,7 +105,7 @@ export function migrate(data: any): { data: any, migrated: boolean } {
   }
   // v11: routine items with string recurrence get structured form
   if (Array.isArray(next.routine)) {
-    next.routine = next.routine.map(item => {
+    next.routine = next.routine.map((item: any) => {
       if (typeof item.recurrence === 'string') {
         // Try to parse 'top-of-hour-9-18' style
         const m = item.recurrence.match(/top-of-hour-(\d+)-(\d+)/);

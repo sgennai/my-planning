@@ -1,10 +1,10 @@
-import type { AppDataV24, Module, TimeBlock } from '../storage/types';
+import type { AppDataV26, TimeBlock } from '../storage/types';
 
 export function scheduleModuleBlocks(
-  data: AppDataV24,
+  data: AppDataV26,
   moduleId: string,
   weekStartIso: string
-): AppDataV24 {
+): AppDataV26 {
   const module = data.modules?.find((m) => m.id === moduleId);
   if (!module || module.type !== 'generator' || module.status !== 'active' || !module.cadence) {
     return data;

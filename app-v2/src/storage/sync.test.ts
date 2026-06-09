@@ -7,7 +7,7 @@ import { syncData, loadData, saveData, initDB, STORES, _resetForTest } from './d
 let serverStore = new Map<string, any>();
 let fetchCallCount = 0;
 
-global.fetch = vi.fn(async (url: string, opts: any) => {
+(globalThis as any).fetch = vi.fn(async (url: string, opts: any) => {
   fetchCallCount++;
   
   if (url.includes('/sync/push')) {
@@ -24,7 +24,7 @@ global.fetch = vi.fn(async (url: string, opts: any) => {
   
   if (url.includes('/sync/pull')) {
     const since = new URL(url).searchParams.get('since') || '';
-    const records = [];
+    const records: any[] = [];
     for (const r of serverStore.values()) {
       if (r.updatedAt > since) records.push(r);
     }
@@ -70,14 +70,14 @@ describe('WP-2 Sync Test Suite', () => {
     
     await sleep(10); // Ensure timestamp differs
     
-    global.fetch.mockImplementationOnce(() => Promise.reject(new Error('Offline')));
+    (globalThis as any).fetch.mockImplementationOnce(() => Promise.reject(new Error('Offline')));
     const data2 = { ...data1, featureFlags: { offline: true, changed: true } };
     await saveData(data2);
     
     const res = await syncData(SYNC_URL, SECRET);
     expect(res).toEqual([]); // failed silently
     
-    global.fetch.mockRestore();
+    (globalThis as any).fetch.mockRestore();
     await syncData(SYNC_URL, SECRET);
     
     const serverObj = serverStore.get(`${STORES.SINGLETONS}:featureFlags`);
@@ -103,8 +103,8 @@ describe('WP-2 Sync Test Suite', () => {
     expect(changes).toContainEqual({ id: 'todo-1', storeName: STORES.TODOS });
     
     const freshA = await loadData();
-    expect(freshA.featureFlags.a).toBe(1);
-    expect(freshA.todos).toContainEqual(expect.objectContaining({ title: 'Buy milk' }));
+    expect(freshA!.featureFlags.a).toBe(1);
+    expect(freshA!.todos).toContainEqual(expect.objectContaining({ title: 'Buy milk' }));
   });
 
   it('same-entity last-write-wins', async () => {
@@ -124,7 +124,7 @@ describe('WP-2 Sync Test Suite', () => {
     await syncData(SYNC_URL, SECRET);
     
     let freshA = await loadData();
-    expect(freshA.prefs.theme).toBe('light'); // Older remote change ignored
+    expect(freshA!.prefs.theme).toBe('light'); // Older remote change ignored
     
     const timeC = new Date(Date.now() + 5000).toISOString();
     serverStore.set(`${STORES.SINGLETONS}:prefs`, {
@@ -138,7 +138,7 @@ describe('WP-2 Sync Test Suite', () => {
     expect(changes2).toContainEqual({ id: 'prefs', storeName: STORES.SINGLETONS });
     
     freshA = await loadData();
-    expect(freshA.prefs.theme).toBe('dark'); // Newer remote change applied
+    expect(freshA!.prefs.theme).toBe('dark'); // Newer remote change applied
   });
 
   it('cost-guard confirming no excessive calls (free-tier constraint)', async () => {

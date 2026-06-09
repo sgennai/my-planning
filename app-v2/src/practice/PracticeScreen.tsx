@@ -114,7 +114,7 @@ export function ipComputeStats(ip) {
 
 
 // ─── IPAnswerBlock ────────────────────────────────────────────────
-export function IPAnswerBlock({ field, label, placeholder, value, primary, onChange }) {
+export function IPAnswerBlock({ field, label, placeholder, value, primary, question, onChange, onDuplicate, onDelete, onCreateIdea }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value || '');
   const [saved, setSaved] = useState(false);
@@ -144,6 +144,11 @@ export function IPAnswerBlock({ field, label, placeholder, value, primary, onCha
           <textarea ref={taRef} className="ip-block-ta" value={draft} rows={4} placeholder={placeholder}
             onChange={e => { setDraft(e.target.value); autoResize(e.target); }} />
           <div className="ip-block-edit-actions">
+            <button className="ip-btn" onClick={onDuplicate} title="Duplicate">Copy</button>
+            {onCreateIdea && (
+              <button className="ip-btn" onClick={() => onCreateIdea(question)} title="Create Post Idea">💡 Post Idea</button>
+            )}
+            <button className="ip-btn-danger" onClick={onDelete} title="Delete">Del</button>
             <button className="ip-block-save-btn" onClick={save}>Save</button>
             <button className="ip-block-cancel-btn" onClick={cancel}>Cancel</button>
           </div>
@@ -323,7 +328,7 @@ export function IPRubric({ rubric, onChange }) {
 }
 
 // ─── IPWorkspace ──────────────────────────────────────────────────
-export function IPWorkspace({ question, ip, onUpdateAnswer, onUpdateQuestion, onRehearseOne, onMarkReady, onDelete, onDuplicate, onMove, onLinkStory, onUnlinkStory }) {
+export function IPWorkspace({ question, ip, onUpdateAnswer, onUpdateQuestion, onRehearseOne, onMarkReady, onDelete, onDuplicate, onMove, onLinkStory, onUnlinkStory, onCreateIdea }) {
   const lang = useContext(LangContext);
   const [showAll, setShowAll] = useState(false);
   const [editingQText, setEditingQText] = useState(false);
@@ -433,8 +438,11 @@ export function IPWorkspace({ question, ip, onUpdateAnswer, onUpdateQuestion, on
       <div className="ip-blocks-area">
         {visibleBlocks.map(b => (
           <IPAnswerBlock key={b.field} field={b.field} label={b.label} placeholder={b.placeholder}
-            value={question.answer[b.field] || ''} primary={b.primary}
-            onChange={(field, val) => onUpdateAnswer(question.id, field, val)} />
+            value={question.answer[b.field] || ''} primary={b.primary} question={question}
+            onChange={(field, val) => onUpdateAnswer(question.id, field, val)}
+            onDuplicate={() => onDuplicate(question.id)}
+            onDelete={() => { if (window.confirm('Delete this question?')) onDelete(question.id); }}
+            onCreateIdea={onCreateIdea} />
         ))}
         {!showAll && hiddenCount > 0 && (
           <button className="ip-show-all-btn" onClick={() => setShowAll(true)}>
@@ -457,7 +465,7 @@ export function IPWorkspace({ question, ip, onUpdateAnswer, onUpdateQuestion, on
 }
 
 // ─── IPStoryEditor ────────────────────────────────────────────────
-export function IPStoryEditor({ story, onUpdate, onDelete, linkedByQuestions }) {
+export function IPStoryEditor({ story, onUpdate, onDelete, onCreateIdea, linkedByQuestions }) {
   const lang = useContext(LangContext);
   const [fields, setFields] = useState({ ...story });
   const saveTimer = useRef(null);
@@ -484,6 +492,7 @@ export function IPStoryEditor({ story, onUpdate, onDelete, linkedByQuestions }) 
         <span className="ip-story-editor-title">{fields.title || 'Untitled story'}</span>
         <div className="ip-story-editor-header-right">
           {saved && <span className="ip-block-saved">✓ Saved</span>}
+          <button className="ip-ws-btn" onClick={() => onCreateIdea(story)}>💡 Post Idea</button>
           <button className="ip-ws-btn ip-ws-btn--danger"
             onClick={() => { if (window.confirm('Delete this story? It will be unlinked from all questions.')) onDelete(); }}>
             Delete
@@ -519,7 +528,7 @@ export function IPStoryEditor({ story, onUpdate, onDelete, linkedByQuestions }) 
 }
 
 // ─── IPStoryBankView ──────────────────────────────────────────────
-export function IPStoryBankView({ ip, onAddStory, onUpdateStory, onDeleteStory }) {
+export function IPStoryBankView({ ip, onAddStory, onUpdateStory, onDeleteStory, onCreateIdea }) {
   const [selId, setSelId] = useState(null);
   const stories = ip.stories || [];
   const selected = stories.find(s => s.id === selId) || null;
@@ -555,6 +564,7 @@ export function IPStoryBankView({ ip, onAddStory, onUpdateStory, onDeleteStory }
           story={selected}
           onUpdate={updates => onUpdateStory(selected.id, updates)}
           onDelete={() => { onDeleteStory(selected.id); setSelId(null); }}
+          onCreateIdea={onCreateIdea}
           linkedByQuestions={linkedByQuestions}
         />
       ) : (
@@ -1176,6 +1186,23 @@ export function PracticeScreen({ data, onPersist, onBack, onSignOut }) {
   }, [persistData, currentTrackDef]);
 
   const [selCatId, setSelCatId] = useState(() => ((ip.categories || [])[0] || {}).id || null);
+
+  const handleCreateIdea = (item) => {
+    const newIdea = {
+      id: 'idea-' + Date.now(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      hook: `From Prep: ${item.title || item.question || ''}`,
+      angle: 'Draft angle here...',
+      sourceRef: item.id,
+      status: 'active'
+    };
+    persistData(d => ({
+      ...d,
+      create: { ...(d.create || { posts: [] }), ideas: [newIdea, ...(d.create?.ideas || [])] }
+    }));
+    alert("Post idea created in the Create Engine!");
+  };
   const [selQId, setSelQId] = useState(null);
   const [mode, setMode] = useState('browse'); // 'browse'|'rehearse'|'stories'|'progress'|'mock'
   const [rehearseQueue, setRehearseQueue] = useState([]);

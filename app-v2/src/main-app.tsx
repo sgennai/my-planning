@@ -6,6 +6,7 @@ import { PracticeScreen } from './practice/PracticeScreen';
 import { CalendarScreen } from './calendar/CalendarScreen';
 import { ModuleDashboard } from './modules/ModuleDashboard';
 import { IntakeScreen } from './intake/IntakeScreen';
+import { CreateScreen } from './create/CreateScreen';
 import { loadData, saveData, syncData } from './storage/db';
 import { DEFAULT_MODULES } from './modules/seed-modules';
 
@@ -298,6 +299,18 @@ export function App() {
         />
     );
   }
+
+  if (appPage === 'create') {
+    return (
+      <div className="app-layout">
+        <CreateScreen
+          data={data}
+          onPersist={persist}
+          onClose={() => setAppPage('calendar')}
+        />
+      </div>
+    );
+  }
   return (
     <>
       <CalendarScreen
@@ -309,6 +322,7 @@ export function App() {
         onSignOut={handleSignOut}
         onPersist={persist}
         onOpenPractice={() => setAppPage('practice')}
+        onOpenCreate={() => setAppPage('create')}
         onOpenModules={() => setAppPage('modules')}
         onOpenIntake={() => setAppPage('intake')}
         pendingCalAction={pendingCalAction}

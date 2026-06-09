@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { scheduleModuleBlocks } from './generator';
-import { AppDataV24 } from '../storage/types';
+import type { AppDataV26 } from '../storage/types';
 
 describe('generator module logic', () => {
   const baseData = {
@@ -30,7 +30,7 @@ describe('generator module logic', () => {
       }
     ],
     scheduledBlocks: []
-  } as unknown as AppDataV24;
+  } as unknown as AppDataV26;
 
   it('generates a block for an active generator module', () => {
     const nextData = scheduleModuleBlocks(baseData, 'mod-1', '2026-06-01T00:00:00Z');

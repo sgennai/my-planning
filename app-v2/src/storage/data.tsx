@@ -12,7 +12,7 @@ document.documentElement.setAttribute('data-theme', 'light');
 export const CLIENT_ID = '25894919429-pbtl8l6nn23vnvc8c8cbhg5f3n8gepu6.apps.googleusercontent.com';
 export const SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
 export const FILE_NAME = 'my-planning-data.json';
-export const SCHEMA_VERSION = 25;
+export const SCHEMA_VERSION = 26;
 
 // Days: JS Date.getDay() — 0=Sun, 1=Mon ... 6=Sat. Visual columns are Mon-first.
 export const VISUAL_TO_JS_DAY = [1, 2, 3, 4, 5, 6, 0];

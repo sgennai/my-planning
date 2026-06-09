@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { getNextPracticeDate, getStatusFromConfidence, isDueForPractice, selectPracticeBatch, searchPracticeItems } from './practice-logic';
 import type { PracticeItem } from '../storage/types';
 

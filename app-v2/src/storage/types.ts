@@ -1,5 +1,6 @@
 export interface BaseRecord {
   id: string;
+  createdAt?: string;
   updatedAt?: string;
   _deleted?: boolean;
 }
@@ -214,7 +215,7 @@ export interface Settings extends BaseRecord {
   featureFlags?: Record<string, boolean>;
 }
 
-export interface AppDataV24 {
+export interface AppDataV26 {
   schemaVersion: number;
   createdAt: string;
   lastModified: string;

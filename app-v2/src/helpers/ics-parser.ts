@@ -1,5 +1,4 @@
 // ICS PARSER
-import type { CalendarEvent } from '../storage/types';
 
 export function unfoldICS(text: string): string {
   return text.replace(/\r?\n[ \t]/g, '');

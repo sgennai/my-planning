@@ -1,4 +1,4 @@
-import type { AppDataV24, PracticeItem } from '../storage/types';
+import type { AppDataV26, PracticeItem } from '../storage/types';
 import interviewJson from '../content/interview.json';
 import clevelJson from '../content/clevel.json';
 import execpresenceJson from '../content/execpresence.json';
@@ -31,7 +31,7 @@ const TRACKS: ContentTrack[] = [
  * Touches ONLY content fields (prompt, track, tags, rubric).
  * NEVER touches progress fields (confidence, nextPracticeAt, etc.) or user answers.
  */
-export function mergePracticeContent(data: AppDataV24): boolean {
+export function mergePracticeContent(data: AppDataV26): boolean {
   let changed = false;
   if (!data.practiceItems) {
     data.practiceItems = [];
