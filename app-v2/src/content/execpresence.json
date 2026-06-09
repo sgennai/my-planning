@@ -1,239 +1,617 @@
 {
   "track": "execpresence",
   "trackLabel": "Executive Presence",
-  "_note": "Content seed for the Practice engine. Each item is a spoken-rehearsal drill: prompt = what to say out loud; reference = read-only 'what good looks like' to reveal AFTER an attempt. The user's own answer + all progress fields (confidence, nextPracticeAt, etc.) are user-owned and must never be overwritten by the loader. Wrap/track-assign to match interview.json.",
+  "_note": "Bilingual (EN/FR) content seed for the Practice engine — fully bilingual replacement for the earlier English-only execpresence.json (same 18 drills and same English text, with French added to every field). Each item is a spoken-rehearsal drill: prompt = what to say out loud; reference = read-only 'what good looks like' to reveal AFTER an attempt. The user's own answer + all progress fields (confidence, nextPracticeAt, etc.) are user-owned and must never be overwritten by the loader. Resolve every field via localize(field,lang); keyPhrases is a localized array {en:[],fr:[]}. DROP-IN OVERWRITE: replace the existing file in app-v2/src/content/, no loader change needed (already in TRACKS) — rebuild and commit.",
   "items": [
     {
       "id": "ep-oor-1",
-      "prompt": "Scenario: a deal review on a $2M BFSI renewal has drifted into status updates and nobody is deciding anything. Out loud, intervene using OOR. State what you observe, the two real options, and your recommendation. Say it three times — slower the second time, lower-toned the third. Land on the recommendation, pause two seconds, and stop. No trailing words.",
+      "prompt": {
+        "en": "Scenario: a deal review on a $2M BFSI renewal has drifted into status updates and nobody is deciding anything. Out loud, intervene using OOR. State what you observe, the two real options, and your recommendation. Say it three times — slower the second time, lower-toned the third. Land on the recommendation, pause two seconds, and stop. No trailing words.",
+        "fr": "Mise en situation : une revue d'affaire sur un renouvellement BFSI de 2 M$ a dérivé en simples points d'avancement et personne ne décide rien. À voix haute, intervenez avec OOR. Énoncez ce que vous observez, les deux véritables options, et votre recommandation. Dites-le trois fois — plus lentement la deuxième, d'un ton plus grave la troisième. Terminez sur la recommandation, marquez deux secondes de pause, et arrêtez-vous. Aucun mot de trop."
+      },
       "reference": {
-        "framework": "OOR — Observation → Option → Recommendation. Use for a decisive, structured intervention.",
-        "pattern": "I'm observing X. Options are A or B. I recommend Y, because Z.",
-        "model": "I'm observing we're three weeks from renewal with no executive sponsor engaged. Two options: we keep working the champion and hope it lands, or we escalate now and ask their COO for 20 minutes. I recommend we escalate this week — the cost of delay is a slipped quarter, and we still have the relationship to do it cleanly.",
-        "keyPhrases": ["cost of delay", "single-threaded owner", "decision velocity", "lock the decision"],
-        "watchOut": "Don't pre-justify before anyone challenges you. State the recommendation once and stop — over-explaining signals the position is weak.",
-        "delivery": "Recommendation → 2-second pause → silence. End on a verb or noun, not a filler."
+        "framework": {
+          "en": "OOR — Observation → Option → Recommendation. Use for a decisive, structured intervention.",
+          "fr": "OOR — Observation → Option → Recommandation. À utiliser pour une intervention décisive et structurée."
+        },
+        "pattern": {
+          "en": "I'm observing X. Options are A or B. I recommend Y, because Z.",
+          "fr": "J'observe X. Les options sont A ou B. Je recommande Y, parce que Z."
+        },
+        "model": {
+          "en": "I'm observing we're three weeks from renewal with no executive sponsor engaged. Two options: we keep working the champion and hope it lands, or we escalate now and ask their COO for 20 minutes. I recommend we escalate this week — the cost of delay is a slipped quarter, and we still have the relationship to do it cleanly.",
+          "fr": "J'observe que nous sommes à trois semaines du renouvellement sans aucun sponsor exécutif engagé. Deux options : continuer à travailler le champion en espérant que ça passe, ou escalader maintenant et demander 20 minutes à leur COO. Je recommande d'escalader cette semaine — le coût du retard, c'est un trimestre qui glisse, et nous avons encore la relation pour le faire proprement."
+        },
+        "keyPhrases": {
+          "en": ["cost of delay", "single-threaded owner", "decision velocity", "lock the decision"],
+          "fr": ["coût du retard", "interlocuteur unique (single-threaded)", "vélocité de décision", "verrouiller la décision"]
+        },
+        "watchOut": {
+          "en": "Don't pre-justify before anyone challenges you. State the recommendation once and stop — over-explaining signals the position is weak.",
+          "fr": "Ne vous justifiez pas avant qu'on ne vous challenge. Énoncez la recommandation une fois et arrêtez-vous — trop expliquer signale une position faible."
+        },
+        "delivery": {
+          "en": "Recommendation → 2-second pause → silence. End on a verb or noun, not a filler.",
+          "fr": "Recommandation → pause de 2 secondes → silence. Terminez sur un verbe ou un nom, pas sur un mot de remplissage."
+        }
       },
       "tags": ["framework:oor", "pillar:executive", "pillar:b2bsales"]
     },
     {
       "id": "ep-fbt-1",
-      "prompt": "Scenario: a forecast call has gone tactical — everyone is debating which feature demo to run next. Out loud, reframe to the business level using FBT: name the frame, the business impact, and the trade-off. Repeat three times, removing 20% of the words each pass until it is one tight breath.",
+      "prompt": {
+        "en": "Scenario: a forecast call has gone tactical — everyone is debating which feature demo to run next. Out loud, reframe to the business level using FBT: name the frame, the business impact, and the trade-off. Repeat three times, removing 20% of the words each pass until it is one tight breath.",
+        "fr": "Mise en situation : un point de prévision est devenu tactique — tout le monde débat de la prochaine démo de fonctionnalité à faire. À voix haute, recadrez au niveau métier avec FBT : nommez le cadre, l'impact métier, et l'arbitrage. Répétez trois fois, en retirant 20 % des mots à chaque passage jusqu'à tenir en une seule respiration."
+      },
       "reference": {
-        "framework": "FBT — Frame → Business impact → Trade-off. Use when the conversation drifts tactical.",
-        "pattern": "At the business level: X. Impact: Y. Trade-off: Z.",
-        "model": "At the business level, this account is deciding whether we're a vendor or a platform. Impact: the platform path is three times the ACV but needs their CIO bought in. The trade-off is speed — we can close small this quarter, or play for the bigger mandate next.",
-        "keyPhrases": ["altitude", "strategic posture", "second-order effects", "opportunity cost"],
-        "watchOut": "Don't rescue the group with tactical detail — that keeps you in executor mode. Stay at the business level.",
-        "delivery": "Lead with the frame, not the background. Max 12–15 words per sentence."
+        "framework": {
+          "en": "FBT — Frame → Business impact → Trade-off. Use when the conversation drifts tactical.",
+          "fr": "FBT — Frame (cadre) → Business impact (impact métier) → Trade-off (arbitrage). À utiliser quand la conversation dérive vers le tactique."
+        },
+        "pattern": {
+          "en": "At the business level: X. Impact: Y. Trade-off: Z.",
+          "fr": "Au niveau métier : X. Impact : Y. Arbitrage : Z."
+        },
+        "model": {
+          "en": "At the business level, this account is deciding whether we're a vendor or a platform. Impact: the platform path is three times the ACV but needs their CIO bought in. The trade-off is speed — we can close small this quarter, or play for the bigger mandate next.",
+          "fr": "Au niveau métier, ce compte est en train de décider si nous sommes un fournisseur ou une plateforme. Impact : la voie plateforme représente trois fois l'ACV mais exige l'adhésion de leur DSI. L'arbitrage, c'est la vitesse — soit on signe petit ce trimestre, soit on joue le mandat plus large au suivant."
+        },
+        "keyPhrases": {
+          "en": ["altitude", "strategic posture", "second-order effects", "opportunity cost"],
+          "fr": ["altitude", "posture stratégique", "effets de second ordre", "coût d'opportunité"]
+        },
+        "watchOut": {
+          "en": "Don't rescue the group with tactical detail — that keeps you in executor mode. Stay at the business level.",
+          "fr": "Ne sauvez pas le groupe avec du détail tactique — cela vous maintient en mode exécutant. Restez au niveau métier."
+        },
+        "delivery": {
+          "en": "Lead with the frame, not the background. Max 12–15 words per sentence.",
+          "fr": "Commencez par le cadre, pas par le contexte. Maximum 12 à 15 mots par phrase."
+        }
       },
       "tags": ["framework:fbt", "pillar:executive", "pillar:leadership"]
     },
     {
       "id": "ep-sowhat-1",
-      "prompt": "Scenario: a QBR is drowning in dashboards and pipeline metrics. Out loud, cut through it with the SO WHAT? move — convert one data point into a decision-relevant meaning in two sentences. Then say it again, even shorter.",
+      "prompt": {
+        "en": "Scenario: a QBR is drowning in dashboards and pipeline metrics. Out loud, cut through it with the SO WHAT? move — convert one data point into a decision-relevant meaning in two sentences. Then say it again, even shorter.",
+        "fr": "Mise en situation : une revue trimestrielle (QBR) se noie dans les tableaux de bord et les métriques de pipeline. À voix haute, tranchez avec le mouvement SO WHAT ? — convertissez une donnée en un sens pertinent pour la décision, en deux phrases. Puis redites-le, encore plus court."
+      },
       "reference": {
-        "framework": "SO WHAT? — Meaning extraction. Use in data-heavy discussions.",
-        "pattern": "So what changes for us? → [the implication], → [the decision it forces].",
-        "model": "Win rates on net-new are flat but expansion is up 40%. So what — our motion is shifting from hunting to farming. The implication: we should be reallocating two reps from new-logo to the install base now, not next half.",
-        "keyPhrases": ["net-net", "the implication is", "leading indicator", "the crux"],
-        "watchOut": "Don't recite the data back. The room already saw the chart — your value is the meaning, not the number.",
-        "delivery": "Headline the implication first (BLUF), then the one supporting fact."
+        "framework": {
+          "en": "SO WHAT? — Meaning extraction. Use in data-heavy discussions.",
+          "fr": "SO WHAT ? — Extraction du sens. À utiliser dans les discussions chargées de données."
+        },
+        "pattern": {
+          "en": "So what changes for us? → [the implication], → [the decision it forces].",
+          "fr": "Qu'est-ce que ça change pour nous ? → [l'implication], → [la décision que cela impose]."
+        },
+        "model": {
+          "en": "Win rates on net-new are flat but expansion is up 40%. So what — our motion is shifting from hunting to farming. The implication: we should be reallocating two reps from new-logo to the install base now, not next half.",
+          "fr": "Les taux de conversion en new-logo stagnent mais l'expansion progresse de 40 %. Et alors — notre modèle passe de la chasse à l'élevage. L'implication : nous devrions réaffecter deux commerciaux du new-logo vers la base installée maintenant, pas au semestre prochain."
+        },
+        "keyPhrases": {
+          "en": ["net-net", "the implication is", "leading indicator", "the crux"],
+          "fr": ["au final (net-net)", "l'implication est", "indicateur avancé", "le nœud du sujet"]
+        },
+        "watchOut": {
+          "en": "Don't recite the data back. The room already saw the chart — your value is the meaning, not the number.",
+          "fr": "Ne récitez pas les données. La salle a déjà vu le graphique — votre valeur, c'est le sens, pas le chiffre."
+        },
+        "delivery": {
+          "en": "Headline the implication first (BLUF), then the one supporting fact.",
+          "fr": "Annoncez l'implication d'abord (BLUF), puis le seul fait qui l'appuie."
+        }
       },
       "tags": ["framework:sowhat", "pillar:executive"]
     },
     {
       "id": "ep-dare-1",
-      "prompt": "Scenario: leadership is fuzzy on whether to pursue a high-risk transformation deal with a long sales cycle. Out loud, bring rigor with D.A.R.E: state the decision, the assumptions it rests on, the risks, and the exit criteria. Deliver it as if briefing your VP in under 40 seconds.",
+      "prompt": {
+        "en": "Scenario: leadership is fuzzy on whether to pursue a high-risk transformation deal with a long sales cycle. Out loud, bring rigor with D.A.R.E: state the decision, the assumptions it rests on, the risks, and the exit criteria. Deliver it as if briefing your VP in under 40 seconds.",
+        "fr": "Mise en situation : la direction hésite sur l'opportunité de poursuivre une affaire de transformation à haut risque, au cycle de vente long. À voix haute, apportez de la rigueur avec D.A.R.E : énoncez la décision, les hypothèses sur lesquelles elle repose, les risques, et les critères de sortie. Livrez-le comme un briefing à votre VP en moins de 40 secondes."
+      },
       "reference": {
-        "framework": "D.A.R.E — Decision → Assumptions → Risks → Exit criteria. Use when ambiguity or risk tolerance is fuzzy.",
-        "pattern": "The decision is X. We're assuming Y. The risks are Z. Our exit criteria are W.",
-        "model": "The decision is to commit a solution engineer to this transformation deal for one quarter. We're assuming their CIO mandate is real and funded. The risk is a 12-month cycle with no near-term revenue. Exit criteria: if we don't have economic-buyer access by week six, we step back to a lighter engagement.",
-        "keyPhrases": ["risk appetite", "kill criteria", "decision rights", "default plan"],
-        "watchOut": "Naming exit criteria is a strength, not weakness — it shows judgment, not doubt. Say it cleanly.",
-        "delivery": "Four crisp beats, one breath each. Pause before 'exit criteria' — that's the executive move."
+        "framework": {
+          "en": "D.A.R.E — Decision → Assumptions → Risks → Exit criteria. Use when ambiguity or risk tolerance is fuzzy.",
+          "fr": "D.A.R.E — Decision (décision) → Assumptions (hypothèses) → Risks (risques) → Exit criteria (critères de sortie). À utiliser quand l'ambiguïté ou la tolérance au risque est floue."
+        },
+        "pattern": {
+          "en": "The decision is X. We're assuming Y. The risks are Z. Our exit criteria are W.",
+          "fr": "La décision est X. Nous supposons Y. Les risques sont Z. Nos critères de sortie sont W."
+        },
+        "model": {
+          "en": "The decision is to commit a solution engineer to this transformation deal for one quarter. We're assuming their CIO mandate is real and funded. The risk is a 12-month cycle with no near-term revenue. Exit criteria: if we don't have economic-buyer access by week six, we step back to a lighter engagement.",
+          "fr": "La décision est d'affecter un ingénieur avant-vente à cette affaire de transformation pour un trimestre. Nous supposons que le mandat de leur DSI est réel et financé. Le risque, c'est un cycle de 12 mois sans revenu à court terme. Critères de sortie : si nous n'avons pas accès à l'acheteur économique d'ici la sixième semaine, nous revenons à un engagement plus léger."
+        },
+        "keyPhrases": {
+          "en": ["risk appetite", "kill criteria", "decision rights", "default plan"],
+          "fr": ["appétit pour le risque", "critères d'arrêt (kill criteria)", "droits de décision", "plan par défaut"]
+        },
+        "watchOut": {
+          "en": "Naming exit criteria is a strength, not weakness — it shows judgment, not doubt. Say it cleanly.",
+          "fr": "Nommer les critères de sortie est une force, pas une faiblesse — cela montre du jugement, pas du doute. Dites-le proprement."
+        },
+        "delivery": {
+          "en": "Four crisp beats, one breath each. Pause before 'exit criteria' — that's the executive move.",
+          "fr": "Quatre temps nets, une respiration chacun. Marquez une pause avant « critères de sortie » — c'est le geste d'exécutif."
+        }
       },
       "tags": ["framework:dare", "pillar:executive", "pillar:b2bsales"]
     },
     {
       "id": "ep-nse-1",
-      "prompt": "Scenario: your manager asks what your team should focus on next half across five competing priorities. Out loud, answer with N/S/E — Now, Soon, Eventually — naming one thing in each. Say it three times until the sequencing sounds inevitable, not improvised.",
+      "prompt": {
+        "en": "Scenario: your manager asks what your team should focus on next half across five competing priorities. Out loud, answer with N/S/E — Now, Soon, Eventually — naming one thing in each. Say it three times until the sequencing sounds inevitable, not improvised.",
+        "fr": "Mise en situation : votre manager vous demande sur quoi votre équipe doit se concentrer au prochain semestre, parmi cinq priorités concurrentes. À voix haute, répondez avec N/S/E — Now (maintenant), Soon (bientôt), Eventually (à terme) — en nommant une seule chose pour chacun. Dites-le trois fois jusqu'à ce que le séquencement paraisse inévitable, pas improvisé."
+      },
       "reference": {
-        "framework": "N/S/E — Now → Soon → Eventually. Use when prioritization and sequencing are needed.",
-        "pattern": "Now: X. Soon: Y. Eventually: Z.",
-        "model": "Now, we lock the two renewals at risk — that's revenue we already counted. Soon, we build the BFSI reference story so the next three deals move faster. Eventually, we expand into insurance, but only once the banking motion is repeatable.",
-        "keyPhrases": ["sequencing", "repeatable", "if we do only one thing", "operating rhythm"],
-        "watchOut": "Don't list all five priorities — that's flooding. Force the choice: one per horizon.",
-        "delivery": "Three beats, descending tone. The 'Now' should sound non-negotiable."
+        "framework": {
+          "en": "N/S/E — Now → Soon → Eventually. Use when prioritization and sequencing are needed.",
+          "fr": "N/S/E — Now (maintenant) → Soon (bientôt) → Eventually (à terme). À utiliser quand il faut prioriser et séquencer."
+        },
+        "pattern": {
+          "en": "Now: X. Soon: Y. Eventually: Z.",
+          "fr": "Maintenant : X. Bientôt : Y. À terme : Z."
+        },
+        "model": {
+          "en": "Now, we lock the two renewals at risk — that's revenue we already counted. Soon, we build the BFSI reference story so the next three deals move faster. Eventually, we expand into insurance, but only once the banking motion is repeatable.",
+          "fr": "Maintenant, on verrouille les deux renouvellements à risque — c'est du revenu déjà compté. Bientôt, on construit le cas de référence BFSI pour que les trois affaires suivantes avancent plus vite. À terme, on s'étend à l'assurance, mais seulement une fois que le modèle bancaire est reproductible."
+        },
+        "keyPhrases": {
+          "en": ["sequencing", "repeatable", "if we do only one thing", "operating rhythm"],
+          "fr": ["séquencement", "reproductible", "si on ne fait qu'une chose", "rythme opérationnel"]
+        },
+        "watchOut": {
+          "en": "Don't list all five priorities — that's flooding. Force the choice: one per horizon.",
+          "fr": "Ne listez pas les cinq priorités — c'est noyer la salle. Forcez le choix : une par horizon."
+        },
+        "delivery": {
+          "en": "Three beats, descending tone. The 'Now' should sound non-negotiable.",
+          "fr": "Trois temps, ton descendant. Le « Maintenant » doit sonner non négociable."
+        }
       },
       "tags": ["framework:nse", "pillar:leadership", "pillar:management"]
     },
     {
       "id": "ep-poc-1",
-      "prompt": "Scenario: the team jumps straight to building a custom POC before agreeing what they're solving. Out loud, anchor the conversation with POC — Problem, Outcome we want, Constraints. Repeat twice; the second time, lead with an even sharper one-line problem statement.",
+      "prompt": {
+        "en": "Scenario: the team jumps straight to building a custom POC before agreeing what they're solving. Out loud, anchor the conversation with POC — Problem, Outcome we want, Constraints. Repeat twice; the second time, lead with an even sharper one-line problem statement.",
+        "fr": "Mise en situation : l'équipe se précipite pour construire un POC sur mesure avant de s'accorder sur ce qu'elle résout. À voix haute, ancrez la conversation avec POC — Problem (problème), Outcome (résultat visé), Constraints (contraintes). Répétez deux fois ; la deuxième, commencez par un énoncé du problème en une ligne encore plus tranchant."
+      },
       "reference": {
-        "framework": "POC — Problem → Outcome → Constraints. Use when people jump to solutions.",
-        "pattern": "Let's anchor: the problem is X, the outcome we want is Y, the constraints are Z.",
-        "model": "Let's anchor before we build. The problem is the customer can't prove ROI to their board. The outcome we want is a number they'll defend internally. The constraint is we have two weeks and no access to their finance team — so the POC has to generate that proof itself.",
-        "keyPhrases": ["let's separate", "end-state", "constraint", "the unlock"],
-        "watchOut": "Solving before framing is a presence-killer. Resist the urge to propose the solution until the problem is agreed.",
-        "delivery": "Calm volume. You're slowing the room down on purpose — that itself signals control."
+        "framework": {
+          "en": "POC — Problem → Outcome → Constraints. Use when people jump to solutions.",
+          "fr": "POC — Problem (problème) → Outcome (résultat) → Constraints (contraintes). À utiliser quand les gens sautent aux solutions."
+        },
+        "pattern": {
+          "en": "Let's anchor: the problem is X, the outcome we want is Y, the constraints are Z.",
+          "fr": "Ancrons-nous : le problème est X, le résultat visé est Y, les contraintes sont Z."
+        },
+        "model": {
+          "en": "Let's anchor before we build. The problem is the customer can't prove ROI to their board. The outcome we want is a number they'll defend internally. The constraint is we have two weeks and no access to their finance team — so the POC has to generate that proof itself.",
+          "fr": "Ancrons-nous avant de construire. Le problème, c'est que le client ne peut pas prouver le ROI à son conseil. Le résultat visé, c'est un chiffre qu'il défendra en interne. La contrainte, c'est qu'on a deux semaines et aucun accès à leur équipe finance — donc le POC doit générer cette preuve lui-même."
+        },
+        "keyPhrases": {
+          "en": ["let's separate", "end-state", "constraint", "the unlock"],
+          "fr": ["séparons les choses", "état cible", "contrainte", "le déclic (the unlock)"]
+        },
+        "watchOut": {
+          "en": "Solving before framing is a presence-killer. Resist the urge to propose the solution until the problem is agreed.",
+          "fr": "Résoudre avant de cadrer tue la présence. Résistez à l'envie de proposer la solution tant que le problème n'est pas validé."
+        },
+        "delivery": {
+          "en": "Calm volume. You're slowing the room down on purpose — that itself signals control.",
+          "fr": "Volume calme. Vous ralentissez la salle volontairement — cela seul signale la maîtrise."
+        }
       },
       "tags": ["framework:poc", "pillar:b2bsales", "pillar:leadership"]
     },
     {
       "id": "ep-s3-1",
-      "prompt": "Scenario: your VP catches you in the hallway and asks 'how's the Santander account?' You have ten seconds. Out loud, answer with S3 — Situation, Signal, Significance — no long context. Say it three times, each one tighter.",
+      "prompt": {
+        "en": "Scenario: your VP catches you in the hallway and asks 'how's the Santander account?' You have ten seconds. Out loud, answer with S3 — Situation, Signal, Significance — no long context. Say it three times, each one tighter.",
+        "fr": "Mise en situation : votre VP vous croise dans le couloir et demande « où en est le compte Santander ? » Vous avez dix secondes. À voix haute, répondez avec S3 — Situation, Signal, Significance (portée) — sans long contexte. Dites-le trois fois, chaque fois plus resserré."
+      },
       "reference": {
-        "framework": "S3 — Situation → Signal → Significance. Use when you want to sound sharp without long context.",
-        "pattern": "Situation: X. The signal is Y. That matters because Z.",
-        "model": "Situation: we're in final procurement. The signal is their CFO joined the last call unprompted. That matters because it means budget is no longer the blocker — legal is now the only thing between us and signature.",
-        "keyPhrases": ["the signal is", "that matters because", "the hinge point", "directional call"],
-        "watchOut": "Don't open with three minutes of history. Situation in one line, then straight to the signal.",
-        "delivery": "Downward inflection on 'signature.' Finish the thought — don't trail up like a question."
+        "framework": {
+          "en": "S3 — Situation → Signal → Significance. Use when you want to sound sharp without long context.",
+          "fr": "S3 — Situation → Signal → Significance (portée). À utiliser quand vous voulez paraître incisif sans long contexte."
+        },
+        "pattern": {
+          "en": "Situation: X. The signal is Y. That matters because Z.",
+          "fr": "Situation : X. Le signal, c'est Y. Cela compte parce que Z."
+        },
+        "model": {
+          "en": "Situation: we're in final procurement. The signal is their CFO joined the last call unprompted. That matters because it means budget is no longer the blocker — legal is now the only thing between us and signature.",
+          "fr": "Situation : nous sommes en phase finale d'achat. Le signal, c'est que leur DAF a rejoint le dernier appel sans y être invité. Cela compte parce que le budget n'est plus le frein — le juridique est désormais la seule chose entre nous et la signature."
+        },
+        "keyPhrases": {
+          "en": ["the signal is", "that matters because", "the hinge point", "directional call"],
+          "fr": ["le signal, c'est", "cela compte parce que", "le point de bascule", "lecture directionnelle"]
+        },
+        "watchOut": {
+          "en": "Don't open with three minutes of history. Situation in one line, then straight to the signal.",
+          "fr": "Ne commencez pas par trois minutes d'historique. La situation en une ligne, puis droit au signal."
+        },
+        "delivery": {
+          "en": "Downward inflection on 'signature.' Finish the thought — don't trail up like a question.",
+          "fr": "Inflexion descendante sur « signature ». Terminez la pensée — ne montez pas dans l'aigu comme une question."
+        }
       },
       "tags": ["framework:s3", "pillar:b2bsales", "pillar:executive"]
     },
     {
       "id": "ep-bcf-1",
-      "prompt": "Scenario: you have 30 seconds in a packed leadership meeting to update on a strategic account. Out loud, use BCF — Bottom line, Context, Follow-up. Deliver it, pause, stop. Then re-run it 10 seconds shorter.",
+      "prompt": {
+        "en": "Scenario: you have 30 seconds in a packed leadership meeting to update on a strategic account. Out loud, use BCF — Bottom line, Context, Follow-up. Deliver it, pause, stop. Then re-run it 10 seconds shorter.",
+        "fr": "Mise en situation : vous avez 30 secondes dans une réunion de direction bondée pour faire le point sur un compte stratégique. À voix haute, utilisez BCF — Bottom line (l'essentiel), Context (contexte), Follow-up (prochaine étape). Livrez-le, pause, stop. Puis refaites-le en 10 secondes de moins."
+      },
       "reference": {
-        "framework": "BCF — Bottom line → Context → Follow-up. Use when time is short and you want authority.",
-        "pattern": "Bottom line: X. Context: Y. Next step: Z.",
-        "model": "Bottom line: the AXA deal will close this quarter, but smaller than forecast. Context: they cut scope to one business unit to hit their own budget freeze. Next step: I'm setting up the expansion conversation for Q2 with their group CIO.",
-        "keyPhrases": ["bottom line", "net-net", "the punchline is", "to be explicit"],
-        "watchOut": "Don't bury the lead. If the room only hears your first sentence, it should still be the most important thing.",
-        "delivery": "Bottom line in under 15 words. Pause after the next step — resist adding a fourth point."
+        "framework": {
+          "en": "BCF — Bottom line → Context → Follow-up. Use when time is short and you want authority.",
+          "fr": "BCF — Bottom line (l'essentiel) → Context (contexte) → Follow-up (prochaine étape). À utiliser quand le temps est court et que vous voulez de l'autorité."
+        },
+        "pattern": {
+          "en": "Bottom line: X. Context: Y. Next step: Z.",
+          "fr": "L'essentiel : X. Contexte : Y. Prochaine étape : Z."
+        },
+        "model": {
+          "en": "Bottom line: the AXA deal will close this quarter, but smaller than forecast. Context: they cut scope to one business unit to hit their own budget freeze. Next step: I'm setting up the expansion conversation for Q2 with their group CIO.",
+          "fr": "L'essentiel : l'affaire AXA se signera ce trimestre, mais plus petite que prévu. Contexte : ils ont réduit le périmètre à une seule unité pour tenir leur propre gel budgétaire. Prochaine étape : j'organise la conversation d'expansion pour le T2 avec leur DSI groupe."
+        },
+        "keyPhrases": {
+          "en": ["bottom line", "net-net", "the punchline is", "to be explicit"],
+          "fr": ["l'essentiel", "au final (net-net)", "la conclusion, c'est", "pour être explicite"]
+        },
+        "watchOut": {
+          "en": "Don't bury the lead. If the room only hears your first sentence, it should still be the most important thing.",
+          "fr": "N'enterrez pas l'information clé. Si la salle n'entend que votre première phrase, ce doit quand même être le plus important."
+        },
+        "delivery": {
+          "en": "Bottom line in under 15 words. Pause after the next step — resist adding a fourth point.",
+          "fr": "L'essentiel en moins de 15 mots. Pause après la prochaine étape — résistez à l'ajout d'un quatrième point."
+        }
       },
       "tags": ["framework:bcf", "pillar:executive", "pillar:b2bsales"]
     },
     {
       "id": "ep-rgr-1",
-      "prompt": "Scenario: you see a real delivery risk on a flagship account, but you don't want to be 'the blocker' in front of leadership. Out loud, raise it with RGR — Risk, Guardrail, Recommendation. Say it twice, the second time warmer in tone but just as firm.",
+      "prompt": {
+        "en": "Scenario: you see a real delivery risk on a flagship account, but you don't want to be 'the blocker' in front of leadership. Out loud, raise it with RGR — Risk, Guardrail, Recommendation. Say it twice, the second time warmer in tone but just as firm.",
+        "fr": "Mise en situation : vous voyez un vrai risque de livraison sur un compte phare, mais vous ne voulez pas être « celui qui bloque » devant la direction. À voix haute, soulevez-le avec RGR — Risk (risque), Guardrail (garde-fou), Recommendation (recommandation). Dites-le deux fois, la deuxième d'un ton plus chaleureux mais tout aussi ferme."
+      },
       "reference": {
-        "framework": "RGR — Risk → Guardrail → Recommendation. Use when raising risk without being the blocker.",
-        "pattern": "The risk is X. The guardrail is Y. My recommendation is Z.",
-        "model": "The risk is we're promising a go-live date that depends on their data migration, which they own and haven't started. The guardrail is a joint milestone plan with their IT lead by Friday. My recommendation: we commit to the date contingent on that plan, not before.",
-        "keyPhrases": ["guardrail", "failure mode", "contingency", "risk-adjusted"],
-        "watchOut": "Don't just name the risk and stop — that's what 'the blocker' does. Always carry a guardrail and a recommendation.",
-        "delivery": "Calm, even tone throughout. You're solving, not warning."
+        "framework": {
+          "en": "RGR — Risk → Guardrail → Recommendation. Use when raising risk without being the blocker.",
+          "fr": "RGR — Risk (risque) → Guardrail (garde-fou) → Recommendation (recommandation). À utiliser pour soulever un risque sans être celui qui bloque."
+        },
+        "pattern": {
+          "en": "The risk is X. The guardrail is Y. My recommendation is Z.",
+          "fr": "Le risque est X. Le garde-fou est Y. Ma recommandation est Z."
+        },
+        "model": {
+          "en": "The risk is we're promising a go-live date that depends on their data migration, which they own and haven't started. The guardrail is a joint milestone plan with their IT lead by Friday. My recommendation: we commit to the date contingent on that plan, not before.",
+          "fr": "Le risque, c'est qu'on promet une date de mise en service qui dépend de leur migration de données, dont ils sont responsables et qu'ils n'ont pas commencée. Le garde-fou, c'est un plan de jalons conjoint avec leur responsable IT d'ici vendredi. Ma recommandation : on s'engage sur la date sous réserve de ce plan, pas avant."
+        },
+        "keyPhrases": {
+          "en": ["guardrail", "failure mode", "contingency", "risk-adjusted"],
+          "fr": ["garde-fou", "mode de défaillance", "contingence", "ajusté du risque"]
+        },
+        "watchOut": {
+          "en": "Don't just name the risk and stop — that's what 'the blocker' does. Always carry a guardrail and a recommendation.",
+          "fr": "Ne nommez pas le risque pour vous arrêter là — c'est ce que fait « celui qui bloque ». Apportez toujours un garde-fou et une recommandation."
+        },
+        "delivery": {
+          "en": "Calm, even tone throughout. You're solving, not warning.",
+          "fr": "Ton calme et égal du début à la fin. Vous résolvez, vous n'alertez pas."
+        }
       },
       "tags": ["framework:rgr", "pillar:leadership", "pillar:b2bsales"]
     },
     {
       "id": "ep-ddi-1",
-      "prompt": "Scenario: a senior leader proposes discounting deeply to win a logo, and you disagree. Out loud, push back with DDI — Disagree, Data, Invite — keeping your status and your calm. Repeat three times; on the third, say it as if the room is skeptical of you.",
+      "prompt": {
+        "en": "Scenario: a senior leader proposes discounting deeply to win a logo, and you disagree. Out loud, push back with DDI — Disagree, Data, Invite — keeping your status and your calm. Repeat three times; on the third, say it as if the room is skeptical of you.",
+        "fr": "Mise en situation : un dirigeant senior propose une remise forte pour gagner un logo, et vous n'êtes pas d'accord. À voix haute, opposez-vous avec DDI — Disagree (être en désaccord), Data (données), Invite (inviter) — en gardant votre statut et votre calme. Répétez trois fois ; à la troisième, dites-le comme si la salle était sceptique à votre égard."
+      },
       "reference": {
-        "framework": "DDI — Disagree → Data → Invite. Use when you disagree and want to keep status and calm.",
-        "pattern": "I see it differently. Here's the data/logic. I'm open to pressure-testing.",
-        "model": "I see this differently. The last three deals we discounted to win never expanded — they anchored low and stayed low. My read is we hold price and trade on payment terms instead. Happy to pressure-test that if I'm missing something.",
-        "keyPhrases": ["my view is", "the implication is", "pressure-test", "value leakage"],
-        "watchOut": "No hedging ('maybe I'm wrong, but…') and no apology for disagreeing. State your view as a view, with data, calmly.",
-        "delivery": "Open with 'I see it differently' — full stop, slight pause. Conviction without volume."
+        "framework": {
+          "en": "DDI — Disagree → Data → Invite. Use when you disagree and want to keep status and calm.",
+          "fr": "DDI — Disagree (désaccord) → Data (données) → Invite (inviter). À utiliser quand vous êtes en désaccord et voulez garder statut et calme."
+        },
+        "pattern": {
+          "en": "I see it differently. Here's the data/logic. I'm open to pressure-testing.",
+          "fr": "Je vois les choses différemment. Voici les données / la logique. Je suis ouvert à ce qu'on teste l'idée."
+        },
+        "model": {
+          "en": "I see this differently. The last three deals we discounted to win never expanded — they anchored low and stayed low. My read is we hold price and trade on payment terms instead. Happy to pressure-test that if I'm missing something.",
+          "fr": "Je vois les choses différemment. Les trois dernières affaires qu'on a remisées pour gagner n'ont jamais grandi — elles se sont ancrées bas et y sont restées. Ma lecture : on tient le prix et on négocie plutôt sur les conditions de paiement. Ravi de tester l'idée si je passe à côté de quelque chose."
+        },
+        "keyPhrases": {
+          "en": ["my view is", "the implication is", "pressure-test", "value leakage"],
+          "fr": ["mon point de vue est", "l'implication est", "tester / éprouver l'idée", "fuite de valeur"]
+        },
+        "watchOut": {
+          "en": "No hedging ('maybe I'm wrong, but…') and no apology for disagreeing. State your view as a view, with data, calmly.",
+          "fr": "Pas de précautions (« j'ai peut-être tort, mais… ») ni d'excuses pour votre désaccord. Énoncez votre avis comme un avis, avec des données, calmement."
+        },
+        "delivery": {
+          "en": "Open with 'I see it differently' — full stop, slight pause. Conviction without volume.",
+          "fr": "Ouvrez par « je vois les choses différemment » — point final, légère pause. De la conviction sans hausser le ton."
+        }
       },
       "tags": ["framework:ddi", "pillar:leadership", "pillar:executive"]
     },
     {
       "id": "ep-car-1",
-      "prompt": "Scenario: you need a senior exec to make a customer call to unblock a stalled deal, and you don't want to sound needy. Out loud, ask with C-A-R — Context, Ask, Rationale. Say it twice; the second time, make the ask a single clean sentence.",
+      "prompt": {
+        "en": "Scenario: you need a senior exec to make a customer call to unblock a stalled deal, and you don't want to sound needy. Out loud, ask with C-A-R — Context, Ask, Rationale. Say it twice; the second time, make the ask a single clean sentence.",
+        "fr": "Mise en situation : vous avez besoin qu'un dirigeant senior passe un appel client pour débloquer une affaire au point mort, et vous ne voulez pas paraître demandeur. À voix haute, formulez la demande avec C-A-R — Context (contexte), Ask (demande), Rationale (justification). Dites-le deux fois ; la deuxième, faites de la demande une seule phrase nette."
+      },
       "reference": {
-        "framework": "C-A-R — Context → Ask → Rationale. Use when you need help/a decision/an escalation without sounding needy.",
-        "pattern": "Context: X. My ask is Y. Rationale: Z.",
-        "model": "Context: we're at the final stage on a £3M deal and their CEO wants peer-level reassurance before signing. My ask is 20 minutes of your time for a CEO-to-CEO call this week. Rationale: it's the one thing standing between us and signature, and it's a relationship only you can open.",
-        "keyPhrases": ["my ask is", "air cover", "the unlock", "decision framing"],
-        "watchOut": "Status leakage kills this — no 'sorry to bother you,' no 'if you have time maybe.' Make the ask directly; the rationale earns it.",
-        "delivery": "The ask is one sentence, stated plainly. Don't shrink your voice on it."
+        "framework": {
+          "en": "C-A-R — Context → Ask → Rationale. Use when you need help/a decision/an escalation without sounding needy.",
+          "fr": "C-A-R — Context (contexte) → Ask (demande) → Rationale (justification). À utiliser quand vous avez besoin d'aide / d'une décision / d'une escalade sans paraître demandeur."
+        },
+        "pattern": {
+          "en": "Context: X. My ask is Y. Rationale: Z.",
+          "fr": "Contexte : X. Ma demande est Y. Justification : Z."
+        },
+        "model": {
+          "en": "Context: we're at the final stage on a £3M deal and their CEO wants peer-level reassurance before signing. My ask is 20 minutes of your time for a CEO-to-CEO call this week. Rationale: it's the one thing standing between us and signature, and it's a relationship only you can open.",
+          "fr": "Contexte : nous sommes en phase finale sur une affaire de 3 M£ et leur PDG veut une réassurance de pair à pair avant de signer. Ma demande : 20 minutes de votre temps pour un appel PDG à PDG cette semaine. Justification : c'est la seule chose entre nous et la signature, et c'est une relation que vous seul pouvez ouvrir."
+        },
+        "keyPhrases": {
+          "en": ["my ask is", "air cover", "the unlock", "decision framing"],
+          "fr": ["ma demande est", "couverture / appui hiérarchique", "le déclic (the unlock)", "cadrage de la décision"]
+        },
+        "watchOut": {
+          "en": "Status leakage kills this — no 'sorry to bother you,' no 'if you have time maybe.' Make the ask directly; the rationale earns it.",
+          "fr": "La fuite de statut tue cette demande — pas de « désolé de vous déranger », pas de « si vous avez le temps, peut-être ». Formulez la demande directement ; la justification la légitime."
+        },
+        "delivery": {
+          "en": "The ask is one sentence, stated plainly. Don't shrink your voice on it.",
+          "fr": "La demande tient en une phrase, énoncée simplement. Ne rapetissez pas votre voix dessus."
+        }
       },
       "tags": ["framework:car", "pillar:b2bsales", "pillar:leadership"]
     },
     {
       "id": "ep-onelevelup-1",
-      "prompt": "Scenario: a cross-functional debate is stuck arguing about which integration to build first. Out loud, raise the altitude with the 'one level up' move — reframe what the debate is actually about. Repeat twice until the reframe feels obvious.",
+      "prompt": {
+        "en": "Scenario: a cross-functional debate is stuck arguing about which integration to build first. Out loud, raise the altitude with the 'one level up' move — reframe what the debate is actually about. Repeat twice until the reframe feels obvious.",
+        "fr": "Mise en situation : un débat transverse s'enlise sur la question de savoir quelle intégration construire en premier. À voix haute, montez en altitude avec le mouvement « un niveau au-dessus » — recadrez ce dont le débat parle réellement. Répétez deux fois jusqu'à ce que le recadrage paraisse évident."
+      },
       "reference": {
-        "framework": "One level up — Decision-lens escalation. Use when a debate is stuck at the wrong altitude.",
-        "pattern": "One level up, this is really about X.",
-        "model": "One level up, this isn't about which integration ships first — it's about whether we're building for this one account or for a repeatable BFSI platform. If it's the platform, the sequencing answers itself.",
-        "keyPhrases": ["altitude", "zoom out", "the crux", "structural"],
-        "watchOut": "Don't win the small argument — dissolve it by moving up a level. That's what makes the room look to you.",
-        "delivery": "Slow down on 'one level up.' Let the reframe land before you continue."
+        "framework": {
+          "en": "One level up — Decision-lens escalation. Use when a debate is stuck at the wrong altitude.",
+          "fr": "Un niveau au-dessus — Remontée par la lentille de décision. À utiliser quand un débat est coincé à la mauvaise altitude."
+        },
+        "pattern": {
+          "en": "One level up, this is really about X.",
+          "fr": "Un niveau au-dessus, ce dont il s'agit vraiment, c'est X."
+        },
+        "model": {
+          "en": "One level up, this isn't about which integration ships first — it's about whether we're building for this one account or for a repeatable BFSI platform. If it's the platform, the sequencing answers itself.",
+          "fr": "Un niveau au-dessus, la question n'est pas de savoir quelle intégration sort en premier — c'est de savoir si nous construisons pour ce seul compte ou pour une plateforme BFSI reproductible. Si c'est la plateforme, le séquencement se règle de lui-même."
+        },
+        "keyPhrases": {
+          "en": ["altitude", "zoom out", "the crux", "structural"],
+          "fr": ["altitude", "prendre de la hauteur", "le nœud du sujet", "structurel"]
+        },
+        "watchOut": {
+          "en": "Don't win the small argument — dissolve it by moving up a level. That's what makes the room look to you.",
+          "fr": "Ne gagnez pas la petite dispute — dissolvez-la en montant d'un niveau. C'est ce qui fait que la salle se tourne vers vous."
+        },
+        "delivery": {
+          "en": "Slow down on 'one level up.' Let the reframe land before you continue.",
+          "fr": "Ralentissez sur « un niveau au-dessus ». Laissez le recadrage atterrir avant de poursuivre."
+        }
       },
       "tags": ["framework:onelevelup", "pillar:leadership", "pillar:executive"]
     },
     {
       "id": "ep-premortem-1",
-      "prompt": "Scenario: leadership is excited about a big multi-year bet and nobody is naming risk. Out loud, introduce executive risk-thinking with a pre-mortem — 'assume this failed in six months, what caused it?' Then answer your own question in two crisp causes. Say it twice.",
+      "prompt": {
+        "en": "Scenario: leadership is excited about a big multi-year bet and nobody is naming risk. Out loud, introduce executive risk-thinking with a pre-mortem — 'assume this failed in six months, what caused it?' Then answer your own question in two crisp causes. Say it twice.",
+        "fr": "Mise en situation : la direction est enthousiaste à propos d'un grand pari pluriannuel et personne ne nomme le risque. À voix haute, introduisez une pensée du risque d'exécutif avec un pre-mortem — « supposons que cela a échoué dans six mois, qu'est-ce qui l'a causé ? » Puis répondez vous-même à votre question, en deux causes nettes. Dites-le deux fois."
+      },
       "reference": {
-        "framework": "PRE-MORTEM — 'Assume it failed.' Use when you want executive risk-thinking in the room.",
-        "pattern": "Assume this fails in six months — what caused it? → [cause 1], [cause 2].",
-        "model": "Let's assume this fails in six months. Two likely causes: we never got a single-threaded owner on their side, so it died in committee — or we underestimated the data migration and lost trust on the first milestone. If those are the failure modes, let's design against them now.",
-        "keyPhrases": ["failure mode", "second-order effects", "single-threaded owner", "mitigation"],
-        "watchOut": "Frame it as rigor, not pessimism. You're the person making the bet safer, not the one doubting it.",
-        "delivery": "Ask the question, pause, let it sit. The pause is the presence."
+        "framework": {
+          "en": "PRE-MORTEM — 'Assume it failed.' Use when you want executive risk-thinking in the room.",
+          "fr": "PRE-MORTEM — « Supposons que ça a échoué ». À utiliser quand vous voulez une pensée du risque d'exécutif dans la salle."
+        },
+        "pattern": {
+          "en": "Assume this fails in six months — what caused it? → [cause 1], [cause 2].",
+          "fr": "Supposons que cela échoue dans six mois — qu'est-ce qui l'a causé ? → [cause 1], [cause 2]."
+        },
+        "model": {
+          "en": "Let's assume this fails in six months. Two likely causes: we never got a single-threaded owner on their side, so it died in committee — or we underestimated the data migration and lost trust on the first milestone. If those are the failure modes, let's design against them now.",
+          "fr": "Supposons que cela échoue dans six mois. Deux causes probables : on n'a jamais obtenu d'interlocuteur unique de leur côté, donc ça meurt en comité — ou on a sous-estimé la migration de données et perdu la confiance dès le premier jalon. Si ce sont les modes de défaillance, concevons dès maintenant pour les contrer."
+        },
+        "keyPhrases": {
+          "en": ["failure mode", "second-order effects", "single-threaded owner", "mitigation"],
+          "fr": ["mode de défaillance", "effets de second ordre", "interlocuteur unique (single-threaded)", "mesure d'atténuation"]
+        },
+        "watchOut": {
+          "en": "Frame it as rigor, not pessimism. You're the person making the bet safer, not the one doubting it.",
+          "fr": "Présentez-le comme de la rigueur, pas du pessimisme. Vous êtes celui qui rend le pari plus sûr, pas celui qui en doute."
+        },
+        "delivery": {
+          "en": "Ask the question, pause, let it sit. The pause is the presence.",
+          "fr": "Posez la question, marquez une pause, laissez-la s'installer. La pause, c'est la présence."
+        }
       },
       "tags": ["framework:premortem", "pillar:executive", "pillar:leadership"]
     },
     {
       "id": "ep-www-1",
-      "prompt": "Scenario: a meeting is winding down with lots of agreement but no clear ownership. Out loud, close it with WHO/WHAT/WHEN — convert the talk into action in one sentence per item, without sounding tactical. Re-run it once, crisper.",
+      "prompt": {
+        "en": "Scenario: a meeting is winding down with lots of agreement but no clear ownership. Out loud, close it with WHO/WHAT/WHEN — convert the talk into action in one sentence per item, without sounding tactical. Re-run it once, crisper.",
+        "fr": "Mise en situation : une réunion se termine avec beaucoup d'accord mais aucune responsabilité claire. À voix haute, clôturez-la avec WHO/WHAT/WHEN (qui / quoi / quand) — convertissez les paroles en action, une phrase par point, sans paraître tactique. Refaites-le une fois, plus net."
+      },
       "reference": {
-        "framework": "WHO/WHAT/WHEN — Crisp execution close. Use to turn talk into action without sounding tactical.",
-        "pattern": "Who owns it, what exactly is delivered, by when?",
-        "model": "Before we close: I'll own the executive escalation, the deliverable is a signed mutual action plan, and I'll have it back to this group by next Thursday. Anything I'm missing?",
-        "keyPhrases": ["single-threaded owner", "operationalize", "accountability", "by when"],
-        "watchOut": "Don't let a good meeting end without ownership — that's where presence and follow-through get noticed. Close it.",
-        "delivery": "Confident, brisk, decisive. End on the date, then stop."
+        "framework": {
+          "en": "WHO/WHAT/WHEN — Crisp execution close. Use to turn talk into action without sounding tactical.",
+          "fr": "WHO/WHAT/WHEN (qui / quoi / quand) — Clôture d'exécution nette. À utiliser pour transformer les paroles en action sans paraître tactique."
+        },
+        "pattern": {
+          "en": "Who owns it, what exactly is delivered, by when?",
+          "fr": "Qui en est responsable, quoi exactement est livré, pour quand ?"
+        },
+        "model": {
+          "en": "Before we close: I'll own the executive escalation, the deliverable is a signed mutual action plan, and I'll have it back to this group by next Thursday. Anything I'm missing?",
+          "fr": "Avant de conclure : je prends la responsabilité de l'escalade exécutive, le livrable est un plan d'action commun signé, et je le rapporte à ce groupe d'ici jeudi prochain. Quelque chose que j'oublie ?"
+        },
+        "keyPhrases": {
+          "en": ["single-threaded owner", "operationalize", "accountability", "by when"],
+          "fr": ["responsable unique", "rendre opérationnel", "responsabilité (accountability)", "pour quand"]
+        },
+        "watchOut": {
+          "en": "Don't let a good meeting end without ownership — that's where presence and follow-through get noticed. Close it.",
+          "fr": "Ne laissez pas une bonne réunion se terminer sans responsabilité attribuée — c'est là que la présence et le suivi se remarquent. Clôturez."
+        },
+        "delivery": {
+          "en": "Confident, brisk, decisive. End on the date, then stop.",
+          "fr": "Assuré, vif, décisif. Terminez sur la date, puis arrêtez-vous."
+        }
       },
       "tags": ["framework:whowhatwhen", "pillar:management", "pillar:executive"]
     },
     {
       "id": "ep-story-1",
-      "prompt": "Storytelling drill. Pick one real win from your career. Out loud, tell it in this shape: Situation → tension → the action YOU drove → business outcome. Then tell the same story in 60 seconds. Then 30. Then a 15-second headline version. Each pass: stronger opening, clearer ownership, more business significance.",
+      "prompt": {
+        "en": "Storytelling drill. Pick one real win from your career. Out loud, tell it in this shape: Situation → tension → the action YOU drove → business outcome. Then tell the same story in 60 seconds. Then 30. Then a 15-second headline version. Each pass: stronger opening, clearer ownership, more business significance.",
+        "fr": "Exercice de storytelling. Choisissez une vraie victoire de votre carrière. À voix haute, racontez-la selon cette forme : Situation → tension → l'action que VOUS avez menée → résultat métier. Puis racontez la même histoire en 60 secondes. Puis 30. Puis une version « titre » de 15 secondes. À chaque passage : ouverture plus forte, appropriation plus claire, portée métier plus grande."
+      },
       "reference": {
-        "framework": "Executive story arc: Situation → Tension → Your action → Business outcome → Why it mattered.",
-        "pattern": "Open with stakes. Make the tension visible. Own the action ('I drove…'). Land the business result with a number.",
-        "model": "A top-10 bank was about to churn after a failed rollout. I personally rebuilt the executive relationship, restructured the deployment into 30-day value milestones, and got their COO to sponsor it. We saved a $1.8M renewal and expanded it 40% the next year. It mattered because it became our reference for every bank deal since.",
-        "keyPhrases": ["I drove / I owned", "time-to-value", "reference", "expanded"],
-        "watchOut": "Reject the flat version — too much description, passive voice, no stakes, no number. The story must show YOUR judgment and a business outcome.",
-        "delivery": "The 15-second headline is the real test: stakes + your action + result, in one breath."
+        "framework": {
+          "en": "Executive story arc: Situation → Tension → Your action → Business outcome → Why it mattered.",
+          "fr": "Arc narratif d'exécutif : Situation → Tension → Votre action → Résultat métier → Pourquoi cela comptait."
+        },
+        "pattern": {
+          "en": "Open with stakes. Make the tension visible. Own the action ('I drove…'). Land the business result with a number.",
+          "fr": "Ouvrez sur l'enjeu. Rendez la tension visible. Appropriez-vous l'action (« j'ai mené… »). Concluez sur le résultat métier avec un chiffre."
+        },
+        "model": {
+          "en": "A top-10 bank was about to churn after a failed rollout. I personally rebuilt the executive relationship, restructured the deployment into 30-day value milestones, and got their COO to sponsor it. We saved a $1.8M renewal and expanded it 40% the next year. It mattered because it became our reference for every bank deal since.",
+          "fr": "Une banque du top 10 était sur le point de partir après un déploiement raté. J'ai personnellement reconstruit la relation exécutive, restructuré le déploiement en jalons de valeur de 30 jours, et obtenu que leur COO le parraine. Nous avons sauvé un renouvellement de 1,8 M$ et l'avons étendu de 40 % l'année suivante. Cela comptait parce que c'est devenu notre référence pour chaque affaire bancaire depuis."
+        },
+        "keyPhrases": {
+          "en": ["I drove / I owned", "time-to-value", "reference", "expanded"],
+          "fr": ["j'ai mené / j'étais responsable", "délai de valeur (time-to-value)", "référence", "étendu / développé"]
+        },
+        "watchOut": {
+          "en": "Reject the flat version — too much description, passive voice, no stakes, no number. The story must show YOUR judgment and a business outcome.",
+          "fr": "Rejetez la version plate — trop de description, voix passive, pas d'enjeu, pas de chiffre. L'histoire doit montrer VOTRE jugement et un résultat métier."
+        },
+        "delivery": {
+          "en": "The 15-second headline is the real test: stakes + your action + result, in one breath.",
+          "fr": "Le titre de 15 secondes est le vrai test : enjeu + votre action + résultat, en une seule respiration."
+        }
       },
       "tags": ["skill:storytelling", "pillar:b2bsales", "pillar:leadership"]
     },
     {
       "id": "ep-recovery-1",
-      "prompt": "Pressure-recovery drill. Have someone (or imagine someone) cut in mid-answer with 'Can you get to the point?' Out loud, recover cleanly: stop, breathe, give the headline in one sentence, then one supporting line. Run this three times with three different topics — the goal is to make recovery automatic.",
+      "prompt": {
+        "en": "Pressure-recovery drill. Have someone (or imagine someone) cut in mid-answer with 'Can you get to the point?' Out loud, recover cleanly: stop, breathe, give the headline in one sentence, then one supporting line. Run this three times with three different topics — the goal is to make recovery automatic.",
+        "fr": "Exercice de récupération sous pression. Demandez à quelqu'un (ou imaginez-le) de vous couper en pleine réponse avec « Pouvez-vous en venir au fait ? » À voix haute, récupérez proprement : arrêtez-vous, respirez, donnez le titre en une phrase, puis une ligne d'appui. Faites-le trois fois sur trois sujets différents — le but est de rendre la récupération automatique."
+      },
       "reference": {
-        "framework": "Recovery sequence: Stop → breathe → headline first → one supporting sentence → stop.",
-        "pattern": "The short version is X. The reason it matters is Y.",
-        "model": "Fair — the short version is we'll close this quarter but smaller than planned. The reason it matters is the expansion path is intact, so the number recovers next quarter.",
-        "keyPhrases": ["the short version is", "the punchline is", "net-net", "headline first"],
-        "watchOut": "Don't apologize or speed up when challenged — that's status leakage. Slow down, reset, lead with the conclusion.",
-        "delivery": "A two-second pause before the headline reads as control, not as being caught out."
+        "framework": {
+          "en": "Recovery sequence: Stop → breathe → headline first → one supporting sentence → stop.",
+          "fr": "Séquence de récupération : Stop → respirer → le titre d'abord → une phrase d'appui → stop."
+        },
+        "pattern": {
+          "en": "The short version is X. The reason it matters is Y.",
+          "fr": "La version courte, c'est X. La raison pour laquelle ça compte, c'est Y."
+        },
+        "model": {
+          "en": "Fair — the short version is we'll close this quarter but smaller than planned. The reason it matters is the expansion path is intact, so the number recovers next quarter.",
+          "fr": "C'est juste — la version courte, c'est qu'on signera ce trimestre mais plus petit que prévu. La raison pour laquelle ça compte, c'est que la voie d'expansion est intacte, donc le chiffre se rattrape au trimestre suivant."
+        },
+        "keyPhrases": {
+          "en": ["the short version is", "the punchline is", "net-net", "headline first"],
+          "fr": ["la version courte, c'est", "la conclusion, c'est", "au final (net-net)", "le titre d'abord"]
+        },
+        "watchOut": {
+          "en": "Don't apologize or speed up when challenged — that's status leakage. Slow down, reset, lead with the conclusion.",
+          "fr": "Ne vous excusez pas et n'accélérez pas quand on vous challenge — c'est une fuite de statut. Ralentissez, reprenez, commencez par la conclusion."
+        },
+        "delivery": {
+          "en": "A two-second pause before the headline reads as control, not as being caught out.",
+          "fr": "Une pause de deux secondes avant le titre se lit comme de la maîtrise, pas comme être pris en défaut."
+        }
       },
       "tags": ["skill:recovery", "skill:delivery", "pillar:executive"]
     },
     {
       "id": "ep-bluf-1",
-      "prompt": "Delivery drill — BLUF + hedge removal. Take any update you'd normally give and say it twice. First pass: lead with the conclusion (Bottom Line Up Front), support after. Second pass: strip every hedge — replace 'maybe / kind of / I think' with 'my view is / the implication is.' Notice how much shorter and more senior it sounds.",
+      "prompt": {
+        "en": "Delivery drill — BLUF + hedge removal. Take any update you'd normally give and say it twice. First pass: lead with the conclusion (Bottom Line Up Front), support after. Second pass: strip every hedge — replace 'maybe / kind of / I think' with 'my view is / the implication is.' Notice how much shorter and more senior it sounds.",
+        "fr": "Exercice de diction — BLUF + suppression des précautions. Prenez n'importe quel point que vous feriez normalement et dites-le deux fois. Premier passage : commencez par la conclusion (l'essentiel d'abord), l'appui ensuite. Deuxième passage : retirez chaque précaution — remplacez « peut-être / un peu / je pense » par « mon point de vue est / l'implication est ». Remarquez à quel point cela sonne plus court et plus senior."
+      },
       "reference": {
-        "framework": "Two delivery rules combined: (1) Lead with the headline (BLUF). (2) Remove hedges.",
-        "pattern": "Conclusion first → support. And: 'my view is…' not 'I think maybe…'.",
-        "model": "Weak: 'I think maybe we should kind of consider escalating, because it seems like things might be slipping.' Strong: 'My view is we escalate this week. The deal is slipping and we still have the relationship to do it cleanly.'",
-        "keyPhrases": ["my view is", "the implication is", "to be explicit", "the punchline is"],
-        "watchOut": "Hedging and over-context are the two fastest presence-killers. Cut both ruthlessly.",
-        "delivery": "Calm volume, downward inflection, period energy. End sentences like you mean them."
+        "framework": {
+          "en": "Two delivery rules combined: (1) Lead with the headline (BLUF). (2) Remove hedges.",
+          "fr": "Deux règles de diction combinées : (1) Commencer par le titre (BLUF). (2) Retirer les précautions."
+        },
+        "pattern": {
+          "en": "Conclusion first → support. And: 'my view is…' not 'I think maybe…'.",
+          "fr": "La conclusion d'abord → l'appui. Et : « mon point de vue est… » plutôt que « je pense que peut-être… »."
+        },
+        "model": {
+          "en": "Weak: 'I think maybe we should kind of consider escalating, because it seems like things might be slipping.' Strong: 'My view is we escalate this week. The deal is slipping and we still have the relationship to do it cleanly.'",
+          "fr": "Faible : « Je pense qu'on devrait peut-être un peu envisager d'escalader, parce qu'on dirait que les choses pourraient déraper. » Fort : « Mon point de vue : on escalade cette semaine. L'affaire dérape et nous avons encore la relation pour le faire proprement. »"
+        },
+        "keyPhrases": {
+          "en": ["my view is", "the implication is", "to be explicit", "the punchline is"],
+          "fr": ["mon point de vue est", "l'implication est", "pour être explicite", "la conclusion, c'est"]
+        },
+        "watchOut": {
+          "en": "Hedging and over-context are the two fastest presence-killers. Cut both ruthlessly.",
+          "fr": "Les précautions et l'excès de contexte sont les deux tueurs de présence les plus rapides. Coupez les deux sans pitié."
+        },
+        "delivery": {
+          "en": "Calm volume, downward inflection, period energy. End sentences like you mean them.",
+          "fr": "Volume calme, inflexion descendante, énergie de point final. Terminez vos phrases comme si vous les pensiez."
+        }
       },
       "tags": ["skill:delivery", "pillar:executive"]
     },
     {
       "id": "ep-questions-1",
-      "prompt": "Executive-questions drill. Instead of making a statement to look smart, practice elevating the room with a question. Out loud, deliver three of these to an imaginary stalled meeting, calmly and slowly: 'What problem are we actually solving?' / 'What would make this a bad decision in six months?' / 'If we don't do this, what breaks?' Say each one, pause, and let it hang.",
+      "prompt": {
+        "en": "Executive-questions drill. Instead of making a statement to look smart, practice elevating the room with a question. Out loud, deliver three of these to an imaginary stalled meeting, calmly and slowly: 'What problem are we actually solving?' / 'What would make this a bad decision in six months?' / 'If we don't do this, what breaks?' Say each one, pause, and let it hang.",
+        "fr": "Exercice de questions d'exécutif. Plutôt que d'affirmer pour paraître intelligent, entraînez-vous à élever la salle par une question. À voix haute, adressez-en trois à une réunion imaginaire au point mort, calmement et lentement : « Quel problème résolvons-nous réellement ? » / « Qu'est-ce qui ferait de ceci une mauvaise décision dans six mois ? » / « Si on ne le fait pas, qu'est-ce qui casse ? » Dites chacune, marquez une pause, et laissez-la en suspens."
+      },
       "reference": {
-        "framework": "Elevate with questions, not just statements. A sharp question often moves the room faster than a point.",
-        "pattern": "Ask the directional question → pause → let the room reorient.",
-        "model": "Before we go further — what problem are we actually solving here? Because if it's the CFO's board narrative, we're building the wrong thing.",
-        "keyPhrases": ["what are we actually solving", "what breaks if we don't", "what are we implicitly betting on", "where are we misaligned"],
-        "watchOut": "Silently check yourself first: is my contribution directional, decisional, or just decorative? If decorative, ask a question instead.",
-        "delivery": "Ask slowly. The pause after the question is where the authority lives — don't fill it."
+        "framework": {
+          "en": "Elevate with questions, not just statements. A sharp question often moves the room faster than a point.",
+          "fr": "Élever par des questions, pas seulement des affirmations. Une question tranchante fait souvent avancer la salle plus vite qu'une affirmation."
+        },
+        "pattern": {
+          "en": "Ask the directional question → pause → let the room reorient.",
+          "fr": "Posez la question directionnelle → pause → laissez la salle se réorienter."
+        },
+        "model": {
+          "en": "Before we go further — what problem are we actually solving here? Because if it's the CFO's board narrative, we're building the wrong thing.",
+          "fr": "Avant d'aller plus loin — quel problème résolvons-nous réellement ici ? Parce que si c'est le récit du DAF pour son conseil, nous construisons la mauvaise chose."
+        },
+        "keyPhrases": {
+          "en": ["what are we actually solving", "what breaks if we don't", "what are we implicitly betting on", "where are we misaligned"],
+          "fr": ["que résolvons-nous réellement", "qu'est-ce qui casse si on ne le fait pas", "sur quoi parions-nous implicitement", "où sommes-nous désalignés"]
+        },
+        "watchOut": {
+          "en": "Silently check yourself first: is my contribution directional, decisional, or just decorative? If decorative, ask a question instead.",
+          "fr": "Vérifiez-vous d'abord en silence : ma contribution est-elle directionnelle, décisionnelle, ou juste décorative ? Si décorative, posez une question à la place."
+        },
+        "delivery": {
+          "en": "Ask slowly. The pause after the question is where the authority lives — don't fill it.",
+          "fr": "Posez lentement. La pause après la question est là où vit l'autorité — ne la comblez pas."
+        }
       },
       "tags": ["skill:questions", "pillar:leadership", "pillar:executive"]
     }
