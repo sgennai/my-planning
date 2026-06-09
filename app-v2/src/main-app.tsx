@@ -9,6 +9,7 @@ import { IntakeScreen } from './intake/IntakeScreen';
 import { CreateScreen } from './create/CreateScreen';
 import { loadData, saveData, syncData } from './storage/db';
 import { DEFAULT_MODULES } from './modules/seed-modules';
+import { AppShell } from './ui/AppShell';
 
 // DEFAULT DATA + MIGRATION
 // ═════════════════════════════════════════════════════════════
@@ -260,59 +261,43 @@ export function App() {
     </div>
   );
 
+  // Theme + settings controls are migrated into the shared AppShell.
+  const theme = (data && data.prefs && data.prefs.theme) || 'light';
+  const toggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    persist({ ...data, prefs: { ...(data.prefs || {}), theme: next }, lastModified: new Date().toISOString() });
+  };
+  // Settings lives in CalendarScreen (deeply wired to its calendar/routine state);
+  // the shell opens it via the existing pendingCalAction channel — behaviour preserved.
+  const openSettings = () => { setPendingCalAction('settings'); setAppPage('calendar'); };
+
+  let pageContent;
   if (appPage === 'modules') {
-    return (
-      <>
-        <ModuleDashboard
-          data={data}
-          onPersist={persist}
-          onClose={() => setAppPage('calendar')}
-        />
-        {conflictNotice}
-      </>
+    pageContent = <ModuleDashboard data={data} onPersist={persist} />;
+  } else if (appPage === 'intake') {
+    pageContent = (
+      <IntakeScreen
+        data={data}
+        onPersist={persist}
+        onScheduleBlock={(block) => {
+          setPendingCalAction({ type: 'create_block', payload: block });
+          setAppPage('calendar');
+        }}
+      />
     );
-  }
-
-  if (appPage === 'intake') {
-    return (
-      <div className="app-layout">
-        <IntakeScreen
-          data={data}
-          onPersist={persist}
-          onClose={() => setAppPage('calendar')}
-          onScheduleBlock={(block) => {
-            setPendingCalAction({ type: 'create_block', payload: block });
-            setAppPage('calendar');
-          }}
-        />
-      </div>
+  } else if (appPage === 'practice') {
+    pageContent = (
+      <PracticeScreen
+        data={data}
+        onPersist={persist}
+        onBack={(action) => { if (action) setPendingCalAction(action); setAppPage('calendar'); }}
+        onSignOut={handleSignOut}
+      />
     );
-  }
-
-  if (appPage === 'practice') {
-    return (
-        <PracticeScreen
-          data={data}
-          onPersist={persist}
-          onBack={(action) => { if (action) setPendingCalAction(action); setAppPage('calendar'); }}
-          onSignOut={handleSignOut}
-        />
-    );
-  }
-
-  if (appPage === 'create') {
-    return (
-      <div className="app-layout">
-        <CreateScreen
-          data={data}
-          onPersist={persist}
-          onClose={() => setAppPage('calendar')}
-        />
-      </div>
-    );
-  }
-  return (
-    <>
+  } else if (appPage === 'create') {
+    pageContent = <CreateScreen data={data} onPersist={persist} />;
+  } else {
+    pageContent = (
       <CalendarScreen
         data={data}
         saving={saving}
@@ -328,6 +313,22 @@ export function App() {
         pendingCalAction={pendingCalAction}
         onClearPendingAction={() => setPendingCalAction(null)}
       />
+    );
+  }
+
+  return (
+    <>
+      <AppShell
+        appPage={appPage}
+        onNavigate={setAppPage}
+        data={data}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        onOpenSettings={openSettings}
+        onSignOut={handleSignOut}
+      >
+        {pageContent}
+      </AppShell>
       {conflictNotice}
     </>
   );

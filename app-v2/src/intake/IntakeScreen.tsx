@@ -4,11 +4,10 @@ import type { AppDataV26, LearningItem, TimeBlock, ContentIdea } from '../storag
 interface IntakeScreenProps {
   data: AppDataV26;
   onPersist: (data: AppDataV26) => void;
-  onClose: () => void;
   onScheduleBlock: (block: TimeBlock) => void;
 }
 
-export function IntakeScreen({ data, onPersist, onClose, onScheduleBlock }: IntakeScreenProps) {
+export function IntakeScreen({ data, onPersist, onScheduleBlock }: IntakeScreenProps) {
   const [activeTab, setActiveTab] = useState<'queue' | 'certifications'>('queue');
   const [kindFilter, setKindFilter] = useState<string>('all');
   const [sortMode, setSortMode] = useState<'priority' | 'time' | 'topic'>('priority');
@@ -120,7 +119,6 @@ export function IntakeScreen({ data, onPersist, onClose, onScheduleBlock }: Inta
   return (
     <div className="practice-screen fade-in" style={{ padding: 20, overflowY: 'auto', height: '100%' }}>
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
-        <button className="btn" onClick={onClose} style={{ marginRight: 15 }}>← Back</button>
         <h1 style={{ margin: 0, fontSize: 24, fontWeight: 600 }}>Intake Engine</h1>
       </div>
 

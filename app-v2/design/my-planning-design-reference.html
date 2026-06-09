@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Planning 2.0 — Design Direction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1A1D23; --ink-soft:#2D323B;
+  --paper:#F4F6F8; --surface:#FFFFFF;
+  --line:#E5E9EE; --line-soft:#EEF1F5;
+  --muted:#71767F; --muted-soft:#A3A8B1;
+  --gold:#B5852A; --gold-tint:#F8F1DE; --gold-line:#E7D5A6;
+  --green:#3C8A5E; --green-tint:#E9F3ED;
+  --r-sm:8px; --r-md:12px; --r-lg:18px;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s8:48px;
+  --sh-sm:0 1px 2px rgba(20,24,32,.05),0 1px 3px rgba(20,24,32,.05);
+  --sh-md:0 6px 22px rgba(20,24,32,.07),0 2px 6px rgba(20,24,32,.04);
+  --f-disp:'Schibsted Grotesk',system-ui,sans-serif;
+  --f-ui:'Inter',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink-soft);font-family:var(--f-ui);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{margin:0;color:var(--ink);font-family:var(--f-disp);letter-spacing:-.01em}
+p{margin:0}
+a{color:inherit}
+
+/* ---------- doc scaffold ---------- */
+.wrap{max-width:1040px;margin:0 auto;padding:0 24px 96px}
+.doc-head{padding:64px 0 28px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--f-ui);font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.doc-head h1{font-size:42px;font-weight:800;line-height:1.04;margin:14px 0 0;letter-spacing:-.025em}
+.doc-head p{max-width:60ch;margin-top:14px;color:var(--muted);font-size:16px}
+.docnav{position:sticky;top:0;z-index:30;display:flex;gap:6px;padding:12px 0;margin-bottom:8px;background:rgba(244,246,248,.86);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.docnav a{font-size:12px;font-weight:600;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:999px}
+.docnav a:hover{color:var(--ink);background:var(--surface)}
+.sec{padding:56px 0 8px}
+.sec-label{display:flex;align-items:baseline;gap:14px;margin-bottom:24px}
+.sec-label h2{font-size:13px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);font-family:var(--f-ui)}
+.sec-label .rule{flex:1;height:1px;background:var(--line)}
+.sec-label .note{font-size:12px;color:var(--muted-soft);font-family:var(--f-mono)}
+
+/* ---------- tokens ---------- */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:24px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.tok-h{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.swatches{display:flex;flex-wrap:wrap;gap:10px}
+.sw{width:96px}
+.sw .chip{height:54px;border-radius:10px;border:1px solid rgba(20,24,32,.06)}
+.sw .nm{font-size:12px;margin-top:7px;color:var(--ink);font-weight:500}
+.sw .hex{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.type-row{display:flex;align-items:baseline;gap:14px;padding:10px 0;border-bottom:1px dashed var(--line-soft)}
+.type-row:last-child{border-bottom:0}
+.type-row .tag{font-family:var(--f-mono);font-size:11px;color:var(--muted-soft);width:74px;flex:none}
+.specimen-disp{font-family:var(--f-disp);font-weight:800;font-size:30px;letter-spacing:-.02em;color:var(--ink)}
+.specimen-h{font-family:var(--f-disp);font-weight:700;font-size:19px;color:var(--ink)}
+.specimen-b{font-size:15px;color:var(--ink-soft)}
+.specimen-l{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.specimen-m{font-family:var(--f-mono);font-size:13px;color:var(--ink-soft)}
+
+/* component samples */
+.comp-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.btn{font-family:var(--f-ui);font-weight:600;font-size:14px;border-radius:var(--r-sm);padding:9px 16px;border:1px solid transparent;cursor:pointer;line-height:1}
+.btn-primary{background:var(--ink);color:#fff}
+.btn-secondary{background:var(--surface);color:var(--ink);border-color:var(--line)}
+.btn-ghost{background:transparent;color:var(--muted)}
+.btn-gold{background:var(--gold);color:#fff}
+.chip-tag{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:4px 8px}
+.field{margin-top:4px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--ink);margin-bottom:6px}
+.field input,.field textarea{width:100%;font-family:var(--f-ui);font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 11px}
+.field input:focus,.field textarea:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--gold)}
+.field .hint{font-size:11px;color:var(--muted-soft);margin-top:5px}
+
+/* North Star signature */
+.northstar{background:linear-gradient(180deg,#fffdf7,#fff);border:1px solid var(--gold-line);border-radius:var(--r-md);padding:13px 14px}
+.northstar .ns-eb{font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.northstar .ns-role{font-family:var(--f-disp);font-weight:700;font-size:17px;color:var(--ink);margin-top:3px;letter-spacing:-.01em}
+.northstar .ns-meta{display:flex;justify-content:space-between;align-items:baseline;margin-top:9px}
+.northstar .ns-when{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.northstar .ns-pct{font-family:var(--f-mono);font-size:11px;color:var(--gold);font-weight:500}
+.ns-bar{height:5px;border-radius:99px;background:var(--gold-tint);margin-top:7px;overflow:hidden}
+.ns-bar i{display:block;height:100%;width:38%;background:var(--gold);border-radius:99px}
+
+.pagehead-sample .ph-eb{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.pagehead-sample .ph-t{font-family:var(--f-disp);font-weight:800;font-size:26px;letter-spacing:-.02em;color:var(--ink);margin-top:5px}
+.pagehead-sample .ph-p{font-size:14px;color:var(--muted);margin-top:5px}
+
+/* ---------- frames ---------- */
+.frame-cap{font-size:13px;color:var(--muted);margin:0 0 12px;font-weight:500}
+.frame-cap b{color:var(--ink);font-weight:600}
+.browser{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh-md);overflow:hidden;margin-bottom:40px}
+.browser-bar{display:flex;align-items:center;gap:8px;padding:11px 14px;background:#fbfcfd;border-bottom:1px solid var(--line)}
+.dots{display:flex;gap:6px}.dots i{width:11px;height:11px;border-radius:99px;background:#e0e3e8;display:block}
+.url{flex:1;text-align:center;font-family:var(--f-mono);font-size:11px;color:var(--muted-soft);background:var(--paper);border-radius:6px;padding:4px 10px;max-width:280px;margin:0 auto}
+
+/* app shell (desktop) */
+.shell{display:grid;grid-template-columns:228px 1fr;min-height:560px}
+.side{border-right:1px solid var(--line);padding:18px 14px;display:flex;flex-direction:column;gap:18px;background:#fcfdfe}
+.brand{display:flex;align-items:center;gap:9px;padding:0 4px}
+.brand .mk{width:26px;height:26px;border-radius:7px;background:var(--ink);color:#fff;display:grid;place-items:center;font-family:var(--f-disp);font-weight:800;font-size:14px}
+.brand .nm{font-family:var(--f-disp);font-weight:700;font-size:15px;color:var(--ink);letter-spacing:-.01em}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav .nl{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r-sm);font-size:14px;font-weight:500;color:var(--muted);position:relative;cursor:pointer}
+.nav .nl .ic{width:17px;height:17px;flex:none;color:var(--muted-soft)}
+.nav .nl:hover{background:var(--paper);color:var(--ink)}
+.nav .nl.on{background:var(--paper);color:var(--ink);font-weight:600}
+.nav .nl.on .ic{color:var(--ink)}
+.nav .nl.on::before{content:"";position:absolute;left:-14px;top:8px;bottom:8px;width:3px;border-radius:99px;background:var(--gold)}
+.side-foot{margin-top:auto;display:flex;flex-direction:column;gap:10px}
+.side-controls{display:flex;align-items:center;justify-content:space-between;padding:6px 4px;border-top:1px solid var(--line-soft);padding-top:12px}
+.ctl{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.ctl .ic{width:15px;height:15px;color:var(--muted-soft)}
+.toggle{width:34px;height:20px;border-radius:99px;background:var(--line);position:relative}
+.toggle i{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:99px;background:#fff;box-shadow:var(--sh-sm)}
+
+.main{padding:26px 30px;background:var(--surface);min-width:0}
+.ph{margin-bottom:22px}
+.ph-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.ph .eb{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.ph h2.t{font-family:var(--f-disp);font-weight:800;font-size:27px;letter-spacing:-.022em;color:var(--ink);margin-top:5px}
+.ph .p{font-size:14px;color:var(--muted);margin-top:5px;max-width:54ch}
+
+/* generic bits used across screens */
+.row{display:flex;gap:10px;align-items:center}
+.spread{display:flex;justify-content:space-between;align-items:center}
+.segment{display:inline-flex;background:var(--paper);border:1px solid var(--line);border-radius:var(--r-sm);padding:3px}
+.segment span{font-size:13px;font-weight:500;color:var(--muted);padding:6px 12px;border-radius:6px;cursor:pointer}
+.segment span.on{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:var(--sh-sm)}
+.pills{display:flex;gap:7px;flex-wrap:wrap}
+.pill{font-size:13px;font-weight:500;color:var(--muted);background:var(--paper);border:1px solid var(--line);border-radius:99px;padding:6px 13px;cursor:pointer;white-space:nowrap}
+.pill.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.select{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 11px}
+.select .ic{width:13px;height:13px;color:var(--muted-soft)}
+
+/* PLAN screen */
+.plan-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:22px}
+.agenda{display:flex;flex-direction:column}
+.ag-item{display:grid;grid-template-columns:58px 1fr;gap:14px;padding:13px 0;border-top:1px solid var(--line-soft)}
+.ag-item:first-child{border-top:0}
+.ag-time{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.ag-card{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--line);border-radius:var(--r-sm);padding:11px 13px}
+.ag-card.routine{border-left-color:#cfd4db}
+.ag-card.cal{border-left-color:var(--ink)}
+.ag-card.practice{border-left-color:var(--gold);background:var(--gold-tint)}
+.ag-card .h{font-weight:600;color:var(--ink);font-size:14px;display:flex;align-items:center;gap:8px}
+.ag-card .s{font-size:12px;color:var(--muted);margin-top:2px}
+.dot{width:15px;height:15px;border-radius:99px;border:2px solid var(--muted-soft);flex:none}
+.dot.done{background:var(--green);border-color:var(--green)}
+.mini-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:16px;margin-bottom:14px}
+.mini-card .mt{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.weather{display:flex;align-items:center;gap:12px}
+.weather .tmp{font-family:var(--f-disp);font-weight:700;font-size:28px;color:var(--ink)}
+.streak{display:flex;gap:5px;margin-top:6px}
+.streak i{flex:1;height:6px;border-radius:99px;background:var(--green)}
+.streak i.off{background:var(--line)}
+
+/* PRACTICE screen */
+.drill{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:20px;margin-top:16px}
+.drill .prompt{font-size:17px;line-height:1.5;color:var(--ink);font-weight:500}
+.drill .actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.ref{margin-top:16px;border-top:1px solid var(--line);padding-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.ref .block .rl{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+.ref .block .rt{font-size:13px;color:var(--ink-soft);line-height:1.5}
+.ref .block.full{grid-column:1/-1;background:var(--gold-tint);border:1px solid var(--gold-line);border-radius:var(--r-sm);padding:13px}
+.kp{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.kp span{font-family:var(--f-mono);font-size:11px;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:5px;padding:3px 7px}
+.confdots{display:flex;gap:5px;align-items:center}
+.confdots i{width:9px;height:9px;border-radius:99px;background:var(--line)}
+.confdots i.on{background:var(--gold)}
+
+/* MODULE DASHBOARD form */
+.formcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:22px;margin-bottom:18px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.form-grid .full{grid-column:1/-1}
+.modrow{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-top:1px solid var(--line-soft)}
+.modrow:first-child{border-top:0}
+.modrow .ml{display:flex;flex-direction:column}
+.modrow .mn{font-weight:600;color:var(--ink);font-size:14px}
+.modrow .md{font-size:12px;color:var(--muted)}
+.badge{font-family:var(--f-mono);font-size:11px;padding:3px 8px;border-radius:99px}
+.badge.active{background:var(--green-tint);color:var(--green)}
+.badge.paused{background:var(--paper);color:var(--muted)}
+
+/* INTAKE cards */
+.intake-add{display:grid;grid-template-columns:1fr 200px 130px auto;gap:10px;align-items:end;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:16px;margin-bottom:16px}
+.intake-controls{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.icard{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:14px 16px;margin-bottom:10px}
+.icard .body{flex:1;min-width:0}
+.icard .meta{display:flex;align-items:center;gap:9px;margin-bottom:4px}
+.icard .src{font-size:11px;color:var(--muted-soft)}
+.icard .ttl{font-weight:600;color:var(--ink);font-size:15px;line-height:1.35}
+.icard .iact{display:flex;gap:7px;flex:none}
+.iact .ib{font-size:12px;font-weight:500;color:var(--muted);background:var(--paper);border:1px solid var(--line);border-radius:var(--r-sm);padding:6px 10px;cursor:pointer;white-space:nowrap}
+.iact .ib.go{color:var(--gold);border-color:var(--gold-line);background:var(--gold-tint)}
+
+/* CREATE kanban */
+.kbtabs{margin-bottom:18px}
+.kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.kcol{background:var(--paper);border:1px solid var(--line);border-radius:var(--r-md);padding:12px;min-height:300px;display:flex;flex-direction:column}
+.kcol .kh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.kcol .kt{font-size:13px;font-weight:600;color:var(--ink)}
+.kcol .kn{font-family:var(--f-mono);font-size:11px;color:var(--muted-soft)}
+.kcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:11px;box-shadow:var(--sh-sm);margin-bottom:9px}
+.kcard .kc-tag{font-family:var(--f-mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.kcard .kc-h{font-weight:600;color:var(--ink);font-size:13px;margin-top:4px;line-height:1.35}
+.kempty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--muted-soft);font-size:12px;gap:8px;padding:16px}
+.kempty .plus{width:26px;height:26px;border-radius:99px;border:1.5px dashed var(--muted-soft);display:grid;place-items:center;font-size:15px}
+.addbtn{font-size:12px;font-weight:500;color:var(--muted);background:transparent;border:1px dashed var(--line);border-radius:var(--r-sm);padding:8px;cursor:pointer;text-align:center;margin-top:auto}
+
+/* ---------- mobile frames ---------- */
+.mobile-row{display:flex;gap:34px;flex-wrap:wrap}
+.phone{width:318px;background:var(--ink);border-radius:40px;padding:11px;box-shadow:var(--sh-md);flex:none}
+.phone-scr{background:var(--paper);border-radius:30px;overflow:hidden;height:640px;display:flex;flex-direction:column;position:relative}
+.notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:96px;height:22px;background:var(--ink);border-radius:99px;z-index:5}
+.m-top{background:var(--surface);border-bottom:1px solid var(--line);padding:30px 16px 12px;display:flex;align-items:center;justify-content:space-between}
+.m-top .mt-t{font-family:var(--f-disp);font-weight:800;font-size:20px;color:var(--ink);letter-spacing:-.02em}
+.m-top .mt-eb{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.m-body{flex:1;overflow:hidden;padding:14px}
+.m-ns{background:linear-gradient(180deg,#fffdf7,#fff);border:1px solid var(--gold-line);border-radius:var(--r-md);padding:11px 13px;margin-bottom:14px}
+.m-ns .row{justify-content:space-between;align-items:baseline}
+.m-ns .nsr{font-family:var(--f-disp);font-weight:700;font-size:15px;color:var(--ink)}
+.m-ns .nsw{font-family:var(--f-mono);font-size:10px;color:var(--muted)}
+.m-tabs{background:var(--surface);border-top:1px solid var(--line);display:flex;padding:8px 6px 20px}
+.m-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--muted-soft);font-weight:500}
+.m-tab .ic{width:20px;height:20px}
+.m-tab.on{color:var(--ink)}
+.m-tab.on .ic{color:var(--gold)}
+.m-kanban{display:flex;gap:12px;overflow:hidden}
+.m-kcol{flex:none;width:210px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r-md);padding:10px}
+.m-hint{font-family:var(--f-mono);font-size:10px;color:var(--muted-soft);text-align:center;margin-top:10px}
+
+.callout{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:var(--r-md);padding:16px 18px;margin-top:14px;font-size:14px;color:var(--ink-soft)}
+.callout b{color:var(--ink)}
+.icon{display:inline-block;vertical-align:middle}
+
+@media (max-width:880px){
+  .grid2{grid-template-columns:1fr}
+  .shell{grid-template-columns:1fr}
+  .side{flex-direction:row;flex-wrap:wrap;align-items:center;border-right:0;border-bottom:1px solid var(--line)}
+  .side-foot,.northstar{display:none}
+  .plan-grid,.form-grid,.ref,.kanban{grid-template-columns:1fr}
+  .intake-add{grid-template-columns:1fr}
+  .doc-head h1{font-size:32px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="doc-head">
+    <div class="eyebrow">My Planning 2.0 · Design direction</div>
+    <h1>A calm place to prepare.</h1>
+    <p>A non-functional visual reference for the redesign — the look, the navigation, and how the five screens fit together on desktop and phone. The aim: a daily tool that feels as composed as the presence it's training. React to this, and once it's right, it becomes the exact spec the build follows — screen by screen.</p>
+  </header>
+
+  <nav class="docnav">
+    <a href="#lang">Design language</a>
+    <a href="#desktop">Desktop</a>
+    <a href="#mobile">On your phone</a>
+  </nav>
+
+  <!-- ============ DESIGN LANGUAGE ============ -->
+  <section class="sec" id="lang">
+    <div class="sec-label"><h2>Design language</h2><span class="rule"></span><span class="note">tokens · type · components</span></div>
+
+    <div class="grid2" style="margin-bottom:20px">
+      <div class="panel">
+        <div class="tok-h">Palette</div>
+        <div class="swatches">
+          <div class="sw"><div class="chip" style="background:#1A1D23"></div><div class="nm">Ink</div><div class="hex">#1A1D23</div></div>
+          <div class="sw"><div class="chip" style="background:#F4F6F8"></div><div class="nm">Paper</div><div class="hex">#F4F6F8</div></div>
+          <div class="sw"><div class="chip" style="background:#FFFFFF"></div><div class="nm">Surface</div><div class="hex">#FFFFFF</div></div>
+          <div class="sw"><div class="chip" style="background:#B5852A"></div><div class="nm">Signal</div><div class="hex">#B5852A</div></div>
+          <div class="sw"><div class="chip" style="background:#3C8A5E"></div><div class="nm">Done</div><div class="hex">#3C8A5E</div></div>
+          <div class="sw"><div class="chip" style="background:#71767F"></div><div class="nm">Muted</div><div class="hex">#71767F</div></div>
+        </div>
+        <p style="font-size:12.5px;color:var(--muted);margin-top:16px">Cool, airy base in ink and paper. One warm <b style="color:var(--gold)">signal</b> colour, spent only on the goal and what needs attention today — never decoration.</p>
+      </div>
+
+      <div class="panel">
+        <div class="tok-h">Type</div>
+        <div class="type-row"><span class="tag">Display</span><span class="specimen-disp">Schibsted Grotesk</span></div>
+        <div class="type-row"><span class="tag">Body / UI</span><span class="specimen-b">Inter — the quiet workhorse for everything you read and tap.</span></div>
+        <div class="type-row"><span class="tag">Label</span><span class="specimen-l">Eyebrows & section labels</span></div>
+        <div class="type-row"><span class="tag">Data</span><span class="specimen-m">09 Jun · ~4 mo · 38%</span></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <div class="tok-h">Components</div>
+        <div class="comp-row" style="margin-bottom:16px">
+          <button class="btn btn-primary">Save changes</button>
+          <button class="btn btn-secondary">Secondary</button>
+          <button class="btn btn-ghost">Ghost</button>
+          <span class="chip-tag">Podcast</span>
+          <span class="badge active">Active</span>
+        </div>
+        <div class="field" style="max-width:320px">
+          <label>Target date</label>
+          <input value="Q4 2026" >
+          <div class="hint">Labels sit above their field, always. No more collisions.</div>
+        </div>
+        <div style="margin-top:18px" class="pagehead-sample">
+          <div class="ph-eb">Practice</div>
+          <div class="ph-t">Core Sales Fluency</div>
+          <div class="ph-p">One header pattern — eyebrow, title, one-line purpose — on every screen.</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="tok-h">Signature · North Star</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px">The one element on every screen. Your target role and the time left, so the tool always shows what it's for.</p>
+        <div class="northstar" style="max-width:230px">
+          <div class="ns-eb">North Star</div>
+          <div class="ns-role">VP Sales</div>
+          <div class="ns-meta"><span class="ns-when">Q4 2026 · ~4 months</span><span class="ns-pct">38%</span></div>
+          <div class="ns-bar"><i></i></div>
+        </div>
+        <div style="margin-top:16px">
+          <div class="confdots" style="margin-bottom:6px"><span style="font-size:12px;color:var(--muted);margin-right:6px">Confidence</span><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
+          <div class="streak"><i></i><i></i><i></i><i></i><i class="off"></i><i class="off"></i><i class="off"></i></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DESKTOP ============ -->
+  <section class="sec" id="desktop">
+    <div class="sec-label"><h2>Desktop</h2><span class="rule"></span><span class="note">one shell · five screens</span></div>
+
+    <!-- PLAN -->
+    <p class="frame-cap"><b>Plan</b> — the daily home. Persistent nav on the left, your goal anchored above it.</p>
+    <div class="browser">
+      <div class="browser-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url">myplanning · plan</div></div>
+      <div class="shell">
+        <aside class="side">
+          <div class="brand"><div class="mk">P</div><div class="nm">My Planning</div></div>
+          <div class="northstar"><div class="ns-eb">North Star</div><div class="ns-role">VP Sales</div><div class="ns-meta"><span class="ns-when">Q4 2026 · ~4 mo</span><span class="ns-pct">38%</span></div><div class="ns-bar"><i></i></div></div>
+          <nav class="nav">
+            <div class="nl on"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Plan</div>
+            <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v6c0 4-3 6-8 8-5-2-8-4-8-8V7z"/></svg>Practice</div>
+            <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h16M4 19h10"/></svg>Intake</div>
+            <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Create</div>
+            <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1l-.3-2.6h-4l-.3 2.6a7 7 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.3 2.6h4l.3-2.6a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.5c.1-.3.1-.7.1-1z"/></svg>Setup</div>
+          </nav>
+          <div class="side-foot">
+            <div class="side-controls">
+              <span class="ctl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>Light</span>
+              <span class="toggle"><i></i></span>
+            </div>
+          </div>
+        </aside>
+        <main class="main">
+          <div class="ph"><div class="ph-top"><div><div class="eb">Today · Tue 9 Jun</div><h2 class="t">Good morning, Stephane</h2><div class="p">Your routine, calendar, and the rep that matters today.</div></div><div class="weather"><svg class="ic" style="width:26px;height:26px;color:var(--gold)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/></svg><span class="tmp">16°</span></div></div></div>
+          <div class="plan-grid">
+            <div class="agenda">
+              <div class="ag-item"><div class="ag-time">07:00</div><div class="ag-card routine"><div class="h"><span class="dot done"></span>Morning routine</div><div class="s">Workout · journal · review the day</div></div></div>
+              <div class="ag-item"><div class="ag-time">09:30</div><div class="ag-card cal"><div class="h">Pipeline review — BFSI accounts</div><div class="s">From calendar · 45 min</div></div></div>
+              <div class="ag-item"><div class="ag-time">12:30</div><div class="ag-card practice"><div class="h"><svg class="ic" style="width:15px;height:15px;color:var(--gold)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v6c0 4-3 6-8 8-5-2-8-4-8-8V7z"/></svg>Practice — MEDDPICC, out loud</div><div class="s">Core Sales · 15 min · EN then FR</div></div></div>
+              <div class="ag-item"><div class="ag-time">16:00</div><div class="ag-card routine"><div class="h"><span class="dot"></span>Consume — one podcast</div><div class="s">From your Intake queue</div></div></div>
+            </div>
+            <div>
+              <div class="mini-card"><div class="mt">This week</div><div class="streak"><i></i><i></i><i></i><i></i><i class="off"></i><i class="off"></i><i class="off"></i></div><p style="font-size:13px;color:var(--muted);margin-top:10px">4 of 7 rehearsal days done. Two reps left today.</p></div>
+              <div class="mini-card"><div class="mt">Up next</div><p style="font-size:14px;color:var(--ink);font-weight:500">Mock interview — Leadership</p><p style="font-size:12px;color:var(--muted);margin-top:3px">Scheduled Thursday</p></div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- PRACTICE -->
+    <p class="frame-cap"><b>Practice</b> — rehearse out loud, reveal the model after. The EN/FR toggle and reference panel, kept exactly as they work today.</p>
+    <div class="browser">
+      <div class="browser-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url">myplanning · practice</div></div>
+      <div class="shell">
+        <aside class="side">
+          <div class="brand"><div class="mk">P</div><div class="nm">My Planning</div></div>
+          <div class="northstar"><div class="ns-eb">North Star</div><div class="ns-role">VP Sales</div><div class="ns-meta"><span class="ns-when">Q4 2026 · ~4 mo</span><span class="ns-pct">38%</span></div><div class="ns-bar"><i></i></div></div>
+          <nav class="nav">
+            <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Plan</div>
+            <div class="nl on"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v6c0 4-3 6-8 8-5-2-8-4-8-8V7z"/></svg>Practice</div>
+            <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h16M4 19h10"/></svg>Intake</div>
+            <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Create</div>
+            <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7 7 0 0 0 0-2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1L15 2.5h-4l-.4 2.6a7 7 0 0 0-1.7 1l-2.3-1-2 3.4L6.6 11a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7 7 0 0 0 1.7-1l2.3 1 2-3.4z"/></svg>Setup</div>
+          </nav>
+        </aside>
+        <main class="main">
+          <div class="ph"><div class="ph-top"><div><div class="eb">Practice</div><h2 class="t">Core Sales Fluency</h2><div class="p">Rehearse out loud. Reveal the model after your attempt.</div></div><div class="segment"><span class="on">EN</span><span>FR</span></div></div></div>
+          <div class="pills"><span class="pill">Interview</span><span class="pill">C-Level</span><span class="pill">Exec Presence</span><span class="pill on">Core Sales</span><span class="pill">Banking &amp; Insurance</span><span class="pill">Leadership</span></div>
+          <div class="drill">
+            <div class="spread"><span class="chip-tag">MEDDPICC</span><span class="confdots"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></div>
+            <p class="prompt" style="margin-top:12px">Out loud, as if teaching a new AE in 60 seconds: explain MEDDPICC and why each element changes how a deal is run. Then say it again in 30 seconds, keeping only what matters most.</p>
+            <div class="actions"><button class="btn btn-primary">Start · record attempt</button><button class="btn btn-secondary">Reveal the model</button></div>
+            <div class="ref">
+              <div class="block"><div class="rl">Framework</div><div class="rt">Metrics · Economic buyer · Decision criteria & process · Paper process · Identify pain · Champion · Competition.</div></div>
+              <div class="block"><div class="rl">Watch out</div><div class="rt">The junior answer recites the letters. The senior answer treats each gap as a deal risk and shows how you close it.</div></div>
+              <div class="block full"><div class="rl">Model answer</div><div class="rt">MEDDPICC is how I make a deal forecastable. Where I can't answer one of those, that's not a gap in my notes — it's a risk in the deal, and that's where I go to work.</div></div>
+              <div class="block" style="grid-column:1/-1"><div class="rl">Key phrases</div><div class="kp"><span>economic buyer</span><span>decision criteria vs process</span><span>paper process</span><span>real champion vs coach</span></div></div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- MODULE DASHBOARD -->
+    <p class="frame-cap"><b>Setup</b> — your goal and profile, the inputs that shape everything. The form that was broken, rebuilt: labels above fields, aligned, breathing.</p>
+    <div class="browser">
+      <div class="browser-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url">myplanning · setup</div></div>
+      <div class="shell">
+        <aside class="side">
+          <div class="brand"><div class="mk">P</div><div class="nm">My Planning</div></div>
+          <div class="northstar"><div class="ns-eb">North Star</div><div class="ns-role">VP Sales</div><div class="ns-meta"><span class="ns-when">Q4 2026 · ~4 mo</span><span class="ns-pct">38%</span></div><div class="ns-bar"><i></i></div></div>
+          <nav class="nav">
+            <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Plan</div>
+            <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v6c0 4-3 6-8 8-5-2-8-4-8-8V7z"/></svg>Practice</div>
+            <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h16M4 19h10"/></svg>Intake</div>
+            <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Create</div>
+            <div class="nl on"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7 7 0 0 0 0-2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1L15 2.5h-4l-.4 2.6a7 7 0 0 0-1.7 1l-2.3-1-2 3.4L6.6 11a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7 7 0 0 0 1.7-1l2.3 1 2-3.4z"/></svg>Setup</div>
+          </nav>
+        </aside>
+        <main class="main">
+          <div class="ph"><div class="eb">Setup</div><h2 class="t">Your North Star</h2><div class="p">The goal and profile that shape what you practice.</div></div>
+          <div class="formcard">
+            <div class="form-grid">
+              <div class="field full"><label>Your positioning</label><textarea rows="2">Enterprise seller becoming an agentic-AI advisor to the C-suite.</textarea></div>
+              <div class="field"><label>Target roles</label><input value="Senior AE, Sales Manager, VP Sales"></div>
+              <div class="field"><label>Target date</label><input value="Q4 2026"></div>
+              <div class="field"><label>Industries</label><input value="Banking, Insurance"></div>
+              <div class="field"><label>Regions</label><input value="EMEA, APAC"></div>
+            </div>
+            <div style="margin-top:16px"><button class="btn btn-primary">Save changes</button></div>
+          </div>
+          <div class="formcard">
+            <div class="tok-h" style="margin-bottom:4px">Modules</div>
+            <div class="modrow"><div class="ml"><span class="mn">Core Sales Fluency</span><span class="md">15 drills · EN / FR</span></div><span class="badge active">Active</span></div>
+            <div class="modrow"><div class="ml"><span class="mn">Banking &amp; Insurance</span><span class="md">10 drills · EN / FR</span></div><span class="badge active">Active</span></div>
+            <div class="modrow"><div class="ml"><span class="mn">Leadership &amp; Mirror Management</span><span class="md">11 drills · EN / FR</span></div><span class="badge active">Active</span></div>
+            <div class="modrow"><div class="ml"><span class="mn">Executive Presence</span><span class="md">18 drills · EN / FR</span></div><span class="badge paused">Paused</span></div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- INTAKE -->
+    <p class="frame-cap"><b>Intake</b> — what to consume next. The dense list, rebuilt as scannable cards with clear actions.</p>
+    <div class="browser">
+      <div class="browser-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url">myplanning · intake</div></div>
+      <div class="shell">
+        <aside class="side">
+          <div class="brand"><div class="mk">P</div><div class="nm">My Planning</div></div>
+          <div class="northstar"><div class="ns-eb">North Star</div><div class="ns-role">VP Sales</div><div class="ns-meta"><span class="ns-when">Q4 2026 · ~4 mo</span><span class="ns-pct">38%</span></div><div class="ns-bar"><i></i></div></div>
+          <nav class="nav">
+            <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Plan</div>
+            <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v6c0 4-3 6-8 8-5-2-8-4-8-8V7z"/></svg>Practice</div>
+            <div class="nl on"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h16M4 19h10"/></svg>Intake</div>
+            <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Create</div>
+            <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7 7 0 0 0 0-2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1L15 2.5h-4l-.4 2.6a7 7 0 0 0-1.7 1l-2.3-1-2 3.4L6.6 11a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7 7 0 0 0 1.7-1l2.3 1 2-3.4z"/></svg>Setup</div>
+          </nav>
+        </aside>
+        <main class="main">
+          <div class="ph"><div class="eb">Intake</div><h2 class="t">What to consume next</h2><div class="p">Your reading, podcasts, and certifications — prioritized.</div></div>
+          <div class="intake-add">
+            <div class="field"><label>Add a link</label><input placeholder="Paste a URL…"></div>
+            <div class="field"><label>Title</label><input placeholder="Optional"></div>
+            <div class="field"><label>Kind</label><div class="select" style="width:100%;justify-content:space-between">Reading<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div></div>
+            <button class="btn btn-primary">Save</button>
+          </div>
+          <div class="intake-controls">
+            <div class="segment"><span class="on">Queue</span><span>Certifications</span></div>
+            <div class="select">All kinds<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+            <div class="select">Sort by priority<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+          </div>
+          <div class="icard"><div class="body"><div class="meta"><span class="chip-tag">Podcast</span><span class="src">feeds · 42 min</span></div><div class="ttl">The AI in Business Podcast</div></div><div class="iact"><span class="ib go">Post idea</span><span class="ib">Block</span><span class="ib">Done</span></div></div>
+          <div class="icard"><div class="body"><div class="meta"><span class="chip-tag">Podcast</span><span class="src">feeds · 28 min</span></div><div class="ttl">Shane Gibson — Social Selling, B2B Sales &amp; Influence</div></div><div class="iact"><span class="ib go">Post idea</span><span class="ib">Block</span><span class="ib">Done</span></div></div>
+          <div class="icard"><div class="body"><div class="meta"><span class="chip-tag">Reading</span><span class="src">hbr.org · 9 min</span></div><div class="ttl">What great sales leaders do differently</div></div><div class="iact"><span class="ib go">Post idea</span><span class="ib">Block</span><span class="ib">Done</span></div></div>
+        </main>
+      </div>
+    </div>
+
+    <!-- CREATE -->
+    <p class="frame-cap"><b>Create</b> — turn what you learn into posts. Right-sized columns, real empty states, no acres of white.</p>
+    <div class="browser">
+      <div class="browser-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url">myplanning · create</div></div>
+      <div class="shell">
+        <aside class="side">
+          <div class="brand"><div class="mk">P</div><div class="nm">My Planning</div></div>
+          <div class="northstar"><div class="ns-eb">North Star</div><div class="ns-role">VP Sales</div><div class="ns-meta"><span class="ns-when">Q4 2026 · ~4 mo</span><span class="ns-pct">38%</span></div><div class="ns-bar"><i></i></div></div>
+          <nav class="nav">
+            <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Plan</div>
+            <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v6c0 4-3 6-8 8-5-2-8-4-8-8V7z"/></svg>Practice</div>
+            <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h16M4 19h10"/></svg>Intake</div>
+            <div class="nl on"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Create</div>
+            <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7 7 0 0 0 0-2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1L15 2.5h-4l-.4 2.6a7 7 0 0 0-1.7 1l-2.3-1-2 3.4L6.6 11a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7 7 0 0 0 1.7-1l2.3 1 2-3.4z"/></svg>Setup</div>
+          </nav>
+        </aside>
+        <main class="main">
+          <div class="ph"><div class="eb">Create</div><h2 class="t">Post pipeline</h2><div class="p">Turn what you learn into LinkedIn posts.</div></div>
+          <div class="kbtabs segment"><span class="on">Pipeline</span><span>Weekly digest</span></div>
+          <div class="kanban">
+            <div class="kcol"><div class="kh"><span class="kt">Ideas</span><span class="kn">2</span></div>
+              <div class="kcard"><div class="kc-tag">From · MEDDPICC drill</div><div class="kc-h">Why "champion" ≠ "coach" in enterprise deals</div></div>
+              <div class="kcard"><div class="kc-tag">From · DORA podcast</div><div class="kc-h">What DORA really changed for bank CIOs</div></div>
+              <button class="addbtn">+ Capture an idea</button>
+            </div>
+            <div class="kcol"><div class="kh"><span class="kt">Drafting</span><span class="kn">1</span></div>
+              <div class="kcard"><div class="kc-tag">Draft</div><div class="kc-h">The cost of inaction beats ROI — here's why</div></div>
+              <div class="addbtn">Draft with Claude →</div>
+            </div>
+            <div class="kcol"><div class="kh"><span class="kt">Scheduled</span><span class="kn">0</span></div>
+              <div class="kempty"><span class="plus">+</span>Nothing scheduled.<br>Move a draft here with a date.</div>
+            </div>
+            <div class="kcol"><div class="kh"><span class="kt">Published</span><span class="kn">0</span></div>
+              <div class="kempty"><span class="plus">✓</span>Your published posts<br>will collect here.</div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MOBILE ============ -->
+  <section class="sec" id="mobile">
+    <div class="sec-label"><h2>On your phone</h2><span class="rule"></span><span class="note">bottom tabs · stack · scroll</span></div>
+    <p class="frame-cap">Same shell, mobile shape: the nav becomes a bottom tab bar (always there, never a dead end), forms stack, and the pipeline scrolls sideways instead of squashing.</p>
+    <div class="mobile-row">
+
+      <!-- mobile PLAN -->
+      <div class="phone"><div class="phone-scr"><div class="notch"></div>
+        <div class="m-top"><div><div class="mt-eb">Today · Tue 9 Jun</div><div class="mt-t">Your day</div></div><span class="toggle"><i></i></span></div>
+        <div class="m-body">
+          <div class="m-ns"><div class="ns-eb" style="color:var(--gold);font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase">North Star</div><div class="row"><span class="nsr">VP Sales</span><span class="nsw">Q4 2026 · 38%</span></div><div class="ns-bar"><i></i></div></div>
+          <div class="ag-item" style="grid-template-columns:46px 1fr"><div class="ag-time">07:00</div><div class="ag-card routine"><div class="h"><span class="dot done"></span>Morning routine</div></div></div>
+          <div class="ag-item" style="grid-template-columns:46px 1fr"><div class="ag-time">09:30</div><div class="ag-card cal"><div class="h">Pipeline review</div><div class="s">45 min</div></div></div>
+          <div class="ag-item" style="grid-template-columns:46px 1fr"><div class="ag-time">12:30</div><div class="ag-card practice"><div class="h">Practice — MEDDPICC</div><div class="s">15 min · EN/FR</div></div></div>
+        </div>
+        <div class="m-tabs">
+          <div class="m-tab on"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>Plan</div>
+          <div class="m-tab"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v6c0 4-3 6-8 8-5-2-8-4-8-8V7z"/></svg>Practice</div>
+          <div class="m-tab"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h16M4 19h10"/></svg>Intake</div>
+          <div class="m-tab"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Create</div>
+          <div class="m-tab"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1l-.3-2.6h-4l-.3 2.6a7 7 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.3 2.6h4l.3-2.6a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.5z"/></svg>Setup</div>
+        </div>
+      </div></div>
+
+      <!-- mobile CREATE -->
+      <div class="phone"><div class="phone-scr"><div class="notch"></div>
+        <div class="m-top"><div><div class="mt-eb">Create</div><div class="mt-t">Pipeline</div></div></div>
+        <div class="m-body">
+          <div class="segment" style="margin-bottom:14px;width:100%"><span class="on" style="flex:1;text-align:center">Pipeline</span><span style="flex:1;text-align:center">Digest</span></div>
+          <div class="m-kanban">
+            <div class="m-kcol"><div class="kh"><span class="kt">Ideas</span><span class="kn">2</span></div>
+              <div class="kcard"><div class="kc-tag">From · MEDDPICC</div><div class="kc-h">Champion ≠ coach</div></div>
+              <div class="kcard"><div class="kc-tag">From · DORA</div><div class="kc-h">What DORA changed</div></div>
+            </div>
+            <div class="m-kcol"><div class="kh"><span class="kt">Drafting</span><span class="kn">1</span></div>
+              <div class="kcard"><div class="kc-tag">Draft</div><div class="kc-h">Cost of inaction &gt; ROI</div></div>
+            </div>
+          </div>
+          <div class="m-hint">← swipe between columns →</div>
+        </div>
+        <div class="m-tabs">
+          <div class="m-tab"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>Plan</div>
+          <div class="m-tab"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v6c0 4-3 6-8 8-5-2-8-4-8-8V7z"/></svg>Practice</div>
+          <div class="m-tab"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h16M4 19h10"/></svg>Intake</div>
+          <div class="m-tab on"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Create</div>
+          <div class="m-tab"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1l-.3-2.6h-4l-.3 2.6a7 7 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.3 2.6h4l.3-2.6a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.5z"/></svg>Setup</div>
+        </div>
+      </div></div>
+
+    </div>
+
+    <div class="callout"><b>This is a direction, not a final.</b> Tell me what to push further — calmer or bolder, the colour, the type, the sidebar, anything. Once it feels right, it becomes the spec, and the build follows it one screen at a time.</div>
+  </section>
+
+</div>
+</body>
+</html>

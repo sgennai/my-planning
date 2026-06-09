@@ -6,10 +6,9 @@ import { startOfWeek } from '../helpers/calendar-utils';
 interface Props {
   data: AppDataV26;
   onPersist: (data: AppDataV26) => void;
-  onClose: () => void;
 }
 
-export function ModuleDashboard({ data, onPersist, onClose }: Props) {
+export function ModuleDashboard({ data, onPersist }: Props) {
   const [profile, setProfile] = useState<UserProfile>(
     data.userProfile || {
       id: 'singleton-user-profile',
@@ -66,10 +65,6 @@ export function ModuleDashboard({ data, onPersist, onClose }: Props) {
 
   return (
     <div className="wrap screen-pad-top fade-in" style={{ paddingBottom: 100 }}>
-      <button className="btn-secondary" style={{ marginBottom: 24 }} onClick={onClose}>
-        ← Back to Calendar
-      </button>
-
       <div className="eyebrow">Governance & Architecture</div>
       <h1 className="title">Module Dashboard</h1>
       <div className="rule" />
