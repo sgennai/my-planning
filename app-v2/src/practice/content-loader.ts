@@ -2,6 +2,7 @@ import type { AppDataV24, PracticeItem } from '../storage/types';
 import interviewJson from '../content/interview.json';
 import clevelJson from '../content/clevel.json';
 import execpresenceJson from '../content/execpresence.json';
+import salesJson from '../content/sales.json';
 
 // Define the shape of our external content files
 interface ContentTrack {
@@ -19,7 +20,8 @@ interface ContentTrack {
 const TRACKS: ContentTrack[] = [
   interviewJson as ContentTrack,
   clevelJson as ContentTrack,
-  execpresenceJson as ContentTrack
+  execpresenceJson as ContentTrack,
+  salesJson as ContentTrack
 ];
 
 /**

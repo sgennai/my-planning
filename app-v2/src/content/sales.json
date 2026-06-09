@@ -1,0 +1,517 @@
+{
+  "track": "sales",
+  "trackLabel": "Core Sales Fluency",
+  "_note": "Bilingual (EN/FR) fluency drills on the complex-B2B-sales curriculum from MASTER.md, anchored in MEDDPICC + Miller-Heiman (Strategic Selling) + Challenger. Each prompt = articulate the concept OUT LOUD as if to a CRO or interviewer; reference.model = an interview-grade model articulation to rehearse against (read-only seed, loader-owned). Curriculum topics 4 (Executive Communication) and 14 (Addressing C-Level) live in the execpresence and clevel tracks to avoid duplication. Resolve all text via localize(field,lang); render reference via the generic panel. Track id should match the stubbed 'Core Sales' track (likely 'sales').",
+  "items": [
+    {
+      "id": "sales-meddpicc-1",
+      "tags": ["topic:qualification", "method:meddpicc"],
+      "prompt": {
+        "en": "Out loud, as if teaching a new AE in 60 seconds: explain MEDDPICC and why each element changes how a deal is run. Then say it again in 30 seconds, keeping only what matters most.",
+        "fr": "À voix haute, comme si vous formiez un nouveau commercial en 60 secondes : expliquez MEDDPICC et pourquoi chaque élément change la façon de mener une affaire. Puis refaites-le en 30 secondes, en ne gardant que l'essentiel."
+      },
+      "reference": {
+        "framework": {
+          "en": "MEDDPICC: Metrics, Economic buyer, Decision criteria, Decision process, Paper process, Identify pain, Champion, Competition.",
+          "fr": "MEDDPICC : Métriques, Acheteur économique, Critères de décision, Processus de décision, Processus contractuel, Identifier la douleur, Champion, Concurrence."
+        },
+        "pattern": {
+          "en": "It's not a checklist — it's the set of unknowns that lose deals. Each gap is a deal risk you can name and close.",
+          "fr": "Ce n'est pas une checklist — c'est l'ensemble des inconnues qui font perdre les affaires. Chaque lacune est un risque que l'on peut nommer et lever."
+        },
+        "model": {
+          "en": "MEDDPICC is how I make a deal forecastable. Metrics and Identified pain tell me if the problem is worth budget. Economic buyer and Champion tell me if anyone with power wants it solved. Decision criteria, process and Paper process tell me how — and when — they actually buy. Competition tells me what I'm really up against. Where I can't answer one of those, that's not a gap in my notes — it's a risk in the deal, and that's where I go to work.",
+          "fr": "MEDDPICC, c'est ce qui rend une affaire prévisible. Les Métriques et la douleur Identifiée me disent si le problème mérite un budget. L'Acheteur économique et le Champion me disent si quelqu'un de puissant veut le résoudre. Les Critères, le Processus de décision et le Processus contractuel me disent comment — et quand — ils achètent réellement. La Concurrence me dit à quoi je fais vraiment face. Là où je ne peux pas répondre à l'un de ces points, ce n'est pas une lacune dans mes notes — c'est un risque dans l'affaire, et c'est là que je travaille."
+        },
+        "keyPhrases": {
+          "en": ["economic buyer", "decision criteria vs process", "paper process", "real champion vs coach"],
+          "fr": ["acheteur économique", "critères vs processus de décision", "processus contractuel", "vrai champion vs coach"]
+        },
+        "watchOut": {
+          "en": "The junior answer recites the letters. The senior answer treats each gap as a risk and shows how you close it.",
+          "fr": "La réponse junior récite les lettres. La réponse senior traite chaque lacune comme un risque et montre comment vous la levez."
+        },
+        "delivery": {
+          "en": "Confident, unhurried. You've run this many times — sound like it.",
+          "fr": "Assuré, sans précipitation. Vous l'avez fait de nombreuses fois — que cela s'entende."
+        }
+      }
+    },
+    {
+      "id": "sales-forecast-1",
+      "tags": ["topic:forecasting"],
+      "prompt": {
+        "en": "Out loud, answer a hiring manager: \"How do you forecast a complex enterprise deal — and what makes a deal forecastable?\" Repeat twice, tightening to one clear methodology.",
+        "fr": "À voix haute, répondez à un responsable du recrutement : « Comment prévoyez-vous une affaire complexe — et qu'est-ce qui rend une affaire prévisible ? » Répétez deux fois, en resserrant vers une méthodologie claire."
+      },
+      "reference": {
+        "framework": {
+          "en": "Forecast on evidence, not optimism: commit / best case / pipeline, each tied to verifiable MEDDPICC signals and a dated close plan.",
+          "fr": "Prévoir sur des preuves, pas sur l'optimisme : engagé / meilleur cas / pipeline, chacun lié à des signaux MEDDPICC vérifiables et à un plan de closing daté."
+        },
+        "pattern": {
+          "en": "Define what 'commit' means, then defend each deal against that bar.",
+          "fr": "Définir ce que signifie « engagé », puis défendre chaque affaire face à ce seuil."
+        },
+        "model": {
+          "en": "A deal is forecastable when I can prove three things: the economic buyer is engaged, the decision and paper process are mapped to a date, and the customer has a compelling reason to act now. 'Commit' means all three are verified, not believed. Best case is upside I can see but can't yet prove. If I can't tie a deal to a dated close plan the customer has agreed to, it's pipeline, not commit — and I'd rather call it honestly than slip it in front of my VP.",
+          "fr": "Une affaire est prévisible quand je peux prouver trois choses : l'acheteur économique est engagé, les processus de décision et contractuel sont reliés à une date, et le client a une raison impérieuse d'agir maintenant. « Engagé » signifie que les trois sont vérifiés, pas supposés. Le meilleur cas, c'est un potentiel que je vois mais ne peux encore prouver. Si je ne peux pas relier une affaire à un plan de closing daté et validé par le client, c'est du pipeline, pas de l'engagé — et je préfère l'annoncer honnêtement que de la faire glisser devant mon VP."
+        },
+        "keyPhrases": {
+          "en": ["commit vs best case", "mutual close plan", "deal slippage", "pipeline coverage"],
+          "fr": ["engagé vs meilleur cas", "plan de closing commun", "glissement d'affaire", "couverture de pipeline"]
+        },
+        "watchOut": {
+          "en": "Don't equate 'I feel good about it' with commit. Forecasting credibility is built on calling slips early.",
+          "fr": "N'assimilez pas « je le sens bien » à de l'engagé. La crédibilité prévisionnelle se construit en annonçant les glissements tôt."
+        },
+        "delivery": {
+          "en": "Calm and evidence-based. A good forecaster sounds disciplined, not hopeful.",
+          "fr": "Calme et fondé sur des preuves. Un bon prévisionniste paraît rigoureux, pas optimiste."
+        }
+      }
+    },
+    {
+      "id": "sales-pipeline-1",
+      "tags": ["topic:pipeline"],
+      "prompt": {
+        "en": "Out loud: \"How do you run a healthy pipeline across 8–12 enterprise accounts at once?\" Cover coverage, hygiene, and how you keep deals from going dark. Say it as if to a sales director.",
+        "fr": "À voix haute : « Comment gérez-vous un pipeline sain sur 8 à 12 comptes en simultané ? » Couvrez la couverture, l'hygiène et comment vous évitez que les affaires ne s'éteignent. Dites-le comme à un directeur commercial."
+      },
+      "reference": {
+        "framework": {
+          "en": "Coverage (3–4x), cadence (weekly inspection), and hygiene (every deal has a next step with a date).",
+          "fr": "Couverture (3–4x), cadence (revue hebdomadaire) et hygiène (chaque affaire a une prochaine étape datée)."
+        },
+        "pattern": {
+          "en": "Time follows risk and value, not noise.",
+          "fr": "Le temps suit le risque et la valeur, pas le bruit."
+        },
+        "model": {
+          "en": "I run on coverage and cadence. I want 3 to 4 times quota in qualified pipeline, and I inspect it weekly against MEDDPICC, not against gut feel. Every deal must have a next step with a date — the day a deal has no scheduled next step is the day it starts dying. I segment my week by deal stage and value: my top three deals get proactive time, the rest get disciplined hygiene. The discipline isn't the CRM — it's never letting a strategic account go silent.",
+          "fr": "Je fonctionne sur la couverture et la cadence. Je veux 3 à 4 fois le quota en pipeline qualifié, et je l'inspecte chaque semaine selon MEDDPICC, pas au ressenti. Chaque affaire doit avoir une prochaine étape datée — le jour où une affaire n'a plus d'étape planifiée est le jour où elle commence à mourir. Je segmente ma semaine par stade et par valeur : mes trois plus grosses affaires ont du temps proactif, le reste une hygiène rigoureuse. La discipline, ce n'est pas le CRM — c'est de ne jamais laisser un compte stratégique s'éteindre."
+        },
+        "keyPhrases": {
+          "en": ["pipeline coverage", "deal hygiene", "next step with a date", "inspection cadence"],
+          "fr": ["couverture de pipeline", "hygiène des affaires", "prochaine étape datée", "cadence d'inspection"]
+        },
+        "watchOut": {
+          "en": "Don't make it about CRM compliance. Make it about where revenue actually lives and how you protect it.",
+          "fr": "N'en faites pas une question de conformité CRM. Parlez d'où se trouve réellement le revenu et de comment vous le protégez."
+        },
+        "delivery": {
+          "en": "Brisk and organised — the delivery itself should sound like someone in control of their book.",
+          "fr": "Vif et organisé — la diction elle-même doit révéler quelqu'un qui maîtrise son portefeuille."
+        }
+      }
+    },
+    {
+      "id": "sales-account-1",
+      "tags": ["topic:account-planning", "method:miller-heiman"],
+      "prompt": {
+        "en": "Out loud: \"Walk me through how you build a strategic account plan and multi-thread a large account.\" Use the Miller-Heiman lens. Repeat, leading with the outcome you're driving toward.",
+        "fr": "À voix haute : « Expliquez-moi comment vous construisez un plan de compte stratégique et comment vous multi-threadez un grand compte. » Utilisez le prisme Miller-Heiman. Répétez en commençant par le résultat visé."
+      },
+      "reference": {
+        "framework": {
+          "en": "Map the buying organisation by role (economic buyer, user, technical, coach) and influence; plan coverage to the whole committee, not one contact.",
+          "fr": "Cartographier l'organisation d'achat par rôle (acheteur économique, utilisateur, technique, coach) et par influence ; planifier une couverture de tout le comité, pas d'un seul contact."
+        },
+        "pattern": {
+          "en": "Single-threaded is single point of failure. The plan is a relationship map plus a value thesis.",
+          "fr": "Mono-threadé = point unique de défaillance. Le plan, c'est une carte des relations plus une thèse de valeur."
+        },
+        "model": {
+          "en": "A strategic account plan starts with the customer's own strategy, not my product. I map the buying network — who's the economic buyer, who are the users, the technical evaluators, and who's my coach — and I score where I have access and where I'm exposed. Multi-threading isn't collecting business cards; it's having a credible, different value conversation with each role, so the deal doesn't die when one person leaves. Then I identify white space — where else in the account I can create value over the next two years.",
+          "fr": "Un plan de compte stratégique part de la stratégie du client, pas de mon produit. Je cartographie le réseau d'achat — qui est l'acheteur économique, qui sont les utilisateurs, les évaluateurs techniques, et qui est mon coach — et j'évalue où j'ai de l'accès et où je suis exposé. Le multi-threading, ce n'est pas collectionner des cartes de visite ; c'est avoir une conversation de valeur crédible et différente avec chaque rôle, pour que l'affaire ne meure pas quand une personne part. Ensuite j'identifie le white space — où ailleurs dans le compte je peux créer de la valeur sur les deux prochaines années."
+        },
+        "keyPhrases": {
+          "en": ["buying network / power map", "single-threaded risk", "white space", "value thesis"],
+          "fr": ["réseau d'achat / carte du pouvoir", "risque mono-threadé", "white space", "thèse de valeur"]
+        },
+        "watchOut": {
+          "en": "Don't describe the plan as a document. Describe it as how you de-risk and grow the account.",
+          "fr": "Ne décrivez pas le plan comme un document. Décrivez-le comme votre façon de dérisquer et de faire croître le compte."
+        },
+        "delivery": {
+          "en": "Strategic altitude — talk about the account as a multi-year relationship, not a single deal.",
+          "fr": "Altitude stratégique — parlez du compte comme d'une relation pluriannuelle, pas d'une affaire unique."
+        }
+      }
+    },
+    {
+      "id": "sales-consultative-1",
+      "tags": ["topic:consultative-selling"],
+      "prompt": {
+        "en": "Out loud, in two sentences then expand: \"What does consultative selling actually mean in practice — how do you sell on outcomes, not features?\"",
+        "fr": "À voix haute, en deux phrases puis développez : « Que signifie réellement la vente consultative en pratique — comment vendez-vous sur des résultats, pas des fonctionnalités ? »"
+      },
+      "reference": {
+        "framework": {
+          "en": "Diagnose before you prescribe. Earn the right to recommend by understanding the business problem better than they've articulated it.",
+          "fr": "Diagnostiquer avant de prescrire. Gagner le droit de recommander en comprenant le problème métier mieux qu'ils ne l'ont formulé."
+        },
+        "pattern": {
+          "en": "Problem → impact → outcome → only then, solution.",
+          "fr": "Problème → impact → résultat → et seulement ensuite, solution."
+        },
+        "model": {
+          "en": "Consultative selling means I lead with the customer's problem, not my product. I spend the first conversations diagnosing — what's the business outcome they're after, what's it worth, what's blocking it — before I prescribe anything. If I do that well, I'm not pitching features against a competitor's features; I'm the person who framed the problem, and the solution conversation happens on my terms. Features only matter once we agree on the outcome they need to produce.",
+          "fr": "La vente consultative, c'est partir du problème du client, pas de mon produit. Je passe les premières conversations à diagnostiquer — quel résultat métier visent-ils, combien cela vaut, qu'est-ce qui le bloque — avant de prescrire quoi que ce soit. Si je le fais bien, je ne compare pas mes fonctionnalités à celles d'un concurrent ; je suis celui qui a cadré le problème, et la conversation solution se déroule selon mes termes. Les fonctionnalités ne comptent qu'une fois le résultat attendu défini ensemble."
+        },
+        "keyPhrases": {
+          "en": ["diagnose before prescribe", "business outcome", "frame the problem", "earn the right to recommend"],
+          "fr": ["diagnostiquer avant de prescrire", "résultat métier", "cadrer le problème", "gagner le droit de recommander"]
+        },
+        "watchOut": {
+          "en": "Don't let it sound like a slogan. Anchor it in how it changes who controls the conversation.",
+          "fr": "Ne le laissez pas sonner comme un slogan. Ancrez-le dans la façon dont cela change qui contrôle la conversation."
+        },
+        "delivery": {
+          "en": "Measured. Consultative sellers sound curious and calm, not eager.",
+          "fr": "Posé. Les vendeurs consultatifs paraissent curieux et calmes, pas empressés."
+        }
+      }
+    },
+    {
+      "id": "sales-challenger-1",
+      "tags": ["topic:challenger", "method:challenger"],
+      "prompt": {
+        "en": "Out loud: \"Explain the Challenger approach and how you use it.\" Cover teach–tailor–take control and commercial insight. Then give a 20-second version.",
+        "fr": "À voix haute : « Expliquez l'approche Challenger et comment vous l'utilisez. » Couvrez enseigner–adapter–prendre le contrôle et l'insight commercial. Puis donnez une version de 20 secondes."
+      },
+      "reference": {
+        "framework": {
+          "en": "Challenger: Teach (a commercial insight that reframes their thinking), Tailor (to the stakeholder), Take control (of the conversation, including price).",
+          "fr": "Challenger : Enseigner (un insight commercial qui recadre leur pensée), Adapter (à l'interlocuteur), Prendre le contrôle (de la conversation, y compris du prix)."
+        },
+        "pattern": {
+          "en": "Lead with insight that creates constructive tension, not with rapport.",
+          "fr": "Commencer par un insight qui crée une tension constructive, pas par le relationnel."
+        },
+        "model": {
+          "en": "The Challenger idea is that the best sellers win by teaching, not by relationship-building alone. I lead with a commercial insight — something about their business they hadn't fully seen, ideally one that points to a problem only we solve well. I tailor that insight to what each stakeholder cares about, and I take control of the conversation, including holding firm on price when the value is established. It's not about being aggressive; it's about creating constructive tension that moves them off the status quo.",
+          "fr": "L'idée Challenger, c'est que les meilleurs vendeurs gagnent en enseignant, pas seulement en bâtissant la relation. Je commence par un insight commercial — quelque chose sur leur activité qu'ils n'avaient pas pleinement vu, idéalement qui pointe vers un problème que nous seuls résolvons bien. J'adapte cet insight à ce qui compte pour chaque interlocuteur, et je prends le contrôle de la conversation, y compris en tenant le prix une fois la valeur établie. Il ne s'agit pas d'être agressif ; il s'agit de créer une tension constructive qui les éloigne du statu quo."
+        },
+        "keyPhrases": {
+          "en": ["commercial insight", "teach–tailor–take control", "constructive tension", "challenge the status quo"],
+          "fr": ["insight commercial", "enseigner–adapter–prendre le contrôle", "tension constructive", "remettre en cause le statu quo"]
+        },
+        "watchOut": {
+          "en": "Challenger is misread as 'be pushy.' Make clear it's insight-led, not pressure-led.",
+          "fr": "Le Challenger est mal compris comme « être insistant ». Précisez qu'il est mené par l'insight, pas par la pression."
+        },
+        "delivery": {
+          "en": "Confident enough to introduce tension calmly — that calm is the credibility.",
+          "fr": "Assez assuré pour introduire la tension calmement — ce calme est la crédibilité."
+        }
+      }
+    },
+    {
+      "id": "sales-value-1",
+      "tags": ["topic:value-roi", "audience:cfo"],
+      "prompt": {
+        "en": "Out loud: \"How do you build and defend a business case with a CFO?\" Cover value engineering and the cost of inaction. Then deliver the 30-second CFO version.",
+        "fr": "À voix haute : « Comment construisez-vous et défendez-vous un business case avec un DAF ? » Couvrez l'ingénierie de la valeur et le coût de l'inaction. Puis livrez la version DAF de 30 secondes."
+      },
+      "reference": {
+        "framework": {
+          "en": "Value engineering: quantify the gain AND the cost of doing nothing; express it in the CFO's language (payback, risk-adjusted return), with the customer's own numbers.",
+          "fr": "Ingénierie de la valeur : chiffrer le gain ET le coût de ne rien faire ; l'exprimer dans le langage du DAF (retour, rendement ajusté du risque), avec les propres chiffres du client."
+        },
+        "pattern": {
+          "en": "Their numbers, not mine. Cost of inaction, not just ROI.",
+          "fr": "Leurs chiffres, pas les miens. Coût de l'inaction, pas seulement le ROI."
+        },
+        "model": {
+          "en": "I build the business case with the customer's numbers, not mine — a CFO discounts any ROI I bring; they trust one built from their own data. I quantify both sides: the value of acting and the cost of staying on the current path, because cost of inaction is often the stronger number. Then I express it the way a CFO defends it to their board — payback period, risk-adjusted return, and what it frees up. My job is to give them a number they'll personally stand behind, not a slide they'll politely ignore.",
+          "fr": "Je construis le business case avec les chiffres du client, pas les miens — un DAF déprécie tout ROI que j'apporte ; il fait confiance à celui bâti à partir de ses propres données. Je chiffre les deux côtés : la valeur d'agir et le coût de rester sur la trajectoire actuelle, car le coût de l'inaction est souvent le chiffre le plus fort. Puis je l'exprime comme un DAF le défend devant son conseil — délai de retour, rendement ajusté du risque, et ce que cela libère. Mon rôle est de leur donner un chiffre qu'ils défendront personnellement, pas une slide qu'ils ignoreront poliment."
+        },
+        "keyPhrases": {
+          "en": ["cost of inaction", "payback period", "risk-adjusted return", "their numbers"],
+          "fr": ["coût de l'inaction", "délai de retour", "rendement ajusté du risque", "leurs chiffres"]
+        },
+        "watchOut": {
+          "en": "Don't present a vendor ROI deck. The credible move is co-building the case from their data.",
+          "fr": "Ne présentez pas un ROI fournisseur. Le mouvement crédible est de co-construire le cas à partir de leurs données."
+        },
+        "delivery": {
+          "en": "Numbers stated plainly, no overselling. Let the figure carry the weight.",
+          "fr": "Des chiffres énoncés simplement, sans survente. Laissez le chiffre porter le poids."
+        }
+      }
+    },
+    {
+      "id": "sales-champion-1",
+      "tags": ["topic:champions", "method:meddpicc"],
+      "prompt": {
+        "en": "Out loud: \"How do you find and develop a real champion — and how is that different from a coach?\" Tie it to reaching the economic buyer. Repeat twice.",
+        "fr": "À voix haute : « Comment trouvez-vous et développez-vous un vrai champion — et en quoi diffère-t-il d'un coach ? » Reliez-le à l'accès à l'acheteur économique. Répétez deux fois."
+      },
+      "reference": {
+        "framework": {
+          "en": "Coach gives you information; champion has power and spends it for you internally. Test a champion by what they'll do when you're not in the room.",
+          "fr": "Le coach vous donne de l'information ; le champion a du pouvoir et le dépense pour vous en interne. On teste un champion par ce qu'il fait quand vous n'êtes pas dans la pièce."
+        },
+        "pattern": {
+          "en": "A champion you can't test isn't a champion yet.",
+          "fr": "Un champion que l'on ne peut pas tester n'est pas encore un champion."
+        },
+        "model": {
+          "en": "A coach gives me intel; a champion has influence and is willing to spend it for me when I'm not there. The way I test a real champion is simple — I ask them to do something that costs them a little: get me 20 minutes with the economic buyer, or sponsor a business case internally. If they do it, they're real. If they keep deflecting, I have a friendly contact, not a champion, and I have a gap to close. A deal without a tested champion connected to the economic buyer is a deal I don't fully trust.",
+          "fr": "Un coach me donne du renseignement ; un champion a de l'influence et accepte de la dépenser pour moi quand je ne suis pas là. Ma façon de tester un vrai champion est simple — je lui demande quelque chose qui lui coûte un peu : m'obtenir 20 minutes avec l'acheteur économique, ou parrainer un business case en interne. S'il le fait, il est réel. S'il esquive, j'ai un contact sympathique, pas un champion, et j'ai une lacune à combler. Une affaire sans champion testé et relié à l'acheteur économique est une affaire en laquelle je n'ai pas pleine confiance."
+        },
+        "keyPhrases": {
+          "en": ["coach vs champion", "test the champion", "economic buyer access", "internal selling"],
+          "fr": ["coach vs champion", "tester le champion", "accès à l'acheteur économique", "vente interne"]
+        },
+        "watchOut": {
+          "en": "Don't confuse a friendly contact with a champion — naming that distinction is itself a senior signal.",
+          "fr": "Ne confondez pas un contact sympathique avec un champion — nommer cette distinction est en soi un signal de séniorité."
+        },
+        "delivery": {
+          "en": "Matter-of-fact. You're describing a discipline, not a hope.",
+          "fr": "Factuel. Vous décrivez une discipline, pas un espoir."
+        }
+      }
+    },
+    {
+      "id": "sales-negotiation-1",
+      "tags": ["topic:negotiation"],
+      "prompt": {
+        "en": "Out loud: \"How do you protect value in a negotiation under procurement pressure?\" Cover trading vs conceding and avoiding early discounts. Then a sharp 20-second version.",
+        "fr": "À voix haute : « Comment protégez-vous la valeur dans une négociation sous pression des achats ? » Couvrez échanger vs concéder et éviter les remises précoces. Puis une version incisive de 20 secondes."
+      },
+      "reference": {
+        "framework": {
+          "en": "Never concede, always trade. Re-anchor on value before price. Keep concessions small, conditional, and reciprocal.",
+          "fr": "Ne jamais concéder, toujours échanger. Réancrer sur la valeur avant le prix. Garder des concessions petites, conditionnelles et réciproques."
+        },
+        "pattern": {
+          "en": "If I give something, I get something. Discount is the last lever, not the first.",
+          "fr": "Si je donne quelque chose, j'obtiens quelque chose. La remise est le dernier levier, pas le premier."
+        },
+        "model": {
+          "en": "Procurement's job is to commoditise me, so the first thing I do is re-establish value before we ever touch price — ideally with an executive who owns the outcome, not just the budget line. Then I trade, I don't concede: every concession is conditional and reciprocal — a longer term, a bigger commitment, a reference. I protect price by holding it and moving on terms instead. And I never discount early to create momentum; an early discount just resets their expectation lower and teaches them to push harder.",
+          "fr": "Le rôle des achats est de me banaliser, donc la première chose que je fais est de rétablir la valeur avant même de parler prix — idéalement avec un dirigeant qui possède le résultat, pas seulement la ligne budgétaire. Ensuite j'échange, je ne concède pas : chaque concession est conditionnelle et réciproque — une durée plus longue, un engagement plus large, une référence. Je protège le prix en le tenant et en bougeant sur les termes. Et je ne fais jamais de remise tôt pour créer de l'élan ; une remise précoce ne fait que rabaisser leur attente et leur apprend à pousser davantage."
+        },
+        "keyPhrases": {
+          "en": ["trade don't concede", "re-anchor on value", "conditional / reciprocal", "protect price, move on terms"],
+          "fr": ["échanger pas concéder", "réancrer sur la valeur", "conditionnel / réciproque", "protéger le prix, bouger sur les termes"]
+        },
+        "watchOut": {
+          "en": "Don't sound like you 'win' negotiations by being tough. You protect value by being structured.",
+          "fr": "Ne donnez pas l'impression de « gagner » les négociations par la fermeté. Vous protégez la valeur par la structure."
+        },
+        "delivery": {
+          "en": "Calm and unbothered by pressure — composure is leverage at the table.",
+          "fr": "Calme et imperturbable face à la pression — le sang-froid est un levier à la table."
+        }
+      }
+    },
+    {
+      "id": "sales-close-1",
+      "tags": ["topic:close-planning"],
+      "prompt": {
+        "en": "Out loud: \"How do you use a mutual close plan to de-risk and accelerate a complex deal?\" Then explain how it surfaces hidden blockers. Repeat, tightening.",
+        "fr": "À voix haute : « Comment utilisez-vous un plan de closing commun pour dérisquer et accélérer une affaire complexe ? » Puis expliquez comment il révèle les bloqueurs cachés. Répétez en resserrant."
+      },
+      "reference": {
+        "framework": {
+          "en": "A mutual action plan: every step from now to signature and go-live, with owners and dates, agreed WITH the customer.",
+          "fr": "Un plan d'action commun : chaque étape d'ici la signature et la mise en service, avec responsables et dates, validé AVEC le client."
+        },
+        "pattern": {
+          "en": "Building it together is itself a qualification test.",
+          "fr": "Le construire ensemble est en soi un test de qualification."
+        },
+        "model": {
+          "en": "A mutual close plan is the single best de-risking tool I have. I build it with the champion — every step from where we are to signature and first value, with owners and dates on both sides. The act of building it tells me everything: if they won't co-own a plan to buy, they're not really buying. It also surfaces the hidden steps that kill deals late — legal, security review, procurement — so I plan around them instead of being surprised. And it shifts the close from me chasing them to us executing a shared plan.",
+          "fr": "Un plan de closing commun est le meilleur outil de dérisquage que j'aie. Je le construis avec le champion — chaque étape d'où nous sommes jusqu'à la signature et la première valeur, avec responsables et dates des deux côtés. L'acte de le construire me dit tout : s'ils ne veulent pas co-porter un plan pour acheter, c'est qu'ils n'achètent pas vraiment. Il révèle aussi les étapes cachées qui tuent les affaires tard — juridique, revue sécurité, achats — pour que je les anticipe au lieu d'être surpris. Et il fait passer le closing de « je les poursuis » à « nous exécutons un plan partagé »."
+        },
+        "keyPhrases": {
+          "en": ["mutual action plan", "owners and dates", "paper process", "co-ownership as a qualifier"],
+          "fr": ["plan d'action commun", "responsables et dates", "processus contractuel", "co-propriété comme qualifiant"]
+        },
+        "watchOut": {
+          "en": "Don't describe it as a project tracker. Describe it as a qualification and acceleration tool.",
+          "fr": "Ne le décrivez pas comme un suivi de projet. Décrivez-le comme un outil de qualification et d'accélération."
+        },
+        "delivery": {
+          "en": "Confident and collaborative — 'us executing a plan', not 'me closing them'.",
+          "fr": "Assuré et collaboratif — « nous exécutons un plan », pas « je les ferme »."
+        }
+      }
+    },
+    {
+      "id": "sales-compete-1",
+      "tags": ["topic:competitive"],
+      "prompt": {
+        "en": "Out loud: \"How do you position against a market leader — and how do you respond when a buyer says your competitor is 30% cheaper?\" Repeat without ever disparaging the competitor.",
+        "fr": "À voix haute : « Comment vous positionnez-vous face à un leader du marché — et que répondez-vous quand un acheteur dit que votre concurrent est 30 % moins cher ? » Répétez sans jamais dénigrer le concurrent."
+      },
+      "reference": {
+        "framework": {
+          "en": "Compete on the decision criteria you can win on — reframe the criteria, don't attack the rival. On price: re-anchor on total value and cost of getting it wrong.",
+          "fr": "Concourir sur les critères où l'on peut gagner — recadrer les critères, ne pas attaquer le rival. Sur le prix : réancrer sur la valeur totale et le coût d'une erreur."
+        },
+        "pattern": {
+          "en": "Shape the criteria early; never trash the competitor.",
+          "fr": "Façonner les critères tôt ; ne jamais dénigrer le concurrent."
+        },
+        "model": {
+          "en": "Against a market leader I don't attack them — buyers distrust that. I compete by shaping the decision criteria toward where I'm genuinely stronger, ideally before the criteria are set. On 'they're 30% cheaper', I never defend price directly; I re-anchor on total cost and risk: what does it cost you if this doesn't deliver, what's the cost of a failed rollout, what's not in their number. If price is truly the only criterion, I've usually lost the value conversation earlier — so I work to never let it become a price-only decision.",
+          "fr": "Face à un leader, je ne l'attaque pas — les acheteurs s'en méfient. Je concours en façonnant les critères de décision vers mes vraies forces, idéalement avant qu'ils ne soient fixés. Sur « ils sont 30 % moins chers », je ne défends jamais le prix directement ; je réancre sur le coût total et le risque : combien cela vous coûte si ça ne livre pas, quel est le coût d'un déploiement raté, qu'est-ce qui n'est pas dans leur chiffre. Si le prix est vraiment le seul critère, c'est que j'ai perdu la conversation de valeur plus tôt — donc je travaille à ne jamais laisser la décision devenir une affaire de prix seul."
+        },
+        "keyPhrases": {
+          "en": ["shape decision criteria", "total cost of ownership", "cost of getting it wrong", "never disparage"],
+          "fr": ["façonner les critères de décision", "coût total de possession", "coût d'une erreur", "jamais dénigrer"]
+        },
+        "watchOut": {
+          "en": "Disparaging a competitor lowers your own status. Confident sellers reframe; they don't attack.",
+          "fr": "Dénigrer un concurrent abaisse votre propre statut. Les vendeurs assurés recadrent ; ils n'attaquent pas."
+        },
+        "delivery": {
+          "en": "Gracious about the competitor, firm on your value. That contrast reads as confidence.",
+          "fr": "Élégant envers le concurrent, ferme sur votre valeur. Ce contraste se lit comme de la confiance."
+        }
+      }
+    },
+    {
+      "id": "sales-adoption-1",
+      "tags": ["topic:adoption", "topic:change-management"],
+      "prompt": {
+        "en": "Out loud: \"After the sale, how do you drive customer adoption — and why does it matter to you as the seller?\" Connect it to renewals and expansion. Repeat, tightening.",
+        "fr": "À voix haute : « Après la vente, comment pilotez-vous l'adoption client — et pourquoi est-ce important pour vous en tant que vendeur ? » Reliez-le aux renouvellements et à l'expansion. Répétez en resserrant."
+      },
+      "reference": {
+        "framework": {
+          "en": "Sell to time-to-value, not signature. Adoption drives renewal and expansion — the real revenue in enterprise.",
+          "fr": "Vendre jusqu'à la valeur réalisée, pas jusqu'à la signature. L'adoption pilote le renouvellement et l'expansion — le vrai revenu en entreprise."
+        },
+        "pattern": {
+          "en": "The deal isn't won at signature; it's won at value realised.",
+          "fr": "L'affaire ne se gagne pas à la signature ; elle se gagne à la valeur réalisée."
+        },
+        "model": {
+          "en": "I think of the deal as won when the customer realises value, not when they sign — because in enterprise the real money is in renewal and expansion, and both depend on adoption. So I plan for time-to-value from the start: clear success metrics, an executive sponsor who'll be measured on outcomes, and 30/60/90-day value milestones with the customer's team. Change management is part of my sale, not someone else's problem — a customer who doesn't adopt doesn't renew, and a churned account is the most expensive deal I'll ever close.",
+          "fr": "Je considère l'affaire gagnée quand le client réalise la valeur, pas quand il signe — car en entreprise, le vrai revenu est dans le renouvellement et l'expansion, et les deux dépendent de l'adoption. Donc je planifie la valeur réalisée dès le départ : des métriques de succès claires, un sponsor exécutif mesuré sur les résultats, et des jalons de valeur à 30/60/90 jours avec l'équipe du client. La conduite du changement fait partie de ma vente, pas du problème d'un autre — un client qui n'adopte pas ne renouvelle pas, et un compte perdu est l'affaire la plus coûteuse que je signerai jamais."
+        },
+        "keyPhrases": {
+          "en": ["time-to-value", "adoption drives renewal", "value milestones", "executive sponsor for outcomes"],
+          "fr": ["valeur réalisée (time-to-value)", "l'adoption pilote le renouvellement", "jalons de valeur", "sponsor exécutif sur les résultats"]
+        },
+        "watchOut": {
+          "en": "Don't treat post-sale as Customer Success's job. Owning adoption is what separates AEs who grow accounts.",
+          "fr": "Ne traitez pas l'après-vente comme le travail du Customer Success. S'approprier l'adoption distingue les commerciaux qui font croître les comptes."
+        },
+        "delivery": {
+          "en": "Speak like an owner of the relationship, not a closer of transactions.",
+          "fr": "Parlez en propriétaire de la relation, pas en closeur de transactions."
+        }
+      }
+    },
+    {
+      "id": "sales-buying-1",
+      "tags": ["topic:buying-behavior"],
+      "prompt": {
+        "en": "Out loud: \"How has B2B buying changed, and how have you adapted?\" Cover larger buying committees, consensus, and digital-first buyers. Then a 20-second version for an interview.",
+        "fr": "À voix haute : « Comment l'achat B2B a-t-il changé, et comment vous êtes-vous adapté ? » Couvrez l'élargissement des comités d'achat, le consensus et les acheteurs digital-first. Puis une version de 20 secondes pour un entretien."
+      },
+      "reference": {
+        "framework": {
+          "en": "Buying is now committee-driven (often 6–10 stakeholders), consensus-bound, and largely self-directed before they ever talk to sales.",
+          "fr": "L'achat est désormais piloté par comité (souvent 6 à 10 parties prenantes), soumis au consensus, et largement autonome avant tout contact commercial."
+        },
+        "pattern": {
+          "en": "Sell to consensus, and arm your champion to sell internally.",
+          "fr": "Vendre au consensus, et armer son champion pour vendre en interne."
+        },
+        "model": {
+          "en": "Two things have changed most. First, decisions are made by committee — often six to ten people — and the deal dies not from a 'no' but from a lack of consensus, so my job is increasingly to help my champion build agreement internally, not just to persuade one person. Second, buyers do most of their research before they ever talk to me, so by the time I'm in the room they don't need a brochure — they need insight and a point of view they can't get from a website. I've adapted by selling to the whole committee and by leading with a perspective, not a pitch.",
+          "fr": "Deux choses ont le plus changé. D'abord, les décisions se prennent en comité — souvent six à dix personnes — et l'affaire meurt non d'un « non » mais d'un manque de consensus ; mon rôle est donc de plus en plus d'aider mon champion à construire l'accord en interne, pas seulement de convaincre une personne. Ensuite, les acheteurs font l'essentiel de leurs recherches avant même de me parler ; quand je suis dans la pièce, ils n'ont pas besoin d'une brochure — ils ont besoin d'un insight et d'un point de vue introuvables sur un site web. Je me suis adapté en vendant au comité entier et en menant par une perspective, pas par un argumentaire."
+        },
+        "keyPhrases": {
+          "en": ["buying committee", "consensus / lack of consensus", "self-directed buyer", "enable the champion"],
+          "fr": ["comité d'achat", "consensus / absence de consensus", "acheteur autonome", "armer le champion"]
+        },
+        "watchOut": {
+          "en": "Don't just describe the change — show the behaviour change it forced in how you sell.",
+          "fr": "Ne décrivez pas seulement le changement — montrez le changement de comportement qu'il a imposé dans votre façon de vendre."
+        },
+        "delivery": {
+          "en": "Sound current and observant — this question tests whether you've kept up.",
+          "fr": "Paraissez à jour et observateur — cette question teste si vous avez suivi l'évolution."
+        }
+      }
+    },
+    {
+      "id": "sales-aiinsales-1",
+      "tags": ["topic:ai-in-sales", "positioning:agentic-ai"],
+      "prompt": {
+        "en": "Out loud: \"How are you using AI in your sales motion — and how do you talk about it credibly?\" Keep it concrete, not buzzwords. This one also feeds your Agentic-AI positioning, so make it sharp.",
+        "fr": "À voix haute : « Comment utilisez-vous l'IA dans votre démarche commerciale — et comment en parlez-vous avec crédibilité ? » Restez concret, pas de buzzwords. Celle-ci nourrit aussi votre positionnement Agentic AI, donc soyez incisif."
+      },
+      "reference": {
+        "framework": {
+          "en": "Concrete use, not hype: AI for research and account intelligence, for prioritisation (signals), and for preparation — freeing time for the human, high-judgment work.",
+          "fr": "Un usage concret, pas du battage : l'IA pour la recherche et l'intelligence de compte, pour la priorisation (signaux), et pour la préparation — libérant du temps pour le travail humain à fort jugement."
+        },
+        "pattern": {
+          "en": "AI does the prep; the human does the judgment and the relationship.",
+          "fr": "L'IA fait la préparation ; l'humain fait le jugement et la relation."
+        },
+        "model": {
+          "en": "I use AI where it removes low-judgment work so I can spend more time on the high-judgment work that actually wins enterprise deals. Concretely: account research and executive briefings in minutes instead of hours, buying-signal prioritisation across my pipeline, and meeting preparation — drafting discovery questions, anticipating objections. What I don't do is outsource judgment or relationships to it. The way I talk about it with customers is the same way I'd advise their CRO: AI is leverage on the human, not a replacement for it — and the teams that win treat it as a capability shift, not a feature.",
+          "fr": "J'utilise l'IA là où elle supprime le travail à faible jugement, pour passer plus de temps sur le travail à fort jugement qui gagne réellement les grandes affaires. Concrètement : recherche de compte et briefings exécutifs en minutes plutôt qu'en heures, priorisation des signaux d'achat sur mon pipeline, et préparation des réunions — rédaction des questions de découverte, anticipation des objections. Ce que je ne fais pas, c'est lui déléguer le jugement ou les relations. La façon dont j'en parle aux clients est celle dont je conseillerais leur CRO : l'IA est un levier sur l'humain, pas un remplacement — et les équipes qui gagnent la traitent comme un changement de capacité, pas comme une fonctionnalité."
+        },
+        "keyPhrases": {
+          "en": ["account intelligence", "signal-based prioritisation", "leverage on the human", "capability shift not a feature"],
+          "fr": ["intelligence de compte", "priorisation par signaux", "levier sur l'humain", "changement de capacité, pas une fonctionnalité"]
+        },
+        "watchOut": {
+          "en": "Avoid buzzwords and vague 'AI helps me be more productive.' Be specific about what it does and what stays human.",
+          "fr": "Évitez les buzzwords et le vague « l'IA me rend plus productif ». Soyez précis sur ce qu'elle fait et ce qui reste humain."
+        },
+        "delivery": {
+          "en": "Speak as an advisor, not a fan. This is the voice of your VP-of-AI positioning.",
+          "fr": "Parlez en conseiller, pas en passionné. C'est la voix de votre positionnement VP of AI."
+        }
+      }
+    },
+    {
+      "id": "sales-gtm-1",
+      "tags": ["topic:gtm-leadership", "positioning:sales-leadership"],
+      "prompt": {
+        "en": "Out loud, for your VP/Manager interviews: \"How do you align marketing, SDRs, and customer success on a strategic account — and how would you lead a revenue team to do it at scale?\"",
+        "fr": "À voix haute, pour vos entretiens VP/Manager : « Comment alignez-vous marketing, SDR et customer success sur un compte stratégique — et comment dirigeriez-vous une équipe revenue pour le faire à l'échelle ? »"
+      },
+      "reference": {
+        "framework": {
+          "en": "One account, one plan, one number. Align functions around the customer's outcome and a shared definition of success; lead through clarity and cadence, not control.",
+          "fr": "Un compte, un plan, un chiffre. Aligner les fonctions autour du résultat client et d'une définition partagée du succès ; diriger par la clarté et la cadence, pas le contrôle."
+        },
+        "pattern": {
+          "en": "Influence without authority on the deal; clarity and cadence as a leader.",
+          "fr": "Influence sans autorité sur l'affaire ; clarté et cadence en tant que leader."
+        },
+        "model": {
+          "en": "On a strategic account I align everyone around one thing: the customer's outcome and a shared definition of what winning looks like. Marketing, SDRs and CS each see how their piece moves that number, and we run a simple cadence so nobody's working in isolation. As a leader scaling that, I'd lead through clarity and cadence rather than control — make the priorities and the number unambiguous, give people room to own their part, and inspect the leading indicators, not just the lagging ones. The job isn't to do the selling; it's to remove ambiguity and friction so a team of strong people can.",
+          "fr": "Sur un compte stratégique, j'aligne tout le monde sur une chose : le résultat du client et une définition partagée de ce qu'est gagner. Marketing, SDR et CS voient chacun comment leur part fait bouger ce chiffre, et nous tenons une cadence simple pour que personne ne travaille en silo. Pour diriger cela à l'échelle, je dirigerais par la clarté et la cadence plutôt que le contrôle — rendre les priorités et le chiffre sans ambiguïté, laisser à chacun la propriété de sa part, et inspecter les indicateurs avancés, pas seulement les retardés. Le travail n'est pas de vendre ; c'est de retirer l'ambiguïté et la friction pour qu'une équipe de gens forts le fasse."
+        },
+        "keyPhrases": {
+          "en": ["one account one plan one number", "influence without authority", "clarity and cadence", "leading vs lagging indicators"],
+          "fr": ["un compte un plan un chiffre", "influence sans autorité", "clarté et cadence", "indicateurs avancés vs retardés"]
+        },
+        "watchOut": {
+          "en": "For a leadership role, show you scale through people and systems — not personal heroics.",
+          "fr": "Pour un poste de direction, montrez que vous passez à l'échelle par les personnes et les systèmes — pas par l'héroïsme personnel."
+        },
+        "delivery": {
+          "en": "Speak from altitude — this is your VP voice, calm and systems-minded.",
+          "fr": "Parlez avec altitude — c'est votre voix de VP, calme et orientée systèmes."
+        }
+      }
+    }
+  ]
+}
