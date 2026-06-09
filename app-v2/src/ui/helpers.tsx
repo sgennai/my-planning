@@ -59,3 +59,7 @@ export function ViewSwitcher({ view, onSwitchView }: { view: string, onSwitchVie
     </div>
   );
 }
+
+export function generateId(): string {
+  return typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : "id-" + Math.random().toString(36).substring(2, 15);
+}

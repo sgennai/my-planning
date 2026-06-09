@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { generateId } from '../ui/helpers';
 import type { AppDataV26, ContentIdea, LinkedInPost, TimeBlock } from '../storage/types';
 
 interface CreateScreenProps {
@@ -24,7 +25,7 @@ export function CreateScreen({ data, onPersist }: CreateScreenProps) {
 
   const handleAddIdea = () => {
     const newIdea: ContentIdea = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       hook: 'New Hook',
@@ -43,7 +44,7 @@ export function CreateScreen({ data, onPersist }: CreateScreenProps) {
       alert("Prompt copied! Paste it into Claude.");
       // Convert to a drafting post
       const newPost: LinkedInPost = {
-        id: crypto.randomUUID(),
+        id: generateId(),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         title: idea.hook,
@@ -58,7 +59,7 @@ export function CreateScreen({ data, onPersist }: CreateScreenProps) {
   const schedulePublish = (post: LinkedInPost) => {
     // Emits a TimeBlock reminder
     const tb: TimeBlock = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       title: `Publish Post: ${post.title}`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -85,12 +86,12 @@ export function CreateScreen({ data, onPersist }: CreateScreenProps) {
       {activeTab === 'pipeline' && (
         <div className="ip-pipeline-board" style={{ display: 'flex', gap: '1rem', padding: '1rem' }}>
           {/* IDEAS COLUMN */}
-          <div className="ip-kanban-col" style={{ flex: 1, background: '#f5f5f5', padding: '1rem', borderRadius: '4px' }}>
+          <div className="ip-kanban-col" style={{ flex: 1, background: 'var(--bg-card)', padding: '1.2rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid var(--border)' }}>
             <h3>Ideas <button onClick={handleAddIdea}>+</button></h3>
             {ideas.map(idea => (
-              <div key={idea.id} style={{ background: '#fff', padding: '0.5rem', marginBottom: '0.5rem', borderLeft: '4px solid #f2c94c' }}>
-                <input value={idea.hook} onChange={e => handleUpdateIdea(idea.id, { hook: e.target.value })} style={{ width: '100%', border: 'none', fontWeight: 'bold' }} />
-                <input value={idea.angle} onChange={e => handleUpdateIdea(idea.id, { angle: e.target.value })} style={{ width: '100%', border: 'none', fontSize: '0.9em', color: '#666' }} />
+              <div key={idea.id} className="kanban-card" style={{ background: 'var(--bg)', padding: '1rem', marginBottom: '0.8rem', borderLeft: '4px solid #f2c94c', borderRadius: '6px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                <input value={idea.hook} onChange={e => handleUpdateIdea(idea.id, { hook: e.target.value })} style={{ width: '100%', border: 'none', fontWeight: '600', fontSize: '1rem', background: 'transparent', outline: 'none' }} />
+                <input value={idea.angle} onChange={e => handleUpdateIdea(idea.id, { angle: e.target.value })} style={{ width: '100%', border: 'none', fontSize: '0.9rem', color: 'var(--muted-3)', background: 'transparent', outline: 'none', marginTop: '4px' }} />
                 <div style={{ marginTop: '0.5rem' }}>
                   <button onClick={() => handleDraftWithClaude(idea)} style={{ fontSize: '0.8em', padding: '2px 5px' }}>Draft with Claude (Copy)</button>
                 </div>
@@ -99,12 +100,12 @@ export function CreateScreen({ data, onPersist }: CreateScreenProps) {
           </div>
 
           {/* DRAFTING COLUMN */}
-          <div className="ip-kanban-col" style={{ flex: 1, background: '#f5f5f5', padding: '1rem', borderRadius: '4px' }}>
+          <div className="ip-kanban-col" style={{ flex: 1, background: 'var(--bg-card)', padding: '1.2rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid var(--border)' }}>
             <h3>Drafting</h3>
             {posts.filter(p => p.status === 'drafting').map(post => (
-              <div key={post.id} style={{ background: '#fff', padding: '0.5rem', marginBottom: '0.5rem', borderLeft: '4px solid #56ccf2' }}>
-                <input value={post.title} onChange={e => handleUpdatePost(post.id, { title: e.target.value })} style={{ width: '100%', border: 'none', fontWeight: 'bold' }} />
-                <textarea value={post.body} onChange={e => handleUpdatePost(post.id, { body: e.target.value })} placeholder="Paste draft here..." style={{ width: '100%', border: 'none', fontSize: '0.9em', minHeight: '60px' }} />
+              <div key={post.id} className="kanban-card" style={{ background: 'var(--bg)', padding: '1rem', marginBottom: '0.8rem', borderLeft: '4px solid #56ccf2', borderRadius: '6px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                <input value={post.title} onChange={e => handleUpdatePost(post.id, { title: e.target.value })} style={{ width: '100%', border: 'none', fontWeight: '600', fontSize: '1rem', background: 'transparent', outline: 'none' }} />
+                <textarea value={post.body} onChange={e => handleUpdatePost(post.id, { body: e.target.value })} placeholder="Paste draft here..." style={{ width: '100%', border: 'none', fontSize: '0.9rem', color: 'var(--text)', background: 'transparent', outline: 'none', minHeight: '60px', marginTop: '4px', resize: 'vertical' }} />
                 <div style={{ marginTop: '0.5rem' }}>
                   <button onClick={() => schedulePublish(post)} style={{ fontSize: '0.8em', padding: '2px 5px' }}>Schedule Publish</button>
                 </div>
@@ -113,10 +114,10 @@ export function CreateScreen({ data, onPersist }: CreateScreenProps) {
           </div>
 
           {/* SCHEDULED COLUMN */}
-          <div className="ip-kanban-col" style={{ flex: 1, background: '#f5f5f5', padding: '1rem', borderRadius: '4px' }}>
+          <div className="ip-kanban-col" style={{ flex: 1, background: 'var(--bg-card)', padding: '1.2rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid var(--border)' }}>
             <h3>Scheduled</h3>
             {posts.filter(p => p.status === 'scheduled').map(post => (
-              <div key={post.id} style={{ background: '#fff', padding: '0.5rem', marginBottom: '0.5rem', borderLeft: '4px solid #bb6bd9' }}>
+              <div key={post.id} className="kanban-card" style={{ background: 'var(--bg)', padding: '1rem', marginBottom: '0.8rem', borderLeft: '4px solid #bb6bd9', borderRadius: '6px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
                 <div style={{ fontWeight: 'bold' }}>{post.title}</div>
                 <button onClick={() => handleUpdatePost(post.id, { status: 'published' })} style={{ fontSize: '0.8em', padding: '2px 5px', marginTop: '5px' }}>Mark Published</button>
               </div>
@@ -124,10 +125,10 @@ export function CreateScreen({ data, onPersist }: CreateScreenProps) {
           </div>
 
           {/* PUBLISHED COLUMN */}
-          <div className="ip-kanban-col" style={{ flex: 1, background: '#f5f5f5', padding: '1rem', borderRadius: '4px' }}>
+          <div className="ip-kanban-col" style={{ flex: 1, background: 'var(--bg-card)', padding: '1.2rem', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid var(--border)' }}>
             <h3>Published</h3>
             {posts.filter(p => p.status === 'published').map(post => (
-              <div key={post.id} style={{ background: '#fff', padding: '0.5rem', marginBottom: '0.5rem', borderLeft: '4px solid #27ae60' }}>
+              <div key={post.id} className="kanban-card" style={{ background: 'var(--bg)', padding: '1rem', marginBottom: '0.8rem', borderLeft: '4px solid #27ae60', borderRadius: '6px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
                 <div style={{ fontWeight: 'bold' }}>{post.title}</div>
                 <div style={{ fontSize: '0.8em', color: '#666' }}>Done</div>
               </div>
