@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<opml version="1.0">
+	<head>
+		<title>Pocket Casts Feeds</title>
+	</head>
+	<body>
+		<outline text="feeds">
+			<outline text="The Sales Evangelist" xmlUrl="https://feeds.captivate.fm/the-sales-evangelist/" type="rss" />
+			<outline xmlUrl="https://rss.libsyn.com/shows/49241/destinations/170241.xml" type="rss" text="This Old Marketing - News Podcast Weekly with Joe Pulizzi and Robert Rose" />
+			<outline text="The Intuitive Customer - Helping You Improve Your Customer Experience To Gain Growth" xmlUrl="https://rss.libsyn.com/shows/108490/destinations/590136.xml" type="rss" />
+			<outline type="rss" text="The Digital Marketing Podcast" xmlUrl="https://targetinternet.libsyn.com/rss" />
+			<outline type="rss" text="Unprompted: AI, Marketing and You" xmlUrl="https://anchor.fm/s/10f0a552c/podcast/rss" />
+			<outline xmlUrl="https://rss.libsyn.com/shows/37432/destinations/100507.xml" type="rss" text="Entrepreneurs on Fire" />
+			<outline xmlUrl="https://feeds.transistor.fm/ai-powered-marketing-conversations-about-ai-and-digital-marketing" text="AI-Powered Marketing: Conversations for Beginner Digital Marketers and Small Business Owners to Confidently Leverage AI, Automation, and Proven Strategies to Build, Grow and Scale Your Online Business" type="rss" />
+			<outline type="rss" text="Comptoir IA 🎙️🧠🤖" xmlUrl="https://feeds.acast.com/public/shows/64d7fb0db4d0da0010a2f09d" />
+			<outline text="The Art of Charm" xmlUrl="https://feeds.megaphone.fm/TAOC1506947885" type="rss" />
+			<outline text="The AI Breakdown" type="rss" xmlUrl="https://feed.podbean.com/theaibreakdown/feed.xml" />
+			<outline text="The Salesman.com Podcast" type="rss" xmlUrl="https://www.salesman.com/feed/podcast/" />
+			<outline text="At the Edge" xmlUrl="https://www.omnycontent.com/d/playlist/708664bd-6843-4623-8066-aede00ce0c8a/3843dfc2-cbd6-4308-a906-af040139481b/b8993a3b-08fe-47c3-8d35-af0401394825/podcast.rss" type="rss" />
+			<outline type="rss" text="The CX Cast" xmlUrl="https://www.forrester.com/feed/cx-cast/" />
+			<outline type="rss" text="Artificially Intelligent Marketing" xmlUrl="https://media.rss.com/artificiallyintelligentmarketing/feed.xml" />
+			<outline text="Authority Hacker Podcast – AI &amp; Automation for Small biz &amp; Marketers" type="rss" xmlUrl="https://rss.buzzsprout.com/1885879.rss" />
+			<outline xmlUrl="https://feeds.libsyn.com/478476/rss" text="The Brutal Truth about Sales and Selling - We interview the world&apos;s best B2B Enterprise salespeople." type="rss" />
+			<outline xmlUrl="https://feeds.transistor.fm/practical-ai-machine-learning-data-science-llm" type="rss" text="Practical AI" />
+			<outline text="Ai Experience [in english]" type="rss" xmlUrl="https://feed.ausha.co/llmekSEXaZRp" />
+			<outline type="rss" text="Content Inc. - The Podcast" xmlUrl="https://rss.libsyn.com/shows/60857/destinations/235523.xml" />
+			<outline type="rss" text="Finding Peak w/ Ryan Hanley" xmlUrl="https://feeds.simplecast.com/FRhlISgU" />
+			<outline type="rss" xmlUrl="https://feeds.transistor.fm/agentic-ai-podcast" text="Agentic AI Podcast" />
+			<outline text="The Agents of Change Digital Marketing Podcast" xmlUrl="https://rss.libsyn.com/shows/44959/destinations/145771.xml" type="rss" />
+			<outline xmlUrl="https://rss.buzzsprout.com/520474.rss" type="rss" text="AI and the Future of Work: Artificial Intelligence in the Workplace, Business, Ethics, HR, and IT for AI Enthusiasts, Leaders and Academics" />
+			<outline type="rss" text="What It Means: A Forrester Podcast" xmlUrl="https://go.forrester.com/feed/podcast/" />
+			<outline type="rss" text="Marketing Over Coffee Marketing Podcast" xmlUrl="http://www.marketingovercoffee.com/feed/" />
+			<outline type="rss" text="The AI in Business Podcast" xmlUrl="https://rss.libsyn.com/shows/45920/destinations/151434.xml" />
+			<outline type="rss" text="The Artificial Intelligence Show" xmlUrl="https://feeds.megaphone.fm/marketingai" />
+			<outline xmlUrl="https://feed.ausha.co/b59E1Ual12P1" type="rss" text="Le Podcast du Marketing - stratégie digitale, marketing digital, CMO, persona, emailing, inbound marketing, webinaire, lead magnet, branding" />
+			<outline type="rss" xmlUrl="https://feeds.megaphone.fm/ESHO5419936864" text="Marketing School - Digital Marketing and Online Marketing Tips" />
+			<outline text="The Analytics Power Hour" xmlUrl="https://rss.libsyn.com/shows/61532/destinations/239292.xml" type="rss" />
+			<outline xmlUrl="https://feeds.megaphone.fm/AHARO1075645324" type="rss" text="The SaaS Podcast - AI, Growth &amp; Product-Market Fit for SaaS Founders" />
+			<outline xmlUrl="https://anchor.fm/s/fe2628e4/podcast/rss" type="rss" text="AI Agents Podcast" />
+			<outline type="rss" xmlUrl="https://rss.libsyn.com/shows/469701/destinations/3976203.xml" text="AI For Humans: Weekly AI News, Tools &amp; Trends" />
+			<outline text="Making Data Simple" xmlUrl="https://feeds.feedburner.com/IBM-big-data-hub-podcasts" type="rss" />
+			<outline text="Thinking With Mitch Joel" xmlUrl="https://rss.libsyn.com/shows/127333/destinations/763836.xml" type="rss" />
+			<outline xmlUrl="https://rss.buzzsprout.com/2517440.rss" type="rss" text="The Advanced Selling Podcast" />
+			<outline xmlUrl="https://anchor.fm/s/1035b1568/podcast/rss" type="rss" text="How I AI" />
+			<outline text="The Amy Porterfield Show" xmlUrl="https://feeds.megaphone.fm/YAP3268529120" type="rss" />
+			<outline type="rss" text="Agents of Scale" xmlUrl="https://feeds.transistor.fm/agents-of-scale" />
+			<outline type="rss" xmlUrl="https://closingbigger.net/feed/" text="Shane Gibson&apos;s Podcast – Social Selling – B2B Sales and Influence" />
+			<outline xmlUrl="https://feeds.simplecast.com/seoy7s6d" type="rss" text="The AI for Sales Podcast" />
+			<outline text="AI-Driven Marketer: Master Practical AI Marketing Skills" xmlUrl="https://api.riverside.com/hosting/fifCvJr5.rss" type="rss" />
+		</outline>
+	</body>
+</opml>

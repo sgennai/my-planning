@@ -5,6 +5,7 @@ import { migrate } from './storage/migrations';
 import { PracticeScreen } from './practice/PracticeScreen';
 import { CalendarScreen } from './calendar/CalendarScreen';
 import { ModuleDashboard } from './modules/ModuleDashboard';
+import { IntakeScreen } from './intake/IntakeScreen';
 import { loadData, saveData, syncData } from './storage/db';
 import { DEFAULT_MODULES } from './modules/seed-modules';
 
@@ -152,9 +153,11 @@ export function App() {
       
       const freshData = await loadData() || data;
       const { mergePracticeContent } = await import('./practice/content-loader');
+      const { mergeIntakeContent } = await import('./intake/intake-loader');
       let didContentChange = false;
       if (freshData) {
-        didContentChange = mergePracticeContent(freshData);
+        if (mergePracticeContent(freshData)) didContentChange = true;
+        if (mergeIntakeContent(freshData)) didContentChange = true;
       }
       
       if (changedEntities.length > 0 || didContentChange) {
@@ -269,6 +272,22 @@ export function App() {
     );
   }
 
+  if (appPage === 'intake') {
+    return (
+      <div className="app-layout">
+        <IntakeScreen
+          data={data}
+          onPersist={persist}
+          onClose={() => setAppPage('calendar')}
+          onScheduleBlock={(block) => {
+            setPendingCalAction({ type: 'create_block', payload: block });
+            setAppPage('calendar');
+          }}
+        />
+      </div>
+    );
+  }
+
   if (appPage === 'practice') {
     return (
         <PracticeScreen
@@ -291,6 +310,7 @@ export function App() {
         onPersist={persist}
         onOpenPractice={() => setAppPage('practice')}
         onOpenModules={() => setAppPage('modules')}
+        onOpenIntake={() => setAppPage('intake')}
         pendingCalAction={pendingCalAction}
         onClearPendingAction={() => setPendingCalAction(null)}
       />
