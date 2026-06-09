@@ -1,0 +1,347 @@
+{
+  "track": "bfsi",
+  "trackLabel": "Banking & Insurance Fluency",
+  "_note": "Bilingual (EN/FR) fluency drills for the Banking & Insurance verticals per MASTER.md: regulatory environment, exec KPIs, transformation priorities, AI adoption, competitive dynamics, and C-level conversation hooks. Prompt = articulate the topic OUT LOUD as if to a banking/insurance executive or in an interview; reference.model = an interview/C-suite-grade articulation to rehearse against (read-only seed, loader-owned). REGULATORY FACTS were verified current as of June 2026 (DORA applied Jan 2025; CRR3/CRD6 Basel III finalisation; EU AI Act high-risk obligations deferred to ~Dec 2027 via the Digital Omnibus; Solvency II review applies 30 Jan 2027; IFRS 17 effective 2023). MASTER requires this vertical to stay current — re-verify the regulatory dates periodically. New track (no existing stub); add a 'bfsi' entry to the loader's TRACKS array. Resolve all text via localize(field,lang); render reference via the generic panel.",
+  "items": [
+    {
+      "id": "bfsi-bank-reg-1",
+      "tags": ["sector:banking", "topic:regulation"],
+      "prompt": {
+        "en": "Out loud, as if briefing a banking CIO or CRO: \"What are the regulatory forces shaping your agenda right now, and how do they connect?\" Cover operational resilience, capital, and AI. Then a 30-second version.",
+        "fr": "À voix haute, comme un briefing à un DSI ou un CRO bancaire : « Quelles forces réglementaires façonnent votre agenda en ce moment, et comment se rejoignent-elles ? » Couvrez la résilience opérationnelle, le capital et l'IA. Puis une version de 30 secondes."
+      },
+      "reference": {
+        "framework": {
+          "en": "Three live agendas for an EU bank in 2026: operational resilience (DORA), capital (Basel III finalisation via CRR3/CRD6), and AI governance (EU AI Act).",
+          "fr": "Trois agendas vivants pour une banque de l'UE en 2026 : la résilience opérationnelle (DORA), le capital (finalisation de Bâle III via CRR3/CRD6) et la gouvernance de l'IA (règlement IA de l'UE)."
+        },
+        "pattern": {
+          "en": "Don't list regulations — connect them to a single theme: technology risk is now prudential risk.",
+          "fr": "Ne listez pas les réglementations — reliez-les à un thème unique : le risque technologique est désormais un risque prudentiel."
+        },
+        "model": {
+          "en": "Walking into a European bank in 2026, three regulatory forces shape the CIO and CRO agenda. First, DORA — in force since January 2025 — has made ICT and third-party resilience a board-level topic: incident reporting, resilience testing, and a register of their critical technology providers. Second, the Basel III finalisation, implemented in the EU as CRR3 since January 2025, with the output floor phasing up to 72.5% by 2030 — it reshapes how they price capital against risk-weighted assets. Third, the EU AI Act, where the high-risk obligations including credit scoring were deferred to late 2027 under the Digital Omnibus — that buys them time, not a pass. The thread connecting all three is that technology risk is now prudential risk, and that's the conversation I want to have.",
+          "fr": "En entrant dans une banque européenne en 2026, trois forces réglementaires façonnent l'agenda du DSI et du CRO. D'abord, DORA — en vigueur depuis janvier 2025 — a fait de la résilience informatique et tierce un sujet de conseil d'administration : reporting d'incidents, tests de résilience, et un registre de leurs prestataires technologiques critiques. Ensuite, la finalisation de Bâle III, transposée dans l'UE en CRR3 depuis janvier 2025, avec le plancher (output floor) montant jusqu'à 72,5 % d'ici 2030 — cela change la façon dont ils valorisent le capital face aux actifs pondérés par les risques. Enfin, le règlement IA de l'UE, où les obligations à haut risque, dont le credit scoring, ont été reportées à fin 2027 via le Digital Omnibus — cela leur donne du temps, pas un blanc-seing. Le fil reliant les trois : le risque technologique est désormais un risque prudentiel, et c'est la conversation que je veux avoir."
+        },
+        "keyPhrases": {
+          "en": ["DORA / operational resilience", "CRR3 / Basel III finalisation", "output floor", "EU AI Act / Digital Omnibus", "risk-weighted assets"],
+          "fr": ["DORA / résilience opérationnelle", "CRR3 / finalisation de Bâle III", "plancher (output floor)", "règlement IA / Digital Omnibus", "actifs pondérés par les risques (RWA)"]
+        },
+        "watchOut": {
+          "en": "Name-dropping regulations isn't fluency — connect each to what the executive must decide. And don't cite stale deadlines: the AI Act high-risk date moved to ~2027.",
+          "fr": "Citer des réglementations n'est pas de la maîtrise — reliez chacune à ce que le dirigeant doit décider. Et ne citez pas de dates périmées : l'échéance IA à haut risque est passée à ~2027."
+        },
+        "delivery": {
+          "en": "Crisp and current, like someone who reads the regulatory press weekly.",
+          "fr": "Net et à jour, comme quelqu'un qui lit la presse réglementaire chaque semaine."
+        }
+      }
+    },
+    {
+      "id": "bfsi-bank-kpi-1",
+      "tags": ["sector:banking", "topic:exec-kpis"],
+      "prompt": {
+        "en": "Out loud: \"Talk to me in a bank's own numbers — what metrics does their board actually watch, and how would you tie your value to them?\" Repeat, tightening to the three that matter most.",
+        "fr": "À voix haute : « Parlez-moi dans les propres chiffres d'une banque — quelles métriques son conseil surveille-t-il réellement, et comment relieriez-vous votre valeur à celles-ci ? » Répétez en resserrant sur les trois qui comptent le plus."
+      },
+      "reference": {
+        "framework": {
+          "en": "Speak the bank's scorecard: profitability (RoTE), efficiency (cost-income ratio), capital strength (CET1 ratio), margin (NIM), asset quality (cost of risk).",
+          "fr": "Parlez le tableau de bord de la banque : rentabilité (RoTE), efficacité (coefficient d'exploitation), solidité du capital (ratio CET1), marge (MNI), qualité des actifs (coût du risque)."
+        },
+        "pattern": {
+          "en": "Translate your value into cost-income, capital, or risk — never into product features.",
+          "fr": "Traduisez votre valeur en coefficient d'exploitation, capital ou risque — jamais en fonctionnalités produit."
+        },
+        "model": {
+          "en": "I anchor on the metrics a bank's board actually watches. Return on tangible equity is the headline — most European banks target the low-to-mid teens. The cost-income ratio is the efficiency story, and it's where most transformation business cases live; moving from the 60s toward 50% is a board-level goal. The CET1 ratio is their capital strength, the cushion above the regulatory minimum. Net interest margin and cost of risk tell me how the rate environment and credit quality are treating them. If I can frame my value in terms of cost-income or cost of risk, I'm speaking their language — not mine.",
+          "fr": "Je m'ancre sur les métriques que le conseil d'une banque surveille vraiment. La rentabilité des fonds propres tangibles (RoTE) est le titre — la plupart des banques européennes visent entre 10 et 15 %. Le coefficient d'exploitation, c'est l'histoire de l'efficacité, et c'est là que vivent la plupart des business cases de transformation ; passer des 60 % vers 50 % est un objectif de conseil d'administration. Le ratio CET1, c'est leur solidité de capital, le coussin au-dessus du minimum réglementaire. La marge nette d'intérêt et le coût du risque me disent comment l'environnement de taux et la qualité du crédit les traitent. Si je cadre ma valeur en coefficient d'exploitation ou en coût du risque, je parle leur langage — pas le mien."
+        },
+        "keyPhrases": {
+          "en": ["return on tangible equity (RoTE)", "cost-income ratio", "CET1 ratio", "net interest margin (NIM)", "cost of risk"],
+          "fr": ["rentabilité des fonds propres tangibles (RoTE)", "coefficient d'exploitation", "ratio CET1", "marge nette d'intérêt (MNI)", "coût du risque"]
+        },
+        "watchOut": {
+          "en": "Pitching features to a bank exec is a tell. Convert everything into cost-income, capital, or risk impact.",
+          "fr": "Vanter des fonctionnalités à un dirigeant bancaire est révélateur. Convertissez tout en impact sur le coefficient d'exploitation, le capital ou le risque."
+        },
+        "delivery": {
+          "en": "Comfortable with the numbers — fluency here is pure credibility.",
+          "fr": "À l'aise avec les chiffres — la maîtrise ici est de la pure crédibilité."
+        }
+      }
+    },
+    {
+      "id": "bfsi-bank-transform-1",
+      "tags": ["sector:banking", "topic:transformation"],
+      "prompt": {
+        "en": "Out loud: \"What's actually on a bank's transformation roadmap in 2026, and what's changed about how they frame it?\" Then a 20-second version.",
+        "fr": "À voix haute : « Qu'y a-t-il réellement sur la feuille de route de transformation d'une banque en 2026, et qu'est-ce qui a changé dans sa façon de la cadrer ? » Puis une version de 20 secondes."
+      },
+      "reference": {
+        "framework": {
+          "en": "Core modernization, cloud, instant payments, open banking → embedded finance, and data/AI platforms — now framed under cost AND resilience mandates, not just growth.",
+          "fr": "Modernisation du cœur, cloud, paiements instantanés, open banking → finance embarquée, et plateformes data/IA — désormais cadrés sous des mandats de coût ET de résilience, pas seulement de croissance."
+        },
+        "pattern": {
+          "en": "The themes are table stakes; the differentiator is naming the new framing — do more, spend less, prove resilience.",
+          "fr": "Les thèmes sont un prérequis ; le différenciateur est de nommer le nouveau cadrage — faire plus, dépenser moins, prouver la résilience."
+        },
+        "model": {
+          "en": "A bank's 2026 agenda clusters around a few themes. Core banking modernization — getting off decades-old mainframes onto modular, cloud-based cores, because the old stack throttles everything else. Payments modernization, pushed hard by instant-payments mandates. Open banking maturing into embedded finance as a new revenue line. And a heavy data and AI platform build-out. What's changed is the framing: it used to be 'digital transformation for growth'; now it's transformation under a cost-income mandate and a resilience mandate at the same time — do more, spend less, and prove you won't fall over.",
+          "fr": "L'agenda 2026 d'une banque se regroupe autour de quelques thèmes. La modernisation du cœur bancaire — quitter des mainframes vieux de plusieurs décennies pour des cœurs modulaires dans le cloud, car la vieille pile étrangle tout le reste. La modernisation des paiements, poussée fort par les mandats de paiements instantanés. L'open banking qui mûrit en finance embarquée comme nouvelle source de revenus. Et une lourde construction de plateformes data et IA. Ce qui a changé, c'est le cadrage : avant c'était « transformation digitale pour la croissance » ; maintenant c'est la transformation sous mandat de coefficient d'exploitation ET de résilience en même temps — faire plus, dépenser moins, et prouver qu'on ne s'effondrera pas."
+        },
+        "keyPhrases": {
+          "en": ["core modernization", "legacy mainframe", "instant payments", "open banking / embedded finance", "cost + resilience mandate"],
+          "fr": ["modernisation du cœur", "mainframe hérité", "paiements instantanés", "open banking / finance embarquée", "mandat coût + résilience"]
+        },
+        "watchOut": {
+          "en": "Generic 'digital transformation' talk is a tell. Name the specific pressures — cost, resilience, instant payments.",
+          "fr": "Le discours générique sur la « transformation digitale » est révélateur. Nommez les pressions précises — coût, résilience, paiements instantanés."
+        },
+        "delivery": {
+          "en": "Specific and current — show you know what's actually on their roadmap.",
+          "fr": "Précis et à jour — montrez que vous savez ce qui est réellement sur leur feuille de route."
+        }
+      }
+    },
+    {
+      "id": "bfsi-bank-ai-1",
+      "tags": ["sector:banking", "topic:ai-adoption", "positioning:agentic-ai"],
+      "prompt": {
+        "en": "Out loud: \"Where is AI actually being used in banking today, and what's the real constraint on scaling it?\" Lead with governance. This feeds your Agentic-AI positioning — make it sharp.",
+        "fr": "À voix haute : « Où l'IA est-elle réellement utilisée en banque aujourd'hui, et quelle est la vraie contrainte pour la passer à l'échelle ? » Commencez par la gouvernance. Cela nourrit votre positionnement Agentic AI — soyez incisif."
+      },
+      "reference": {
+        "framework": {
+          "en": "Real use today: fraud/AML, credit decisioning, customer service, KYC/document processing, developer + ops productivity, emerging agentic workflows. The constraint: model risk, explainability, AI Act high-risk classification.",
+          "fr": "Usage réel aujourd'hui : fraude/LCB-FT, décision de crédit, service client, KYC/traitement documentaire, productivité dev + opérations, workflows agentiques émergents. La contrainte : risque de modèle, explicabilité, classification à haut risque du règlement IA."
+        },
+        "pattern": {
+          "en": "Lead with governance, not capability — that's what signals you understand banking.",
+          "fr": "Commencez par la gouvernance, pas la capacité — c'est ce qui montre que vous comprenez la banque."
+        },
+        "model": {
+          "en": "In banking, AI isn't new — fraud and AML have run on models for years. What's changed with generative and agentic AI is the surface area: customer service, KYC and document processing, developer productivity, and increasingly agentic workflows in operations. But banks are the most governed adopters in the economy, so the real conversation isn't 'can AI do this' — it's model risk management, explainability, and where a use case lands under the AI Act. Credit scoring, for instance, is high-risk under Annex III. The banks that win treat governance as the enabler of scale, not the brake — and that's exactly the advisory conversation I want to have.",
+          "fr": "En banque, l'IA n'est pas nouvelle — la fraude et la LCB-FT tournent sur des modèles depuis des années. Ce qui a changé avec l'IA générative et agentique, c'est la surface : service client, KYC et traitement documentaire, productivité des développeurs, et de plus en plus des workflows agentiques dans les opérations. Mais les banques sont les adoptants les plus encadrés de l'économie, donc la vraie conversation n'est pas « l'IA peut-elle faire ceci » — c'est la gestion du risque de modèle, l'explicabilité, et où un cas d'usage tombe dans le règlement IA. Le credit scoring, par exemple, est à haut risque au titre de l'Annexe III. Les banques qui gagnent traitent la gouvernance comme l'activateur de l'échelle, pas comme le frein — et c'est exactement la conversation de conseil que je veux avoir."
+        },
+        "keyPhrases": {
+          "en": ["fraud / AML models", "credit decisioning", "model risk management", "explainability", "AI Act high-risk / Annex III", "agentic workflows"],
+          "fr": ["modèles fraude / LCB-FT", "décision de crédit", "gestion du risque de modèle", "explicabilité", "haut risque (règlement IA) / Annexe III", "workflows agentiques"]
+        },
+        "watchOut": {
+          "en": "Don't oversell AI to a bank. Leading with governance and model risk is what signals you understand their world.",
+          "fr": "Ne survendez pas l'IA à une banque. Commencer par la gouvernance et le risque de modèle est ce qui montre que vous comprenez leur monde."
+        },
+        "delivery": {
+          "en": "Advisor voice — this is your Agentic-AI positioning in its native habitat.",
+          "fr": "Voix de conseiller — c'est votre positionnement Agentic AI dans son habitat naturel."
+        }
+      }
+    },
+    {
+      "id": "bfsi-bank-hook-1",
+      "tags": ["sector:banking", "topic:conversation-hooks"],
+      "prompt": {
+        "en": "Out loud: \"How do you open a first conversation with a banking executive so you earn the right to a second?\" Give the actual opening line, not a description of one.",
+        "fr": "À voix haute : « Comment ouvrez-vous une première conversation avec un dirigeant bancaire pour gagner le droit à une seconde ? » Donnez la vraie phrase d'ouverture, pas sa description."
+      },
+      "reference": {
+        "framework": {
+          "en": "Open on a tension they're living, framed as a question — not on your product. Use a current regulatory/strategic conflict they recognise.",
+          "fr": "Ouvrez sur une tension qu'ils vivent, formulée en question — pas sur votre produit. Utilisez un conflit réglementaire/stratégique actuel qu'ils reconnaissent."
+        },
+        "pattern": {
+          "en": "The first meeting isn't to present; it's to frame their problem better than they expected.",
+          "fr": "Le premier rendez-vous n'est pas pour présenter ; c'est pour cadrer leur problème mieux qu'ils ne s'y attendaient."
+        },
+        "model": {
+          "en": "My opening with a banking executive is never about my product — it's a question about a tension they're living. With a COO or CIO: 'How are you balancing the DORA resilience mandate against the cost-income pressure from the board? Most banks I talk to feel those two pulling against each other.' That does three things: it shows I know their agenda, it's genuinely their problem and not my pitch, and it earns the right to the next question. The goal of the first meeting isn't to present — it's to be the person who framed their problem better than they expected.",
+          "fr": "Mon ouverture avec un dirigeant bancaire ne porte jamais sur mon produit — c'est une question sur une tension qu'il vit. Avec un COO ou un DSI : « Comment équilibrez-vous le mandat de résilience DORA face à la pression sur le coefficient d'exploitation venue du conseil ? La plupart des banques que je rencontre sentent ces deux forces se tirer en sens inverse. » Cela fait trois choses : ça montre que je connais leur agenda, c'est vraiment leur problème et non mon argumentaire, et ça gagne le droit à la question suivante. Le but du premier rendez-vous n'est pas de présenter — c'est d'être celui qui a cadré leur problème mieux qu'ils ne l'attendaient."
+        },
+        "keyPhrases": {
+          "en": ["tension framed as a question", "cost-income vs resilience", "earn the next question", "frame their problem"],
+          "fr": ["tension formulée en question", "coefficient d'exploitation vs résilience", "gagner la question suivante", "cadrer leur problème"]
+        },
+        "watchOut": {
+          "en": "An opening that's secretly a pitch reads instantly. The hook must be their tension, not your segue into product.",
+          "fr": "Une ouverture qui est secrètement un argumentaire se voit immédiatement. L'accroche doit être leur tension, pas votre transition vers le produit."
+        },
+        "delivery": {
+          "en": "Curious and senior — the question itself carries the credibility.",
+          "fr": "Curieux et senior — la question elle-même porte la crédibilité."
+        }
+      }
+    },
+    {
+      "id": "bfsi-ins-reg-1",
+      "tags": ["sector:insurance", "topic:regulation"],
+      "prompt": {
+        "en": "Out loud, briefing an insurance executive: \"What's the regulatory picture for insurers right now?\" Cover Solvency II, IFRS 17, DORA, and AI. Don't mix it up with banking's frameworks.",
+        "fr": "À voix haute, en briefant un dirigeant d'assurance : « Quel est le paysage réglementaire pour les assureurs en ce moment ? » Couvrez Solvabilité II, IFRS 17, DORA et l'IA. Ne le confondez pas avec les cadres bancaires."
+      },
+      "reference": {
+        "framework": {
+          "en": "Three layers for an insurer in 2026: IFRS 17 (reporting, live since 2023), the Solvency II review (capital, applies 30 Jan 2027), and DORA + AI Act (resilience and automated underwriting/pricing).",
+          "fr": "Trois couches pour un assureur en 2026 : IFRS 17 (reporting, en vigueur depuis 2023), la revue de Solvabilité II (capital, applicable au 30 janv. 2027), et DORA + règlement IA (résilience et souscription/tarification automatisées)."
+        },
+        "pattern": {
+          "en": "Use the insurance frameworks (Solvency II, SCR) — never the banking ones (CRR3, CET1). Mixing them is an instant credibility hit.",
+          "fr": "Utilisez les cadres assurantiels (Solvabilité II, SCR) — jamais les bancaires (CRR3, CET1). Les confondre est une perte de crédibilité immédiate."
+        },
+        "model": {
+          "en": "For an insurer in 2026 the regulatory picture has three layers. IFRS 17 already reshaped how they report profit and made their numbers far more transparent — that's done but still bedding in. The big one ahead is the Solvency II review, applying from January 2027 — it touches the risk margin, long-term investment incentives, proportionality for smaller insurers, and mandatory climate-risk integration, so it changes both their capital and their investment strategy. Add DORA on operational resilience and the AI Act on automated underwriting and pricing, and the message to an insurance executive is the same as to a banker: capital, resilience, and AI governance are converging into one agenda.",
+          "fr": "Pour un assureur en 2026, le paysage réglementaire a trois couches. IFRS 17 a déjà remodelé la façon dont ils déclarent leur résultat et a rendu leurs chiffres bien plus transparents — c'est fait mais encore en rodage. La grande échéance à venir est la revue de Solvabilité II, applicable à partir de janvier 2027 — elle touche à la marge de risque, aux incitations à l'investissement de long terme, à la proportionnalité pour les petits assureurs, et à l'intégration obligatoire du risque climatique, donc elle change à la fois leur capital et leur stratégie d'investissement. Ajoutez DORA sur la résilience opérationnelle et le règlement IA sur la souscription et la tarification automatisées, et le message à un dirigeant d'assurance est le même qu'à un banquier : capital, résilience et gouvernance de l'IA convergent en un seul agenda."
+        },
+        "keyPhrases": {
+          "en": ["Solvency II review", "IFRS 17", "risk margin", "SCR / solvency ratio", "climate-risk integration", "DORA"],
+          "fr": ["revue de Solvabilité II", "IFRS 17", "marge de risque", "SCR / ratio de solvabilité", "intégration du risque climatique", "DORA"]
+        },
+        "watchOut": {
+          "en": "Don't confuse the banking and insurance frameworks — Solvency II and SCR for insurers, CRR3 and CET1 for banks. Mixing them is an instant credibility hit.",
+          "fr": "Ne confondez pas les cadres bancaire et assurantiel — Solvabilité II et SCR pour les assureurs, CRR3 et CET1 pour les banques. Les mélanger est une perte de crédibilité immédiate."
+        },
+        "delivery": {
+          "en": "Precise — naming the right framework for the right vertical is the whole game.",
+          "fr": "Précis — nommer le bon cadre pour le bon secteur, c'est tout l'enjeu."
+        }
+      }
+    },
+    {
+      "id": "bfsi-ins-kpi-1",
+      "tags": ["sector:insurance", "topic:exec-kpis"],
+      "prompt": {
+        "en": "Out loud: \"Talk to me in an insurer's own numbers — what runs their world, and how would you tie your value to it?\" Lead with the combined ratio. Repeat, tightening.",
+        "fr": "À voix haute : « Parlez-moi dans les propres chiffres d'un assureur — qu'est-ce qui dirige son monde, et comment relieriez-vous votre valeur à cela ? » Commencez par le ratio combiné. Répétez en resserrant."
+      },
+      "reference": {
+        "framework": {
+          "en": "Combined ratio (loss ratio + expense ratio), gross written premium (GWP) growth, solvency ratio (SCR coverage); for life, embedded value / value of new business.",
+          "fr": "Ratio combiné (ratio de sinistralité + ratio de frais), croissance des primes brutes émises (GWP), ratio de solvabilité (couverture du SCR) ; en vie, valeur intrinsèque / valeur des affaires nouvelles."
+        },
+        "pattern": {
+          "en": "Frame everything in combined-ratio impact: risk/fraud → loss ratio; automation → expense ratio.",
+          "fr": "Cadrez tout en impact sur le ratio combiné : risque/fraude → ratio de sinistralité ; automatisation → ratio de frais."
+        },
+        "model": {
+          "en": "With an insurer, the combined ratio is the heartbeat — loss ratio plus expense ratio. Under 100% means the underwriting itself is profitable before investment income, and a single point of combined ratio is enormous money. Gross written premium is their top-line growth. The solvency ratio — coverage of the SCR — is their capital strength, and what the regulator and rating agencies watch. On the life side it's embedded value and the value of new business. If I want to matter to an insurance COO, I frame everything in combined-ratio impact: loss ratio through better risk selection and fraud, expense ratio through automation — because that's the number that runs their world.",
+          "fr": "Chez un assureur, le ratio combiné est le battement de cœur — ratio de sinistralité plus ratio de frais. Sous 100 %, cela signifie que la souscription elle-même est rentable avant les produits financiers, et un seul point de ratio combiné représente énormément d'argent. Les primes brutes émises sont leur croissance de chiffre d'affaires. Le ratio de solvabilité — la couverture du SCR — est leur solidité de capital, et ce que surveillent le régulateur et les agences de notation. Côté vie, c'est la valeur intrinsèque et la valeur des affaires nouvelles. Si je veux compter pour un COO d'assurance, je cadre tout en impact sur le ratio combiné : le ratio de sinistralité via une meilleure sélection des risques et la fraude, le ratio de frais via l'automatisation — car c'est le chiffre qui dirige leur monde."
+        },
+        "keyPhrases": {
+          "en": ["combined ratio", "loss ratio", "expense ratio", "gross written premium (GWP)", "solvency ratio / SCR coverage", "embedded value"],
+          "fr": ["ratio combiné", "ratio de sinistralité", "ratio de frais", "primes brutes émises (GWP)", "ratio de solvabilité / couverture SCR", "valeur intrinsèque"]
+        },
+        "watchOut": {
+          "en": "Talking 'efficiency' generically misses it — tie automation to expense ratio and risk/fraud to loss ratio explicitly.",
+          "fr": "Parler d'« efficacité » de façon générique passe à côté — reliez explicitement l'automatisation au ratio de frais et le risque/la fraude au ratio de sinistralité."
+        },
+        "delivery": {
+          "en": "Fluent with the ratios — insurers respect people who speak combined ratio.",
+          "fr": "À l'aise avec les ratios — les assureurs respectent ceux qui parlent le ratio combiné."
+        }
+      }
+    },
+    {
+      "id": "bfsi-ins-transform-1",
+      "tags": ["sector:insurance", "topic:transformation", "topic:ai-adoption"],
+      "prompt": {
+        "en": "Out loud: \"Where does insurance transformation actually concentrate, and what's the strategic build-versus-partner question?\" Show you know the insurance value chain, not generic 'AI in finance'.",
+        "fr": "À voix haute : « Où se concentre réellement la transformation de l'assurance, et quelle est la question stratégique construire-ou-s'associer ? » Montrez que vous connaissez la chaîne de valeur de l'assurance, pas un générique « IA dans la finance »."
+      },
+      "reference": {
+        "framework": {
+          "en": "Transformation concentrates in claims and underwriting (the cost and friction pools); plus fraud and CX. Strategic question: build vs partner with insurtechs.",
+          "fr": "La transformation se concentre dans les sinistres et la souscription (les postes de coût et de friction) ; plus la fraude et l'expérience client. Question stratégique : construire ou s'associer avec les insurtechs."
+        },
+        "pattern": {
+          "en": "Anchor on claims and underwriting — they're the distinctive insurance value pools, not a banking copy-paste.",
+          "fr": "Ancrez sur les sinistres et la souscription — ce sont les postes de valeur distinctifs de l'assurance, pas un copier-coller bancaire."
+        },
+        "model": {
+          "en": "Insurance transformation concentrates where the money and the friction are: claims and underwriting. Claims is the moment of truth and the biggest cost pool, so straight-through claims automation and AI-assisted assessment is the marquee use case. Underwriting and pricing are being modernized with richer data and models — which is exactly where the AI Act's high-risk lens lands, so governance comes along for the ride. Fraud and customer experience round it out. The strategic question I raise is build-versus-partner: most insurers can't out-engineer the insurtechs, so the smart ones orchestrate an ecosystem rather than building everything in-house.",
+          "fr": "La transformation de l'assurance se concentre là où sont l'argent et la friction : les sinistres et la souscription. Les sinistres sont le moment de vérité et le plus gros poste de coût, donc l'automatisation de bout en bout des sinistres et l'évaluation assistée par IA est le cas d'usage phare. La souscription et la tarification se modernisent avec des données et des modèles plus riches — c'est précisément là que tombe le prisme « haut risque » du règlement IA, donc la gouvernance suit. La fraude et l'expérience client complètent le tableau. La question stratégique que je soulève est construire-ou-s'associer : la plupart des assureurs ne peuvent pas surpasser techniquement les insurtechs, donc les plus malins orchestrent un écosystème plutôt que de tout construire en interne."
+        },
+        "keyPhrases": {
+          "en": ["claims automation", "straight-through processing", "underwriting / pricing models", "insurtech", "build vs partner"],
+          "fr": ["automatisation des sinistres", "traitement de bout en bout", "modèles de souscription / tarification", "insurtech", "construire vs s'associer"]
+        },
+        "watchOut": {
+          "en": "Don't treat insurance like banking-with-different-words. Claims and underwriting are the distinctive value pools.",
+          "fr": "Ne traitez pas l'assurance comme de la banque avec d'autres mots. Les sinistres et la souscription sont les postes de valeur distinctifs."
+        },
+        "delivery": {
+          "en": "Show command of the insurance value chain, not just 'AI in financial services'.",
+          "fr": "Montrez votre maîtrise de la chaîne de valeur de l'assurance, pas juste « l'IA dans les services financiers »."
+        }
+      }
+    },
+    {
+      "id": "bfsi-compete-1",
+      "tags": ["sector:bfsi", "topic:competitive-dynamics"],
+      "prompt": {
+        "en": "Out loud, at strategy altitude: \"What's the real competitive threat to incumbent banks and insurers now — and how has that story changed?\" Avoid the dated 'fintech is killing banks' take.",
+        "fr": "À voix haute, à hauteur stratégique : « Quelle est la vraie menace concurrentielle pour les banques et assureurs établis aujourd'hui — et comment ce récit a-t-il changé ? » Évitez la thèse dépassée « la fintech tue les banques »."
+      },
+      "reference": {
+        "framework": {
+          "en": "Incumbent moat (licence, balance sheet, trust, distribution) vs challenger edge (UX, speed, cost). The real disruptor now: embedded finance and bigtech distribution — the 'balance-sheet utility' risk.",
+          "fr": "Le rempart des établis (licence, bilan, confiance, distribution) vs l'avantage des challengers (UX, vitesse, coût). Le vrai disrupteur aujourd'hui : la finance embarquée et la distribution par les bigtech — le risque de « simple utilitaire de bilan »."
+        },
+        "pattern": {
+          "en": "Show the story matured: not 'challengers win', but 'who owns the customer relationship'.",
+          "fr": "Montrez que le récit a mûri : non pas « les challengers gagnent », mais « qui possède la relation client »."
+        },
+        "model": {
+          "en": "The disruption story in BFSI has matured. The early fintech narrative was 'challengers will eat the banks.' What actually happened is most incumbents kept the customers, the balance sheet, and the regulatory moat, while fintechs took the experience layer and forced everyone to modernize. The sharper threat now is embedded finance and bigtech distribution — financial products delivered inside someone else's platform, which risks turning banks and insurers into invisible balance-sheet utilities. So the strategic question for an incumbent is: do you own the customer relationship, or do you become the regulated plumbing behind someone else's brand? That's the conversation that gets a CEO's attention.",
+          "fr": "Le récit de la disruption en BFSI a mûri. Le premier discours fintech était « les challengers vont dévorer les banques ». Ce qui s'est réellement passé : la plupart des établis ont conservé les clients, le bilan et le rempart réglementaire, tandis que les fintechs ont pris la couche d'expérience et forcé tout le monde à se moderniser. La menace plus aiguë aujourd'hui, c'est la finance embarquée et la distribution par les bigtech — des produits financiers livrés à l'intérieur de la plateforme d'un autre, ce qui risque de transformer banques et assureurs en simples utilitaires de bilan invisibles. La question stratégique pour un établi devient donc : possédez-vous la relation client, ou devenez-vous la tuyauterie réglementée derrière la marque d'un autre ? C'est la conversation qui capte l'attention d'un PDG."
+        },
+        "keyPhrases": {
+          "en": ["incumbent moat", "experience layer", "embedded finance", "bigtech distribution", "balance-sheet utility"],
+          "fr": ["rempart des établis", "couche d'expérience", "finance embarquée", "distribution bigtech", "utilitaire de bilan"]
+        },
+        "watchOut": {
+          "en": "The naive 'fintech is killing banks' take is dated. The 'embedded finance / utility risk' framing signals you've kept up.",
+          "fr": "La thèse naïve « la fintech tue les banques » est dépassée. Le cadrage « finance embarquée / risque d'utilitaire » montre que vous avez suivi."
+        },
+        "delivery": {
+          "en": "Strategic and current — a CEO/strategy-level conversation.",
+          "fr": "Stratégique et à jour — une conversation de niveau PDG/stratégie."
+        }
+      }
+    },
+    {
+      "id": "bfsi-adoption-1",
+      "tags": ["sector:bfsi", "topic:ai-adoption", "topic:change-management", "positioning:agentic-ai"],
+      "prompt": {
+        "en": "Out loud: \"Why is AI adoption slower in financial services than the hype suggests, and what's your role in fixing that?\" This is your headline advisor positioning — make it your best 60 seconds.",
+        "fr": "À voix haute : « Pourquoi l'adoption de l'IA est-elle plus lente dans les services financiers que ne le suggère le battage, et quel est votre rôle pour y remédier ? » C'est votre positionnement de conseiller phare — faites-en vos meilleures 60 secondes."
+      },
+      "reference": {
+        "framework": {
+          "en": "Adoption stalls on three things — not the model: governance/model risk, legacy data, and risk culture. The advisor's job is to de-risk adoption, not to demo capability.",
+          "fr": "L'adoption cale sur trois choses — pas le modèle : gouvernance/risque de modèle, données héritées, et culture du risque. Le rôle du conseiller est de dérisquer l'adoption, pas de démontrer la capacité."
+        },
+        "pattern": {
+          "en": "Reframe from 'what AI can do' to 'how an institution like yours adopts it safely'.",
+          "fr": "Recadrez de « ce que l'IA peut faire » vers « comment une institution comme la vôtre l'adopte en sécurité »."
+        },
+        "model": {
+          "en": "When an executive asks why AI adoption is slower in financial services than the hype suggests, I don't blame the technology. It's three things. Governance and model risk — every model has to be explainable and defensible to a regulator. Legacy and data — the models are only as good as data trapped in decades-old systems. And risk culture — these are institutions professionally trained to be cautious. So the unlock isn't a better model; it's de-risking adoption: starting where the governance burden is lowest and the value is provable, building the control framework once so it scales, and managing the change with the people who have to trust it. That's the agentic-AI advisory conversation — not 'here's what AI can do', but 'here's how an institution like yours adopts it without getting it wrong'.",
+          "fr": "Quand un dirigeant me demande pourquoi l'adoption de l'IA est plus lente dans les services financiers que ne le suggère le battage, je n'accuse pas la technologie. C'est trois choses. La gouvernance et le risque de modèle — chaque modèle doit être explicable et défendable face à un régulateur. L'héritage et les données — les modèles ne valent que les données piégées dans des systèmes vieux de décennies. Et la culture du risque — ce sont des institutions professionnellement entraînées à la prudence. Donc le déclic n'est pas un meilleur modèle ; c'est dérisquer l'adoption : commencer là où la charge de gouvernance est la plus faible et la valeur prouvable, construire le cadre de contrôle une fois pour qu'il passe à l'échelle, et accompagner le changement avec les personnes qui doivent lui faire confiance. C'est la conversation de conseil en IA agentique — non pas « voici ce que l'IA peut faire », mais « voici comment une institution comme la vôtre l'adopte sans se tromper »."
+        },
+        "keyPhrases": {
+          "en": ["model risk / explainability", "legacy data", "risk culture", "de-risk adoption", "governance as enabler"],
+          "fr": ["risque de modèle / explicabilité", "données héritées", "culture du risque", "dérisquer l'adoption", "gouvernance comme activateur"]
+        },
+        "watchOut": {
+          "en": "Don't pitch AI capability to a BFSI exec — pitch the path to safe adoption. Capability isn't their doubt; adoption risk is.",
+          "fr": "Ne vantez pas la capacité de l'IA à un dirigeant BFSI — proposez le chemin vers une adoption sûre. La capacité n'est pas leur doute ; le risque d'adoption l'est."
+        },
+        "delivery": {
+          "en": "Your headline positioning — calm, credible, advisor-not-vendor.",
+          "fr": "Votre positionnement phare — calme, crédible, conseiller et non vendeur."
+        }
+      }
+    }
+  ]
+}

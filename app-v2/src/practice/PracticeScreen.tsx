@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo, Fragment, use
 import { pad } from '../ui/helpers';
 import interviewJson from '../content/interview.json';
 import clevelJson from '../content/clevel.json';
+import bfsiJson from '../content/bfsi.json';
 import { getStatusFromConfidence, getNextPracticeDate, isDueForPractice, selectPracticeBatch, searchPracticeItems } from './practice-logic';
 
 export const LangContext = React.createContext<'en'|'fr'>('en');
@@ -1146,7 +1147,8 @@ export function PracticeScreen({ data, onPersist, onBack, onSignOut }) {
     { id: 'interview', name: 'Practice Hub', categories: interviewJson.categories },
     { id: 'sales', name: 'Core Sales Execution', categories: [] },
     { id: 'clevel', name: 'C-Level Discussions', categories: clevelJson.categories || [] },
-    { id: 'execpresence', name: 'Executive Presence', categories: [] }
+    { id: 'execpresence', name: 'Executive Presence', categories: [] },
+    { id: 'bfsi', name: 'Banking & Insurance Fluency', categories: bfsiJson.categories || [] }
   ];
   
   const currentTrackDef = tracks.find(t => t.id === activeTrack) || tracks[0];
