@@ -1,0 +1,381 @@
+{
+  "track": "leadership",
+  "trackLabel": "Leadership & Mirror Management",
+  "_note": "Bilingual (EN/FR) fluency drills for the Leadership Expertise + Management Philosophy modules in MASTER.md, anchored in the user's own Mirror Management model (a reciprocity-based model of four two-way pairs: autonomy/initiative, mutual accountability, open door/early escalation, trust/radical transparency). Prompt = articulate it OUT LOUD as if in a Manager/VP interview; reference.model = an interview-grade articulation to rehearse against (read-only seed, loader-owned). Several models are TEMPLATES — the user inserts his own values/stories (APAC+EMEA, BFSI, enterprise sales) where flagged. 'Executive presence as a leader' is intentionally left to the execpresence track to avoid duplication. New track (no stub); add a 'leadership' entry to the loader's TRACKS array. Resolve all text via localize(field,lang); render reference via the generic panel.",
+  "items": [
+    {
+      "id": "lead-philosophy-1",
+      "tags": ["topic:philosophy", "audience:manager-vp"],
+      "prompt": {
+        "en": "The classic opener: \"Tell me about your leadership style.\" Out loud, give your philosophy as a 60-second headline — a clear, memorable point of view, not a list of adjectives. Then compress it to a single sentence you could say in a hallway.",
+        "fr": "L'ouverture classique : « Parlez-moi de votre style de leadership. » À voix haute, donnez votre philosophie en un « titre » de 60 secondes — un point de vue clair et mémorable, pas une liste d'adjectifs. Puis compressez-le en une seule phrase que vous pourriez dire dans un couloir."
+      },
+      "reference": {
+        "framework": {
+          "en": "Lead with a named, memorable philosophy, then one principle that makes it concrete. A point of view beats a list of traits.",
+          "fr": "Commencez par une philosophie nommée et mémorable, puis un principe qui la rend concrète. Un point de vue vaut mieux qu'une liste de qualités."
+        },
+        "pattern": {
+          "en": "My philosophy is X. In practice that means Y. The result is Z.",
+          "fr": "Ma philosophie, c'est X. En pratique, cela veut dire Y. Le résultat, c'est Z."
+        },
+        "model": {
+          "en": "My leadership philosophy is reciprocity over hierarchy — I call it Mirror Management. Whatever I want from my team, I model first, and it gets reflected back: autonomy in exchange for initiative, trust in exchange for transparency. In practice that means I lead by setting a clear standard and then giving people room to own it, rather than managing by control. The result is teams that hold themselves accountable because they helped build the culture, not because I'm watching.",
+          "fr": "Ma philosophie de leadership, c'est la réciprocité plutôt que la hiérarchie — je l'appelle le Mirror Management. Tout ce que j'attends de mon équipe, je l'incarne d'abord, et cela se reflète en retour : l'autonomie en échange de l'initiative, la confiance en échange de la transparence. En pratique, cela veut dire que je dirige en posant un standard clair puis en laissant à chacun l'espace de se l'approprier, plutôt qu'en pilotant par le contrôle. Le résultat, ce sont des équipes qui se tiennent elles-mêmes responsables parce qu'elles ont aidé à construire la culture, pas parce que je les surveille."
+        },
+        "keyPhrases": {
+          "en": ["reciprocity over hierarchy", "model it first", "set the standard, give the room", "own the culture"],
+          "fr": ["réciprocité plutôt que hiérarchie", "l'incarner d'abord", "poser le standard, donner l'espace", "s'approprier la culture"]
+        },
+        "watchOut": {
+          "en": "Don't answer with a string of adjectives ('collaborative, hands-on, empathetic') — everyone says those. A named philosophy with one concrete consequence is what's remembered.",
+          "fr": "Ne répondez pas par une suite d'adjectifs (« collaboratif, impliqué, empathique ») — tout le monde les dit. Une philosophie nommée avec une conséquence concrète, c'est ce qui marque."
+        },
+        "delivery": {
+          "en": "Say the name of your philosophy with conviction — it signals you've actually thought about how you lead, not improvised it.",
+          "fr": "Dites le nom de votre philosophie avec conviction — cela montre que vous avez réellement réfléchi à votre façon de diriger, pas improvisé."
+        }
+      }
+    },
+    {
+      "id": "lead-mirror-1",
+      "tags": ["topic:mirror-management", "audience:manager-vp"],
+      "prompt": {
+        "en": "Out loud, explain your Mirror Management model in full: the core idea (reciprocity, modelling) and the four pairs — autonomy/initiative, mutual accountability, open door/early escalation, trust/radical transparency. Then give the 30-second version that keeps the idea and just names the pairs.",
+        "fr": "À voix haute, expliquez votre modèle Mirror Management en entier : l'idée centrale (réciprocité, incarnation) et les quatre paires — autonomie/initiative, responsabilité mutuelle, porte ouverte/escalade précoce, confiance/transparence radicale. Puis donnez la version de 30 secondes qui garde l'idée et se contente de nommer les paires."
+      },
+      "reference": {
+        "framework": {
+          "en": "Mirror Management — a reciprocity-based model: whatever you want reflected back, you model first. Four two-way pairs, each a contract, not a rule.",
+          "fr": "Mirror Management — un modèle fondé sur la réciprocité : ce que vous voulez voir se refléter, vous l'incarnez d'abord. Quatre paires à double sens, chacune un contrat, pas une règle."
+        },
+        "pattern": {
+          "en": "Reciprocity, not hierarchy → name the four pairs as two-way deals → why it makes the team own the culture.",
+          "fr": "Réciprocité, pas hiérarchie → nommer les quatre paires comme des accords à double sens → pourquoi cela fait que l'équipe s'approprie la culture."
+        },
+        "model": {
+          "en": "Mirror Management is built on reciprocity rather than hierarchy — whatever I want from my team, I model first and it gets mirrored back. It runs on four pairs, each a two-way deal. I give autonomy, and in return I expect initiative — no waiting to be told. Accountability is mutual: I hold the team to outcomes, and they can hold me to mine. My door is always open, and the deal in return is early escalation — bring me the problem while it's small. And I extend trust by default, in exchange for radical transparency — straight talk, no hidden agendas. It works because each pair is a contract the team enters with me, so they own the culture rather than having it imposed.",
+          "fr": "Le Mirror Management repose sur la réciprocité plutôt que la hiérarchie — ce que j'attends de mon équipe, je l'incarne d'abord et cela se reflète en retour. Il fonctionne sur quatre paires, chacune un accord à double sens. Je donne de l'autonomie, et en retour j'attends de l'initiative — pas d'attente d'instructions. La responsabilité est mutuelle : je tiens l'équipe aux résultats, et elle peut me tenir aux miens. Ma porte est toujours ouverte, et l'accord en retour, c'est l'escalade précoce — m'apporter le problème tant qu'il est petit. Et j'accorde la confiance par défaut, en échange d'une transparence radicale — parler franc, pas d'agendas cachés. Cela fonctionne parce que chaque paire est un contrat que l'équipe conclut avec moi, donc elle s'approprie la culture au lieu de la subir."
+        },
+        "keyPhrases": {
+          "en": ["reciprocity not hierarchy", "autonomy for initiative", "mutual accountability", "open door for early escalation", "trust for radical transparency"],
+          "fr": ["réciprocité, pas hiérarchie", "autonomie contre initiative", "responsabilité mutuelle", "porte ouverte contre escalade précoce", "confiance contre transparence radicale"]
+        },
+        "watchOut": {
+          "en": "Don't recite the four pairs as a list — explain WHY reciprocity changes the dynamic. The insight (you model it first) is what makes it yours, not the labels.",
+          "fr": "Ne récitez pas les quatre paires comme une liste — expliquez POURQUOI la réciprocité change la dynamique. L'idée (vous l'incarnez d'abord) est ce qui la rend vôtre, pas les étiquettes."
+        },
+        "delivery": {
+          "en": "Land each pair as 'I give X, I expect Y' — the parallel structure makes it sound designed, which it is.",
+          "fr": "Posez chaque paire en « je donne X, j'attends Y » — la structure parallèle la fait sonner conçue, ce qu'elle est."
+        }
+      }
+    },
+    {
+      "id": "lead-mirror-newteam-1",
+      "tags": ["topic:mirror-management", "topic:new-team"],
+      "prompt": {
+        "en": "Scenario: you've just taken over a new team. Out loud, answer \"How would you implement your model in the first 90 days?\" — make it concrete: what you'd do in week one versus month three. Repeat, tightening to the three moves that matter most.",
+        "fr": "Mise en situation : vous venez de reprendre une nouvelle équipe. À voix haute, répondez à « Comment mettriez-vous en œuvre votre modèle dans les 90 premiers jours ? » — rendez-le concret : ce que vous feriez la première semaine versus au troisième mois. Répétez en resserrant sur les trois actions qui comptent le plus."
+      },
+      "reference": {
+        "framework": {
+          "en": "Establish the reciprocal contract early and explicitly, then prove you'll honour your side before asking them to honour theirs.",
+          "fr": "Établir le contrat réciproque tôt et explicitement, puis prouver que vous honorez votre part avant de leur demander d'honorer la leur."
+        },
+        "pattern": {
+          "en": "Listen first → state the deal explicitly → demonstrate your half before expecting theirs.",
+          "fr": "Écouter d'abord → énoncer l'accord explicitement → démontrer votre moitié avant d'attendre la leur."
+        },
+        "model": {
+          "en": "In the first weeks I'd do more listening than directing — one-to-ones to understand each person and what's actually broken before I change anything. Then I'd state the model explicitly: here's the autonomy you'll have, here's the initiative I'll expect, here's my open door and the early-escalation deal that comes with it. The critical part is that I demonstrate my side first — I extend trust and transparency before I ask for it, because the model only works if they see me model it. By month three the test is simple: are people escalating early and taking initiative without me asking? If yes, the contract has taken.",
+          "fr": "Les premières semaines, j'écouterais plus que je ne dirigerais — des entretiens individuels pour comprendre chaque personne et ce qui est réellement cassé avant de changer quoi que ce soit. Puis j'énoncerais le modèle explicitement : voici l'autonomie que vous aurez, voici l'initiative que j'attendrai, voici ma porte ouverte et l'accord d'escalade précoce qui va avec. Le point critique, c'est que je démontre ma part en premier — j'accorde la confiance et la transparence avant de les demander, car le modèle ne fonctionne que s'ils me voient l'incarner. Au troisième mois, le test est simple : les gens escaladent-ils tôt et prennent-ils des initiatives sans que je le demande ? Si oui, le contrat a pris."
+        },
+        "keyPhrases": {
+          "en": ["listen before changing", "state the deal explicitly", "model your half first", "the 90-day test"],
+          "fr": ["écouter avant de changer", "énoncer l'accord explicitement", "incarner sa part d'abord", "le test des 90 jours"]
+        },
+        "watchOut": {
+          "en": "Don't come in changing everything in week one — that breaks trust before you've built it. And don't describe the model abstractly; the interviewer wants concrete first moves.",
+          "fr": "N'arrivez pas en changeant tout dès la première semaine — cela casse la confiance avant de l'avoir bâtie. Et ne décrivez pas le modèle de façon abstraite ; l'interlocuteur veut des premières actions concrètes."
+        },
+        "delivery": {
+          "en": "Sequence it in time (week one → month three) — it shows you've actually done this, not theorised it.",
+          "fr": "Séquencez-le dans le temps (semaine un → mois trois) — cela montre que vous l'avez réellement fait, pas théorisé."
+        }
+      }
+    },
+    {
+      "id": "lead-mirror-pressure-1",
+      "tags": ["topic:mirror-management", "topic:under-pressure"],
+      "prompt": {
+        "en": "Scenario: the quarter is on the line and everything is urgent. Out loud, answer \"What happens to your model under pressure — doesn't it break down?\" Show that the model holds (or where you'd flex it) without abandoning your principles. Say it twice.",
+        "fr": "Mise en situation : le trimestre est en jeu et tout est urgent. À voix haute, répondez à « Qu'arrive-t-il à votre modèle sous pression — ne s'effondre-t-il pas ? » Montrez que le modèle tient (ou là où vous l'assoupliriez) sans abandonner vos principes. Dites-le deux fois."
+      },
+      "reference": {
+        "framework": {
+          "en": "Under pressure you may flex autonomy (direct more) but you NEVER drop trust and transparency — that's when they matter most.",
+          "fr": "Sous pression, vous pouvez assouplir l'autonomie (diriger davantage) mais vous n'abandonnez JAMAIS la confiance et la transparence — c'est là qu'elles comptent le plus."
+        },
+        "pattern": {
+          "en": "Name what flexes (direction) and what's non-negotiable (trust, transparency, no surprises).",
+          "fr": "Nommez ce qui s'assouplit (la direction) et ce qui est non négociable (confiance, transparence, pas de surprises)."
+        },
+        "model": {
+          "en": "Pressure is exactly when a management model gets tested, and honestly some of it should flex. Under a real crunch I'll be more directive — I'll make calls faster and give less room, because that's what the moment needs and a good team understands that. But the parts I never drop are trust and transparency. Under pressure is precisely when people hide bad news, so the early-escalation deal becomes more important, not less — I'd rather hear the problem at its ugliest early than be surprised late. So the model doesn't break; it shifts weight toward direction while protecting the no-surprises culture that gets us through.",
+          "fr": "La pression, c'est justement quand un modèle de management est mis à l'épreuve, et honnêtement, une partie doit s'assouplir. En vraie période de tension, je serai plus directif — je trancherai plus vite et donnerai moins d'espace, parce que c'est ce que le moment exige et une bonne équipe le comprend. Mais ce que je n'abandonne jamais, c'est la confiance et la transparence. La pression, c'est précisément quand les gens cachent les mauvaises nouvelles, donc l'accord d'escalade précoce devient plus important, pas moins — je préfère entendre le problème dans son pire état tôt que d'être surpris tard. Donc le modèle ne casse pas ; il déplace le poids vers la direction tout en protégeant la culture du « pas de surprises » qui nous fait passer le cap."
+        },
+        "keyPhrases": {
+          "en": ["flex direction, protect trust", "pressure tests the model", "no surprises matters more", "shift weight, don't abandon"],
+          "fr": ["assouplir la direction, protéger la confiance", "la pression teste le modèle", "le « pas de surprises » compte davantage", "déplacer le poids, pas abandonner"]
+        },
+        "watchOut": {
+          "en": "Don't claim the model never changes (sounds naive) or that you abandon it under pressure (sounds like you don't believe it). Name what flexes and what doesn't.",
+          "fr": "Ne prétendez pas que le modèle ne change jamais (cela paraît naïf) ni que vous l'abandonnez sous pression (cela donne l'impression que vous n'y croyez pas). Nommez ce qui s'assouplit et ce qui ne s'assouplit pas."
+        },
+        "delivery": {
+          "en": "Calm and honest about the trade-off — admitting you flex direction makes the 'I never drop transparency' land as conviction, not slogan.",
+          "fr": "Calme et honnête sur l'arbitrage — admettre que vous assouplissez la direction fait que le « je n'abandonne jamais la transparence » sonne comme une conviction, pas un slogan."
+        }
+      }
+    },
+    {
+      "id": "lead-values-1",
+      "tags": ["topic:values", "audience:manager-vp"],
+      "prompt": {
+        "en": "Out loud, answer \"How do your personal values show up in how you manage?\" Connect one or two real values to a concrete management behaviour — not abstract virtue talk. Use your own values; the model below is just the shape. Repeat, tightening.",
+        "fr": "À voix haute, répondez à « Comment vos valeurs personnelles se manifestent-elles dans votre façon de manager ? » Reliez une ou deux vraies valeurs à un comportement de management concret — pas un discours abstrait sur les vertus. Utilisez vos propres valeurs ; le modèle ci-dessous n'est que la forme. Répétez en resserrant."
+      },
+      "reference": {
+        "framework": {
+          "en": "Value → behaviour → outcome. A value only counts if it changes what you concretely do as a manager.",
+          "fr": "Valeur → comportement → résultat. Une valeur ne compte que si elle change ce que vous faites concrètement en tant que manager."
+        },
+        "pattern": {
+          "en": "I value X. Concretely that means I do Y. Which is why my teams Z.",
+          "fr": "Je valorise X. Concrètement, cela veut dire que je fais Y. C'est pourquoi mes équipes Z."
+        },
+        "model": {
+          "en": "[Insert your real values — this is just the shape.] I value fairness above being liked, and concretely that means I'll have the hard underperformance conversation early rather than let a team carry someone, because avoiding it is unfair to everyone who's pulling their weight. And I value straight talk — so I tell people exactly where they stand, good or bad, which is the transparency half of how I lead. The point I'd make is that values are only real if they cost you something; mine show up exactly when the easy path would be to stay quiet.",
+          "fr": "[Insérez vos vraies valeurs — ceci n'est que la forme.] Je valorise l'équité plus que le fait d'être apprécié, et concrètement cela veut dire que j'aurai la conversation difficile sur la sous-performance tôt plutôt que de laisser une équipe porter quelqu'un, car l'éviter est injuste envers tous ceux qui font leur part. Et je valorise le parler-franc — donc je dis aux gens exactement où ils en sont, en bien comme en mal, ce qui est la moitié « transparence » de ma façon de diriger. Le point que je soulignerais, c'est que les valeurs ne sont réelles que si elles vous coûtent quelque chose ; les miennes se manifestent justement quand le chemin facile serait de me taire."
+        },
+        "keyPhrases": {
+          "en": ["value → behaviour → outcome", "values that cost something", "fairness over being liked", "straight talk"],
+          "fr": ["valeur → comportement → résultat", "des valeurs qui coûtent quelque chose", "l'équité plutôt qu'être apprécié", "le parler-franc"]
+        },
+        "watchOut": {
+          "en": "Abstract virtue words ('integrity, respect') persuade no one. Tie each value to a moment it cost you something — that's the proof.",
+          "fr": "Les mots de vertu abstraits (« intégrité, respect ») ne convainquent personne. Reliez chaque valeur à un moment où elle vous a coûté quelque chose — c'est la preuve."
+        },
+        "delivery": {
+          "en": "Pick one or two values, not five. Depth on one beats a catalogue.",
+          "fr": "Choisissez une ou deux valeurs, pas cinq. La profondeur sur une vaut mieux qu'un catalogue."
+        }
+      }
+    },
+    {
+      "id": "lead-crosscultural-1",
+      "tags": ["topic:cross-cultural", "edge:international"],
+      "prompt": {
+        "en": "Out loud, answer \"You've led across APAC and EMEA — what does leading across cultures actually require?\" Make it specific and earned, not 'I'm culturally aware.' Land on one principle you carry everywhere. Repeat, tightening.",
+        "fr": "À voix haute, répondez à « Vous avez dirigé en APAC et en EMEA — qu'exige réellement le leadership interculturel ? » Rendez-le précis et mérité, pas « je suis sensible aux cultures ». Terminez sur un principe que vous emportez partout. Répétez en resserrant."
+      },
+      "reference": {
+        "framework": {
+          "en": "Adapt the style, keep the standard. What changes across cultures is HOW you lead; what stays constant is the bar.",
+          "fr": "Adapter le style, garder le standard. Ce qui change selon les cultures, c'est COMMENT vous dirigez ; ce qui reste constant, c'est l'exigence."
+        },
+        "pattern": {
+          "en": "Concrete contrast (in X they..., in Y they...) → the principle that holds everywhere.",
+          "fr": "Contraste concret (en X ils..., en Y ils...) → le principe qui tient partout."
+        },
+        "model": {
+          "en": "Leading across APAC and EMEA taught me that the standard travels but the style has to be re-earned everywhere. Concretely — direct feedback that lands as helpful in one market reads as disrespectful in another, and how openly a team will challenge you up the hierarchy varies enormously. So I adapt the delivery: more indirect and relationship-first where that's the norm, more direct where it's expected. But the one thing I carry everywhere is that I hold the same bar on outcomes and the same transparency about where people stand — I just deliver it in the register the culture hears. The mistake is thinking cultural adaptation means lowering the standard; it means changing the channel, not the message.",
+          "fr": "Diriger en APAC et en EMEA m'a appris que le standard voyage mais que le style doit se mériter de nouveau partout. Concrètement — un feedback direct qui passe pour utile dans un marché est perçu comme irrespectueux dans un autre, et la liberté avec laquelle une équipe vous challenge dans la hiérarchie varie énormément. J'adapte donc la forme : plus indirect et relationnel là où c'est la norme, plus direct là où c'est attendu. Mais la seule chose que j'emporte partout, c'est que je tiens la même exigence sur les résultats et la même transparence sur où en sont les gens — je la livre simplement dans le registre que la culture entend. L'erreur, c'est de croire que l'adaptation culturelle signifie baisser le standard ; elle signifie changer de canal, pas de message."
+        },
+        "keyPhrases": {
+          "en": ["adapt the style, keep the standard", "change the channel, not the message", "re-earned everywhere", "register the culture hears"],
+          "fr": ["adapter le style, garder le standard", "changer de canal, pas de message", "se mériter partout", "le registre que la culture entend"]
+        },
+        "watchOut": {
+          "en": "'I'm culturally sensitive' is empty. Give a concrete contrast between two markets and the principle you held constant.",
+          "fr": "« Je suis sensible aux cultures » est creux. Donnez un contraste concret entre deux marchés et le principe que vous avez gardé constant."
+        },
+        "delivery": {
+          "en": "Speak from lived experience — name the regions, the specific contrast. Earned beats aware.",
+          "fr": "Parlez d'expérience vécue — nommez les régions, le contraste précis. Le mérité vaut mieux que le conscient."
+        }
+      }
+    },
+    {
+      "id": "lead-perfculture-1",
+      "tags": ["topic:performance-culture", "audience:manager-vp"],
+      "prompt": {
+        "en": "Out loud, answer \"How do you build a high-performance culture from scratch?\" Give the mechanism, not the buzzword — what you actually put in place. Repeat, tightening to the two things that matter most.",
+        "fr": "À voix haute, répondez à « Comment construisez-vous une culture de haute performance à partir de zéro ? » Donnez le mécanisme, pas le mot à la mode — ce que vous mettez réellement en place. Répétez en resserrant sur les deux choses qui comptent le plus."
+      },
+      "reference": {
+        "framework": {
+          "en": "Performance culture = clear standard + visible accountability + recognition that rewards the right behaviour. Culture is what you tolerate and what you celebrate.",
+          "fr": "Culture de performance = standard clair + responsabilité visible + reconnaissance qui récompense le bon comportement. La culture, c'est ce que vous tolérez et ce que vous célébrez."
+        },
+        "pattern": {
+          "en": "Define what good looks like → make performance visible → reward the behaviour, not just the result.",
+          "fr": "Définir ce qu'est le bon niveau → rendre la performance visible → récompenser le comportement, pas seulement le résultat."
+        },
+        "model": {
+          "en": "A high-performance culture isn't a poster; it's the sum of what you tolerate and what you celebrate. From scratch, I start by making the standard unambiguous — what great looks like, in behaviours not just numbers. Then I make performance visible, because what gets seen gets matched — not to shame anyone, but so the bar is real and shared. And I'm deliberate about recognition: I celebrate the behaviour I want repeated, like someone escalating a risk early or helping a peer win, not only the closed deal. The fastest way to kill a performance culture is to tolerate someone who misses the standard with no consequence — the whole team recalibrates to that.",
+          "fr": "Une culture de haute performance n'est pas une affiche ; c'est la somme de ce que vous tolérez et de ce que vous célébrez. À partir de zéro, je commence par rendre le standard sans ambiguïté — ce à quoi ressemble l'excellence, en comportements et pas seulement en chiffres. Puis je rends la performance visible, car ce qui est vu est imité — non pour faire honte à quiconque, mais pour que l'exigence soit réelle et partagée. Et je suis délibéré sur la reconnaissance : je célèbre le comportement que je veux voir répété, comme quelqu'un qui remonte un risque tôt ou aide un collègue à gagner, pas seulement l'affaire signée. La façon la plus rapide de tuer une culture de performance, c'est de tolérer quelqu'un qui rate le standard sans conséquence — toute l'équipe se recalibre là-dessus."
+        },
+        "keyPhrases": {
+          "en": ["what you tolerate and celebrate", "standard in behaviours not just numbers", "make performance visible", "reward the behaviour"],
+          "fr": ["ce que vous tolérez et célébrez", "standard en comportements, pas que chiffres", "rendre la performance visible", "récompenser le comportement"]
+        },
+        "watchOut": {
+          "en": "'I set high standards and hold people accountable' is what everyone says. Give the mechanism — visibility, recognition, and what you refuse to tolerate.",
+          "fr": "« Je fixe des standards élevés et je responsabilise » est ce que tout le monde dit. Donnez le mécanisme — la visibilité, la reconnaissance, et ce que vous refusez de tolérer."
+        },
+        "delivery": {
+          "en": "Confident and specific. 'Culture is what you tolerate and celebrate' is a line worth landing slowly.",
+          "fr": "Assuré et précis. « La culture, c'est ce que vous tolérez et célébrez » est une formule à poser lentement."
+        }
+      }
+    },
+    {
+      "id": "lead-coaching-1",
+      "tags": ["topic:coaching", "audience:manager-vp"],
+      "prompt": {
+        "en": "Out loud, answer \"How do you develop your people?\" Show you coach rather than just manage — how you grow someone, with a concrete approach. Repeat, tightening.",
+        "fr": "À voix haute, répondez à « Comment développez-vous vos collaborateurs ? » Montrez que vous coachez plutôt que vous ne managez seulement — comment vous faites grandir quelqu'un, avec une approche concrète. Répétez en resserrant."
+      },
+      "reference": {
+        "framework": {
+          "en": "Coach by asking, not telling — develop judgment, not dependence. Stretch people just past their comfort and protect them while they grow.",
+          "fr": "Coacher en questionnant, pas en dictant — développer le jugement, pas la dépendance. Pousser les gens juste au-delà de leur zone de confort et les protéger pendant qu'ils grandissent."
+        },
+        "pattern": {
+          "en": "Diagnose where they are → give a stretch with support → ask questions that build their judgment.",
+          "fr": "Diagnostiquer où ils en sont → donner un défi avec du soutien → poser des questions qui construisent leur jugement."
+        },
+        "model": {
+          "en": "I try to coach more than I manage, and the difference is that I develop judgment rather than dependence. Concretely, I'd rather ask 'what would you do?' than hand someone the answer, even when it's slower, because the goal is that they don't need me for that decision next time. I give people a stretch — a deal or a situation just past what they've done before — then protect them while they grow into it, so the risk of stretching is on me, not them. The signal I'm doing it right is when someone on my team gets promoted or solves something I used to solve. Developing people who outgrow you is the job, not a threat to it.",
+          "fr": "J'essaie de coacher plus que de manager, et la différence, c'est que je développe le jugement plutôt que la dépendance. Concrètement, je préfère demander « que feriez-vous ? » que donner la réponse, même quand c'est plus lent, parce que le but est qu'ils n'aient plus besoin de moi pour cette décision la prochaine fois. Je donne aux gens un défi — une affaire ou une situation juste au-delà de ce qu'ils ont déjà fait — puis je les protège pendant qu'ils s'y développent, pour que le risque du défi soit sur moi, pas sur eux. Le signe que je fais bien, c'est quand quelqu'un de mon équipe est promu ou résout ce que je résolvais avant. Développer des gens qui vous dépassent, c'est le métier, pas une menace pour lui."
+        },
+        "keyPhrases": {
+          "en": ["coach not manage", "ask, don't tell", "stretch with protection", "develop people who outgrow you"],
+          "fr": ["coacher, pas manager", "questionner, pas dicter", "défier avec protection", "développer des gens qui vous dépassent"]
+        },
+        "watchOut": {
+          "en": "Don't describe coaching as 'I give feedback.' Show the mechanism — asking over telling, stretch with cover, and the promotion as your scoreboard.",
+          "fr": "Ne décrivez pas le coaching comme « je donne du feedback ». Montrez le mécanisme — questionner plutôt que dicter, le défi avec protection, et la promotion comme votre tableau de bord."
+        },
+        "delivery": {
+          "en": "Warm but precise. 'Developing people who outgrow you is the job' is a strong, secure thing to say in a VP interview.",
+          "fr": "Chaleureux mais précis. « Développer des gens qui vous dépassent, c'est le métier » est une chose forte et assurée à dire en entretien VP."
+        }
+      }
+    },
+    {
+      "id": "lead-underperformance-1",
+      "tags": ["topic:underperformance", "audience:manager-vp"],
+      "prompt": {
+        "en": "Scenario: \"Tell me how you handle an underperformer.\" Out loud, walk it: how you diagnose, the conversation, and how you stay fair and decisive. Don't be either soft or brutal. Repeat, tightening.",
+        "fr": "Mise en situation : « Dites-moi comment vous gérez un collaborateur en sous-performance. » À voix haute, déroulez-le : comment vous diagnostiquez, la conversation, et comment vous restez juste et décisif. Ne soyez ni mou ni brutal. Répétez en resserrant."
+      },
+      "reference": {
+        "framework": {
+          "en": "Diagnose first (skill vs will vs situation), be direct and early, give a real chance with a clear bar — then decide cleanly if it doesn't move.",
+          "fr": "Diagnostiquer d'abord (compétence vs volonté vs situation), être direct et tôt, donner une vraie chance avec une exigence claire — puis trancher proprement si rien ne bouge."
+        },
+        "pattern": {
+          "en": "Diagnose the cause → name the gap directly and early → clear bar + support → decide cleanly.",
+          "fr": "Diagnostiquer la cause → nommer l'écart directement et tôt → exigence claire + soutien → trancher proprement."
+        },
+        "model": {
+          "en": "First I diagnose, because underperformance has different causes — is it skill, will, or something in the situation I haven't fixed? Then I'm direct and early: I name the gap clearly and specifically, in private, without softening it into something they can't hear. I give a real, fair chance — a clear bar, a timeframe, and the support to hit it — because someone deserves to know exactly what 'good' looks like and to try. But I'm also decisive: if it doesn't move, I act, because the most unfair thing a manager does is carry an underperformer and let the rest of the team absorb it. Fairness and decisiveness aren't opposites — doing it early and honestly is the kind version.",
+          "fr": "D'abord je diagnostique, car la sous-performance a différentes causes — est-ce la compétence, la volonté, ou quelque chose dans la situation que je n'ai pas corrigé ? Puis je suis direct et tôt : je nomme l'écart clairement et précisément, en privé, sans l'édulcorer au point qu'ils ne puissent l'entendre. Je donne une chance réelle et juste — une exigence claire, un délai, et le soutien pour l'atteindre — parce que quelqu'un mérite de savoir exactement ce qu'est le « bon niveau » et d'essayer. Mais je suis aussi décisif : si rien ne bouge, j'agis, car la chose la plus injuste qu'un manager fasse, c'est de porter un collaborateur en sous-performance et de laisser le reste de l'équipe l'absorber. Justice et décision ne sont pas opposées — le faire tôt et honnêtement, c'est la version bienveillante."
+        },
+        "keyPhrases": {
+          "en": ["skill vs will vs situation", "direct and early", "clear bar with support", "fairness and decisiveness aren't opposites"],
+          "fr": ["compétence vs volonté vs situation", "direct et tôt", "exigence claire avec soutien", "justice et décision ne sont pas opposées"]
+        },
+        "watchOut": {
+          "en": "Don't sound soft ('I give endless chances') or brutal ('I cut fast'). The senior answer is fair process AND a clean decision — and naming why dragging it out is the unkind option.",
+          "fr": "Ne paraissez ni mou (« je donne des chances infinies ») ni brutal (« je tranche vite »). La réponse senior, c'est un processus juste ET une décision nette — et nommer pourquoi faire traîner est l'option la moins bienveillante."
+        },
+        "delivery": {
+          "en": "Even, unflinching tone. This question tests whether you can be both humane and decisive — your voice should carry both.",
+          "fr": "Ton égal et sans détour. Cette question teste si vous pouvez être à la fois humain et décisif — votre voix doit porter les deux."
+        }
+      }
+    },
+    {
+      "id": "lead-change-1",
+      "tags": ["topic:leading-change", "audience:manager-vp"],
+      "prompt": {
+        "en": "Scenario: \"Tell me about leading a team through a major change\" — a reorg, a new strategy, real uncertainty. Out loud, give the approach: how you bring people with you when you don't have all the answers. Repeat, tightening.",
+        "fr": "Mise en situation : « Parlez-moi d'une fois où vous avez mené une équipe à travers un changement majeur » — une réorganisation, une nouvelle stratégie, une vraie incertitude. À voix haute, donnez l'approche : comment vous embarquez les gens quand vous n'avez pas toutes les réponses. Répétez en resserrant."
+      },
+      "reference": {
+        "framework": {
+          "en": "Lead change with honesty about uncertainty + a clear why + relentless communication. People follow candour and a reason, not forced optimism.",
+          "fr": "Mener le changement avec de l'honnêteté sur l'incertitude + un pourquoi clair + une communication sans relâche. Les gens suivent la franchise et une raison, pas un optimisme forcé."
+        },
+        "pattern": {
+          "en": "Name the why → be honest about what's uncertain → over-communicate → give people a part to own.",
+          "fr": "Nommer le pourquoi → être honnête sur ce qui est incertain → sur-communiquer → donner à chacun un rôle à s'approprier."
+        },
+        "model": {
+          "en": "When I've led teams through change, the instinct to avoid is fake certainty — people see through it and trust drops exactly when you need it. So I lead with the why: the honest reason the change is happening and where we're trying to get to. I'm candid about what I don't yet know, which paradoxically builds more trust than pretending. Then I over-communicate — far more than feels necessary — because in uncertainty silence gets filled with the worst assumptions. And I give people a concrete part to own, because the fastest way through anxiety is agency. The transparency half of how I lead matters most exactly here: in change, candour is the leadership.",
+          "fr": "Quand j'ai mené des équipes à travers le changement, l'instinct à éviter, c'est la fausse certitude — les gens la perçoivent et la confiance chute précisément quand vous en avez besoin. Je commence donc par le pourquoi : la raison honnête du changement et où nous essayons d'aller. Je suis franc sur ce que je ne sais pas encore, ce qui, paradoxalement, bâtit plus de confiance que de faire semblant. Puis je sur-communique — bien plus qu'il ne semble nécessaire — car dans l'incertitude, le silence se remplit des pires hypothèses. Et je donne à chacun un rôle concret à s'approprier, car le chemin le plus rapide hors de l'anxiété, c'est l'autonomie d'action. La moitié « transparence » de ma façon de diriger compte le plus justement ici : dans le changement, la franchise est le leadership."
+        },
+        "keyPhrases": {
+          "en": ["avoid fake certainty", "lead with the why", "over-communicate", "agency beats anxiety"],
+          "fr": ["éviter la fausse certitude", "commencer par le pourquoi", "sur-communiquer", "l'autonomie d'action contre l'anxiété"]
+        },
+        "watchOut": {
+          "en": "Don't claim you had all the answers or that the team just trusted you. Show the candour and the communication discipline — that's what real change leadership looks like.",
+          "fr": "Ne prétendez pas que vous aviez toutes les réponses ou que l'équipe vous a simplement fait confiance. Montrez la franchise et la discipline de communication — c'est à ça que ressemble le vrai leadership du changement."
+        },
+        "delivery": {
+          "en": "Steady and human. The line 'in change, candour is the leadership' is worth saying slowly.",
+          "fr": "Posé et humain. La formule « dans le changement, la franchise est le leadership » mérite d'être dite lentement."
+        }
+      }
+    },
+    {
+      "id": "lead-readiness-1",
+      "tags": ["topic:ic-to-leader", "audience:manager-vp", "skill:narrative"],
+      "prompt": {
+        "en": "The transition question: \"You've been a top individual seller — why are you ready to lead, and why now?\" Out loud, answer it so it sounds like a deliberate next step, not an escape from carrying a number. Repeat, tightening to the core reason.",
+        "fr": "La question de la transition : « Vous avez été un excellent vendeur individuel — pourquoi êtes-vous prêt à diriger, et pourquoi maintenant ? » À voix haute, répondez de façon à ce que cela sonne comme une étape suivante délibérée, pas une fuite du fait de porter un chiffre. Répétez en resserrant sur la raison centrale."
+      },
+      "reference": {
+        "framework": {
+          "en": "Frame leadership as multiplying impact through others, backed by evidence you already do it informally. Pull toward leadership, not push away from quota.",
+          "fr": "Présentez le leadership comme la multiplication de l'impact à travers les autres, étayée par la preuve que vous le faites déjà de façon informelle. Une attirance vers le leadership, pas une fuite du quota."
+        },
+        "pattern": {
+          "en": "The pull (multiply through others) → evidence you already do it → why now.",
+          "fr": "L'attirance (multiplier à travers les autres) → la preuve que vous le faites déjà → pourquoi maintenant."
+        },
+        "model": {
+          "en": "I'm ready to lead because what energises me now isn't closing one more deal myself — it's making a whole team better at it. I already do this informally: I'm the person peers come to for deal strategy and exec conversations, and I get more satisfaction from a colleague winning with my help than from my own number. Why now is that I've mastered the individual craft to the point where my marginal hour is worth more spent multiplying it across a team than adding to my own quota. And to be clear, it's a pull toward leadership, not an escape from carrying a number — I'll carry the team's number, which is harder, and I want that.",
+          "fr": "Je suis prêt à diriger parce que ce qui m'anime aujourd'hui, ce n'est pas de signer une affaire de plus moi-même — c'est de rendre toute une équipe meilleure pour le faire. Je le fais déjà de façon informelle : je suis la personne vers qui les collègues viennent pour la stratégie d'affaire et les conversations exécutives, et je tire plus de satisfaction d'un collègue qui gagne avec mon aide que de mon propre chiffre. Le « pourquoi maintenant », c'est que j'ai maîtrisé le métier individuel au point où mon heure marginale vaut plus à multiplier cela sur une équipe qu'à ajouter à mon propre quota. Et pour être clair, c'est une attirance vers le leadership, pas une fuite du fait de porter un chiffre — je porterai le chiffre de l'équipe, ce qui est plus dur, et c'est ce que je veux."
+        },
+        "keyPhrases": {
+          "en": ["multiply through others", "I already do it informally", "pull not escape", "carry the team's number"],
+          "fr": ["multiplier à travers les autres", "je le fais déjà de façon informelle", "attirance, pas fuite", "porter le chiffre de l'équipe"]
+        },
+        "watchOut": {
+          "en": "The fatal version sounds like you're tired of carrying quota. Make it a pull toward bigger impact, with proof you already lead without the title.",
+          "fr": "La version fatale donne l'impression que vous en avez assez de porter le quota. Faites-en une attirance vers un impact plus grand, avec la preuve que vous dirigez déjà sans le titre."
+        },
+        "delivery": {
+          "en": "Confident and forward-looking. 'I'll carry the team's number and I want that' shows you understand the job gets harder, not easier.",
+          "fr": "Assuré et tourné vers l'avant. « Je porterai le chiffre de l'équipe et c'est ce que je veux » montre que vous comprenez que le métier devient plus dur, pas plus facile."
+        }
+      }
+    }
+  ]
+}
