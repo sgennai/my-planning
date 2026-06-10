@@ -1255,8 +1255,11 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
           <div className="mini-card">
             <div className="tt-head">
               <div className="mt">Today's tasks</div>
+              {todoistToken && todoistProjectId && (
+                <button className="tt-add" onClick={() => { setTodoPickerOpen(true); setTodoistRefreshTick(v => v + 1); }}>＋ Add from Todoist</button>
+              )}
             </div>
-            <div className="today-hero-pt-cols">
+            <div className="tt-grid">
               {['morning', 'afternoon'].map(slot => {
                 const label = slot === 'morning' ? 'Morning' : 'Afternoon';
                 const localItems = todos.filter(t => t.slot === slot).map(t => ({ id: t.id, title: t.title, done: !!t.done, source: 'local' }));
@@ -1266,7 +1269,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
                 return (
                   <div
                     key={slot}
-                    className={`today-hero-pt-col${isTarget ? ' drop-active' : ''}`}
+                    className={`tt-col${isTarget ? ' drop-active' : ''}`}
                     onDragOver={e => { if (e.dataTransfer.types.includes('application/json')) { e.preventDefault(); setHeroDropTarget(slot); } }}
                     onDragEnter={e => { if (e.dataTransfer.types.includes('application/json')) setHeroDropTarget(slot); }}
                     onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget)) setHeroDropTarget(null); }}
@@ -1285,194 +1288,27 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
                       } catch {}
                     }}
                   >
-                    <div className="today-hero-pt-col-header">
-                      {label} <span className="today-hero-pt-count">{slotItems.length}/5</span>
-                    </div>
-                    <div className="today-hero-list">
-                      {slotItems.length === 0
-                        ? <div className="today-hero-pt-empty">Drop here</div>
-                        : slotItems.map(item => (
-                          <div
-                            key={item.id}
-                            className={`today-hero-list-item today-hero-pt-item${item.done ? ' done' : ''}`}
-                            draggable
-                            onDragStart={e => { e.stopPropagation(); e.dataTransfer.setData('application/json', JSON.stringify({ type: 'todo-col-move', todoId: item.id, source: item.source })); }}
-                          >
-                            <input
-                              type="checkbox"
-                              className="today-hero-pt-check"
-                              checked={item.done}
-                              onChange={() => item.source === 'todoist' ? completeTodoistTask(item.id) : updateTodo(item.id, { done: !item.done })}
-                              onClick={e => e.stopPropagation()}
-                            />
-                            <span className="today-hero-list-title today-hero-list-title--link" onClick={e => { e.stopPropagation(); setHeroTaskDetail(item); }}>{item.title}</span>
-                            <button className="today-hero-pt-remove" onClick={() => item.source === 'todoist' ? setTodoistTaskSlot(item.id, null) : setTodoSlot(item.id, null)} title="Unpromote">×</button>
-                          </div>
-                        ))
-                      }
-                    </div>
+                    <div className="tt-label"><b>{label}</b><span className="c">{slotItems.length} / 5</span></div>
+                    {slotItems.map(item => (
+                      <div
+                        key={item.id}
+                        className={`tt-task${item.done ? ' done' : ''}`}
+                        draggable
+                        onDragStart={e => { e.stopPropagation(); e.dataTransfer.setData('application/json', JSON.stringify({ type: 'todo-col-move', todoId: item.id, source: item.source })); }}
+                      >
+                        <button
+                          className={`tt-check${item.done ? ' done' : ''}`}
+                          onClick={() => item.source === 'todoist' ? completeTodoistTask(item.id) : updateTodo(item.id, { done: !item.done })}
+                          aria-label={item.done ? 'Mark not done' : 'Mark done'}
+                        />
+                        <span className="tt-name tt-name--link" onClick={() => setHeroTaskDetail(item)}>{item.title}</span>
+                        <button className="tt-remove" onClick={() => item.source === 'todoist' ? setTodoistTaskSlot(item.id, null) : setTodoSlot(item.id, null)} title="Remove from today">×</button>
+                      </div>
+                    ))}
+                    <div className="tt-drop" onClick={() => { setTodoPickerOpen(true); setTodoistRefreshTick(v => v + 1); }}>＋ add</div>
                   </div>
                 );
               })}
-            </div>
-          </div>
-
-          {/* To-dos — source list (becomes the on-demand picker in Commit 2) */}
-          <div className="mini-card">
-            <div className="today-rail-section" style={{ padding: 0 }}>
-            <div className="today-rail-header">
-              <div className="today-rail-eyebrow">To-dos</div>
-              <button className="rail-section-toggle" onClick={() => setTodosExpanded(v => !v)} aria-label={todosExpanded ? 'Collapse todos' : 'Expand todos'}>
-                <span className={`rail-section-toggle-icon${todosExpanded ? '' : ' collapsed'}`}>⌄</span>
-              </button>
-            </div>
-            {todoistToken && todoistProjectId && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 0 8px' }}>
-                <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 3, border: '1px solid var(--border)', borderRadius: 'var(--radius-pill)', padding: '2px 7px 2px 9px', background: 'transparent', cursor: 'pointer' }}>
-                  {/* Visible label — pointer-events off so clicks fall through to the select */}
-                  <span style={{ color: 'var(--muted-2)', fontSize: 11, fontFamily: 'var(--serif)', pointerEvents: 'none', userSelect: 'none' }}>
-                    {({ 0:'All', 1:'Today', 3:'3 days', 7:'7 days', 14:'14 days', 30:'30 days' }[todoistDaysAhead] || 'Today')}
-                  </span>
-                  <span style={{ color: 'var(--muted-3)', fontSize: 9, lineHeight: 1, pointerEvents: 'none', userSelect: 'none' }}>⌄</span>
-                  {/* Invisible select covers the full pill — any click opens the native dropdown */}
-                  <select
-                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
-                    value={String(todoistDaysAhead)}
-                    onChange={e => updateTodoistSettings({ daysAhead: Number(e.target.value) })}
-                  >
-                    <option value="0">All</option>
-                    <option value="1">Today</option>
-                    <option value="3">3 days</option>
-                    <option value="7">7 days</option>
-                    <option value="14">14 days</option>
-                    <option value="30">30 days</option>
-                  </select>
-                </div>
-                <button className="rail-section-toggle" onClick={() => setTodoistRefreshTick(v => v + 1)} disabled={todoistLoading} title="Refresh Todoist" style={{ opacity: todoistLoading ? 0.3 : 0.45, fontSize: 10 }}>
-                  ↻
-                </button>
-              </div>
-            )}
-            {todosExpanded && (
-              <>
-                <div className="today-todo-add" style={todoistProxyBase ? { alignItems: 'center', paddingRight: 4 } : undefined}>
-                  <input
-                    type="text"
-                    className="today-todo-add-input"
-                    style={todoistProxyBase ? { minWidth: 0 } : undefined}
-                    placeholder={todoistProxyBase ? '+ add task…' : '+ add todo, Enter to save'}
-                    value={todoInput}
-                    onChange={e => setTodoInput(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); todoistProxyBase ? submitTodoistTask() : submitTodo(); } }}
-                  />
-                  {todoistProxyBase && (<>
-                    {todoInput.trim() && (<>
-                      <div style={{ position: 'relative', flexShrink: 0 }}>
-                        <input
-                          ref={todoistDueRef}
-                          type="date"
-                          style={{ position: 'absolute', bottom: 0, left: 0, opacity: 0, pointerEvents: 'none', width: '100%', height: '100%' }}
-                          value={todoistDueInput}
-                          onChange={e => setTodoistDueInput(e.target.value)}
-                        />
-                        <button
-                          className="rail-section-toggle"
-                          style={{ position: 'relative', zIndex: 1, width: todoistDueInput ? 'auto' : 22, padding: todoistDueInput ? '0 5px' : 0, color: todoistDueInput ? 'var(--gold)' : undefined, fontFamily: 'var(--mono)', fontSize: 10 }}
-                          title="Pick due date"
-                          onClick={() => todoistDueRef.current?.showPicker?.()}
-                        >
-                          {todoistDueInput ? (() => { const d = new Date(todoistDueInput + 'T00:00:00'); return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); })() : (
-                            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><rect x="1" y="2.5" width="14" height="12.5" rx="2"/><line x1="1" y1="7" x2="15" y2="7"/><line x1="5" y1="0" x2="5" y2="5"/><line x1="11" y1="0" x2="11" y2="5"/></svg>
-                          )}
-                        </button>
-                      </div>
-                      <button
-                        className="rail-section-toggle"
-                        style={{ color: 'var(--gold)' }}
-                        title="Add task to Todoist"
-                        onClick={submitTodoistTask}
-                      >
-                        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="2" y1="8" x2="13" y2="8"/><polyline points="9 4 13 8 9 12"/></svg>
-                      </button>
-                    </>)}
-                  </>)}
-                </div>
-                <div className="today-rail-list">
-                  {sortedTodos.length === 0 && todoistTasks.length === 0 && todoistPendingTasks.length === 0 ? (
-                    <div className="today-rail-empty">{todoistLoading ? 'Loading…' : 'No todos.'}</div>
-                  ) : null}
-                  {sortedTodos.map(t => (
-                    <div
-                      key={t.id}
-                      className={`today-todo-row ${t.done ? 'done' : ''}`}
-                      draggable={!t.done}
-                      onDragStart={(e) => onTodoRailDragStart(e, t)}
-                    >
-                      <input
-                        type="checkbox"
-                        className="today-todo-check"
-                        checked={!!t.done}
-                        onChange={() => updateTodo(t.id, { done: !t.done })}
-                        onClick={e => e.stopPropagation()}
-                      />
-                      <div className="today-todo-title">{t.title}</div>
-                      <div className="today-todo-slots">
-                        <div className="today-todo-slots-group">
-                          <span className={`today-todo-slots-dot${t.slot ? ' has-slot' : ''}`}>
-                            {t.slot === 'morning' ? 'AM' : t.slot === 'afternoon' ? 'PM' : '+'}
-                          </span>
-                          <div className="today-todo-slots-choices">
-                            <button className={`today-todo-slot-btn${t.slot === 'morning' ? ' active' : ''}`} onClick={e => { e.stopPropagation(); if (t.slot === 'morning') { setTodoSlot(t.id, null); } else { if (todos.filter(x => x.slot === 'morning').length < 5) setTodoSlot(t.id, 'morning'); } }} title="Add to Morning">AM</button>
-                            <button className={`today-todo-slot-btn${t.slot === 'afternoon' ? ' active' : ''}`} onClick={e => { e.stopPropagation(); if (t.slot === 'afternoon') { setTodoSlot(t.id, null); } else { if (todos.filter(x => x.slot === 'afternoon').length < 5) setTodoSlot(t.id, 'afternoon'); } }} title="Add to Afternoon">PM</button>
-                          </div>
-                        </div>
-                      </div>
-                      <button className="rail-section-toggle today-todo-delete" onClick={e => { e.stopPropagation(); deleteTodo(t.id); }} title="Delete">×</button>
-                    </div>
-                  ))}
-                  {todoistError ? (
-                    <div className="today-rail-empty" style={{ color: 'var(--coral)' }}>{todoistError}</div>
-                  ) : todoistTasks.map(t => (
-                    <div
-                      key={t.id}
-                      className="today-todo-row"
-                      draggable
-                      onDragStart={e => {
-                        e.dataTransfer.effectAllowed = 'move';
-                        e.dataTransfer.setData('application/json', JSON.stringify({ type: 'todo-promote', todoId: t.id, title: t.content, source: 'todoist' }));
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        className="today-todo-check"
-                        checked={false}
-                        onChange={() => completeTodoistTask(t.id)}
-                        onClick={e => e.stopPropagation()}
-                      />
-                      <div className="today-todo-title">{t.content}</div>
-                      <div className="today-todo-slots">
-                        <div className="today-todo-slots-group">
-                          <span className={`today-todo-slots-dot${todoistSlots[t.id] ? ' has-slot' : ''}`}>
-                            {todoistSlots[t.id] === 'morning' ? 'AM' : todoistSlots[t.id] === 'afternoon' ? 'PM' : '+'}
-                          </span>
-                          <div className="today-todo-slots-choices">
-                            <button className={`today-todo-slot-btn${todoistSlots[t.id] === 'morning' ? ' active' : ''}`} onClick={e => { e.stopPropagation(); if (todoistSlots[t.id] === 'morning') setTodoistTaskSlot(t.id, null); else { const total = todos.filter(x => x.slot === 'morning').length + todoistTasks.filter(x => todoistSlots[x.id] === 'morning').length; if (total < 5) setTodoistTaskSlot(t.id, 'morning'); } }} title="Add to Morning">AM</button>
-                            <button className={`today-todo-slot-btn${todoistSlots[t.id] === 'afternoon' ? ' active' : ''}`} onClick={e => { e.stopPropagation(); if (todoistSlots[t.id] === 'afternoon') setTodoistTaskSlot(t.id, null); else { const total = todos.filter(x => x.slot === 'afternoon').length + todoistTasks.filter(x => todoistSlots[x.id] === 'afternoon').length; if (total < 5) setTodoistTaskSlot(t.id, 'afternoon'); } }} title="Add to Afternoon">PM</button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  {todoistPendingTasks.map(t => (
-                    <div key={t.id} className="today-todo-row is-pending" title="Waiting to sync with Todoist">
-                      <span style={{ width: 14, flexShrink: 0, textAlign: 'center', fontSize: 12, color: 'var(--muted-3)' }}>⟳</span>
-                      <div className="today-todo-title">{t.content}</div>
-                      <button className="rail-section-toggle" style={{ marginLeft: 'auto', flexShrink: 0 }} onClick={() => deletePendingTask(t.id)} title="Remove">×</button>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
             </div>
           </div>
         </div>
@@ -1591,6 +1427,37 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
       </>
     )}
     </div>{/* end .plan-screen */}
+
+    {/* ＋ Add from Todoist — pulls the configured (Perso) project; tap AM/PM to
+        promote into today. Reuses the existing fetch + promote logic untouched. */}
+    {todoPickerOpen && (
+      <div className="tt-picker-backdrop" onClick={() => setTodoPickerOpen(false)}>
+        <div className="tt-picker" onClick={e => e.stopPropagation()}>
+          <div className="pk-h">
+            <span>From Todoist · {todoistProjectName || 'Perso'}</span>
+            <button className="pk-close" onClick={() => setTodoPickerOpen(false)} aria-label="Close">×</button>
+          </div>
+          <div className="pk-list">
+            {(() => {
+              const available = todoistTasks.filter(t => !todoistSlots[t.id]);
+              if (todoistError) return <div className="pk-empty" style={{ color: 'var(--coral)' }}>{todoistError}</div>;
+              if (todoistLoading && available.length === 0) return <div className="pk-empty">Loading…</div>;
+              if (available.length === 0) return <div className="pk-empty">Nothing left to add.</div>;
+              const slotCount = (slot) => todos.filter(x => x.slot === slot).length + todoistTasks.filter(x => todoistSlots[x.id] === slot).length;
+              return available.map(t => (
+                <div key={t.id} className="pk-task">
+                  <span className="pk-name">{t.content}</span>
+                  <span className="pk-btns">
+                    <button className="pk-btn" disabled={slotCount('morning') >= 5} onClick={() => setTodoistTaskSlot(t.id, 'morning')} title="Add to Morning">AM</button>
+                    <button className="pk-btn" disabled={slotCount('afternoon') >= 5} onClick={() => setTodoistTaskSlot(t.id, 'afternoon')} title="Add to Afternoon">PM</button>
+                  </span>
+                </div>
+              ));
+            })()}
+          </div>
+        </div>
+      </div>
+    )}
 
     {/* ─── Modals (rendered for both Today and Plan views) ─── */}
     {openBlock && (
