@@ -1,7 +1,9 @@
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'X-Sync-Secret, Content-Type',
+  // X-Todoist-Token is needed so the browser's CORS preflight passes for the
+  // Todoist proxy routes below (this worker also serves D1 sync + ICS).
+  'Access-Control-Allow-Headers': 'X-Sync-Secret, X-Todoist-Token, Content-Type',
 };
 
 const VALID_STORES = [
@@ -17,6 +19,52 @@ export default {
     }
 
     const url = new URL(request.url);
+    const json = (obj, status = 200) => new Response(JSON.stringify(obj), {
+      status, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+    });
+
+    // ── Todoist proxy ──────────────────────────────────────────────────────
+    //   GET  /todoist/projects               → api.todoist.com/api/v1/projects
+    //   GET  /todoist/tasks?project_id=xxx   → api.todoist.com/api/v1/tasks?...
+    //   POST /todoist/tasks                  → create a task
+    //   POST /todoist/tasks/:id/close        → complete a task
+    // Auth: the Todoist API token travels in the X-Todoist-Token request header.
+    if (url.pathname === '/todoist' || url.pathname.startsWith('/todoist/')) {
+      const token = request.headers.get('X-Todoist-Token');
+      if (!token) return json({ error: 'Missing X-Todoist-Token header' }, 401);
+      const todoistPath = url.pathname.replace(/^\/todoist/, '');
+      const todoistUrl = `https://api.todoist.com/api/v1${todoistPath}${url.search}`;
+      const hasBody = request.method === 'POST' || request.method === 'PUT' || request.method === 'PATCH';
+      try {
+        const res = await fetch(todoistUrl, {
+          method: request.method,
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: hasBody ? await request.text() : undefined,
+        });
+        const body = await res.text();
+        return new Response(body, {
+          status: res.status,
+          headers: { ...CORS_HEADERS, 'Content-Type': res.headers.get('Content-Type') || 'application/json' },
+        });
+      } catch (e) {
+        return json({ error: 'Upstream Todoist fetch failed: ' + e.message }, 502);
+      }
+    }
+
+    // ── ICS proxy (?url=<encoded feed>) ────────────────────────────────────
+    if (url.searchParams.get('url')) {
+      const feedUrl = url.searchParams.get('url');
+      try {
+        const icsRes = await fetch(feedUrl);
+        const icsBody = await icsRes.text();
+        return new Response(icsBody, {
+          status: icsRes.status,
+          headers: { ...CORS_HEADERS, 'Content-Type': 'text/calendar; charset=utf-8' },
+        });
+      } catch (e) {
+        return new Response('ICS fetch failed: ' + e.message, { status: 502, headers: CORS_HEADERS });
+      }
+    }
 
     if (!url.pathname.startsWith('/sync/')) {
       return new Response('Not Found', { status: 404, headers: CORS_HEADERS });
