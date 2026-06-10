@@ -67,7 +67,8 @@ export async function loadData() {
     prefsRec, featureFlagsRec, userProfileRec,
     routineRec, overridesRec, routineCompletionsRec, calendarsRec,
     elsewhereTogglesRec, weatherRec,
-    inboxRec, referenceLibraryRec, practiceContentRec, interviewPrepRec
+    inboxRec, referenceLibraryRec, practiceContentRec, interviewPrepRec,
+    completedActionsRec, todoistRec, todoistSlotsRec, todoistPendingRec
   ] = await Promise.all([
     tx.objectStore(STORES.SINGLETONS).get('schemaVersion'),
     tx.objectStore(STORES.SINGLETONS).get('createdAt'),
@@ -84,7 +85,11 @@ export async function loadData() {
     tx.objectStore(STORES.SINGLETONS).get('inbox'),
     tx.objectStore(STORES.SINGLETONS).get('referenceLibrary'),
     tx.objectStore(STORES.SINGLETONS).get('practiceContent'),
-    tx.objectStore(STORES.SINGLETONS).get('interviewPrep')
+    tx.objectStore(STORES.SINGLETONS).get('interviewPrep'),
+    tx.objectStore(STORES.SINGLETONS).get('completedActions'),
+    tx.objectStore(STORES.SINGLETONS).get('todoist'),
+    tx.objectStore(STORES.SINGLETONS).get('todoistSlots'),
+    tx.objectStore(STORES.SINGLETONS).get('todoistPending')
   ]);
 
   // If no schema version, DB is empty
@@ -130,6 +135,10 @@ export async function loadData() {
     referenceLibrary: referenceLibraryRec ? referenceLibraryRec.value : [],
     practiceContent: practiceContentRec ? practiceContentRec.value : undefined,
     interviewPrep: interviewPrepRec ? interviewPrepRec.value : undefined,
+    completedActions: completedActionsRec ? completedActionsRec.value : [],
+    todoist: todoistRec ? todoistRec.value : undefined,
+    todoistSlots: todoistSlotsRec ? todoistSlotsRec.value : {},
+    todoistPending: todoistPendingRec ? todoistPendingRec.value : [],
 
     projects,
     todos,
@@ -205,6 +214,13 @@ export async function saveData(nextData: any) {
   // These objects might be removed eventually once everything is in practiceItems and stories
   syncSingleton('practiceContent', nextData.practiceContent, currentSnapshot.practiceContent);
   syncSingleton('interviewPrep', nextData.interviewPrep, currentSnapshot.interviewPrep);
+
+  // Project action history + Todoist config/state (token, project, AM/PM slots,
+  // pending tasks). Previously omitted here, so they were lost on reload/sync.
+  syncSingleton('completedActions', nextData.completedActions, currentSnapshot.completedActions);
+  syncSingleton('todoist', nextData.todoist, currentSnapshot.todoist);
+  syncSingleton('todoistSlots', nextData.todoistSlots, currentSnapshot.todoistSlots);
+  syncSingleton('todoistPending', nextData.todoistPending, currentSnapshot.todoistPending);
 
   syncCollection(STORES.PROJECTS, nextData.projects, currentSnapshot.projects);
   syncCollection(STORES.TODOS, nextData.todos, currentSnapshot.todos);
