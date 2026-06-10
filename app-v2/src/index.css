@@ -2766,7 +2766,7 @@
     .mini-month-label {
       font-size: 14px;
       font-weight: 700;
-      color: var(--muted-3);
+      color: var(--ink);
       letter-spacing: 0;
       font-family: var(--serif);
     }
@@ -8128,8 +8128,15 @@ h1, h2, h3, h4 { font-family: var(--f-disp); color: var(--ink); letter-spacing: 
 .ag-time { font-family: var(--f-mono); font-size: 12px; color: var(--muted); padding-top: 2px; }
 .ag-card { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--line); border-radius: var(--r-sm); padding: 11px 13px; cursor: pointer; transition: box-shadow var(--duration-fast) var(--ease-out); }
 .ag-card:hover { box-shadow: var(--sh-md); }
+.ag-card.physical { border-left-color: var(--green); }
+.ag-card.cal { border-left-color: var(--ink); }
+.ag-card.routine { border-left-color: #cfd4db; }
 .ag-card.practice { border-left-color: var(--gold); background: var(--gold-tint); }
 .ag-card.is-past { filter: saturate(.55); }
+/* Day view nested in the agenda column — bounded height, scrolls internally,
+   so the aside + bands below stay put. */
+.plan-day-grid { height: 600px; display: flex; flex-direction: column; }
+.plan-day-grid .week-grid { margin: 0; }
 .ag-card .h { font-family: var(--f-ui); font-weight: 600; color: var(--ink); font-size: 14px; display: flex; align-items: center; gap: 8px; line-height: 1.35; }
 .ag-card.done .h { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--muted-soft); }
 .ag-card .h .ic { width: 15px; height: 15px; color: var(--gold); flex: none; }
@@ -8152,6 +8159,10 @@ h1, h2, h3, h4 { font-family: var(--f-disp); color: var(--ink); letter-spacing: 
   .plan-screen { padding: 16px 14px 8px; }
   .plan-grid { grid-template-columns: 1fr; gap: 16px; }
   .plan-screen .ph h2.t { font-size: 22px; }
+  /* keep the header clear of the fixed top-right utility cluster
+     (theme · settings · sign-out) so nothing overlaps */
+  .plan-screen .ph-top { padding-right: 116px; }
+  .plan-screen .plan-controls { gap: 8px; margin-bottom: 16px; }
 }
 
 /* Week view (deferred restyle) — give the kept hour-grid a usable height

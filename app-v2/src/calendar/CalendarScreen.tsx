@@ -1167,23 +1167,48 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
         </div>
       </div>
 
-    {planView === 'timeline' ? (
+    {planView !== 'week' ? (
     <>
-    {/* BAND 1 — the day */}
+    {/* BAND 1 — the day. Timeline shows the agenda list; Day swaps the same
+        left column for a single-day hour-grid — the aside + bands stay put. */}
     <div className="plan-grid">
 
-      {/* LEFT — the day's agenda */}
+      {/* LEFT — agenda (Timeline) or single-day hour-grid (Day) */}
       <div className="plan-agenda">
-        {planAgendaItems.length === 0 ? (
+        {planView === 'day' && !isMobile ? (
+          <div className="plan-day-grid day-view">
+            <WeekGrid
+              routine={(data.routine || []).filter(it => it.category !== 'supplement')}
+              overrides={data.overrides || {}}
+              scheduledBlocks={blocks}
+              projects={projects}
+              weekStart={dayGridWeekStart}
+              now={now}
+              singleCol={planDayIndex(viewDate)}
+              onDayClick={() => setPlanView('week')}
+              onCreateBlock={createBlock}
+              onBlockClick={(blockId) => setOpenBlockId(blockId)}
+              onRoutineClick={handleRoutineClick}
+              onUpdateBlock={updateBlock}
+              elsewhereToggles={elsewhere}
+              icsOccurrences={icsOccurrences}
+              completions={data.routineCompletions || {}}
+              onToggleComplete={toggleRoutineCompletion}
+              categoryStyles={categoryStyles}
+              calendarToggles={calendarToggles}
+            />
+          </div>
+        ) : planAgendaItems.length === 0 ? (
           <div className="plan-agenda-empty">Nothing scheduled for this day.</div>
         ) : planAgendaItems.map(it => {
           const isPast = isToday && (it.startMin + it.duration) <= nowMin;
           const isRoutine = it.kind === 'routine';
           const isBlock = it.kind === 'block';
-          const isPractice = it.category === 'practice';
-          const borderColor = isBlock ? (it.color || 'var(--ink)')
-            : it.kind === 'ics' ? 'var(--ink)'
-            : (CATS[it.category] && CATS[it.category].color) || 'var(--muted-soft)';
+          // Calm 4-colour palette per the spec, not per-category rainbow.
+          const variant = it.category === 'practice' ? 'practice'
+            : (it.category === 'gym' || it.category === 'physical') ? 'physical'
+            : (it.kind === 'ics' || it.kind === 'block') ? 'cal'
+            : 'routine';
           const meta = isRoutine ? (it.note || (CATS[it.category] && CATS[it.category].label) || `${it.duration} min`)
             : isBlock ? `${it.note ? it.note + ' · ' : ''}${it.duration} min`
             : `From ${it.note === 'WORK' ? 'work' : 'household'} calendar · ${it.duration} min`;
@@ -1191,8 +1216,8 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
             <div className="ag-item" key={it.id}>
               <div className="ag-time">{fmtHeroTime(it.startMin)}</div>
               <div
-                className={`ag-card${isPractice ? ' practice' : ''}${it.completed ? ' done' : ''}${isPast ? ' is-past' : ''}`}
-                style={{ borderLeftColor: isPractice ? undefined : borderColor, cursor: (isRoutine || isBlock) ? 'pointer' : 'default' }}
+                className={`ag-card ${variant}${it.completed ? ' done' : ''}${isPast ? ' is-past' : ''}`}
+                style={{ cursor: (isRoutine || isBlock) ? 'pointer' : 'default' }}
                 onClick={isRoutine ? () => handleRoutineClick(it.itemId, viewDate) : isBlock ? () => setOpenBlockId(it.blockId) : undefined}
               >
                 <div className="h">
@@ -1255,9 +1280,6 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
           <div className="mini-card">
             <div className="tt-head">
               <div className="mt">Today's tasks</div>
-              {todoistToken && todoistProjectId && (
-                <button className="tt-add" onClick={() => { setTodoPickerOpen(true); setTodoistRefreshTick(v => v + 1); }}>＋ Add from Todoist</button>
-              )}
             </div>
             <div className="tt-grid">
               {['morning', 'afternoon'].map(slot => {
@@ -1367,36 +1389,33 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
     </div>
     </>
     ) : (
-      /* DAY / WEEK — calendar hour grids, kept at their current look
-         (a dedicated restyle pass comes later). Calendar show/hide
-         toggles live here, in the Week view. */
+      /* WEEK — the full week hour-grid, kept at its current look (dedicated
+         restyle later). Calendar show/hide toggles live here. */
       <>
-        {planView === 'week' && (
-          <div className="wk-cal-toggles">
-            {[
-              { key: 'routine', label: 'Routine', dot: 'var(--gold)' },
-              { key: 'work', label: 'Work', dot: parseColorVal(calendarSettings.workColor).hex || '#8C8C96' },
-              { key: 'household', label: 'Household', dot: parseColorVal(calendarSettings.householdColor).hex || '#7896AF' },
-            ].map(({ key, label, dot }) => (
-              <button
-                key={key}
-                className={`wk-cal-toggle ${calendarToggles[key] ? 'on' : 'off'}`}
-                onClick={() => setCalendarToggles(t => ({ ...t, [key]: !t[key] }))}
-              >
-                <span className="dot" style={{ background: dot }} />
-                {label}
-              </button>
-            ))}
-          </div>
-        )}
-        <div className={`calendar-panel${planView === 'day' ? ' day-view' : ''}`}>
+        <div className="wk-cal-toggles">
+          {[
+            { key: 'routine', label: 'Routine', dot: 'var(--gold)' },
+            { key: 'work', label: 'Work', dot: parseColorVal(calendarSettings.workColor).hex || '#8C8C96' },
+            { key: 'household', label: 'Household', dot: parseColorVal(calendarSettings.householdColor).hex || '#7896AF' },
+          ].map(({ key, label, dot }) => (
+            <button
+              key={key}
+              className={`wk-cal-toggle ${calendarToggles[key] ? 'on' : 'off'}`}
+              onClick={() => setCalendarToggles(t => ({ ...t, [key]: !t[key] }))}
+            >
+              <span className="dot" style={{ background: dot }} />
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="calendar-panel">
           {isMobile ? (
             <AgendaView
               routine={(data.routine || []).filter(it => it.category !== 'supplement')}
               overrides={data.overrides || {}}
               scheduledBlocks={blocks}
               projects={projects}
-              weekStart={planView === 'day' ? dayGridWeekStart : weekStart}
+              weekStart={weekStart}
               now={now}
               onBlockClick={(blockId) => setOpenBlockId(blockId)}
               onRoutineClick={handleRoutineClick}
@@ -1412,10 +1431,10 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
               overrides={data.overrides || {}}
               scheduledBlocks={blocks}
               projects={projects}
-              weekStart={planView === 'day' ? dayGridWeekStart : weekStart}
+              weekStart={weekStart}
               now={now}
-              singleCol={planView === 'day' ? planDayIndex(viewDate) : null}
-              onDayClick={planView === 'day' ? () => setPlanView('week') : planDayClick}
+              singleCol={null}
+              onDayClick={planDayClick}
               onCreateBlock={createBlock}
               onBlockClick={(blockId) => setOpenBlockId(blockId)}
               onRoutineClick={handleRoutineClick}
