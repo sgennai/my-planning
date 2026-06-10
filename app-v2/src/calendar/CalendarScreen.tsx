@@ -959,17 +959,10 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
 
   const todoistProxyBase = calendarSettings.proxyUrl ? `${calendarSettings.proxyUrl.replace(/\/+$/, '')}/todoist` : null;
 
-  // Client-side days filter — instant, no re-fetch
-  const todoistTasks = React.useMemo(() => {
-    if (todoistDaysAhead === 0) return allTodoistTasks;
-    const today = startOfDay(new Date());
-    const cutoff = new Date(today.getTime() + todoistDaysAhead * 24 * 60 * 60 * 1000);
-    return allTodoistTasks.filter(t => {
-      if (!t.due) return false;
-      const due = startOfDay(new Date(t.due.date));
-      return due < cutoff;
-    });
-  }, [allTodoistTasks, todoistDaysAhead]);
+  // The Add-from-Todoist picker shows the whole open Perso project, regardless
+  // of due date — slots, not dates, decide what's on today. (The old To-dos pane's
+  // days-ahead filter was removed with it; date-filtering here hid undated tasks.)
+  const todoistTasks = allTodoistTasks;
 
   const todoistPendingTasks = React.useMemo(() => data.todoistPending || [], [data.todoistPending]);
 
