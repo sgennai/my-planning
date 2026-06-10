@@ -623,13 +623,21 @@ export function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, on
   const fetchTodoistProjects = async () => {
     const token = todoistToken.trim();
     const base = proxyUrl.trim().replace(/\/+$/, '');
-    if (!token || !base) { setTodoistProjectsError('Proxy URL and token are required.'); return; }
+    if (!token) { setTodoistProjectsError('Paste your Todoist API token first.'); return; }
+    if (!base) { setTodoistProjectsError('Set the Proxy Worker URL in the Calendars section above first — Todoist is fetched through it.'); return; }
     setTodoistProjectsLoading(true);
     setTodoistProjectsError(null);
     try {
-      const res = await fetch(`${base}/todoist/projects`, { headers: { 'X-Todoist-Token': token } });
+      let res;
+      try {
+        res = await fetch(`${base}/todoist/projects`, { headers: { 'X-Todoist-Token': token } });
+      } catch {
+        // A thrown fetch (vs. an HTTP error status) means the request never
+        // completed: wrong/undeployed proxy, CORS, or http→https mixed content.
+        throw new Error(`Couldn't reach the proxy at ${base}. Check the Proxy Worker URL is correct, deployed, and served over https — it's the same Cloudflare Worker that proxies your calendars (not the D1 sync worker).`);
+      }
       const body = await res.text();
-      if (!res.ok) throw new Error(`HTTP ${res.status}: ${body.slice(0, 200)}`);
+      if (!res.ok) throw new Error(`Proxy/Todoist returned HTTP ${res.status}: ${body.slice(0, 200)}`);
       const parsed = JSON.parse(body);
       // API v1 returns {results:[...]} (paginated); REST v2 returned a plain array
       const list = Array.isArray(parsed) ? parsed : (parsed.results || parsed.projects || parsed.items || []);
@@ -943,7 +951,7 @@ export function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, on
             <div className="sm-section">
               <div className="sm-eyebrow">Todoist</div>
               <div className="sm-card">
-                <div className="sm-hint" style={{ marginBottom: 14 }}>Connect Todoist to surface tasks in the left rail. Get your API token from Todoist → Settings → Integrations → Developer.</div>
+                <div className="sm-hint" style={{ marginBottom: 14 }}>Connect Todoist to add tasks into Today's tasks. Requires the Proxy Worker URL (Calendars section above) — calls route through it. Get your API token from Todoist → Settings → Integrations → Developer.</div>
                 <div className="sm-field" style={{ marginBottom: 12 }}>
                   <div className="sm-field-label">API Token</div>
                   <div style={{ display: 'flex', gap: 8 }}>
