@@ -7,10 +7,73 @@ const CORS_HEADERS = {
 };
 
 const VALID_STORES = [
-  'projects', 'todos', 'scheduledBlocks', 'practiceItems', 'stories', 
-  'reviews', 'progressLog', 'modules', 'learning', 'content', 
+  'projects', 'todos', 'scheduledBlocks', 'practiceItems', 'stories',
+  'reviews', 'progressLog', 'modules', 'learning', 'content',
   'create_ideas', 'create_posts', 'singletons'
 ];
+
+// ICS edge cache: revalidate after 20 min; keep a stale copy up to 7 days so a
+// rate-limited/erroring upstream still serves last-known-good. Freshness is
+// tracked via the X-Cached-At header (the programmatic Cache API ignores
+// stale-if-error semantics on its own).
+const ICS_FRESH_SECONDS = 20 * 60;
+const ICS_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
+
+function icsResponse(body, cacheStatus) {
+  return new Response(body, {
+    status: 200,
+    headers: { ...CORS_HEADERS, 'Content-Type': 'text/calendar; charset=utf-8', 'X-Cache': cacheStatus },
+  });
+}
+
+function makeIcsCacheEntry(body, nowSec) {
+  return new Response(body, {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/calendar; charset=utf-8',
+      'Cache-Control': `public, max-age=${ICS_MAX_AGE_SECONDS}`,
+      'X-Cached-At': String(nowSec),
+    },
+  });
+}
+
+async function proxyICS(request, feedUrl, ctx) {
+  const cache = caches.default;
+  const cacheKey = new Request(request.url);
+  const nowSec = Math.floor(Date.now() / 1000);
+  const cached = await cache.match(cacheKey);
+
+  if (cached) {
+    const cachedAt = parseInt(cached.headers.get('X-Cached-At') || '0', 10);
+    const cachedBody = await cached.text();
+    if (nowSec - cachedAt < ICS_FRESH_SECONDS) return icsResponse(cachedBody, 'HIT');
+    // Stale — try to revalidate, fall back to the stale copy on any failure.
+    try {
+      const res = await fetch(feedUrl);
+      if (res.ok) {
+        const fresh = await res.text();
+        ctx.waitUntil(cache.put(cacheKey, makeIcsCacheEntry(fresh, nowSec)));
+        return icsResponse(fresh, 'REVALIDATED');
+      }
+      return icsResponse(cachedBody, 'STALE');
+    } catch {
+      return icsResponse(cachedBody, 'STALE');
+    }
+  }
+
+  // Cache miss — fetch fresh.
+  try {
+    const res = await fetch(feedUrl);
+    const body = await res.text();
+    if (res.ok) ctx.waitUntil(cache.put(cacheKey, makeIcsCacheEntry(body, nowSec)));
+    return new Response(body, {
+      status: res.status,
+      headers: { ...CORS_HEADERS, 'Content-Type': 'text/calendar; charset=utf-8', 'X-Cache': 'MISS' },
+    });
+  } catch (e) {
+    return new Response('ICS fetch failed: ' + e.message, { status: 502, headers: CORS_HEADERS });
+  }
+}
 
 export default {
   async fetch(request, env, ctx) {
@@ -51,19 +114,9 @@ export default {
       }
     }
 
-    // ── ICS proxy (?url=<encoded feed>) ────────────────────────────────────
+    // ── ICS proxy (?url=<encoded feed>) — cached 20 min, stale-on-error 7 days ──
     if (url.searchParams.get('url')) {
-      const feedUrl = url.searchParams.get('url');
-      try {
-        const icsRes = await fetch(feedUrl);
-        const icsBody = await icsRes.text();
-        return new Response(icsBody, {
-          status: icsRes.status,
-          headers: { ...CORS_HEADERS, 'Content-Type': 'text/calendar; charset=utf-8' },
-        });
-      } catch (e) {
-        return new Response('ICS fetch failed: ' + e.message, { status: 502, headers: CORS_HEADERS });
-      }
+      return proxyICS(request, url.searchParams.get('url'), ctx);
     }
 
     if (!url.pathname.startsWith('/sync/')) {
