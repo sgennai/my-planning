@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Planning — Plan screen, revised</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1A1D23; --ink-soft:#2D323B;
+  --paper:#F4F6F8; --surface:#FFFFFF;
+  --line:#E5E9EE; --line-soft:#EEF1F5;
+  --muted:#71767F; --muted-soft:#A3A8B1;
+  --gold:#B5852A; --gold-tint:#F8F1DE; --gold-line:#E7D5A6;
+  --green:#3C8A5E; --green-tint:#E9F3ED;
+  --r-sm:8px; --r-md:12px; --r-lg:18px;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s8:48px;
+  --sh-sm:0 1px 2px rgba(20,24,32,.05),0 1px 3px rgba(20,24,32,.05);
+  --sh-md:0 6px 22px rgba(20,24,32,.07),0 2px 6px rgba(20,24,32,.04);
+  --f-disp:'Schibsted Grotesk',system-ui,sans-serif;
+  --f-ui:'Inter',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink-soft);font-family:var(--f-ui);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{margin:0;color:var(--ink);font-family:var(--f-disp);letter-spacing:-.01em}
+p{margin:0}
+a{color:inherit}
+
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px 96px}
+.doc-head{padding:60px 0 26px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--f-ui);font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.doc-head h1{font-size:40px;font-weight:800;line-height:1.04;margin:14px 0 0;letter-spacing:-.025em}
+.doc-head p{max-width:64ch;margin-top:14px;color:var(--muted);font-size:16px}
+
+.frame-cap{font-size:13px;color:var(--muted);margin:44px 0 12px;font-weight:500}
+.frame-cap b{color:var(--ink);font-weight:600}
+
+/* browser frame */
+.browser{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh-md);overflow:hidden;margin-bottom:36px}
+.browser-bar{display:flex;align-items:center;gap:8px;padding:11px 14px;background:#fbfcfd;border-bottom:1px solid var(--line)}
+.dots{display:flex;gap:6px}.dots i{width:11px;height:11px;border-radius:99px;background:#e0e3e8;display:block}
+.url{flex:1;text-align:center;font-family:var(--f-mono);font-size:11px;color:var(--muted-soft);background:var(--paper);border-radius:6px;padding:4px 10px;max-width:280px;margin:0 auto}
+
+/* shell */
+.shell{display:grid;grid-template-columns:228px 1fr;min-height:560px}
+.side{border-right:1px solid var(--line);padding:18px 14px;display:flex;flex-direction:column;gap:18px;background:#fcfdfe}
+.brand{display:flex;align-items:center;gap:9px;padding:0 4px}
+.brand .mk{width:26px;height:26px;border-radius:7px;background:var(--ink);color:#fff;display:grid;place-items:center;font-family:var(--f-disp);font-weight:800;font-size:14px}
+.brand .nm{font-family:var(--f-disp);font-weight:700;font-size:15px;color:var(--ink);letter-spacing:-.01em}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav .nl{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r-sm);font-size:14px;font-weight:500;color:var(--muted);position:relative;cursor:pointer}
+.nav .nl .ic{width:17px;height:17px;flex:none;color:var(--muted-soft)}
+.nav .nl:hover{background:var(--paper);color:var(--ink)}
+.nav .nl.on{background:var(--paper);color:var(--ink);font-weight:600}
+.nav .nl.on .ic{color:var(--ink)}
+.nav .nl.on::before{content:"";position:absolute;left:-14px;top:8px;bottom:8px;width:3px;border-radius:99px;background:var(--gold)}
+.side-foot{margin-top:auto;display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--line-soft);padding-top:12px}
+.side-controls{display:flex;align-items:center;justify-content:space-between;padding:4px}
+.ctl{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.ctl .ic{width:15px;height:15px;color:var(--muted-soft)}
+.toggle{width:34px;height:20px;border-radius:99px;background:var(--line);position:relative;cursor:pointer}
+.toggle i{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:99px;background:#fff;box-shadow:var(--sh-sm)}
+.foot-link{font-size:12px;color:var(--muted);padding:6px 4px;border-radius:6px;cursor:pointer}
+.foot-link:hover{color:var(--ink);background:var(--paper)}
+
+/* North Star */
+.northstar{background:linear-gradient(180deg,#fffdf7,#fff);border:1px solid var(--gold-line);border-radius:var(--r-md);padding:13px 14px}
+.northstar .ns-eb{font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.northstar .ns-role{font-family:var(--f-disp);font-weight:700;font-size:17px;color:var(--ink);margin-top:3px;letter-spacing:-.01em}
+.northstar .ns-meta{display:flex;justify-content:space-between;align-items:baseline;margin-top:9px}
+.northstar .ns-when{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.northstar .ns-pct{font-family:var(--f-mono);font-size:11px;color:var(--gold);font-weight:500}
+.ns-bar{height:5px;border-radius:99px;background:var(--gold-tint);margin-top:7px;overflow:hidden}
+.ns-bar i{display:block;height:100%;width:38%;background:var(--gold);border-radius:99px}
+
+/* main + page header */
+.main{padding:26px 30px;background:var(--surface);min-width:0}
+.ph{margin-bottom:20px}
+.ph-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.ph .eb{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.ph h2.t{font-family:var(--f-disp);font-weight:800;font-size:27px;letter-spacing:-.022em;color:var(--ink);margin-top:5px}
+.ph .p{font-size:14px;color:var(--muted);margin-top:5px;max-width:54ch}
+.weather{display:flex;align-items:center;gap:10px}
+.weather .tmp{font-family:var(--f-disp);font-weight:700;font-size:26px;color:var(--ink)}
+
+/* controls row */
+.plan-controls{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+.daynav{display:flex;align-items:center;gap:6px}
+.tbtn{font-size:13px;font-weight:500;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 13px;cursor:pointer}
+.tbtn:hover{color:var(--ink)}
+.arrow{width:30px;height:30px;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);cursor:pointer;color:var(--muted)}
+.arrow .ic{width:14px;height:14px}
+.date{font-family:var(--f-ui);font-weight:600;color:var(--ink);font-size:14px;padding:0 8px}
+.row{display:flex;gap:8px;align-items:center}
+.btn-sec{font-family:var(--f-ui);font-weight:500;font-size:13px;border-radius:var(--r-sm);padding:7px 13px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.btn-sec:hover{color:var(--ink)}
+.segment{display:inline-flex;background:var(--paper);border:1px solid var(--line);border-radius:var(--r-sm);padding:3px}
+.segment span{font-size:13px;font-weight:500;color:var(--muted);padding:6px 13px;border-radius:6px;cursor:pointer}
+.segment span.on{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:var(--sh-sm)}
+
+/* BAND 1 — the day */
+.plan-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:22px;align-items:start}
+.agenda{display:flex;flex-direction:column}
+.ag-item{display:grid;grid-template-columns:58px 1fr;gap:14px;padding:13px 0;border-top:1px solid var(--line-soft)}
+.ag-item:first-child{border-top:0}
+.ag-time{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.ag-card{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--line);border-radius:var(--r-sm);padding:11px 13px}
+.ag-card.physical{border-left-color:var(--green)}
+.ag-card.cal{border-left-color:var(--ink)}
+.ag-card.routine{border-left-color:#cfd4db}
+.ag-card.practice{border-left-color:var(--gold);background:var(--gold-tint)}
+.ag-card .h{font-weight:600;color:var(--ink);font-size:14px;display:flex;align-items:center;gap:8px}
+.ag-card .s{font-size:12px;color:var(--muted);margin-top:2px}
+.dot{width:15px;height:15px;border-radius:99px;border:2px solid var(--muted-soft);flex:none}
+.dot.done{background:var(--green);border-color:var(--green)}
+
+.mini-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:16px;margin-bottom:14px}
+.mini-card:last-child{margin-bottom:0}
+.mt{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.mt-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.mt-row .mt{margin-bottom:0}
+.mt-count{font-family:var(--f-mono);font-size:11px;color:var(--muted-soft)}
+.streak{display:flex;gap:5px}
+.streak i{flex:1;height:6px;border-radius:99px;background:var(--green)}
+.streak i.off{background:var(--line)}
+.empty-line{font-size:13px;color:var(--muted)}
+
+/* mini-month */
+.mmonth-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.mlabel{font-family:var(--f-disp);font-weight:700;font-size:14px;color:var(--ink)}
+.mnav{display:flex;gap:4px}
+.mnav button{width:24px;height:24px;display:grid;place-items:center;border:1px solid var(--line);background:var(--surface);border-radius:6px;color:var(--muted);cursor:pointer}
+.mnav .ic{width:12px;height:12px}
+.mgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;text-align:center}
+.mgrid .wd{font-size:10px;font-weight:600;color:var(--muted-soft);padding:3px 0}
+.mgrid .d{font-size:12px;color:var(--ink-soft);aspect-ratio:1;display:grid;place-items:center;border-radius:99px}
+.mgrid .d.mut{color:var(--muted-soft)}
+.mgrid .d.today{background:var(--gold);color:#fff;font-weight:600}
+
+/* band scaffolding */
+.band{margin-top:28px}
+.band-label{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:13px;display:flex;align-items:center;gap:12px}
+.band-label .ln{flex:1;height:1px;background:var(--line-soft)}
+
+/* BAND 2 — today's routine */
+.routine-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;align-items:start}
+.rcol{display:flex;flex-direction:column;gap:14px}
+.supp-list{display:grid;grid-template-columns:1fr 1fr;gap:3px 14px}
+.supp{display:flex;align-items:center;gap:9px;padding:5px 0}
+.s-circle{width:13px;height:13px;border-radius:99px;border:1.5px solid var(--muted-soft);flex:none}
+.s-time{font-family:var(--f-mono);font-size:11px;color:var(--muted-soft);width:38px;flex:none}
+.s-name{font-size:13px;color:var(--ink-soft)}
+.ms-dots{display:flex;gap:6px}
+.ms-dots i{width:11px;height:11px;border-radius:99px;background:var(--line)}
+
+/* BAND 2 — today's tasks */
+.tt-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.tt-add{font-size:12px;font-weight:500;color:var(--gold);background:var(--gold-tint);border:1px solid var(--gold-line);border-radius:var(--r-sm);padding:5px 10px;cursor:pointer;white-space:nowrap}
+.tt-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.tt-label{font-size:12px;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between}
+.tt-label b{color:var(--ink);font-weight:600}
+.tt-label .c{font-family:var(--f-mono);font-size:11px;color:var(--muted-soft)}
+.tt-task{display:flex;align-items:center;gap:9px;padding:6px 0}
+.tt-name{font-size:13px;color:var(--ink-soft)}
+.tt-drop{border:1px dashed var(--line);border-radius:var(--r-sm);padding:10px 8px;text-align:center;color:var(--muted-soft);font-size:12px;margin-top:4px}
+
+/* BAND 3 — projects strip */
+.proj-strip{display:flex;flex-wrap:wrap;gap:9px}
+.pchip{display:inline-flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:7px 14px}
+.pdot{width:8px;height:8px;border-radius:99px;flex:none}
+.pname{font-size:13px;font-weight:500;color:var(--ink)}
+.tcode{font-family:var(--f-mono);font-size:10px;color:var(--muted-soft)}
+
+/* add-from-Todoist picker */
+.picker{max-width:320px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--sh-md);padding:15px;margin-bottom:36px}
+.pk-h{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.pk-task{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line-soft)}
+.pk-task:first-of-type{border-top:0}
+.pk-name{font-size:13px;color:var(--ink-soft)}
+.pk-btns{display:flex;gap:5px;flex:none}
+.pk-btn{font-family:var(--f-mono);font-size:10px;font-weight:500;color:var(--muted);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:3px 9px;cursor:pointer}
+.pk-btn:hover{color:var(--gold);border-color:var(--gold-line);background:var(--gold-tint)}
+
+/* callout */
+.callout{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:var(--r-md);padding:18px 20px;margin-top:36px;font-size:14px;color:var(--ink-soft)}
+.callout b{color:var(--ink)}
+.callout h3{font-family:var(--f-disp);font-size:16px;margin-bottom:10px}
+.callout ul{margin:0;padding-left:18px}
+.callout li{margin:5px 0}
+.callout .foot{margin-top:14px;padding-top:12px;border-top:1px solid var(--line-soft);font-size:13px;color:var(--muted)}
+
+/* mobile */
+.mobile-row{display:flex;gap:28px;flex-wrap:wrap;margin-top:10px}
+.phone{width:330px}
+.phone-scr{background:var(--surface);border:1px solid var(--line);border-radius:34px;box-shadow:var(--sh-md);overflow:hidden;display:flex;flex-direction:column;height:680px}
+.notch{height:26px;background:#fbfcfd;border-bottom:1px solid var(--line-soft);position:relative}
+.notch::after{content:"";position:absolute;top:9px;left:50%;transform:translateX(-50%);width:90px;height:6px;border-radius:99px;background:#e0e3e8}
+.m-top{display:flex;justify-content:space-between;align-items:flex-start;padding:16px 16px 10px}
+.mt-eb{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.mt-t{font-family:var(--f-disp);font-weight:800;font-size:22px;color:var(--ink);margin-top:3px;letter-spacing:-.02em}
+.m-body{flex:1;overflow:hidden;padding:0 16px 12px;display:flex;flex-direction:column;gap:12px}
+.m-ns{background:linear-gradient(180deg,#fffdf7,#fff);border:1px solid var(--gold-line);border-radius:var(--r-md);padding:11px 13px}
+.m-ns .row{justify-content:space-between;align-items:baseline}
+.m-ns .nsr{font-family:var(--f-disp);font-weight:700;font-size:15px;color:var(--ink)}
+.m-ns .nsw{font-family:var(--f-mono);font-size:10px;color:var(--muted)}
+.m-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:13px}
+.m-tabs{background:var(--surface);border-top:1px solid var(--line);display:flex;padding:8px 6px 20px}
+.m-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--muted-soft);font-weight:500}
+.m-tab .ic{width:20px;height:20px}
+.m-tab.on{color:var(--ink)}
+.m-tab.on .ic{color:var(--gold)}
+.m-more{font-size:11px;color:var(--muted-soft);text-align:center;font-family:var(--f-mono)}
+
+@media (max-width:880px){
+  .shell{grid-template-columns:1fr}
+  .side{flex-direction:row;flex-wrap:wrap;align-items:center;border-right:0;border-bottom:1px solid var(--line)}
+  .side-foot,.northstar{display:none}
+  .plan-grid,.routine-grid{grid-template-columns:1fr}
+  .doc-head h1{font-size:30px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="doc-head">
+    <div class="eyebrow">My Planning · Plan screen — revised</div>
+    <h1>The day first, the routine below it.</h1>
+    <p>The same design language we approved — now applied to fix the one thing that was off: the right column had become a tall junk-drawer next to a short agenda. This reorganises Plan into a calm column that reads top to bottom, with every widget kept and re-skinned. Nothing here changes behaviour — it's a layout and styling spec. This governs the Plan screen only; the original reference still governs the other four screens.</p>
+  </header>
+
+  <p class="frame-cap"><b>Plan · desktop.</b> Three quiet bands — the day, today's routine, your work — instead of one short agenda beside an endless rail.</p>
+  <div class="browser">
+    <div class="browser-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url">myplanning · plan</div></div>
+    <div class="shell">
+      <aside class="side">
+        <div class="brand"><div class="mk">P</div><div class="nm">My Planning</div></div>
+        <div class="northstar"><div class="ns-eb">North Star</div><div class="ns-role">VP Sales</div><div class="ns-meta"><span class="ns-when">Q4 2026 · ~4 mo</span><span class="ns-pct">38%</span></div><div class="ns-bar"><i></i></div></div>
+        <nav class="nav">
+          <div class="nl on"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Plan</div>
+          <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v6c0 4-3 6-8 8-5-2-8-4-8-8V7z"/></svg>Practice</div>
+          <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h16M4 19h10"/></svg>Intake</div>
+          <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Create</div>
+          <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7 7 0 0 0 0-2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1L15 2.5h-4l-.4 2.6a7 7 0 0 0-1.7 1l-2.3-1-2 3.4L6.6 11a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7 7 0 0 0 1.7-1l2.3 1 2-3.4z"/></svg>Setup</div>
+        </nav>
+        <div class="side-foot">
+          <div class="side-controls">
+            <span class="ctl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>Light</span>
+            <span class="toggle"><i></i></span>
+          </div>
+          <div class="foot-link">Settings</div>
+          <div class="foot-link">Sign out</div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="ph">
+          <div class="ph-top">
+            <div>
+              <div class="eb">Today · Tue, Jun 9</div>
+              <h2 class="t">Good evening, Stephane</h2>
+              <div class="p">Your routine, calendar, and the rep that matters today.</div>
+            </div>
+            <div class="weather"><svg class="ic" style="width:24px;height:24px;color:var(--gold)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/></svg><span class="tmp">14°</span></div>
+          </div>
+        </div>
+
+        <!-- controls -->
+        <div class="plan-controls">
+          <div class="daynav">
+            <span class="tbtn">Today</span>
+            <span class="arrow"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></span>
+            <span class="date">Jun 9</span>
+            <span class="arrow"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></span>
+          </div>
+          <span class="segment"><span class="on">Timeline</span><span>Day</span><span>Week</span></span>
+        </div>
+
+        <!-- BAND 1 — the day -->
+        <div class="plan-grid">
+          <div class="agenda">
+            <div class="ag-item"><div class="ag-time">08:00</div><div class="ag-card physical"><div class="h"><span class="dot"></span>Gym at home</div><div class="s">Physical</div></div></div>
+            <div class="ag-item"><div class="ag-time">08:45</div><div class="ag-card cal"><div class="h"><span class="dot"></span>2h Focus Session</div><div class="s">Cycle through projects: NEXT · AI for Sales · AI content</div></div></div>
+            <div class="ag-item"><div class="ag-time">21:00</div><div class="ag-card routine"><div class="h"><span class="dot"></span>Plan tomorrow's focus</div><div class="s">Planning</div></div></div>
+          </div>
+          <div>
+            <div class="mini-card">
+              <div class="mt">This week</div>
+              <div class="streak"><i class="off"></i><i class="off"></i><i class="off"></i><i class="off"></i><i class="off"></i><i class="off"></i><i class="off"></i></div>
+              <p class="empty-line" style="margin-top:10px">0 of 7 days with activity logged.</p>
+            </div>
+            <div class="mini-card">
+              <div class="mt">Up next</div>
+              <p class="empty-line">Nothing else scheduled today.</p>
+            </div>
+            <div class="mini-card">
+              <div class="mmonth-head">
+                <span class="mlabel">June 2026</span>
+                <span class="mnav">
+                  <button><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></button>
+                  <button><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></button>
+                </span>
+              </div>
+              <div class="mgrid">
+                <span class="wd">M</span><span class="wd">T</span><span class="wd">W</span><span class="wd">T</span><span class="wd">F</span><span class="wd">S</span><span class="wd">S</span>
+                <span class="d mut">26</span><span class="d mut">27</span><span class="d mut">28</span><span class="d mut">29</span><span class="d mut">30</span><span class="d mut">31</span><span class="d">1</span>
+                <span class="d">2</span><span class="d">3</span><span class="d">4</span><span class="d">5</span><span class="d">6</span><span class="d">7</span><span class="d">8</span>
+                <span class="d today">9</span><span class="d">10</span><span class="d">11</span><span class="d">12</span><span class="d">13</span><span class="d">14</span><span class="d">15</span>
+                <span class="d">16</span><span class="d">17</span><span class="d">18</span><span class="d">19</span><span class="d">20</span><span class="d">21</span><span class="d">22</span>
+                <span class="d">23</span><span class="d">24</span><span class="d">25</span><span class="d">26</span><span class="d">27</span><span class="d">28</span><span class="d">29</span>
+                <span class="d">30</span><span class="d mut">1</span><span class="d mut">2</span><span class="d mut">3</span><span class="d mut">4</span><span class="d mut">5</span><span class="d mut">6</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BAND 2 — tasks & routine -->
+        <div class="band">
+          <div class="band-label">Tasks &amp; routine<span class="ln"></span></div>
+          <div class="routine-grid">
+            <div class="mini-card" style="margin-bottom:0">
+              <div class="tt-head"><div class="mt" style="margin-bottom:0">Today's tasks</div><span class="tt-add">＋ Add from Todoist</span></div>
+              <div class="tt-grid">
+                <div>
+                  <div class="tt-label"><b>Morning</b><span class="c">2 / 5</span></div>
+                  <div class="tt-task"><span class="s-circle"></span><span class="tt-name">Call mum back</span></div>
+                  <div class="tt-task"><span class="s-circle"></span><span class="tt-name">Email the bank</span></div>
+                  <div class="tt-drop">＋ add</div>
+                </div>
+                <div>
+                  <div class="tt-label"><b>Afternoon</b><span class="c">1 / 5</span></div>
+                  <div class="tt-task"><span class="s-circle"></span><span class="tt-name">Fix bathroom door</span></div>
+                  <div class="tt-drop">＋ add</div>
+                </div>
+              </div>
+            </div>
+            <div class="rcol">
+              <div class="mini-card" style="margin-bottom:0">
+                <div class="mt-row"><div class="mt">Supplements</div><span class="mt-count">0 / 10 taken</span></div>
+                <div class="supp-list">
+                  <div class="supp"><span class="s-circle"></span><span class="s-time">07:15</span><span class="s-name">Probiotic</span></div>
+                  <div class="supp"><span class="s-circle"></span><span class="s-time">10:30</span><span class="s-name">Creatine · Pt 1</span></div>
+                  <div class="supp"><span class="s-circle"></span><span class="s-time">07:15</span><span class="s-name">Omega</span></div>
+                  <div class="supp"><span class="s-circle"></span><span class="s-time">13:00</span><span class="s-name">Collagen</span></div>
+                  <div class="supp"><span class="s-circle"></span><span class="s-time">07:15</span><span class="s-name">Magnesium · Pt 1</span></div>
+                  <div class="supp"><span class="s-circle"></span><span class="s-time">13:00</span><span class="s-name">Hair &amp; nails</span></div>
+                  <div class="supp"><span class="s-circle"></span><span class="s-time">07:35</span><span class="s-name">Protein</span></div>
+                  <div class="supp"><span class="s-circle"></span><span class="s-time">16:45</span><span class="s-name">Creatine · Pt 2</span></div>
+                  <div class="supp"><span class="s-circle"></span><span class="s-time">07:45</span><span class="s-name">Multi-vitamins</span></div>
+                  <div class="supp"><span class="s-circle"></span><span class="s-time">22:30</span><span class="s-name">Magnesium · Pt 2</span></div>
+                </div>
+              </div>
+              <div class="mini-card" style="margin-bottom:0">
+                <div class="mt-row"><div class="mt">Micro-Strength</div><span class="mt-count">0 / 10 done</span></div>
+                <div class="ms-dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BAND 3 — projects -->
+        <div class="band">
+          <div class="band-label">Projects<span class="ln"></span></div>
+          <div class="proj-strip">
+            <span class="pchip"><span class="pdot" style="background:#B5852A"></span><span class="pname">NEXT</span><span class="tcode">T1</span></span>
+            <span class="pchip"><span class="pdot" style="background:#7A6FB0"></span><span class="pname">AI for Sales</span><span class="tcode">T2</span></span>
+            <span class="pchip"><span class="pdot" style="background:#3C8A5E"></span><span class="pname">Gym Exercise Translation</span><span class="tcode">T3</span></span>
+            <span class="pchip"><span class="pdot" style="background:#C08A3E"></span><span class="pname">Finance Tracking</span><span class="tcode">T4</span></span>
+            <span class="pchip"><span class="pdot" style="background:#C08A3E"></span><span class="pname">Investment</span><span class="tcode">T4</span></span>
+            <span class="pchip"><span class="pdot" style="background:#9AA0A8"></span><span class="pname">Routine Planner</span><span class="tcode">T5</span></span>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- PICKER -->
+  <p class="frame-cap"><b>The "＋ Add from Todoist" picker.</b> Opens your Todoist <b>Perso</b> list; tap AM or PM to drop a task into today — your existing promote logic, now touch-friendly.</p>
+  <div class="picker">
+    <div class="pk-h">From Todoist · Perso</div>
+    <div class="pk-task"><span class="pk-name">Renew car insurance</span><span class="pk-btns"><span class="pk-btn">AM</span><span class="pk-btn">PM</span></span></div>
+    <div class="pk-task"><span class="pk-name">Book the dentist</span><span class="pk-btns"><span class="pk-btn">AM</span><span class="pk-btn">PM</span></span></div>
+    <div class="pk-task"><span class="pk-name">Reply to the landlord</span><span class="pk-btns"><span class="pk-btn">AM</span><span class="pk-btn">PM</span></span></div>
+  </div>
+
+  <!-- MOBILE -->
+  <p class="frame-cap"><b>Plan · phone.</b> The same column, stacked: goal, the day, then today's tasks. Bottom tabs always there — never a dead end.</p>
+  <div class="mobile-row">
+    <div class="phone"><div class="phone-scr"><div class="notch"></div>
+      <div class="m-top">
+        <div><div class="mt-eb">Today · Tue, Jun 9</div><div class="mt-t">Good evening</div></div>
+        <span class="toggle"><i></i></span>
+      </div>
+      <div class="m-body">
+        <div class="m-ns"><div class="ns-eb" style="color:var(--gold);font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase">North Star</div><div class="row"><span class="nsr">VP Sales</span><span class="nsw">Q4 2026 · 38%</span></div><div class="ns-bar"><i></i></div></div>
+
+        <div class="ag-item" style="grid-template-columns:46px 1fr"><div class="ag-time">08:00</div><div class="ag-card physical"><div class="h"><span class="dot"></span>Gym at home</div></div></div>
+        <div class="ag-item" style="grid-template-columns:46px 1fr"><div class="ag-time">08:45</div><div class="ag-card cal"><div class="h"><span class="dot"></span>2h Focus Session</div></div></div>
+        <div class="ag-item" style="grid-template-columns:46px 1fr"><div class="ag-time">21:00</div><div class="ag-card routine"><div class="h"><span class="dot"></span>Plan tomorrow</div></div></div>
+
+        <div class="m-card">
+          <div class="tt-head"><div class="mt" style="margin-bottom:0">Today's tasks</div><span class="tt-add" style="font-size:11px;padding:4px 8px">＋ Todoist</span></div>
+          <div class="tt-label" style="margin-top:9px"><b>Morning</b><span class="c">2 / 5</span></div>
+          <div class="tt-task" style="padding:4px 0"><span class="s-circle"></span><span class="tt-name">Call mum back</span></div>
+          <div class="tt-task" style="padding:4px 0"><span class="s-circle"></span><span class="tt-name">Email the bank</span></div>
+          <div class="tt-label" style="margin-top:10px"><b>Afternoon</b><span class="c">1 / 5</span></div>
+          <div class="tt-task" style="padding:4px 0"><span class="s-circle"></span><span class="tt-name">Fix bathroom door</span></div>
+        </div>
+        <div class="m-more">Supplements · Micro-Strength · Projects ↓</div>
+      </div>
+      <div class="m-tabs">
+        <div class="m-tab on"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>Plan</div>
+        <div class="m-tab"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v6c0 4-3 6-8 8-5-2-8-4-8-8V7z"/></svg>Practice</div>
+        <div class="m-tab"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h16M4 19h10"/></svg>Intake</div>
+        <div class="m-tab"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Create</div>
+        <div class="m-tab"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1l-.3-2.6h-4l-.3 2.6a7 7 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.3 2.6h4l.3-2.6a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.5z"/></svg>Setup</div>
+      </div>
+    </div></div>
+
+    <div style="flex:1;min-width:280px;align-self:center">
+      <div class="callout" style="margin-top:0">
+        <h3>The model</h3>
+        <ul>
+          <li><b>Todoist stays your backlog.</b> Every todo, work and personal, lives there. My Planning doesn't store tasks — it borrows today's.</li>
+          <li><b>One "Today's tasks" card</b> replaces the old two panes: committed personal tasks in Morning / Afternoon, fed by a <b>＋ Add from Todoist</b> picker that pulls your <b>Perso</b> list. The AM/PM promote logic you built stays — tappable buttons on mobile.</li>
+          <li><b>Tasks lead, routine supports.</b> Today's tasks takes the wide left of the band; Supplements and Micro-Strength sit on the right — all re-skinned, no old colours.</li>
+          <li><b>Projects</b> drop to a compact strip at the bottom; the work itself happens in your focus blocks and calendar.</li>
+          <li><b>View toggle.</b> The day shows as a <b>Timeline</b> (this list) by default; <b>Day</b> and <b>Week</b> switch to the calendar hour-grids, which keep their current look until their own restyle pass.</li>
+        </ul>
+        <div class="foot">Work todos aren't surfaced on Plan, by your choice — they stay in Todoist and your focus blocks. Behaviour, data and sync untouched; this is presentation only.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

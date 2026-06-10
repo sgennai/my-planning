@@ -8158,3 +8158,100 @@ h1, h2, h3, h4 { font-family: var(--f-disp); color: var(--ink); letter-spacing: 
    now that it no longer lives inside the old full-height today-wrap. */
 .plan-screen .calendar-panel { display: flex; flex-direction: column; height: calc(100vh - 172px); min-height: 360px; }
 @media (max-width: 880px) { .plan-screen .calendar-panel { height: auto; min-height: 0; } }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PLAN SCREEN — revised (design/my-planning-plan-screen-reference.html)
+   Three bands: the day · tasks & routine · projects strip.
+   ═══════════════════════════════════════════════════════════════════════ */
+/* controls row now reads edge-to-edge: day-nav left, view segment right */
+.plan-screen .plan-controls { justify-content: space-between; margin-bottom: 22px; }
+.plan-screen .plan-daynav { gap: 6px; }
+.plan-screen .mini-card { margin-bottom: 0; }
+
+/* band scaffolding */
+.plan-screen .band { margin-top: 28px; }
+.plan-screen .band-label { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 13px; display: flex; align-items: center; gap: 12px; }
+.plan-screen .band-label .ln { flex: 1; height: 1px; background: var(--line-soft); }
+
+/* BAND 2 — tasks & routine */
+.plan-screen .routine-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 14px; align-items: start; }
+.plan-screen .rcol { display: flex; flex-direction: column; gap: 14px; }
+.plan-screen .mt-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+.plan-screen .mt-row .mt { margin-bottom: 0; }
+.plan-screen .mt-count { font-family: var(--f-mono); font-size: 11px; color: var(--muted-soft); }
+.plan-screen .empty-line { font-size: 13px; color: var(--muted); }
+
+/* supplements */
+.plan-screen .supp-list { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 14px; }
+.plan-screen .supp { display: flex; align-items: center; gap: 9px; padding: 5px 0; cursor: pointer; }
+.plan-screen .s-circle { width: 13px; height: 13px; border-radius: 99px; border: 1.5px solid var(--muted-soft); flex: none; transition: background var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out); }
+.plan-screen .s-circle.done { background: var(--green); border-color: var(--green); }
+.plan-screen .s-time { font-family: var(--f-mono); font-size: 11px; color: var(--muted-soft); width: 38px; flex: none; }
+.plan-screen .s-name { font-size: 13px; color: var(--ink-soft); }
+.plan-screen .supp.done .s-name { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--muted-soft); }
+
+/* micro-strength */
+.plan-screen .ms-dots { display: flex; gap: 6px; flex-wrap: wrap; }
+.plan-screen .ms-dot { width: 13px; height: 13px; border-radius: 99px; background: var(--line); border: none; padding: 0; cursor: pointer; flex: none; }
+.plan-screen .ms-dot.done { background: var(--green); }
+.plan-screen .ms-dot.missed { background: var(--muted-4); }
+.plan-screen .ms-dot.upcoming { background: var(--line); }
+
+/* today's tasks card */
+.plan-screen .tt-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.plan-screen .tt-add { font-size: 12px; font-weight: 500; color: var(--gold); background: var(--gold-tint); border: 1px solid var(--gold-line); border-radius: var(--r-sm); padding: 5px 10px; cursor: pointer; white-space: nowrap; }
+.plan-screen .tt-add:hover { background: var(--gold-line); }
+.plan-screen .tt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.plan-screen .tt-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; display: flex; justify-content: space-between; }
+.plan-screen .tt-label b { color: var(--ink); font-weight: 600; }
+.plan-screen .tt-label .c { font-family: var(--f-mono); font-size: 11px; color: var(--muted-soft); }
+.plan-screen .tt-task { display: flex; align-items: center; gap: 9px; padding: 6px 0; }
+.plan-screen .tt-name { font-size: 13px; color: var(--ink-soft); flex: 1; min-width: 0; }
+.plan-screen .tt-task.done .tt-name { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--muted-soft); }
+.plan-screen .tt-name--link { cursor: pointer; }
+.plan-screen .tt-check { width: 13px; height: 13px; border-radius: 99px; border: 1.5px solid var(--muted-soft); flex: none; background: transparent; padding: 0; cursor: pointer; }
+.plan-screen .tt-check.done { background: var(--green); border-color: var(--green); }
+.plan-screen .tt-remove { background: none; border: none; color: var(--muted-soft); cursor: pointer; font-size: 15px; line-height: 1; padding: 0 2px; flex: none; }
+.plan-screen .tt-remove:hover { color: var(--coral); }
+.plan-screen .tt-drop { border: 1px dashed var(--line); border-radius: var(--r-sm); padding: 10px 8px; text-align: center; color: var(--muted-soft); font-size: 12px; margin-top: 4px; transition: border-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out); }
+.plan-screen .tt-col.drop-active .tt-drop { border-color: var(--gold); color: var(--gold); background: var(--gold-tint); }
+
+/* BAND 3 — projects strip */
+.plan-screen .proj-strip { display: flex; flex-wrap: wrap; gap: 9px; }
+.plan-screen .pchip { display: inline-flex; align-items: center; gap: 9px; background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 7px 14px; }
+.plan-screen .pdot { width: 8px; height: 8px; border-radius: 99px; flex: none; }
+.plan-screen .pname { font-size: 13px; font-weight: 500; color: var(--ink); }
+.plan-screen .tcode { font-family: var(--f-mono); font-size: 10px; color: var(--muted-soft); }
+
+/* mini-month housed in a Band-1 card */
+.plan-screen .plan-aside .mini-month { padding: 0; }
+
+/* week-view calendar show/hide toggles (moved here from the rail) */
+.plan-screen .wk-cal-toggles { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.plan-screen .wk-cal-toggle { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 500; color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 6px 13px; cursor: pointer; }
+.plan-screen .wk-cal-toggle .dot { width: 8px; height: 8px; border-radius: 99px; flex: none; }
+.plan-screen .wk-cal-toggle.on { color: var(--ink); border-color: var(--muted-soft); }
+.plan-screen .wk-cal-toggle.off { opacity: .55; }
+.plan-screen .wk-cal-toggle.off .dot { background: var(--line) !important; }
+
+/* add-from-Todoist picker (used in Commit 2) */
+.tt-picker-backdrop { position: fixed; inset: 0; background: var(--modal-backdrop); z-index: 400; display: flex; align-items: flex-start; justify-content: center; padding: 14vh 16px 16px; }
+.tt-picker { width: 100%; max-width: 340px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--sh-md); padding: 15px; max-height: 70vh; display: flex; flex-direction: column; }
+.tt-picker .pk-h { display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+.tt-picker .pk-close { background: none; border: none; color: var(--muted-soft); font-size: 18px; line-height: 1; cursor: pointer; padding: 0 2px; }
+.tt-picker .pk-close:hover { color: var(--ink); }
+.tt-picker .pk-list { overflow-y: auto; }
+.tt-picker .pk-task { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line-soft); }
+.tt-picker .pk-task:first-child { border-top: 0; }
+.tt-picker .pk-name { font-size: 13px; color: var(--ink-soft); min-width: 0; }
+.tt-picker .pk-btns { display: flex; gap: 5px; flex: none; }
+.tt-picker .pk-btn { font-family: var(--f-mono); font-size: 10px; font-weight: 500; color: var(--muted); background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+.tt-picker .pk-btn:hover { color: var(--gold); border-color: var(--gold-line); background: var(--gold-tint); }
+.tt-picker .pk-btn.on { color: var(--gold); border-color: var(--gold-line); background: var(--gold-tint); }
+.tt-picker .pk-empty { font-size: 13px; color: var(--muted-soft); padding: 12px 0; text-align: center; }
+
+@media (max-width: 880px) {
+  .plan-screen .routine-grid { grid-template-columns: 1fr; }
+  .plan-screen .tt-grid { grid-template-columns: 1fr; }
+  .plan-screen .supp-list { grid-template-columns: 1fr; }
+}

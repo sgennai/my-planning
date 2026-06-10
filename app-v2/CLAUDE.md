@@ -10,6 +10,11 @@ v1 runtime-Babel single-global-scope app.
 - **Visual spec:** `design/my-planning-design-reference.html` — the authoritative look. Every
   screen is restyled to match it exactly, on desktop and phone. Lift tokens/components from
   its `:root` and class definitions; do not invent new visual language.
+- **Plan-screen override:** `design/my-planning-plan-screen-reference.html` supersedes the
+  original reference **for the Plan screen only** (same tokens; revised layout — three bands:
+  the day · tasks & routine · projects strip; Timeline·Day·Week view toggle; Today's-tasks
+  card fed by a Todoist "Perso" picker). The original reference still governs the other four
+  screens.
 - **Architecture spec:** `../BLUEPRINT.md` — the product/engine architecture (five engines:
   Plan, Practice, Intake, Create + Setup/Projects; "few engines, much content"; UserProfile
   is the north star; $0 runtime AI; offline-first).

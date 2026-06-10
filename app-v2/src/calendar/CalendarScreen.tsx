@@ -79,6 +79,9 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
   const [mainView, setMainView] = useState('today');
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
   const [dayView, setDayView] = useState(null); // null = week view, 0..6 = visual column
+  // Plan view selector: 'timeline' (agenda bands) | 'day' (single-day grid) | 'week' (week grid)
+  const [planView, setPlanView] = useState('timeline');
+  const [todoPickerOpen, setTodoPickerOpen] = useState(false); // ＋ Add from Todoist picker (Commit 2)
   const [openBlockId, setOpenBlockId] = useState(null); // scheduled block popover
   const [openRoutineEdit, setOpenRoutineEdit] = useState(null); // { itemId, date } for routine click popover
   const [refLibraryOpen, setRefLibraryOpen] = useState(false);
@@ -1097,6 +1100,35 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
   })();
   const planWeekStreakDone = planWeekStreak.filter(Boolean).length;
 
+  // ── View toggle (Timeline · Day · Week) navigation ──
+  const planDayIndex = (d) => { const x = d.getDay(); return x === 0 ? 6 : x - 1; }; // Mon=0
+  const dayGridWeekStart = startOfWeek(viewDate);
+  const planToday = () => {
+    if (planView === 'week') setWeekStart(startOfWeek(new Date()));
+    else { setViewDayOffset(0); setScrollToNowTick(n => n + 1); }
+  };
+  const planPrev = () => {
+    if (planView === 'week') setWeekStart(addDays(weekStart, -7));
+    else setViewDayOffset(o => o - 1);
+  };
+  const planNext = () => {
+    if (planView === 'week') setWeekStart(addDays(weekStart, 7));
+    else setViewDayOffset(o => o + 1);
+  };
+  const planNavLabel = planView === 'week'
+    ? formatRange(weekStart, weekEnd)
+    : viewDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  // Clicking a day header in Week drills into that day; in Day it returns to Week.
+  const planDayClick = (col) => {
+    const d = addDays(weekStart, col);
+    const off = Math.round((startOfDay(d).getTime() - startOfDay(now).getTime()) / 86400000);
+    setViewDayOffset(off);
+    setPlanView('day');
+  };
+  // Supplements + micro for the Tasks & routine band
+  const supplementItems = todayItems.filter(it => it.kind === 'routine' && it.category === 'supplement');
+  const supplementsTaken = supplementItems.filter(s => s.completed).length;
+
   return (
     <>
 
@@ -1120,28 +1152,24 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
         </div>
       </div>
 
-      {/* Controls: Today · day nav · away · inbox · Today/Week */}
+      {/* Controls: day nav (left) · Timeline/Day/Week (right) */}
       <div className="plan-controls">
-        <button className="plan-textbtn" onClick={mainView === 'today' ? () => { setViewDayOffset(0); setScrollToNowTick(n => n + 1); } : goToday}>Today</button>
         <div className="plan-daynav">
-          <button className="plan-iconbtn" onClick={mainView === 'today' ? () => setViewDayOffset(o => o - 1) : goPrev} aria-label="Previous">‹</button>
-          <span className="lbl">
-            {mainView === 'today'
-              ? viewDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-              : (dayView !== null ? formatDateShort(addDays(weekStart, dayView)) : formatRange(weekStart, weekEnd))}
-          </span>
-          <button className="plan-iconbtn" onClick={mainView === 'today' ? () => setViewDayOffset(o => o + 1) : goNext} aria-label="Next">›</button>
+          <button className="plan-textbtn" onClick={planToday}>Today</button>
+          <button className="plan-iconbtn" onClick={planPrev} aria-label="Previous">‹</button>
+          <span className="lbl">{planNavLabel}</span>
+          <button className="plan-iconbtn" onClick={planNext} aria-label="Next">›</button>
         </div>
-        <div className="plan-spacer" />
-        <button className={`plan-textbtn${isWorkingAway ? ' on' : ''}`} onClick={toggleWorkingAway}>{isWorkingAway ? 'Away' : 'At home'}</button>
-        <button className="plan-textbtn" onClick={() => setInboxOpen(true)}>{openInboxCount > 0 ? `Inbox · ${openInboxCount}` : 'Inbox'}</button>
         <div className="plan-seg">
-          <button className={mainView === 'today' ? 'on' : ''} onClick={() => setMainView('today')}>Today</button>
-          <button className={mainView === 'plan' ? 'on' : ''} onClick={() => setMainView('plan')}>Week</button>
+          <button className={planView === 'timeline' ? 'on' : ''} onClick={() => setPlanView('timeline')}>Timeline</button>
+          <button className={planView === 'day' ? 'on' : ''} onClick={() => setPlanView('day')}>Day</button>
+          <button className={planView === 'week' ? 'on' : ''} onClick={() => setPlanView('week')}>Week</button>
         </div>
       </div>
 
-    {mainView === 'today' ? (
+    {planView === 'timeline' ? (
+    <>
+    {/* BAND 1 — the day */}
     <div className="plan-grid">
 
       {/* LEFT — the day's agenda */}
@@ -1202,24 +1230,96 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
             <div className="mp">Nothing else scheduled today.</div>
           )}
         </div>
-          <TodayMiniMonth
-            viewDate={viewDate}
-            now={now}
-            onSelectDate={(d) => {
-              const start = startOfDay(d).getTime();
-              const today0 = startOfDay(now).getTime();
-              const offset = Math.round((start - today0) / (24 * 60 * 60 * 1000));
-              setViewDayOffset(offset);
-            }}
-          />
-          <ProjectsRailPanel
-            projects={projects}
-            scheduledBlocks={blocks}
-            onCompleteAction={completeProjectAction}
-            onAddAction={addProjectAction}
-            onDeleteAction={deleteProjectAction}
-          />
-          <div className="today-rail-section">
+          <div className="mini-card">
+            <TodayMiniMonth
+              viewDate={viewDate}
+              now={now}
+              onSelectDate={(d) => {
+                const start = startOfDay(d).getTime();
+                const today0 = startOfDay(now).getTime();
+                const offset = Math.round((start - today0) / (24 * 60 * 60 * 1000));
+                setViewDayOffset(offset);
+              }}
+            />
+          </div>
+      </div>{/* end .plan-aside */}
+    </div>{/* end BAND 1 .plan-grid */}
+
+    {/* BAND 2 — tasks & routine */}
+    <div className="band">
+      <div className="band-label">Tasks &amp; routine<span className="ln" /></div>
+      <div className="routine-grid">
+
+        {/* LEFT (wide) — today's tasks, fed by the To-dos source below */}
+        <div className="rcol">
+          <div className="mini-card">
+            <div className="tt-head">
+              <div className="mt">Today's tasks</div>
+            </div>
+            <div className="today-hero-pt-cols">
+              {['morning', 'afternoon'].map(slot => {
+                const label = slot === 'morning' ? 'Morning' : 'Afternoon';
+                const localItems = todos.filter(t => t.slot === slot).map(t => ({ id: t.id, title: t.title, done: !!t.done, source: 'local' }));
+                const tdItems = todoistTasks.filter(t => todoistSlots[t.id] === slot).map(t => ({ id: t.id, title: t.content, done: false, source: 'todoist' }));
+                const slotItems = [...localItems, ...tdItems];
+                const isTarget = heroDropTarget === slot;
+                return (
+                  <div
+                    key={slot}
+                    className={`today-hero-pt-col${isTarget ? ' drop-active' : ''}`}
+                    onDragOver={e => { if (e.dataTransfer.types.includes('application/json')) { e.preventDefault(); setHeroDropTarget(slot); } }}
+                    onDragEnter={e => { if (e.dataTransfer.types.includes('application/json')) setHeroDropTarget(slot); }}
+                    onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget)) setHeroDropTarget(null); }}
+                    onDrop={e => {
+                      e.preventDefault();
+                      setHeroDropTarget(null);
+                      try {
+                        const payload = JSON.parse(e.dataTransfer.getData('application/json'));
+                        if (payload.type === 'todo-promote' || payload.type === 'todo-col-move') {
+                          const src = payload.source || 'local';
+                          const combined = todos.filter(x => x.slot === slot).length + todoistTasks.filter(x => todoistSlots[x.id] === slot).length;
+                          if (combined >= 5) return;
+                          if (src === 'todoist') { if (todoistSlots[payload.todoId] !== slot) setTodoistTaskSlot(payload.todoId, slot); }
+                          else { const t = todos.find(x => x.id === payload.todoId); if (t && t.slot !== slot) setTodoSlot(payload.todoId, slot); }
+                        }
+                      } catch {}
+                    }}
+                  >
+                    <div className="today-hero-pt-col-header">
+                      {label} <span className="today-hero-pt-count">{slotItems.length}/5</span>
+                    </div>
+                    <div className="today-hero-list">
+                      {slotItems.length === 0
+                        ? <div className="today-hero-pt-empty">Drop here</div>
+                        : slotItems.map(item => (
+                          <div
+                            key={item.id}
+                            className={`today-hero-list-item today-hero-pt-item${item.done ? ' done' : ''}`}
+                            draggable
+                            onDragStart={e => { e.stopPropagation(); e.dataTransfer.setData('application/json', JSON.stringify({ type: 'todo-col-move', todoId: item.id, source: item.source })); }}
+                          >
+                            <input
+                              type="checkbox"
+                              className="today-hero-pt-check"
+                              checked={item.done}
+                              onChange={() => item.source === 'todoist' ? completeTodoistTask(item.id) : updateTodo(item.id, { done: !item.done })}
+                              onClick={e => e.stopPropagation()}
+                            />
+                            <span className="today-hero-list-title today-hero-list-title--link" onClick={e => { e.stopPropagation(); setHeroTaskDetail(item); }}>{item.title}</span>
+                            <button className="today-hero-pt-remove" onClick={() => item.source === 'todoist' ? setTodoistTaskSlot(item.id, null) : setTodoSlot(item.id, null)} title="Unpromote">×</button>
+                          </div>
+                        ))
+                      }
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* To-dos — source list (becomes the on-demand picker in Commit 2) */}
+          <div className="mini-card">
+            <div className="today-rail-section" style={{ padding: 0 }}>
             <div className="today-rail-header">
               <div className="today-rail-eyebrow">To-dos</div>
               <button className="rail-section-toggle" onClick={() => setTodosExpanded(v => !v)} aria-label={todosExpanded ? 'Collapse todos' : 'Expand todos'}>
@@ -1227,7 +1327,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
               </button>
             </div>
             {todoistToken && todoistProjectId && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 var(--space-4) 8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 0 8px' }}>
                 <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 3, border: '1px solid var(--border)', borderRadius: 'var(--radius-pill)', padding: '2px 7px 2px 9px', background: 'transparent', cursor: 'pointer' }}>
                   {/* Visible label — pointer-events off so clicks fall through to the select */}
                   <span style={{ color: 'var(--muted-2)', fontSize: 11, fontFamily: 'var(--serif)', pointerEvents: 'none', userSelect: 'none' }}>
@@ -1277,7 +1377,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
                         />
                         <button
                           className="rail-section-toggle"
-                          style={{ position: 'relative', zIndex: 1, width: todoistDueInput ? 'auto' : 22, padding: todoistDueInput ? '0 5px' : 0, color: todoistDueInput ? 'rgba(99,102,241,0.9)' : undefined, fontFamily: 'var(--mono)', fontSize: 10 }}
+                          style={{ position: 'relative', zIndex: 1, width: todoistDueInput ? 'auto' : 22, padding: todoistDueInput ? '0 5px' : 0, color: todoistDueInput ? 'var(--gold)' : undefined, fontFamily: 'var(--mono)', fontSize: 10 }}
                           title="Pick due date"
                           onClick={() => todoistDueRef.current?.showPicker?.()}
                         >
@@ -1288,7 +1388,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
                       </div>
                       <button
                         className="rail-section-toggle"
-                        style={{ color: 'rgba(99,102,241,0.9)' }}
+                        style={{ color: 'var(--gold)' }}
                         title="Add task to Todoist"
                         onClick={submitTodoistTask}
                       >
@@ -1373,187 +1473,122 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
                 </div>
               </>
             )}
-          </div>
-          <div className="today-rail-section">
-            <div className="today-rail-header">
-              <div className="today-rail-eyebrow">Calendars</div>
-              <button className="rail-section-toggle" onClick={() => setCalendarsExpanded(v => !v)} aria-label={calendarsExpanded ? 'Collapse calendars' : 'Expand calendars'}>
-                <span className={`rail-section-toggle-icon${calendarsExpanded ? '' : ' collapsed'}`}>⌄</span>
-              </button>
             </div>
-            {calendarsExpanded && <div className="today-cal-toggles">
-              {[
-                { key: 'routine', label: 'Routine', hex: 'var(--primary)', bg: 'var(--primary)' },
-                { key: 'work',    label: 'Work',    hex: parseColorVal(calendarSettings.workColor).hex || '#8C8C96',      bg: colorValToBackground(calendarSettings.workColor, '#8C8C96') },
-                { key: 'household', label: 'Household', hex: parseColorVal(calendarSettings.householdColor).hex || '#7896AF', bg: colorValToBackground(calendarSettings.householdColor, '#7896AF') },
-              ].map(({ key, label, hex, bg }) => (
-                <button
-                  key={key}
-                  className={`cal-toggle-btn ${calendarToggles[key] ? 'active' : ''}`}
-                  onClick={() => setCalendarToggles(t => ({ ...t, [key]: !t[key] }))}
-                >
-                  <span className="cal-toggle-check" style={{
-                    border: `1.5px solid ${hex}`,
-                    background: calendarToggles[key] ? bg : 'transparent',
-                  }}>
-                    {calendarToggles[key] && <span className="cal-toggle-check-mark">✓</span>}
-                  </span>
-                  {label}
-                </button>
-              ))}
-            </div>}
           </div>
+        </div>
 
-          {/* Routine — supplements + micro-strength tracker */}
-          <div className="today-hero today-hero--secondary">
-            <div className="today-hero-eyebrow">Routine</div>
-            {(() => {
-              const supplements = todayItems.filter(it => it.kind === 'routine' && it.category === 'supplement');
-              if (supplements.length === 0 && !microTracker) return <div className="today-hero-empty">No supplements today.</div>;
-              const half = Math.ceil(supplements.length / 2);
-              const col1 = supplements.slice(0, half);
-              const col2 = supplements.slice(half);
-              const renderRow = (it) => (
-                <div
-                  key={it.id}
-                  className={`today-hero-list-item today-hero-sup-row${it.completed ? ' done' : ''}`}
-                  onClick={() => toggleRoutineCompletion(it.itemId, viewDate)}
-                >
-                  <span className={`today-hero-sup-check${it.completed ? ' checked' : ''}`}>
-                    {it.completed ? '✓' : ''}
-                  </span>
-                  <span className="today-hero-list-time">{fmtHeroTime(it.startMin)}</span>
-                  <span className="today-hero-list-title">{it.title}</span>
-                </div>
-              );
-              return (
-                <>
-                  {supplements.length > 0 && (
-                    <div className="today-hero-sup-cols">
-                      <div className="today-hero-list">{col1.map(renderRow)}</div>
-                      <div className="today-hero-list">{col2.map(renderRow)}</div>
-                    </div>
-                  )}
-                  {microTracker && (
-                    <MicroTracker tracker={microTracker} onToggle={toggleMicroSlot} viewDate={viewDate} />
-                  )}
-                </>
-              );
-            })()}
-          </div>
-
-          {/* Card 3: Personal tasks — Morning / Afternoon columns */}
-          <div className="today-hero today-hero--secondary">
-            <div className="today-hero-eyebrow">Personal tasks</div>
-            <div className="today-hero-pt-cols">
-              {['morning', 'afternoon'].map(slot => {
-                const label = slot === 'morning' ? 'Morning' : 'Afternoon';
-                const localItems = todos.filter(t => t.slot === slot).map(t => ({ id: t.id, title: t.title, done: !!t.done, source: 'local' }));
-                const tdItems = todoistTasks.filter(t => todoistSlots[t.id] === slot).map(t => ({ id: t.id, title: t.content, done: false, source: 'todoist' }));
-                const slotItems = [...localItems, ...tdItems];
-                const isTarget = heroDropTarget === slot;
-                return (
-                  <div
-                    key={slot}
-                    className={`today-hero-pt-col${isTarget ? ' drop-active' : ''}`}
-                    onDragOver={e => { if (e.dataTransfer.types.includes('application/json')) { e.preventDefault(); setHeroDropTarget(slot); } }}
-                    onDragEnter={e => { if (e.dataTransfer.types.includes('application/json')) setHeroDropTarget(slot); }}
-                    onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget)) setHeroDropTarget(null); }}
-                    onDrop={e => {
-                      e.preventDefault();
-                      setHeroDropTarget(null);
-                      try {
-                        const payload = JSON.parse(e.dataTransfer.getData('application/json'));
-                        if (payload.type === 'todo-promote' || payload.type === 'todo-col-move') {
-                          const src = payload.source || 'local';
-                          const combined = todos.filter(x => x.slot === slot).length + todoistTasks.filter(x => todoistSlots[x.id] === slot).length;
-                          if (combined >= 5) return;
-                          if (src === 'todoist') { if (todoistSlots[payload.todoId] !== slot) setTodoistTaskSlot(payload.todoId, slot); }
-                          else { const t = todos.find(x => x.id === payload.todoId); if (t && t.slot !== slot) setTodoSlot(payload.todoId, slot); }
-                        }
-                      } catch {}
-                    }}
-                  >
-                    <div className="today-hero-pt-col-header">
-                      {label} <span className="today-hero-pt-count">{slotItems.length}/5</span>
-                    </div>
-                    <div className="today-hero-list">
-                      {slotItems.length === 0
-                        ? <div className="today-hero-pt-empty">Drop here</div>
-                        : slotItems.map(item => (
-                          <div
-                            key={item.id}
-                            className={`today-hero-list-item today-hero-pt-item${item.done ? ' done' : ''}`}
-                            draggable
-                            onDragStart={e => { e.stopPropagation(); e.dataTransfer.setData('application/json', JSON.stringify({ type: 'todo-col-move', todoId: item.id, source: item.source })); }}
-                          >
-                            <input
-                              type="checkbox"
-                              className="today-hero-pt-check"
-                              checked={item.done}
-                              onChange={() => item.source === 'todoist' ? completeTodoistTask(item.id) : updateTodo(item.id, { done: !item.done })}
-                              onClick={e => e.stopPropagation()}
-                            />
-                            <span className="today-hero-list-title today-hero-list-title--link" onClick={e => { e.stopPropagation(); setHeroTaskDetail(item); }}>{item.title}</span>
-                            <button className="today-hero-pt-remove" onClick={() => item.source === 'todoist' ? setTodoistTaskSlot(item.id, null) : setTodoSlot(item.id, null)} title="Unpromote">×</button>
-                          </div>
-                        ))
-                      }
-                    </div>
+        {/* RIGHT — supplements + micro-strength */}
+        <div className="rcol">
+          <div className="mini-card">
+            <div className="mt-row"><div className="mt">Supplements</div><span className="mt-count">{supplementsTaken} / {supplementItems.length} taken</span></div>
+            {supplementItems.length === 0 ? (
+              <div className="empty-line">No supplements today.</div>
+            ) : (
+              <div className="supp-list">
+                {supplementItems.map(s => (
+                  <div key={s.id} className={`supp${s.completed ? ' done' : ''}`} onClick={() => toggleRoutineCompletion(s.itemId, viewDate)}>
+                    <span className={`s-circle${s.completed ? ' done' : ''}`} />
+                    <span className="s-time">{fmtHeroTime(s.startMin)}</span>
+                    <span className="s-name">{s.title}</span>
                   </div>
-                );
-              })}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
-
-      </div>{/* end .plan-aside */}
-    </div>
-    ) : (
-      /* WEEK VIEW — the hour grid / drag-drop planner, kept intact.
-         Visual restyle of this surface is deferred to a later pass. */
-      <div className={`calendar-panel${dayView !== null ? ' day-view' : ''}`}>
-        {dayView !== null && !isMobile && (
-          <button className="day-view-back" onClick={() => setDayView(null)}>← Week</button>
-        )}
-        {isMobile ? (
-          <AgendaView
-            routine={(data.routine || []).filter(it => it.category !== 'supplement')}
-            overrides={data.overrides || {}}
-            scheduledBlocks={blocks}
-            projects={projects}
-            weekStart={weekStart}
-            now={now}
-            onBlockClick={(blockId) => setOpenBlockId(blockId)}
-            onRoutineClick={handleRoutineClick}
-            elsewhereToggles={elsewhere}
-            icsOccurrences={icsOccurrences}
-            completions={data.routineCompletions || {}}
-            onToggleComplete={toggleRoutineCompletion}
-            categoryStyles={categoryStyles}
-          />
-        ) : (
-          <WeekGrid
-            routine={(data.routine || []).filter(it => it.category !== 'supplement')}
-            overrides={data.overrides || {}}
-            scheduledBlocks={blocks}
-            projects={projects}
-            weekStart={weekStart}
-            now={now}
-            singleCol={dayView}
-            onDayClick={handleDayClick}
-            onCreateBlock={createBlock}
-            onBlockClick={(blockId) => setOpenBlockId(blockId)}
-            onRoutineClick={handleRoutineClick}
-            onUpdateBlock={updateBlock}
-            elsewhereToggles={elsewhere}
-            icsOccurrences={icsOccurrences}
-            completions={data.routineCompletions || {}}
-            onToggleComplete={toggleRoutineCompletion}
-            categoryStyles={categoryStyles}
-            calendarToggles={calendarToggles}
-          />
-        )}
+          {microTracker && (
+            <div className="mini-card">
+              <div className="mt-row"><div className="mt">Micro-Strength</div><span className="mt-count">{microTracker.doneCount} / {microTracker.total} done</span></div>
+              <div className="ms-dots">
+                {microTracker.slots.map(s => (
+                  <button key={s.hour} className={`ms-dot ${s.status}`} onClick={() => toggleMicroSlot(s.hour, viewDate)} title={`${pad(s.hour)}:00`} aria-label={`${pad(s.hour)}:00`} />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
+    </div>
+
+    {/* BAND 3 — projects */}
+    <div className="band">
+      <div className="band-label">Projects<span className="ln" /></div>
+      <div className="proj-strip">
+        {projects.length === 0 ? (
+          <div className="empty-line">No projects yet.</div>
+        ) : projects.map(p => (
+          <span key={p.id} className="pchip">
+            <span className="pdot" style={{ background: p.color || 'var(--muted-soft)' }} />
+            <span className="pname">{(p.name || '').replace('APP - ', '')}</span>
+            {p.tier != null && <span className="tcode">T{p.tier}</span>}
+          </span>
+        ))}
+      </div>
+    </div>
+    </>
+    ) : (
+      /* DAY / WEEK — calendar hour grids, kept at their current look
+         (a dedicated restyle pass comes later). Calendar show/hide
+         toggles live here, in the Week view. */
+      <>
+        {planView === 'week' && (
+          <div className="wk-cal-toggles">
+            {[
+              { key: 'routine', label: 'Routine', dot: 'var(--gold)' },
+              { key: 'work', label: 'Work', dot: parseColorVal(calendarSettings.workColor).hex || '#8C8C96' },
+              { key: 'household', label: 'Household', dot: parseColorVal(calendarSettings.householdColor).hex || '#7896AF' },
+            ].map(({ key, label, dot }) => (
+              <button
+                key={key}
+                className={`wk-cal-toggle ${calendarToggles[key] ? 'on' : 'off'}`}
+                onClick={() => setCalendarToggles(t => ({ ...t, [key]: !t[key] }))}
+              >
+                <span className="dot" style={{ background: dot }} />
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+        <div className={`calendar-panel${planView === 'day' ? ' day-view' : ''}`}>
+          {isMobile ? (
+            <AgendaView
+              routine={(data.routine || []).filter(it => it.category !== 'supplement')}
+              overrides={data.overrides || {}}
+              scheduledBlocks={blocks}
+              projects={projects}
+              weekStart={planView === 'day' ? dayGridWeekStart : weekStart}
+              now={now}
+              onBlockClick={(blockId) => setOpenBlockId(blockId)}
+              onRoutineClick={handleRoutineClick}
+              elsewhereToggles={elsewhere}
+              icsOccurrences={icsOccurrences}
+              completions={data.routineCompletions || {}}
+              onToggleComplete={toggleRoutineCompletion}
+              categoryStyles={categoryStyles}
+            />
+          ) : (
+            <WeekGrid
+              routine={(data.routine || []).filter(it => it.category !== 'supplement')}
+              overrides={data.overrides || {}}
+              scheduledBlocks={blocks}
+              projects={projects}
+              weekStart={planView === 'day' ? dayGridWeekStart : weekStart}
+              now={now}
+              singleCol={planView === 'day' ? planDayIndex(viewDate) : null}
+              onDayClick={planView === 'day' ? () => setPlanView('week') : planDayClick}
+              onCreateBlock={createBlock}
+              onBlockClick={(blockId) => setOpenBlockId(blockId)}
+              onRoutineClick={handleRoutineClick}
+              onUpdateBlock={updateBlock}
+              elsewhereToggles={elsewhere}
+              icsOccurrences={icsOccurrences}
+              completions={data.routineCompletions || {}}
+              onToggleComplete={toggleRoutineCompletion}
+              categoryStyles={categoryStyles}
+              calendarToggles={calendarToggles}
+            />
+          )}
+        </div>
+      </>
     )}
     </div>{/* end .plan-screen */}
 
