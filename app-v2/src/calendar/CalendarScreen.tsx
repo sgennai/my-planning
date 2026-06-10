@@ -4,7 +4,7 @@ import { parseColorVal, categoryStylesWith, CATEGORY_STYLES, SEED_PRACTICE_CONTE
 import { pad, hexToRgba, colorValToBackground, ViewSwitcher } from '../ui/helpers';
 import { startOfDay, startOfWeek, addDays, isSameDay, toMinutes, formatDateShort, formatRange, blocksForDate, makeOverrideKey, makeCompletionKey, resolvedRoutineForDate, applyElsewhereFilter } from '../helpers/calendar-utils';
 import { expandEventsForWindow } from '../helpers/ics-parser';
-import { fetchWeather } from '../helpers/weather';
+import { fetchWeather, wmoIcon } from '../helpers/weather';
 import { useMediaQuery, useTickingClock } from '../main-app';
 import { TodayScreen } from './today/TodayScreen';
 import { TodayMiniMonth } from './today/TodayMiniMonth';
@@ -1089,6 +1089,33 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
     }
     return best && best.temp != null ? Math.round(best.temp) : null;
   })();
+  // Next 3 days, summarised for the discrete weather hover popover.
+  const weatherDays = (() => {
+    if (!weatherCache || !weatherCache.hours || !weatherCache.hours.length) return [];
+    const today0 = startOfDay(now).getTime();
+    const out = [];
+    for (let d = 1; d <= 3; d++) {
+      const dayStart = today0 + d * 86400000;
+      const dayHours = weatherCache.hours.filter(h => {
+        const t = h.time.getTime();
+        return t >= dayStart && t < dayStart + 86400000;
+      });
+      if (!dayHours.length) continue;
+      const temps = dayHours.map(h => h.temp).filter(v => v != null);
+      if (!temps.length) continue;
+      // Condition: the hour nearest midday is representative of the day.
+      const mid = dayHours.reduce((best, h) =>
+        Math.abs(h.time.getHours() - 13) < Math.abs(best.time.getHours() - 13) ? h : best, dayHours[0]);
+      out.push({
+        label: new Date(dayStart).toLocaleDateString(undefined, { weekday: 'short' }),
+        hi: Math.round(Math.max(...temps)),
+        lo: Math.round(Math.min(...temps)),
+        code: mid.code,
+        precip: Math.round(Math.max(...dayHours.map(h => h.precip ?? 0))),
+      });
+    }
+    return out;
+  })();
   const planAgendaItems = todayItems.filter(it => it.category !== 'supplement' && it.category !== 'elsewhere');
   const planWeekStreak = (() => {
     const comps = data.routineCompletions || {};
@@ -1144,9 +1171,22 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
             <div className="p">Your routine, calendar, and the rep that matters today.</div>
           </div>
           {currentTemp != null && (
-            <div className="plan-weather" title="Weather">
+            <div className="plan-weather" tabIndex={0} aria-label="Weather, next 3 days">
               <svg className="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="4" /><path d="M12 3v2M12 19v2M3 12h2M19 12h2" /></svg>
               <span className="tmp">{currentTemp}°</span>
+              {weatherDays.length > 0 && (
+                <div className="plan-weather-pop" role="tooltip">
+                  <div className="pw-h">Next 3 days</div>
+                  {weatherDays.map(d => (
+                    <div key={d.label} className="pw-row">
+                      <span className="pw-day">{d.label}</span>
+                      <span className="pw-ic">{wmoIcon(d.code)}</span>
+                      <span className="pw-temp">{d.hi}°<span className="pw-lo"> / {d.lo}°</span></span>
+                      <span className="pw-precip">{d.precip >= 20 ? `${d.precip}%` : ''}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

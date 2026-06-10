@@ -8104,9 +8104,32 @@ h1, h2, h3, h4 { font-family: var(--f-disp); color: var(--ink); letter-spacing: 
 .plan-screen .ph h2.t { font-family: var(--f-disp); font-weight: 800; font-size: 27px; letter-spacing: -.022em; color: var(--ink); margin-top: 5px; line-height: 1.1; }
 .plan-screen .ph .p { font-size: 14px; color: var(--muted); margin-top: 5px; max-width: 54ch; }
 
-.plan-weather { display: flex; align-items: center; gap: 10px; }
+.plan-weather { display: flex; align-items: center; gap: 10px; position: relative; cursor: default; outline: none; }
 .plan-weather .ic { width: 24px; height: 24px; color: var(--gold); }
 .plan-weather .tmp { font-family: var(--f-disp); font-weight: 700; font-size: 26px; color: var(--ink); }
+
+/* Discrete next-3-days forecast — reveals on hover/focus of the weather */
+.plan-weather-pop {
+  position: absolute; top: 100%; right: 0; margin-top: 8px;
+  min-width: 168px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md);
+  box-shadow: var(--sh-md); padding: 11px 13px; z-index: 50;
+  opacity: 0; visibility: hidden; transform: translateY(-4px);
+  transition: opacity 140ms var(--ease-out), transform 140ms var(--ease-out), visibility 140ms linear;
+  pointer-events: none;
+}
+.plan-weather:hover .plan-weather-pop,
+.plan-weather:focus-visible .plan-weather-pop,
+.plan-weather:focus-within .plan-weather-pop {
+  opacity: 1; visibility: visible; transform: translateY(0);
+}
+.plan-weather-pop .pw-h { font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted-soft); margin-bottom: 9px; }
+.plan-weather-pop .pw-row { display: grid; grid-template-columns: 36px 18px 1fr auto; align-items: center; gap: 9px; padding: 3px 0; }
+.plan-weather-pop .pw-day { font-family: var(--f-mono); font-size: 11px; color: var(--muted); }
+.plan-weather-pop .pw-ic { font-size: 13px; text-align: center; line-height: 1; }
+.plan-weather-pop .pw-temp { font-family: var(--f-mono); font-size: 12px; color: var(--ink); font-weight: 500; }
+.plan-weather-pop .pw-lo { color: var(--muted-soft); font-weight: 400; }
+.plan-weather-pop .pw-precip { font-family: var(--f-mono); font-size: 10px; color: var(--gold); min-width: 30px; text-align: right; }
 
 .plan-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
 .plan-seg { display: inline-flex; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 3px; }
