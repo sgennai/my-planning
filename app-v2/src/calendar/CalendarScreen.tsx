@@ -1288,7 +1288,13 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
                       } catch {}
                     }}
                   >
-                    <div className="tt-label"><b>{label}</b><span className="c">{slotItems.length} / 5</span></div>
+                    <div className="tt-label">
+                      <b>{label}</b>
+                      <span className="tt-label-right">
+                        <button className="tt-add-mini" onClick={() => { setTodoPickerOpen(true); setTodoistRefreshTick(v => v + 1); }} title="Add from Todoist" aria-label="Add from Todoist">+</button>
+                        <span className="c">{slotItems.length} / 5</span>
+                      </span>
+                    </div>
                     {slotItems.map(item => (
                       <div
                         key={item.id}
@@ -1305,7 +1311,6 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
                         <button className="tt-remove" onClick={() => item.source === 'todoist' ? setTodoistTaskSlot(item.id, null) : setTodoSlot(item.id, null)} title="Remove from today">×</button>
                       </div>
                     ))}
-                    <div className="tt-drop" onClick={() => { setTodoPickerOpen(true); setTodoistRefreshTick(v => v + 1); }}>＋ add</div>
                   </div>
                 );
               })}

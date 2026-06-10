@@ -8202,8 +8202,11 @@ h1, h2, h3, h4 { font-family: var(--f-disp); color: var(--ink); letter-spacing: 
 .plan-screen .tt-add { font-size: 12px; font-weight: 500; color: var(--gold); background: var(--gold-tint); border: 1px solid var(--gold-line); border-radius: var(--r-sm); padding: 5px 10px; cursor: pointer; white-space: nowrap; }
 .plan-screen .tt-add:hover { background: var(--gold-line); }
 .plan-screen .tt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.plan-screen .tt-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; display: flex; justify-content: space-between; }
+.plan-screen .tt-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
 .plan-screen .tt-label b { color: var(--ink); font-weight: 600; }
+.plan-screen .tt-label-right { display: inline-flex; align-items: center; gap: 8px; }
+.plan-screen .tt-add-mini { background: none; border: none; padding: 0; cursor: pointer; color: var(--muted-soft); font-size: 16px; line-height: 1; display: inline-flex; align-items: center; }
+.plan-screen .tt-add-mini:hover { color: var(--gold); }
 .plan-screen .tt-label .c { font-family: var(--f-mono); font-size: 11px; color: var(--muted-soft); }
 .plan-screen .tt-task { display: flex; align-items: center; gap: 9px; padding: 6px 0; }
 .plan-screen .tt-name { font-size: 13px; color: var(--ink-soft); flex: 1; min-width: 0; }
