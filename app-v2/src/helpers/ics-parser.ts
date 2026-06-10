@@ -219,3 +219,19 @@ export function expandEventsForWindow(events: any[], windowStart: Date, windowEn
   });
   return out;
 }
+
+// Fetch an ICS feed through the Cloudflare proxy (`?url=<encoded feed>`) and
+// return the parsed VEVENT list ready for expandEventsForWindow(). The proxy is
+// required because calendar hosts (Google, etc.) don't send CORS headers.
+export async function fetchICS(proxyUrl: string, icsUrl: string) {
+  const base = (proxyUrl || '').replace(/\/+$/, '');
+  if (!base) throw new Error('No proxy URL configured');
+  if (!icsUrl) return [];
+  const res = await fetch(`${base}/?url=${encodeURIComponent(icsUrl)}`);
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`Proxy returned HTTP ${res.status}${body ? ': ' + body.slice(0, 120) : ''}`);
+  }
+  const text = await res.text();
+  return parseICS(text);
+}

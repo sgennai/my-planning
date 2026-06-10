@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo, Fragment } fr
 import { parseColorVal, categoryStylesWith, CATEGORY_STYLES, SEED_PRACTICE_CONTENT } from '../storage/data';
 import { pad, hexToRgba, colorValToBackground, ViewSwitcher } from '../ui/helpers';
 import { startOfDay, startOfWeek, addDays, isSameDay, toMinutes, formatDateShort, formatRange, blocksForDate, makeOverrideKey, makeCompletionKey, resolvedRoutineForDate, applyElsewhereFilter } from '../helpers/calendar-utils';
-import { expandEventsForWindow } from '../helpers/ics-parser';
+import { expandEventsForWindow, fetchICS } from '../helpers/ics-parser';
 import { fetchWeather, wmoIcon } from '../helpers/weather';
 import { useMediaQuery, useTickingClock } from '../main-app';
 import { TodayScreen } from './today/TodayScreen';
