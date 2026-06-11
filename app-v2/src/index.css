@@ -8392,3 +8392,11 @@ h1, h2, h3, h4 { font-family: var(--f-disp); color: var(--ink); letter-spacing: 
 .plan-screen .wk-collapse { display: inline-flex; align-items: center; gap: 6px; font-family: var(--f-ui); font-size: 12px; font-weight: 500; color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 6px 11px; cursor: pointer; }
 .plan-screen .wk-collapse:hover { color: var(--ink); border-color: var(--muted-soft); }
 .plan-screen .wk-collapse-ic { font-size: 14px; line-height: 1; color: var(--muted-soft); }
+
+/* Day view (inline in Plan) uses a .day-view ancestor whose legacy rules (28px
+   date, etc.) outrank the new compact header — restate them at higher specificity. */
+.day-view .day-header { padding: 7px 6px; }
+.day-view .day-header-name { font-size: 10px; }
+.day-view .day-header-date { font-size: 16px; width: 26px; height: 26px; margin-top: 2px; }
+.day-view .day-header.today .day-header-date { background: var(--gold); color: #fff; }
+.day-view .hour-label { right: 8px; font-size: 10px; }
