@@ -8381,3 +8381,14 @@ h1, h2, h3, h4 { font-family: var(--f-disp); color: var(--ink); letter-spacing: 
 /* now-line in muted rose (user's nowLineColor pref still wins if set) */
 .now-line { border-top: 2px solid var(--now-line-color, var(--now)); }
 .now-line::before { background: var(--now-line-color, var(--now)); box-shadow: none; }
+
+/* Week toolbar — calendar-layer toggles (cal-chip) + collapse-weekend, per spec */
+.plan-screen .cal-toggles { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+.plan-screen .cal-chip { display: inline-flex; align-items: center; gap: 7px; font-family: var(--f-ui); font-size: 12px; font-weight: 500; color: var(--ink-soft); background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 6px 12px; cursor: pointer; }
+.plan-screen .cal-chip .sw { width: 9px; height: 9px; border-radius: 2px; flex: none; }
+.plan-screen .cal-chip.off { color: var(--muted-soft); }
+.plan-screen .cal-chip.off .sw { background: var(--line) !important; }
+.plan-screen .cal-spacer { flex: 1; }
+.plan-screen .wk-collapse { display: inline-flex; align-items: center; gap: 6px; font-family: var(--f-ui); font-size: 12px; font-weight: 500; color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 6px 11px; cursor: pointer; }
+.plan-screen .wk-collapse:hover { color: var(--ink); border-color: var(--muted-soft); }
+.plan-screen .wk-collapse-ic { font-size: 14px; line-height: 1; color: var(--muted-soft); }

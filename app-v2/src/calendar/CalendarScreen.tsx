@@ -81,6 +81,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
   const [dayView, setDayView] = useState(null); // null = week view, 0..6 = visual column
   // Plan view selector: 'timeline' (agenda bands) | 'day' (single-day grid) | 'week' (week grid)
   const [planView, setPlanView] = useState('timeline');
+  const [weekendCollapsed, setWeekendCollapsed] = useState(false);
   const [todoPickerOpen, setTodoPickerOpen] = useState(false); // ＋ Add from Todoist picker (Commit 2)
   const [openBlockId, setOpenBlockId] = useState(null); // scheduled block popover
   const [openRoutineEdit, setOpenRoutineEdit] = useState(null); // { itemId, date } for routine click popover
@@ -1442,21 +1443,26 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
       /* WEEK — the full week hour-grid, kept at its current look (dedicated
          restyle later). Calendar show/hide toggles live here. */
       <>
-        <div className="wk-cal-toggles">
+        <div className="cal-toggles">
           {[
-            { key: 'routine', label: 'Routine', dot: 'var(--gold)' },
-            { key: 'work', label: 'Work', dot: parseColorVal(calendarSettings.workColor).hex || '#8C8C96' },
-            { key: 'household', label: 'Household', dot: parseColorVal(calendarSettings.householdColor).hex || '#7896AF' },
-          ].map(({ key, label, dot }) => (
+            { key: 'routine', label: 'Routine', sw: '#cfd4db' },
+            { key: 'work', label: 'Work', sw: 'var(--ink)' },
+            { key: 'household', label: 'Household', sw: parseColorVal(calendarSettings.householdColor).hex || '#7896AF' },
+          ].map(({ key, label, sw }) => (
             <button
               key={key}
-              className={`wk-cal-toggle ${calendarToggles[key] ? 'on' : 'off'}`}
+              className={`cal-chip ${calendarToggles[key] ? 'on' : 'off'}`}
               onClick={() => setCalendarToggles(t => ({ ...t, [key]: !t[key] }))}
             >
-              <span className="dot" style={{ background: dot }} />
+              <span className="sw" style={{ background: sw }} />
               {label}
             </button>
           ))}
+          <span className="cal-spacer" />
+          <button className="wk-collapse" onClick={() => setWeekendCollapsed(v => !v)} title={weekendCollapsed ? 'Show weekend' : 'Collapse weekend'}>
+            <span className="wk-collapse-ic">{weekendCollapsed ? '›' : '‹'}</span>
+            {weekendCollapsed ? 'Show weekend' : 'Collapse weekend'}
+          </button>
         </div>
         <div className="calendar-panel">
           {isMobile ? (
@@ -1495,6 +1501,8 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
               onToggleComplete={toggleRoutineCompletion}
               categoryStyles={categoryStyles}
               calendarToggles={calendarToggles}
+              weekendCollapsed={weekendCollapsed}
+              onToggleWeekendCollapse={() => setWeekendCollapsed(v => !v)}
             />
           )}
         </div>

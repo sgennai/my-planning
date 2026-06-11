@@ -669,13 +669,15 @@ export const START_HOUR = 6;
 export const END_HOUR = 23;
 export const HOURS_VISIBLE = END_HOUR - START_HOUR;
 
-export function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, now, singleCol, onDayClick, onCreateBlock, onBlockClick, onRoutineClick, onUpdateBlock, elsewhereToggles, icsOccurrences, completions, onToggleComplete, categoryStyles, calendarToggles }) {
+export function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekStart, now, singleCol, onDayClick, onCreateBlock, onBlockClick, onRoutineClick, onUpdateBlock, elsewhereToggles, icsOccurrences, completions, onToggleComplete, categoryStyles, calendarToggles, weekendCollapsed: controlledWeekendCollapsed, onToggleWeekendCollapse }) {
   const isDayView = singleCol !== null && singleCol !== undefined;
   const HOUR_HEIGHT = isDayView ? HOUR_HEIGHT_DAY : HOUR_HEIGHT_WEEK;
   const totalHeight = HOURS_VISIBLE * HOUR_HEIGHT;
   const isCurrentWeek = isSameDay(weekStart, startOfWeek(now));
 
-  const [weekendCollapsed, setWeekendCollapsed] = useState(false);
+  // Collapse-weekend can be driven from the Week toolbar (controlled) or stay local.
+  const [internalWeekendCollapsed, setInternalWeekendCollapsed] = useState(false);
+  const weekendCollapsed = controlledWeekendCollapsed != null ? controlledWeekendCollapsed : internalWeekendCollapsed;
   const cols = isDayView ? [singleCol] : [0, 1, 2, 3, 4, 5, 6];
   const gridCols = isDayView
     ? '56px 1fr'
@@ -813,21 +815,12 @@ export function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekSt
             return (
               <div
                 key={cd.col}
-                className={`day-header ${cd.isToday ? 'today' : ''} ${cd.isWeekend ? 'weekend' : ''} ${cd.col === 4 && !isDayView ? 'has-weekend-toggle' : ''}`}
+                className={`day-header ${cd.isToday ? 'today' : ''} ${cd.isWeekend ? 'weekend' : ''}`}
                 onClick={() => onDayClick && onDayClick(cd.col)}
                 title={isDayView ? 'Click to return to week view' : 'Click to zoom into this day'}
               >
                 <div className="day-header-name">{isDayView ? DAY_NAMES_LONG[cd.col] : DAY_NAMES_SHORT[cd.col]}</div>
                 <div className="day-header-date">{cd.date.getDate()}</div>
-                {cd.col === 4 && !isDayView && (
-                  <div
-                    className="weekend-toggle-zone"
-                    onClick={e => { e.stopPropagation(); setWeekendCollapsed(v => !v); }}
-                    title={weekendCollapsed ? 'Show weekend' : 'Hide weekend'}
-                  >
-                    {weekendCollapsed ? '‹' : '›'}
-                  </div>
-                )}
               </div>
             );
           })}
