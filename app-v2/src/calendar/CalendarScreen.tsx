@@ -877,7 +877,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
   }, [data.routine, tdOverrides, tdCompletions, elsewhere, now, viewDate, blocks, projects, icsOccurrences, calendarToggles]);
 
   const nowMin = now.getHours() * 60 + now.getMinutes();
-  const tdCurrentItems = todayItems.filter(it => it.startMin <= nowMin && (it.startMin + it.duration) > nowMin && !it.completed && it.category !== 'elsewhere' && it.category !== 'supplement');
+  const tdCurrentItems = todayItems.filter(it => !it.allDay && it.startMin <= nowMin && (it.startMin + it.duration) > nowMin && !it.completed && it.category !== 'elsewhere' && it.category !== 'supplement');
   const tdCurrent = tdCurrentItems[0];
   const tdUpcoming = todayItems.filter(it => it.startMin > nowMin && !it.completed && it.category !== 'elsewhere' && it.category !== 'supplement');
   const tdNext = tdUpcoming[0];
@@ -1110,6 +1110,9 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
     return out;
   })();
   const planAgendaItems = todayItems.filter(it => it.category !== 'supplement' && it.category !== 'elsewhere');
+  // All-day calendar events render in a compact strip at the top, not as a 24h card.
+  const planAllDay = planAgendaItems.filter(it => it.kind === 'ics' && it.allDay);
+  const planTimed = planAgendaItems.filter(it => !(it.kind === 'ics' && it.allDay));
   const planWeekStreak = (() => {
     const comps = data.routineCompletions || {};
     const keys = Object.keys(comps).filter(k => comps[k]);
@@ -1231,9 +1234,21 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
               calendarToggles={calendarToggles}
             />
           </div>
-        ) : planAgendaItems.length === 0 ? (
-          <div className="plan-agenda-empty">Nothing scheduled for this day.</div>
-        ) : planAgendaItems.map(it => {
+        ) : (
+        <>
+        {planAllDay.length > 0 && (
+          <div className="ag-allday">
+            {planAllDay.map(it => (
+              <div key={it.id} className="ag-allday-chip" style={{ borderLeftColor: it.color || 'var(--ink)' }} title={it.title}>
+                <span className="ag-allday-label">All day</span>
+                <span className="ag-allday-title">{it.title}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {planTimed.length === 0
+          ? (planAllDay.length === 0 ? <div className="plan-agenda-empty">Nothing scheduled for this day.</div> : null)
+          : planTimed.map(it => {
           const isPast = isToday && (it.startMin + it.duration) <= nowMin;
           const isRoutine = it.kind === 'routine';
           const isBlock = it.kind === 'block';
@@ -1268,6 +1283,8 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
             </div>
           );
         })}
+        </>
+        )}
       </div>
 
       {/* RIGHT — this week / up next, then the supporting panels */}

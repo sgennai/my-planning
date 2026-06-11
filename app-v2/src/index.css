@@ -8168,6 +8168,18 @@ h1, h2, h3, h4 { font-family: var(--f-disp); color: var(--ink); letter-spacing: 
 .ag-dot.done { background: var(--green); border-color: var(--green); }
 .plan-agenda-empty { padding: 40px 0; color: var(--muted-soft); font-size: 13px; }
 
+/* All-day calendar events — a compact strip above the timed agenda (Timeline +
+   mobile agenda), instead of a 24h card. */
+.ag-allday { display: flex; flex-direction: column; gap: 6px; padding-bottom: 12px; margin-bottom: 4px; border-bottom: 1px solid var(--line-soft); }
+.ag-allday-chip { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--ink); border-radius: var(--r-sm); padding: 7px 11px; }
+.ag-allday-label { font-family: var(--f-mono); font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted-soft); flex: none; }
+.ag-allday-title { font-size: 13px; font-weight: 600; color: var(--ink); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* All-day band in the hour grid — small bars pinned at the top of the day
+   column, so they don't span the full height or squash timed events. */
+.cal-allday-band { position: absolute; top: 2px; left: 3px; right: 3px; z-index: 3; display: flex; flex-direction: column; gap: 2px; pointer-events: none; }
+.cal-allday-bar { font-size: 11px; font-weight: 600; color: #fff; padding: 2px 7px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22); pointer-events: auto; }
+
 .plan-aside { display: flex; flex-direction: column; gap: 14px; }
 .mini-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px; }
 .mini-card .mt { font-family: var(--f-ui); font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }

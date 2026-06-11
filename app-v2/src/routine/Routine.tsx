@@ -55,6 +55,8 @@ export function AgendaView({ routine, overrides, scheduledBlocks, projects, week
     };
   });
   const sorted = [...routineItems, ...blockItems, ...icsItems].sort((a, b) => toMinutes(a.start) - toMinutes(b.start));
+  const allDaySorted = sorted.filter(it => it._kind === 'ics' && it._ics && it._ics.allDay);
+  const timedSorted = sorted.filter(it => !(it._kind === 'ics' && it._ics && it._ics.allDay));
   const nowMin = now.getHours() * 60 + now.getMinutes();
 
   return (
@@ -82,11 +84,25 @@ export function AgendaView({ routine, overrides, scheduledBlocks, projects, week
         <div className="agenda-day-subtitle">{formatDateShort(date)}</div>
       </div>
 
-      {sorted.length === 0 ? (
+      {allDaySorted.length === 0 && timedSorted.length === 0 ? (
         <div className="agenda-empty">No items on this day yet. Plan from a desktop to schedule project work.</div>
       ) : (
+        <>
+        {allDaySorted.length > 0 && (
+          <div className="ag-allday">
+            {allDaySorted.map(it => {
+              const icsColor = (it._ics && it._ics.color) || (it._ics.source === 'work' ? '#8C8C96' : '#7896AF');
+              return (
+                <div key={it.id} className="ag-allday-chip" style={{ borderLeftColor: icsColor }} title={it.title}>
+                  <span className="ag-allday-label">All day</span>
+                  <span className="ag-allday-title">{it.title}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
         <div className="agenda-list">
-          {sorted.map(item => {
+          {timedSorted.map(item => {
             const isBlock = item._kind === 'block';
             const isIcs = item._kind === 'ics';
             const block = isBlock ? item._block : null;
@@ -174,6 +190,7 @@ export function AgendaView({ routine, overrides, scheduledBlocks, projects, week
             );
           })}
         </div>
+        </>
       )}
     </>
   );

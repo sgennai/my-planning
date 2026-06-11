@@ -833,8 +833,8 @@ export function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekSt
           const date = addDays(weekStart, col);
           const isToday = isCurrentWeek && isSameDay(date, now);
           const isWeekend = col === 5 || col === 6;
-          const allDayItems = combinedDayItems(col, routine, scheduledBlocks || [], weekStart, overrides, elsewhereToggles, now, icsOccurrences, completions);
-          const dayItems = !calendarToggles ? allDayItems : allDayItems.filter(it => {
+          const combined = combinedDayItems(col, routine, scheduledBlocks || [], weekStart, overrides, elsewhereToggles, now, icsOccurrences, completions);
+          const visible = !calendarToggles ? combined : combined.filter(it => {
             if (it._kind === 'routine' && !calendarToggles.routine) return false;
             if (it._kind === 'ics' && it._ics) {
               if (it._ics.source === 'work' && !calendarToggles.work) return false;
@@ -842,6 +842,8 @@ export function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekSt
             }
             return true;
           });
+          const allDayEvents = visible.filter(it => it._isAllDay);
+          const dayItems = visible.filter(it => !it._isAllDay);
 
           return (
             <div
@@ -859,6 +861,24 @@ export function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekSt
                   style={{ top: (i + 1) * HOUR_HEIGHT }}
                 />
               ))}
+              {allDayEvents.length > 0 && (
+                <div className="cal-allday-band">
+                  {allDayEvents.map(item => {
+                    const icsColor = (item._ics && item._ics.color) || (item._ics && item._ics.source === 'work' ? '#8C8C96' : '#7896AF');
+                    return (
+                      <div
+                        key={item.id}
+                        className="cal-allday-bar"
+                        style={{ background: icsColor }}
+                        title={`All day · ${item.title}`}
+                        onClick={() => onBlockClick && item._ics && null}
+                      >
+                        {item.title}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
               {dayItems.map(item => (
                 <CalItem
                   key={item.id + ':' + col}

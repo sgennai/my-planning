@@ -271,7 +271,12 @@ export function combinedDayItems(visualCol: number, routine: any[], blocks: any[
   const allItems = [...routineItems, ...blockItems, ...icsItems];
   const elsewhereItems = allItems.filter(it => it._kind === 'routine' && it.category === 'elsewhere');
   const commuteItems = allItems.filter(it => it._kind === 'routine' && it.category === 'commute');
-  const mainItems = allItems.filter(it => !(it._kind === 'routine' && (it.category === 'elsewhere' || it.category === 'commute')));
+  // All-day calendar events render in a separate top band, so keep them out of the
+  // timed overlap packing — otherwise a 24h block spans the day and squashes everything.
+  const isAllDayIcs = (it: any) => it._kind === 'ics' && it._ics && it._ics.allDay;
+  const allDayItems = allItems.filter(isAllDayIcs);
+  const mainItems = allItems.filter(it =>
+    !(it._kind === 'routine' && (it.category === 'elsewhere' || it.category === 'commute')) && !isAllDayIcs(it));
   const laid = layoutDay(mainItems);
   const ewRanges = elsewhereItems.map(ew => ({ s: toMinutes(ew.start), e: toMinutes(ew.start) + ew.duration }));
   laid.forEach(it => {
@@ -280,7 +285,8 @@ export function combinedDayItems(visualCol: number, routine: any[], blocks: any[
   });
   elsewhereItems.forEach(it => { it._isElsewhereBar = true; });
   commuteItems.forEach(it => { it._isCommuteMarker = true; });
-  return [...laid, ...elsewhereItems, ...commuteItems];
+  allDayItems.forEach(it => { it._isAllDay = true; });
+  return [...laid, ...allDayItems, ...elsewhereItems, ...commuteItems];
 }
 
 export function actionStateMap(blocks: any[]) {
