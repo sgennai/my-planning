@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Planning — Day & Week grids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1A1D23; --ink-soft:#2D323B;
+  --paper:#F4F6F8; --surface:#FFFFFF;
+  --line:#E5E9EE; --line-soft:#EEF1F5;
+  --muted:#71767F; --muted-soft:#A3A8B1;
+  --gold:#B5852A; --gold-tint:#F8F1DE; --gold-line:#E7D5A6;
+  --green:#3C8A5E; --green-tint:#E9F3ED;
+  --now:#CB5A52;
+  --r-sm:8px; --r-md:12px; --r-lg:18px;
+  --sh-sm:0 1px 2px rgba(20,24,32,.05),0 1px 3px rgba(20,24,32,.05);
+  --sh-md:0 6px 22px rgba(20,24,32,.07),0 2px 6px rgba(20,24,32,.04);
+  --f-disp:'Schibsted Grotesk',system-ui,sans-serif;
+  --f-ui:'Inter',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink-soft);font-family:var(--f-ui);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{margin:0;color:var(--ink);font-family:var(--f-disp);letter-spacing:-.01em}
+p{margin:0}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px 96px}
+.doc-head{padding:60px 0 26px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--f-ui);font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.doc-head h1{font-size:40px;font-weight:800;line-height:1.04;margin:14px 0 0;letter-spacing:-.025em}
+.doc-head p{max-width:70ch;margin-top:14px;color:var(--muted);font-size:16px}
+
+.frame-cap{font-size:13px;color:var(--muted);margin:44px 0 12px;font-weight:500}
+.frame-cap b{color:var(--ink);font-weight:600}
+
+.browser{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh-md);overflow:hidden;margin-bottom:36px}
+.browser-bar{display:flex;align-items:center;gap:8px;padding:11px 14px;background:#fbfcfd;border-bottom:1px solid var(--line)}
+.dots{display:flex;gap:6px}.dots i{width:11px;height:11px;border-radius:99px;background:#e0e3e8;display:block}
+.url{flex:1;text-align:center;font-family:var(--f-mono);font-size:11px;color:var(--muted-soft);background:var(--paper);border-radius:6px;padding:4px 10px;max-width:280px;margin:0 auto}
+
+/* shell */
+.shell{display:grid;grid-template-columns:228px 1fr;min-height:600px}
+.side{border-right:1px solid var(--line);padding:18px 14px;display:flex;flex-direction:column;gap:18px;background:#fcfdfe}
+.brand{display:flex;align-items:center;gap:9px;padding:0 4px}
+.brand .mk{width:26px;height:26px;border-radius:7px;background:var(--ink);color:#fff;display:grid;place-items:center;font-family:var(--f-disp);font-weight:800;font-size:14px}
+.brand .nm{font-family:var(--f-disp);font-weight:700;font-size:15px;color:var(--ink);letter-spacing:-.01em}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav .nl{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r-sm);font-size:14px;font-weight:500;color:var(--muted);position:relative}
+.nav .nl .ic{width:17px;height:17px;flex:none;color:var(--muted-soft)}
+.nav .nl.on{background:var(--paper);color:var(--ink);font-weight:600}
+.nav .nl.on .ic{color:var(--ink)}
+.nav .nl.on::before{content:"";position:absolute;left:-14px;top:8px;bottom:8px;width:3px;border-radius:99px;background:var(--gold)}
+.side-foot{margin-top:auto;display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--line-soft);padding-top:12px}
+.side-controls{display:flex;align-items:center;justify-content:space-between;padding:4px}
+.ctl{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.ctl .ic{width:15px;height:15px;color:var(--muted-soft)}
+.toggle{width:34px;height:20px;border-radius:99px;background:var(--line);position:relative}
+.toggle i{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:99px;background:#fff;box-shadow:var(--sh-sm)}
+.foot-link{font-size:12px;color:var(--muted);padding:6px 4px;border-radius:6px}
+.northstar{background:linear-gradient(180deg,#fffdf7,#fff);border:1px solid var(--gold-line);border-radius:var(--r-md);padding:13px 14px}
+.northstar .ns-eb{font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.northstar .ns-role{font-family:var(--f-disp);font-weight:700;font-size:17px;color:var(--ink);margin-top:3px}
+.northstar .ns-meta{display:flex;justify-content:space-between;align-items:baseline;margin-top:9px}
+.northstar .ns-when{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.northstar .ns-pct{font-family:var(--f-mono);font-size:11px;color:var(--gold)}
+.ns-bar{height:5px;border-radius:99px;background:var(--gold-tint);margin-top:7px;overflow:hidden}
+.ns-bar i{display:block;height:100%;width:38%;background:var(--gold);border-radius:99px}
+
+.main{padding:24px 26px;background:var(--surface);min-width:0}
+.ph{margin-bottom:18px}
+.ph-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.ph .eb{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.ph h2.t{font-family:var(--f-disp);font-weight:800;font-size:26px;letter-spacing:-.022em;color:var(--ink);margin-top:5px}
+.weather{display:flex;align-items:center;gap:9px}
+.weather .tmp{font-family:var(--f-disp);font-weight:700;font-size:24px;color:var(--ink)}
+
+/* controls */
+.plan-controls{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.daynav{display:flex;align-items:center;gap:6px}
+.tbtn{font-size:13px;font-weight:500;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 13px}
+.arrow{width:30px;height:30px;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);color:var(--muted)}
+.arrow .ic{width:14px;height:14px}
+.date{font-family:var(--f-ui);font-weight:600;color:var(--ink);font-size:14px;padding:0 8px}
+.segment{display:inline-flex;background:var(--paper);border:1px solid var(--line);border-radius:var(--r-sm);padding:3px}
+.segment span{font-size:13px;font-weight:500;color:var(--muted);padding:6px 13px;border-radius:6px}
+.segment span.on{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:var(--sh-sm)}
+
+/* layer toggles */
+.cal-toggles{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.cal-chip{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:500;color:var(--ink-soft);background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:6px 12px}
+.cal-chip .sw{width:9px;height:9px;border-radius:2px;flex:none}
+.cal-chip.off{color:var(--muted-soft)}
+.cal-chip.off .sw{background:var(--line)!important}
+.cal-spacer{flex:1}
+.wk-collapse{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:6px 11px}
+.wk-collapse .ic{width:13px;height:13px}
+
+/* GRID */
+.grid-wrap{border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;background:var(--surface)}
+.grid-head{display:grid;border-bottom:1px solid var(--line);background:#fcfdfe}
+.gh-corner{}
+.gh-day{padding:8px 6px;text-align:center;border-left:1px solid var(--line-soft)}
+.gh-wd{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.gh-date{font-family:var(--f-disp);font-weight:700;font-size:16px;color:var(--ink);display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;border-radius:99px;margin-top:2px;line-height:1}
+.gh-day.today .gh-wd{color:var(--gold)}
+.gh-day.today .gh-date{background:var(--gold);color:#fff}
+.gh-day.wend{background:#fafbfc}
+.gh-day.wend .gh-wd,.gh-day.wend .gh-date{color:var(--muted-soft)}
+
+.allday{display:grid;border-bottom:1px solid var(--line);background:var(--paper);min-height:30px}
+.ad-label{font-family:var(--f-mono);font-size:9px;color:var(--muted-soft);text-align:right;padding:8px 8px 0;text-transform:uppercase;letter-spacing:.06em}
+.ad-cell{border-left:1px solid var(--line-soft);padding:5px 6px;display:flex;flex-wrap:wrap;gap:4px;align-content:flex-start}
+.ad-chip{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:500;color:var(--ink-soft);background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:2px 8px;max-width:100%;overflow:hidden;white-space:nowrap}
+.ad-chip .d{width:6px;height:6px;border-radius:99px;flex:none}
+
+.grid-body{display:grid;position:relative;max-height:520px;overflow:hidden}
+.gutter{}
+.g-hr{height:var(--hh);text-align:right;padding-right:8px;font-family:var(--f-mono);font-size:10px;color:var(--muted-soft);line-height:1;padding-top:2px}
+.daycol{position:relative;border-left:1px solid var(--line-soft)}
+.daycol.wend{background:#fafbfc}
+.hrline{height:var(--hh);border-top:1px solid var(--line-soft)}
+.hrline:first-child{border-top:0}
+
+.ev{position:absolute;left:3px;right:3px;border-radius:7px;border:1px solid var(--line);border-left:3px solid var(--ink);background:#fff;padding:4px 8px;overflow:hidden;z-index:2}
+.ev .et{font-weight:600;color:var(--ink);font-size:12px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev .es{font-family:var(--f-mono);font-size:10px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev.physical{border-left-color:var(--green);background:var(--green-tint)}
+.ev.work{border-left-color:var(--ink);background:#EEF0F3}
+.ev.routine{border-left-color:#cfd4db;background:#F6F7F9}
+.ev.practice{border-left-color:var(--gold);background:var(--gold-tint)}
+.ev.past{opacity:.48}
+.ev.l{right:50.5%}
+.ev.r{left:50.5%}
+
+.nowline{position:absolute;left:0;right:0;height:2px;background:var(--now);z-index:5}
+.nowline::before{content:"";position:absolute;left:-3px;top:-3px;width:8px;height:8px;border-radius:99px;background:var(--now)}
+
+/* phone */
+.phone{width:340px}
+.phone-scr{background:var(--surface);border:1px solid var(--line);border-radius:34px;box-shadow:var(--sh-md);overflow:hidden;display:flex;flex-direction:column;height:700px}
+.notch{height:26px;background:#fbfcfd;border-bottom:1px solid var(--line-soft);position:relative}
+.notch::after{content:"";position:absolute;top:9px;left:50%;transform:translateX(-50%);width:90px;height:6px;border-radius:99px;background:#e0e3e8}
+.m-top{padding:14px 16px 8px}
+.mt-eb{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.mt-row{display:flex;justify-content:space-between;align-items:center;margin-top:3px}
+.mt-t{font-family:var(--f-disp);font-weight:800;font-size:21px;color:var(--ink)}
+.m-seg{display:inline-flex;background:var(--paper);border:1px solid var(--line);border-radius:var(--r-sm);padding:2px;margin:6px 16px 10px}
+.m-seg span{font-size:12px;font-weight:500;color:var(--muted);padding:5px 11px;border-radius:6px}
+.m-seg span.on{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:var(--sh-sm)}
+.m-body{flex:1;overflow:hidden;border-top:1px solid var(--line)}
+.m-tabs{background:var(--surface);border-top:1px solid var(--line);display:flex;padding:8px 6px 20px}
+.m-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--muted-soft);font-weight:500}
+.m-tab .ic{width:20px;height:20px}
+.m-tab.on{color:var(--ink)}
+.m-tab.on .ic{color:var(--gold)}
+
+/* callout */
+.callout{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:var(--r-md);padding:20px 22px;margin-top:40px;font-size:14px;color:var(--ink-soft)}
+.callout h3{font-family:var(--f-disp);font-size:17px;margin-bottom:12px}
+.callout ul{margin:0;padding-left:18px}
+.callout li{margin:6px 0}
+.callout .foot{margin-top:16px;padding-top:13px;border-top:1px solid var(--line-soft);font-size:13px;color:var(--muted)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin:10px 0 0}
+.lg{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
+.lg .sw{width:14px;height:14px;border-radius:4px;border-left:3px solid;flex:none}
+
+@media (max-width:900px){.shell{grid-template-columns:1fr}.side{display:none}.doc-head h1{font-size:30px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="doc-head">
+    <div class="eyebrow">My Planning · Day &amp; Week grids</div>
+    <h1>The hour-grid, finally drawn.</h1>
+    <p>The first two references deliberately left the calendar surface open. This is it — the Day and Week grids in the same language: ink on paper, one warm signal, events that read at a glance. It's designed to sit at full width as its own view <em>and</em> to read well narrower, inside the Plan screen's left column. The app already handles drag-to-schedule, resize, and overlap packing; this is how that surface should look, not how it behaves.</p>
+  </header>
+
+  <!-- WEEK -->
+  <p class="frame-cap"><b>Week · desktop.</b> Seven calm columns, today in gold, a sticky all-day strip, the now-line on the current day, and the calendar-layer toggles that moved here from Plan.</p>
+  <div class="browser">
+    <div class="browser-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url">myplanning · plan · week</div></div>
+    <div class="shell">
+      <aside class="side">
+        <div class="brand"><div class="mk">P</div><div class="nm">My Planning</div></div>
+        <div class="northstar"><div class="ns-eb">North Star</div><div class="ns-role">VP Sales</div><div class="ns-meta"><span class="ns-when">Q4 2026 · ~4 mo</span><span class="ns-pct">38%</span></div><div class="ns-bar"><i></i></div></div>
+        <nav class="nav">
+          <div class="nl on"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Plan</div>
+          <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v6c0 4-3 6-8 8-5-2-8-4-8-8V7z"/></svg>Practice</div>
+          <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h16M4 19h10"/></svg>Intake</div>
+          <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Create</div>
+          <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7 7 0 0 0 0-2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1L15 2.5h-4l-.4 2.6a7 7 0 0 0-1.7 1l-2.3-1-2 3.4L6.6 11a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7 7 0 0 0 1.7-1l2.3 1 2-3.4z"/></svg>Setup</div>
+        </nav>
+        <div class="side-foot">
+          <div class="side-controls"><span class="ctl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2"/></svg>Light</span><span class="toggle"><i></i></span></div>
+          <div class="foot-link">Settings</div><div class="foot-link">Sign out</div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="ph"><div class="ph-top"><div><div class="eb">This week · Jun 8 – 14</div><h2 class="t">Week</h2></div><div class="weather"><svg style="width:22px;height:22px;color:var(--gold)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/></svg><span class="tmp">14°</span></div></div></div>
+
+        <div class="plan-controls">
+          <div class="daynav"><span class="tbtn">Today</span><span class="arrow"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></span><span class="date">Jun 8 – 14</span><span class="arrow"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></span></div>
+          <span class="segment"><span>Timeline</span><span>Day</span><span class="on">Week</span></span>
+        </div>
+
+        <div class="cal-toggles">
+          <span class="cal-chip"><span class="sw" style="background:#cfd4db"></span>Routine</span>
+          <span class="cal-chip"><span class="sw" style="background:var(--ink)"></span>Work</span>
+          <span class="cal-chip off"><span class="sw" style="background:var(--green)"></span>Household</span>
+          <span class="cal-spacer"></span>
+          <span class="wk-collapse"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>Collapse weekend</span>
+        </div>
+
+        <div class="grid-wrap" style="--hh:38px">
+          <div class="grid-head" style="grid-template-columns:48px repeat(7,1fr)">
+            <div class="gh-corner"></div>
+            <div class="gh-day"><div class="gh-wd">Mon</div><div class="gh-date">8</div></div>
+            <div class="gh-day today"><div class="gh-wd">Tue</div><div class="gh-date">9</div></div>
+            <div class="gh-day"><div class="gh-wd">Wed</div><div class="gh-date">10</div></div>
+            <div class="gh-day"><div class="gh-wd">Thu</div><div class="gh-date">11</div></div>
+            <div class="gh-day"><div class="gh-wd">Fri</div><div class="gh-date">12</div></div>
+            <div class="gh-day wend"><div class="gh-wd">Sat</div><div class="gh-date">13</div></div>
+            <div class="gh-day wend"><div class="gh-wd">Sun</div><div class="gh-date">14</div></div>
+          </div>
+          <div class="allday" style="grid-template-columns:48px repeat(7,1fr)">
+            <div class="ad-label">all-day</div>
+            <div class="ad-cell"></div>
+            <div class="ad-cell"><span class="ad-chip"><span class="d" style="background:var(--ink)"></span>Q3 offsite</span></div>
+            <div class="ad-cell"><span class="ad-chip"><span class="d" style="background:var(--ink)"></span>Q3 offsite</span></div>
+            <div class="ad-cell"></div>
+            <div class="ad-cell"></div>
+            <div class="ad-cell"></div>
+            <div class="ad-cell"></div>
+          </div>
+          <div class="grid-body" style="grid-template-columns:48px repeat(7,1fr)">
+            <div class="gutter">
+              <div class="g-hr">08:00</div><div class="g-hr">09:00</div><div class="g-hr">10:00</div><div class="g-hr">11:00</div><div class="g-hr">12:00</div><div class="g-hr">13:00</div><div class="g-hr">14:00</div><div class="g-hr">15:00</div><div class="g-hr">16:00</div><div class="g-hr">17:00</div>
+            </div>
+            <!-- Mon (past day) -->
+            <div class="daycol">
+              <div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div>
+              <div class="ev work past" style="top:38px;height:19px"><div class="et">Team sync</div></div>
+              <div class="ev work past" style="top:190px;height:57px"><div class="et">Proposal writing</div></div>
+            </div>
+            <!-- Tue (today) -->
+            <div class="daycol">
+              <div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div>
+              <div class="ev physical past" style="top:0;height:38px"><div class="et">Gym</div></div>
+              <div class="ev work past" style="top:38px;height:76px"><div class="et">Focus block</div></div>
+              <div class="ev work past" style="top:133px;height:28px"><div class="et">Acme call</div></div>
+              <div class="ev practice" style="top:266px;height:28px"><div class="et">Rehearsal</div></div>
+              <div class="nowline" style="top:241px"></div>
+            </div>
+            <!-- Wed -->
+            <div class="daycol">
+              <div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div>
+              <div class="ev work" style="top:76px;height:19px"><div class="et">1:1 Manager</div></div>
+              <div class="ev work" style="top:228px;height:38px"><div class="et">Pipeline review</div></div>
+            </div>
+            <!-- Thu -->
+            <div class="daycol">
+              <div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div>
+              <div class="ev work" style="top:114px;height:38px"><div class="et">Customer demo</div></div>
+            </div>
+            <!-- Fri -->
+            <div class="daycol">
+              <div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div>
+              <div class="ev work" style="top:38px;height:28px"><div class="et">Forecast call</div></div>
+              <div class="ev practice" style="top:304px;height:19px"><div class="et">C-level Q drill</div></div>
+            </div>
+            <!-- Sat -->
+            <div class="daycol wend">
+              <div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div>
+              <div class="ev routine" style="top:76px;height:38px"><div class="et">Bathroom door</div></div>
+            </div>
+            <!-- Sun -->
+            <div class="daycol wend">
+              <div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div>
+              <div class="ev routine" style="top:114px;height:38px"><div class="et">Meal prep</div></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- DAY -->
+  <p class="frame-cap"><b>Day · desktop.</b> One column, roomier rows. Title + time read clearly, overlapping events split side-by-side, past events fade back, and the now-line sits exactly at the current time. <b>This same grid renders inside Plan's Timeline view at ~60% width, with the This-week / Up-next cards beside it</b> — so the blocks stay legible narrower.</p>
+  <div class="browser">
+    <div class="browser-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url">myplanning · plan · day</div></div>
+    <div class="shell">
+      <aside class="side">
+        <div class="brand"><div class="mk">P</div><div class="nm">My Planning</div></div>
+        <div class="northstar"><div class="ns-eb">North Star</div><div class="ns-role">VP Sales</div><div class="ns-meta"><span class="ns-when">Q4 2026 · ~4 mo</span><span class="ns-pct">38%</span></div><div class="ns-bar"><i></i></div></div>
+        <nav class="nav">
+          <div class="nl on"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Plan</div>
+          <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v6c0 4-3 6-8 8-5-2-8-4-8-8V7z"/></svg>Practice</div>
+          <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h16M4 19h10"/></svg>Intake</div>
+          <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Create</div>
+          <div class="nl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7 7 0 0 0 0-2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1L15 2.5h-4l-.4 2.6a7 7 0 0 0-1.7 1l-2.3-1-2 3.4L6.6 11a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7 7 0 0 0 1.7-1l2.3 1 2-3.4z"/></svg>Setup</div>
+        </nav>
+        <div class="side-foot">
+          <div class="side-controls"><span class="ctl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2"/></svg>Light</span><span class="toggle"><i></i></span></div>
+          <div class="foot-link">Settings</div><div class="foot-link">Sign out</div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="ph"><div class="ph-top"><div><div class="eb">Today · Tue, Jun 9</div><h2 class="t">Day</h2></div><div class="weather"><svg style="width:22px;height:22px;color:var(--gold)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/></svg><span class="tmp">14°</span></div></div></div>
+
+        <div class="plan-controls">
+          <div class="daynav"><span class="tbtn">Today</span><span class="arrow"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></span><span class="date">Jun 9</span><span class="arrow"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></span></div>
+          <span class="segment"><span>Timeline</span><span class="on">Day</span><span>Week</span></span>
+        </div>
+
+        <div class="grid-wrap" style="--hh:46px;max-width:680px">
+          <div class="grid-head" style="grid-template-columns:56px 1fr">
+            <div class="gh-corner"></div>
+            <div class="gh-day today"><div class="gh-wd">Tuesday</div><div class="gh-date">9</div></div>
+          </div>
+          <div class="allday" style="grid-template-columns:56px 1fr">
+            <div class="ad-label">all-day</div>
+            <div class="ad-cell"><span class="ad-chip"><span class="d" style="background:var(--ink)"></span>Q3 board offsite</span><span class="ad-chip"><span class="d" style="background:var(--green)"></span>Anniversary</span></div>
+          </div>
+          <div class="grid-body" style="grid-template-columns:56px 1fr;max-height:600px">
+            <div class="gutter">
+              <div class="g-hr">07:00</div><div class="g-hr">08:00</div><div class="g-hr">09:00</div><div class="g-hr">10:00</div><div class="g-hr">11:00</div><div class="g-hr">12:00</div><div class="g-hr">13:00</div><div class="g-hr">14:00</div><div class="g-hr">15:00</div><div class="g-hr">16:00</div><div class="g-hr">17:00</div><div class="g-hr">18:00</div><div class="g-hr">19:00</div>
+            </div>
+            <div class="daycol">
+              <div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div>
+              <div class="ev physical past" style="top:46px;height:46px"><div class="et">Gym at home</div><div class="es">08:00 – 09:00</div></div>
+              <div class="ev work past" style="top:92px;height:92px"><div class="et">2h Focus Session</div><div class="es">09:00 – 11:00 · projects</div></div>
+              <div class="ev work past l" style="top:207px;height:34px"><div class="et">Acme call</div><div class="es">11:30</div></div>
+              <div class="ev work past r" style="top:218px;height:34px"><div class="et">Prep deck</div><div class="es">11:45</div></div>
+              <div class="ev routine past" style="top:265px;height:34px"><div class="et">Lunch</div><div class="es">12:45 – 13:30</div></div>
+              <div class="ev practice" style="top:368px;height:34px"><div class="et">Exec-presence rehearsal</div><div class="es">15:00 – 15:45</div></div>
+              <div class="ev work" style="top:414px;height:69px"><div class="et">Pipeline review</div><div class="es">16:00 – 17:30</div></div>
+              <div class="ev routine" style="top:529px;height:23px"><div class="et">Plan tomorrow</div></div>
+              <div class="nowline" style="top:337px"></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- PHONE + legend -->
+  <p class="frame-cap"><b>Day · phone.</b> The grid holds up on a narrow screen — same gutter, same blocks, the now-line and tap targets intact. Week falls back to Day on a phone.</p>
+  <div style="display:flex;gap:34px;flex-wrap:wrap;align-items:flex-start">
+    <div class="phone"><div class="phone-scr"><div class="notch"></div>
+      <div class="m-top"><div class="mt-eb">Today · Tue, Jun 9</div><div class="mt-row"><div class="mt-t">Day</div><div class="weather"><span class="tmp" style="font-size:18px">14°</span></div></div></div>
+      <div class="m-seg"><span>Timeline</span><span class="on">Day</span><span>Week</span></div>
+      <div class="m-body">
+        <div class="grid-wrap" style="--hh:42px;border:0;border-radius:0">
+          <div class="allday" style="grid-template-columns:44px 1fr"><div class="ad-label">all-day</div><div class="ad-cell"><span class="ad-chip"><span class="d" style="background:var(--ink)"></span>Q3 offsite</span></div></div>
+          <div class="grid-body" style="grid-template-columns:44px 1fr;max-height:430px">
+            <div class="gutter"><div class="g-hr">08</div><div class="g-hr">09</div><div class="g-hr">10</div><div class="g-hr">11</div><div class="g-hr">12</div><div class="g-hr">13</div><div class="g-hr">14</div><div class="g-hr">15</div><div class="g-hr">16</div><div class="g-hr">17</div></div>
+            <div class="daycol">
+              <div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div><div class="hrline"></div>
+              <div class="ev physical past" style="top:0;height:42px"><div class="et">Gym at home</div></div>
+              <div class="ev work past" style="top:42px;height:84px"><div class="et">2h Focus Session</div><div class="es">09:00 – 11:00</div></div>
+              <div class="ev work past" style="top:147px;height:31px"><div class="et">Acme call</div></div>
+              <div class="ev practice" style="top:294px;height:31px"><div class="et">Rehearsal</div></div>
+              <div class="nowline" style="top:266px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="m-tabs">
+        <div class="m-tab on"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>Plan</div>
+        <div class="m-tab"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v6c0 4-3 6-8 8-5-2-8-4-8-8V7z"/></svg>Practice</div>
+        <div class="m-tab"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h16M4 19h10"/></svg>Intake</div>
+        <div class="m-tab"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Create</div>
+        <div class="m-tab"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1l-.3-2.6h-4l-.3 2.6a7 7 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.3 2.6h4l.3-2.6a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.5z"/></svg>Setup</div>
+      </div>
+    </div></div>
+
+    <div style="flex:1;min-width:300px">
+      <div class="callout" style="margin-top:0">
+        <h3>Grid decisions</h3>
+        <ul>
+          <li><b>Calm density.</b> One hour ≈ 46px in Day, ≈ 38px in the tighter Week. Hairline hour lines, mono labels in the gutter — structure you can ignore until you need it.</li>
+          <li><b>Events read title-first.</b> Title in ink, time in mono underneath; category as a 3px left edge plus a faint matching fill. <b>Past events fade to ~50%</b> so the eye lands on what's ahead.</li>
+          <li><b>Overlaps split</b> side-by-side within the day; the <b>now-line</b> is a 2px rule with a dot, on the current day only.</li>
+          <li><b>All-day</b> is a sticky strip of chips under the headers — never full-height blocks competing with timed events.</li>
+          <li><b>Week</b> is Mon–Sun, today's header in gold, weekend columns dimmed with a collapse control, and the Routine · Work · Household layer toggles live up top.</li>
+        </ul>
+        <div class="legend">
+          <span class="lg"><span class="sw" style="border-left-color:var(--green);background:var(--green-tint)"></span>Physical</span>
+          <span class="lg"><span class="sw" style="border-left-color:var(--ink);background:#EEF0F3"></span>Work / calendar</span>
+          <span class="lg"><span class="sw" style="border-left-color:#cfd4db;background:#F6F7F9"></span>Routine</span>
+          <span class="lg"><span class="sw" style="border-left-color:var(--gold);background:var(--gold-tint)"></span>Practice</span>
+          <span class="lg"><span class="sw" style="border:0;background:var(--now);width:14px;height:2px;border-radius:2px"></span>Now</span>
+        </div>
+        <div class="foot">The now-line's muted rose is the one functional exception to the gold-only signal — a glance-marker convention that has to stand apart from event colour. Everything else stays in palette. The app's drag-to-schedule, resize and overlap-packing are unchanged; this is presentation only. <b>This governs the Day/Week grids only; the original reference still governs the other screens.</b></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -7964,6 +7964,7 @@
   --muted:#71767F; --muted-soft:#A3A8B1;
   --gold:#B5852A; --gold-tint:#F8F1DE; --gold-line:#E7D5A6;
   --green:#3C8A5E; --green-tint:#E9F3ED;
+  --now:#CB5A52; /* muted rose — now-line only */
   --r-sm:8px; --r-md:12px; --r-lg:18px;
   --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s8:48px;
   --sh-sm:0 1px 2px rgba(20,24,32,.05),0 1px 3px rgba(20,24,32,.05);
@@ -7995,6 +7996,7 @@
   --muted:#9AA0AA; --muted-soft:#6C727C;
   --gold:#D9A441; --gold-tint:#2A2419; --gold-line:#4A3D22;
   --green:#4FB57C; --green-tint:#19271F;
+  --now:#E0746B;
   --side-bg:#1A1E24;
 
   --bg:var(--paper); --bg-card:var(--surface); --bg-card-deep:#22272F; --bg-hover:#262C34;
@@ -8304,3 +8306,78 @@ h1, h2, h3, h4 { font-family: var(--f-disp); color: var(--ink); letter-spacing: 
   .plan-screen .tt-grid { grid-template-columns: 1fr; }
   .plan-screen .supp-list { grid-template-columns: 1fr; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DAY / WEEK GRID — re-skin to design/my-planning-grids-reference.html
+   Presentation only; positioning + behaviour unchanged. These rules are
+   appended last so they win over the legacy grid styling above.
+   ═══════════════════════════════════════════════════════════════════════ */
+.week-grid {
+  background: var(--surface);
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--sh-sm);
+}
+:root[data-theme="dark"] .week-grid { background: var(--surface); }
+
+/* sticky header + all-day band travel together */
+.week-grid-headwrap { position: sticky; top: 0; z-index: 6; background: var(--surface); }
+.week-grid-header { position: static; background: #fcfdfe; border-bottom: 1px solid var(--line); }
+:root[data-theme="dark"] .week-grid-header { background: var(--bg-card-deep); }
+.time-gutter-header { border-right: 1px solid var(--line-soft); }
+
+.day-header { padding: 7px 6px; gap: 2px; border-left: 1px solid var(--line-soft); }
+.day-header-name { font-family: var(--f-ui); font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.day-header-date { font-family: var(--f-disp); font-weight: 700; font-size: 16px; color: var(--ink); width: 26px; height: 26px; border-radius: 99px; margin-top: 2px; }
+.day-header.today .day-header-name { color: var(--gold); }
+.day-header.today .day-header-date { background: var(--gold); color: #fff; font-weight: 700; }
+.day-header.weekend { background: #fafbfc; }
+:root[data-theme="dark"] .day-header.weekend { background: rgba(255,255,255,.02); }
+.day-header.weekend .day-header-name,
+.day-header.weekend .day-header-date { color: var(--muted-soft); }
+
+/* all-day band — chips, never full-height blocks */
+.week-allday { display: grid; background: var(--paper); border-bottom: 1px solid var(--line); min-height: 30px; transition: grid-template-columns 300ms var(--ease-out); }
+.week-allday-label { font-family: var(--f-mono); font-size: 9px; color: var(--muted-soft); text-align: right; padding: 8px 8px 0; text-transform: uppercase; letter-spacing: .06em; }
+.week-allday-cell { border-left: 1px solid var(--line-soft); padding: 5px 6px; display: flex; flex-wrap: wrap; gap: 4px; align-content: flex-start; min-width: 0; overflow: hidden; }
+.week-allday-cell.weekend { background: #fafbfc; }
+:root[data-theme="dark"] .week-allday-cell.weekend { background: rgba(255,255,255,.02); }
+.week-allday-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 500; color: var(--ink-soft); background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 2px 8px; max-width: 100%; overflow: hidden; }
+.week-allday-chip .d { width: 6px; height: 6px; border-radius: 99px; flex: none; }
+.week-allday-chip .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* gutter + hour lines */
+.time-gutter { border-right: 1px solid var(--line-soft); }
+.hour-label { right: 8px; font-family: var(--f-mono); font-size: 10px; font-weight: 400; letter-spacing: 0; color: var(--muted-soft); }
+.day-column { border-left: 1px solid var(--line-soft); }
+.day-column.today { background: transparent; }
+.day-column.weekend { background: #fafbfc; }
+:root[data-theme="dark"] .day-column.weekend { background: rgba(255,255,255,.02); }
+.hour-line { border-top: 1px solid var(--line-soft); }
+
+/* event blocks — light fill + 3px left edge, title in ink, time in mono */
+.cal-item { border-radius: 7px; border: 1px solid var(--line); border-left: 3px solid var(--ink); background: var(--surface); box-shadow: none; padding: 4px 8px; gap: 0; }
+.cal-item:hover { filter: none; box-shadow: var(--sh-sm); z-index: 4; }
+.cal-item-title { color: var(--ink); font-size: 12px; font-weight: 600; line-height: 1.2; letter-spacing: 0; }
+.cal-item-time { color: var(--muted); font-family: var(--f-mono); font-size: 10px; font-weight: 400; letter-spacing: 0; margin-top: 1px; }
+.cal-item-project { color: var(--muted); font-size: 10px; }
+.cal-item-home-flag { background: var(--muted-soft); }
+.cal-item.is-past { filter: none; opacity: .5; }
+
+.cal-item.ev-physical { border-left-color: var(--green); background: var(--green-tint); }
+.cal-item.ev-work     { border-left-color: var(--ink);   background: #EEF0F3; }
+.cal-item.ev-routine  { border-left-color: #cfd4db;      background: #F6F7F9; }
+.cal-item.ev-practice { border-left-color: var(--gold);  background: var(--gold-tint); }
+:root[data-theme="dark"] .cal-item.ev-work    { background: rgba(255,255,255,.05); }
+:root[data-theme="dark"] .cal-item.ev-routine { background: rgba(255,255,255,.035); }
+.cal-item.ev-done { opacity: .5; }
+.cal-item.ev-done .cal-item-title { text-decoration: line-through; text-decoration-color: var(--muted-soft); }
+
+/* routine completion checkbox — readable on light fills */
+.cal-item-check { border: 1.5px solid var(--muted-soft); background: var(--surface); color: var(--green); }
+.cal-item.routine-completed .cal-item-check { background: var(--green); border-color: var(--green); color: #fff; }
+
+/* now-line in muted rose (user's nowLineColor pref still wins if set) */
+.now-line { border-top: 2px solid var(--now-line-color, var(--now)); }
+.now-line::before { background: var(--now-line-color, var(--now)); box-shadow: none; }

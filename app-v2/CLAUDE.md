@@ -15,6 +15,11 @@ v1 runtime-Babel single-global-scope app.
   the day · tasks & routine · projects strip; Timeline·Day·Week view toggle; Today's-tasks
   card fed by a Todoist "Perso" picker). The original reference still governs the other four
   screens.
+- **Day/Week grid override:** `design/my-planning-grids-reference.html` governs the **Day and
+  Week calendar grids only** (the hour-grid surface used by both, and inline in Plan's Timeline
+  column). Same tokens plus one new: `--now` (muted rose `#CB5A52`), used only for the now-line.
+  Calm event palette by 4 buckets — physical=green, work/calendar=ink, routine=grey #cfd4db,
+  practice=gold; light fill + 3px left edge; sticky all-day chip row under the headers.
 - **Architecture spec:** `../BLUEPRINT.md` — the product/engine architecture (five engines:
   Plan, Practice, Intake, Create + Setup/Projects; "few engines, much content"; UserProfile
   is the north star; $0 runtime AI; offline-first).

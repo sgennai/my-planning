@@ -663,8 +663,8 @@ export function Legend() {
 // ═════════════════════════════════════════════════════════════
 // WEEK GRID (desktop) — supports singleCol mode for day view
 // ═════════════════════════════════════════════════════════════
-export const HOUR_HEIGHT_WEEK = 42;
-export const HOUR_HEIGHT_DAY = 60;
+export const HOUR_HEIGHT_WEEK = 38;
+export const HOUR_HEIGHT_DAY = 46;
 export const START_HOUR = 6;
 export const END_HOUR = 23;
 export const HOURS_VISIBLE = END_HOUR - START_HOUR;
@@ -678,10 +678,10 @@ export function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekSt
   const [weekendCollapsed, setWeekendCollapsed] = useState(false);
   const cols = isDayView ? [singleCol] : [0, 1, 2, 3, 4, 5, 6];
   const gridCols = isDayView
-    ? '64px 1fr'
+    ? '56px 1fr'
     : weekendCollapsed
-      ? '64px repeat(5, 1fr) 0fr 0fr'
-      : '64px repeat(7, 1fr)';
+      ? '56px repeat(5, 1fr) 0fr 0fr'
+      : '56px repeat(7, 1fr)';
 
   const [activeDropCol, setActiveDropCol] = useState(null);
   const [dropPreview, setDropPreview] = useState(null); // { col, top, height }
@@ -782,43 +782,85 @@ export function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekSt
     return () => document.removeEventListener('dragstart', onDragStart, true);
   }, []);
 
+  const colData = cols.map(col => {
+    const date = addDays(weekStart, col);
+    const isToday = isCurrentWeek && isSameDay(date, now);
+    const isWeekend = col === 5 || col === 6;
+    const combined = combinedDayItems(col, routine, scheduledBlocks || [], weekStart, overrides, elsewhereToggles, now, icsOccurrences, completions);
+    const visible = !calendarToggles ? combined : combined.filter(it => {
+      if (it._kind === 'routine' && !calendarToggles.routine) return false;
+      if (it._kind === 'ics' && it._ics) {
+        if (it._ics.source === 'work' && !calendarToggles.work) return false;
+        if (it._ics.source === 'household' && !calendarToggles.household) return false;
+      }
+      return true;
+    });
+    return {
+      col, date, isToday, isWeekend,
+      allDay: visible.filter(it => it._isAllDay),
+      timed: visible.filter(it => !it._isAllDay),
+    };
+  });
+  const hasAllDay = colData.some(c => c.allDay.length > 0);
+
   return (
     <div ref={weekGridRef} className="week-grid">
-      <div className="week-grid-header" style={{ gridTemplateColumns: gridCols }}>
-        <div className="time-gutter-header" />
-        {cols.map(col => {
-          const date = addDays(weekStart, col);
-          const isToday = isCurrentWeek && isSameDay(date, now);
-          const isWeekend = col === 5 || col === 6;
-          if (weekendCollapsed && isWeekend) return null;
-          return (
-            <div
-              key={col}
-              className={`day-header ${isToday ? 'today' : ''} ${isWeekend ? 'weekend' : ''} ${col === 4 && !isDayView ? 'has-weekend-toggle' : ''}`}
-              onClick={() => onDayClick && onDayClick(col)}
-              title={isDayView ? 'Click to return to week view' : 'Click to zoom into this day'}
-            >
-              <div className="day-header-name">{DAY_NAMES_SHORT[col]}</div>
-              <div className="day-header-date">{date.getDate()}</div>
-              {col === 4 && !isDayView && (
-                <div
-                  className="weekend-toggle-zone"
-                  onClick={e => { e.stopPropagation(); setWeekendCollapsed(v => !v); }}
-                  title={weekendCollapsed ? 'Show weekend' : 'Hide weekend'}
-                >
-                  {weekendCollapsed ? '‹' : '›'}
+      <div className="week-grid-headwrap">
+        <div className="week-grid-header" style={{ gridTemplateColumns: gridCols }}>
+          <div className="time-gutter-header" />
+          {colData.map(cd => {
+            if (weekendCollapsed && cd.isWeekend) return null;
+            return (
+              <div
+                key={cd.col}
+                className={`day-header ${cd.isToday ? 'today' : ''} ${cd.isWeekend ? 'weekend' : ''} ${cd.col === 4 && !isDayView ? 'has-weekend-toggle' : ''}`}
+                onClick={() => onDayClick && onDayClick(cd.col)}
+                title={isDayView ? 'Click to return to week view' : 'Click to zoom into this day'}
+              >
+                <div className="day-header-name">{isDayView ? DAY_NAMES_LONG[cd.col] : DAY_NAMES_SHORT[cd.col]}</div>
+                <div className="day-header-date">{cd.date.getDate()}</div>
+                {cd.col === 4 && !isDayView && (
+                  <div
+                    className="weekend-toggle-zone"
+                    onClick={e => { e.stopPropagation(); setWeekendCollapsed(v => !v); }}
+                    title={weekendCollapsed ? 'Show weekend' : 'Hide weekend'}
+                  >
+                    {weekendCollapsed ? '‹' : '›'}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {hasAllDay && (
+          <div className="week-allday" style={{ gridTemplateColumns: gridCols }}>
+            <div className="week-allday-label">all-day</div>
+            {colData.map(cd => {
+              if (weekendCollapsed && cd.isWeekend) return null;
+              return (
+                <div key={cd.col} className={`week-allday-cell ${cd.isWeekend ? 'weekend' : ''}`}>
+                  {cd.allDay.map(item => {
+                    const icsColor = (item._ics && item._ics.color) || (item._ics && item._ics.source === 'work' ? '#8C8C96' : '#7896AF');
+                    return (
+                      <span key={item.id} className="week-allday-chip" title={`All day · ${item.title}`}>
+                        <span className="d" style={{ background: icsColor }} />
+                        <span className="t">{item.title}</span>
+                      </span>
+                    );
+                  })}
                 </div>
-              )}
-            </div>
-          );
-        })}
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div className="week-grid-body" style={{ height: totalHeight, gridTemplateColumns: gridCols }}>
         <div className="time-gutter">
           {Array.from({ length: HOURS_VISIBLE + 1 }, (_, i) => {
             const h = START_HOUR + i;
-            const label = h === 0 ? '12 AM' : h < 12 ? `${h} AM` : h === 12 ? '12 PM' : `${h - 12} PM`;
+            const label = `${pad(h)}:00`;
             return (
               <div
                 key={i}
@@ -829,27 +871,13 @@ export function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekSt
           })}
         </div>
 
-        {cols.map(col => {
-          const date = addDays(weekStart, col);
-          const isToday = isCurrentWeek && isSameDay(date, now);
-          const isWeekend = col === 5 || col === 6;
-          const combined = combinedDayItems(col, routine, scheduledBlocks || [], weekStart, overrides, elsewhereToggles, now, icsOccurrences, completions);
-          const visible = !calendarToggles ? combined : combined.filter(it => {
-            if (it._kind === 'routine' && !calendarToggles.routine) return false;
-            if (it._kind === 'ics' && it._ics) {
-              if (it._ics.source === 'work' && !calendarToggles.work) return false;
-              if (it._ics.source === 'household' && !calendarToggles.household) return false;
-            }
-            return true;
-          });
-          const allDayEvents = visible.filter(it => it._isAllDay);
-          const dayItems = visible.filter(it => !it._isAllDay);
-
+        {colData.map(cd => {
+          const col = cd.col;
           return (
             <div
               key={col}
-              className={`day-column ${isToday ? 'today' : ''} ${isWeekend ? 'weekend' : ''} ${activeDropCol === col ? 'drop-active' : ''}`}
-              style={weekendCollapsed && isWeekend ? { borderLeft: 'none' } : undefined}
+              className={`day-column ${cd.isToday ? 'today' : ''} ${cd.isWeekend ? 'weekend' : ''} ${activeDropCol === col ? 'drop-active' : ''}`}
+              style={weekendCollapsed && cd.isWeekend ? { borderLeft: 'none' } : undefined}
               onDragOver={(e) => onColDragOver(e, col)}
               onDragLeave={onColDragLeave}
               onDrop={(e) => onColDrop(e, col)}
@@ -861,29 +889,11 @@ export function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekSt
                   style={{ top: (i + 1) * HOUR_HEIGHT }}
                 />
               ))}
-              {allDayEvents.length > 0 && (
-                <div className="cal-allday-band">
-                  {allDayEvents.map(item => {
-                    const icsColor = (item._ics && item._ics.color) || (item._ics && item._ics.source === 'work' ? '#8C8C96' : '#7896AF');
-                    return (
-                      <div
-                        key={item.id}
-                        className="cal-allday-bar"
-                        style={{ background: icsColor }}
-                        title={`All day · ${item.title}`}
-                        onClick={() => onBlockClick && item._ics && null}
-                      >
-                        {item.title}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-              {dayItems.map(item => (
+              {cd.timed.map(item => (
                 <CalItem
                   key={item.id + ':' + col}
                   item={item}
-                  date={date}
+                  date={cd.date}
                   hourHeight={HOUR_HEIGHT}
                   projects={projects}
                   onBlockClick={onBlockClick}
@@ -894,10 +904,10 @@ export function WeekGrid({ routine, overrides, scheduledBlocks, projects, weekSt
                   now={now}
                 />
               ))}
-              {isToday && <NowLine now={now} hourHeight={HOUR_HEIGHT} />}
+              {cd.isToday && <NowLine now={now} hourHeight={HOUR_HEIGHT} />}
               {dropPreview && dropPreview.col === col && (
                 <div className="drop-ghost" style={{ top: dropPreview.top, height: dropPreview.height }}>
-                  <div style={{ padding: 4, fontSize: 10, color: 'var(--primary)', fontFamily: 'var(--mono)', letterSpacing: '0.05em' }}>
+                  <div style={{ padding: 4, fontSize: 10, color: 'var(--now)', fontFamily: 'var(--mono)', letterSpacing: '0.05em' }}>
                     {dropPreview.start}
                   </div>
                 </div>
@@ -1045,6 +1055,15 @@ export function CalItem({ item, date, hourHeight, projects, onBlockClick, onRout
     if (isPast) cls += ' is-past';
   }
 
+  // Calm 4-bucket palette for the re-skinned grid (matches the Plan timeline):
+  // physical = green, work/calendar = ink, routine = grey, practice = gold.
+  const evVariant = item.category === 'practice' ? 'practice'
+    : (item.category === 'gym' || item.category === 'physical') ? 'physical'
+    : (isIcs || isBlock) ? 'work'
+    : 'routine';
+  cls += ` ev-${evVariant}`;
+  if (item._completed || (isBlock && block && block.status === 'completed')) cls += ' ev-done';
+
   const onClick = (e) => {
     // Don't trigger when the click was actually on the resize handle or completion checkbox
     if (e.target.classList && (
@@ -1144,7 +1163,6 @@ export function CalItem({ item, date, hourHeight, projects, onBlockClick, onRout
         height,
         left: `calc(${leftPct}% + 2px + ${ewOffset}px)`,
         width: `calc(${widthPct}% - 4px - ${ewOffset}px)`,
-        background: itemBackground,
       }}
     >
       {isRoutine && !isTiny && (
@@ -1157,13 +1175,13 @@ export function CalItem({ item, date, hourHeight, projects, onBlockClick, onRout
           {item._completed ? '✓' : ''}
         </button>
       )}
-      <div className="cal-item-title" style={stripedTextStyle}>
+      <div className="cal-item-title">
         {!isBlock && style && style.emoji ? `${style.emoji} ` : ''}
         {item.title}
         {item.homeOnly && !isBlock && <span className="cal-item-home-flag" />}
       </div>
       {!isTiny && (
-        <div className="cal-item-time" style={stripedTextStyle}>{timeLabel}</div>
+        <div className="cal-item-time">{timeLabel}</div>
       )}
       {isBlock && project && !isTiny && !isShort && (
         <div className="cal-item-project">{project.name}</div>
