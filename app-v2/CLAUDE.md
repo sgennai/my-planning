@@ -9,7 +9,11 @@ v1 runtime-Babel single-global-scope app.
 
 - **Visual spec:** `design/my-planning-design-reference.html` — the authoritative look. Every
   screen is restyled to match it exactly, on desktop and phone. Lift tokens/components from
-  its `:root` and class definitions; do not invent new visual language.
+  its `:root` and class definitions; do not invent new visual language. Built so far against
+  this reference: the AppShell and **Setup** (its "Your North Star" frame — `ModuleDashboard`,
+  `.setup-screen`: labels-above-fields formcard that autosaves, modules grouped by family as
+  calm `modrow`s with status badges + Pause/Activate + Schedule controls). Practice, Intake,
+  Create still pending their passes.
 - **Plan-screen override:** `design/my-planning-plan-screen-reference.html` supersedes the
   original reference **for the Plan screen only** (same tokens; revised layout — three bands:
   the day · tasks & routine · projects strip; Timeline·Day·Week view toggle; Today's-tasks

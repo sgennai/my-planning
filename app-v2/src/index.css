@@ -8412,3 +8412,57 @@ h1, h2, h3, h4 { font-family: var(--f-disp); color: var(--ink); letter-spacing: 
 :root[data-theme="dark"] .cal-item.ics-event.ics-household { background: rgba(255,255,255,0.05); }
 .cal-item.ics-event .cal-item-title,
 .cal-item.ics-event .cal-item-time { opacity: 1; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SETUP SCREEN — original reference's "Your North Star" frame
+   (design/my-planning-design-reference.html). Labels above fields, gold focus;
+   modules grouped by family as calm modrows with all controls preserved.
+   ═══════════════════════════════════════════════════════════════════════ */
+.setup-screen { padding: 26px 30px; max-width: 1100px; width: 100%; }
+.setup-screen .ph { margin-bottom: 22px; }
+.setup-screen .ph .eb { font-family: var(--f-ui); font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); }
+.setup-screen .ph h2.t { font-family: var(--f-disp); font-weight: 800; font-size: 27px; letter-spacing: -.022em; color: var(--ink); margin-top: 5px; line-height: 1.1; }
+.setup-screen .ph .p { font-size: 14px; color: var(--muted); margin-top: 5px; max-width: 54ch; }
+
+.setup-screen .formcard { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 22px; margin-bottom: 18px; }
+.setup-screen .formcard:last-child { margin-bottom: 0; }
+.setup-screen .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.setup-screen .form-grid .full { grid-column: 1 / -1; }
+.setup-screen .field { display: flex; flex-direction: column; min-width: 0; }
+.setup-screen .field label { font-size: 12px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+.setup-screen .field input,
+.setup-screen .field textarea { width: 100%; font-family: var(--f-ui); font-size: 14px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 9px 11px; }
+.setup-screen .field textarea { resize: vertical; min-height: 62px; line-height: 1.5; }
+.setup-screen .field input:focus,
+.setup-screen .field textarea:focus { outline: 2px solid var(--gold); outline-offset: 1px; border-color: var(--gold); }
+.setup-screen .field .hint { font-size: 11px; color: var(--muted-soft); margin-top: 5px; }
+.setup-screen .setup-hint { font-size: 12px; color: var(--muted-soft); margin-top: 14px; }
+
+.setup-screen .tok-h { font-family: var(--f-ui); font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+.setup-screen .mod-family { margin-bottom: 16px; }
+.setup-screen .mod-family:last-child { margin-bottom: 0; }
+.setup-screen .mod-family-label { font-family: var(--f-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted-soft); margin-bottom: 2px; }
+.setup-screen .modrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line-soft); }
+.setup-screen .mod-family-label + .modrow { border-top: 0; }
+.setup-screen .modrow .ml { display: flex; flex-direction: column; min-width: 0; }
+.setup-screen .modrow .mn { font-weight: 600; color: var(--ink); font-size: 14px; }
+.setup-screen .modrow .md { font-size: 12px; color: var(--muted); text-transform: capitalize; }
+.setup-screen .mod-actions { display: flex; align-items: center; gap: 8px; flex: none; }
+.setup-screen .mod-btn { font-family: var(--f-ui); font-size: 12px; font-weight: 500; color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 5px 11px; cursor: pointer; white-space: nowrap; }
+.setup-screen .mod-btn:hover { color: var(--ink); border-color: var(--muted-soft); }
+.setup-screen .mod-btn.gold { color: #fff; background: var(--gold); border-color: var(--gold); }
+.setup-screen .mod-btn.gold:hover { background: #9A6F1F; }
+.setup-screen .mod-btn:disabled { opacity: .45; cursor: not-allowed; }
+.setup-screen .badge { font-family: var(--f-mono); font-size: 11px; padding: 3px 8px; border-radius: 99px; white-space: nowrap; text-transform: capitalize; }
+.setup-screen .badge.active { background: var(--green-tint); color: var(--green); }
+.setup-screen .badge.paused { background: var(--paper); color: var(--muted); }
+.setup-screen .badge.pending { background: var(--gold-tint); color: var(--gold); }
+.setup-screen .badge.archived { background: var(--line-soft); color: var(--muted-soft); }
+
+@media (max-width: 880px) {
+  .setup-screen { padding: 16px 14px 8px; }
+  .setup-screen .form-grid { grid-template-columns: 1fr; }
+  .setup-screen .ph { padding-right: 116px; }
+  .setup-screen .ph h2.t { font-size: 22px; }
+  .setup-screen .modrow { flex-wrap: wrap; }
+}

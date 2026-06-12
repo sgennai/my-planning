@@ -64,124 +64,107 @@ export function ModuleDashboard({ data, onPersist }: Props) {
   });
 
   return (
-    <div className="wrap screen-pad-top fade-in" style={{ paddingBottom: 100 }}>
-      <div className="eyebrow">Governance & Architecture</div>
-      <h1 className="title">Module Dashboard</h1>
-      <div className="rule" />
+    <div className="setup-screen fade-in">
+      <div className="ph">
+        <div className="eb">Setup</div>
+        <h2 className="t">Your North Star</h2>
+        <div className="p">The goal and profile that shape what you practice.</div>
+      </div>
 
-      {/* User Profile / North Star Editor */}
-      <section style={{ marginBottom: 48 }}>
-        <h2 style={{ fontSize: 18, marginBottom: 16 }}>North Star (User Profile)</h2>
-        <div style={{ display: 'grid', gap: 16, gridTemplateColumns: '1fr 1fr' }}>
-          <div>
-            <label className="field-label">Positioning Thesis</label>
+      {/* North Star / profile — labels above fields, autosaves */}
+      <div className="formcard">
+        <div className="form-grid">
+          <div className="field full">
+            <label>Your positioning</label>
             <textarea
-              className="field-input"
-              rows={3}
+              rows={2}
               value={profile.positioningThesis || ''}
               onChange={e => updateProfile('positioningThesis', e.target.value)}
-              placeholder="Your core professional thesis..."
+              placeholder="Enterprise seller becoming an agentic-AI advisor to the C-suite."
             />
           </div>
-          <div>
-            <label className="field-label">Switch Deadline</label>
+          <div className="field">
+            <label>Target roles</label>
             <input
               type="text"
-              className="field-input"
+              value={(profile.targetRoles || []).join(', ')}
+              onChange={e => updateProfile('targetRoles', e.target.value)}
+              placeholder="Senior AE, Sales Manager, VP Sales"
+            />
+            <div className="hint">Comma-separated. The first feeds the North Star anchor.</div>
+          </div>
+          <div className="field">
+            <label>Target date</label>
+            <input
+              type="text"
               value={profile.switchDeadline || ''}
               onChange={e => updateProfile('switchDeadline', e.target.value)}
               placeholder="e.g. Q4 2026"
             />
           </div>
-          <div>
-            <label className="field-label">Target Roles (comma separated)</label>
+          <div className="field">
+            <label>Competency framework</label>
             <input
               type="text"
-              className="field-input"
-              value={(profile.targetRoles || []).join(', ')}
-              onChange={e => updateProfile('targetRoles', e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="field-label">Competency Framework (comma separated)</label>
-            <input
-              type="text"
-              className="field-input"
               value={(profile.competencyFramework || []).join(', ')}
               onChange={e => updateProfile('competencyFramework', e.target.value)}
+              placeholder="Comma-separated"
             />
           </div>
-          <div>
-            <label className="field-label">Industries (comma separated)</label>
+          <div className="field">
+            <label>Industries</label>
             <input
               type="text"
-              className="field-input"
               value={(profile.industries || []).join(', ')}
               onChange={e => updateProfile('industries', e.target.value)}
+              placeholder="Banking, Insurance"
             />
           </div>
-          <div>
-            <label className="field-label">Geos (comma separated)</label>
+          <div className="field">
+            <label>Regions</label>
             <input
               type="text"
-              className="field-input"
               value={(profile.geos || []).join(', ')}
               onChange={e => updateProfile('geos', e.target.value)}
+              placeholder="EMEA, APAC"
             />
           </div>
         </div>
-      </section>
+        <div className="setup-hint">Changes save automatically.</div>
+      </div>
 
-      {/* Module Registry */}
-      <section>
-        <h2 style={{ fontSize: 18, marginBottom: 16 }}>Module Registry</h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-          {Object.entries(families).map(([family, mods]) => (
-            <div key={family}>
-              <h3 style={{ fontSize: 14, textTransform: 'uppercase', color: 'var(--muted-3)', marginBottom: 12, letterSpacing: '0.05em' }}>
-                {family}
-              </h3>
-              <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
-                {mods.map(m => (
-                  <div key={m.id} style={{ padding: 16, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                      <div style={{ fontWeight: 600 }}>{m.name}</div>
-                      <span style={{ fontSize: 11, padding: '2px 6px', background: m.status === 'active' ? 'var(--blue-light)' : 'var(--bg-inset)', color: m.status === 'active' ? 'var(--blue-dark)' : 'var(--muted-3)', borderRadius: 4 }}>
-                        {m.status}
-                      </span>
-                    </div>
-                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16, display: 'flex', gap: 8 }}>
-                      <span style={{ padding: '2px 6px', border: '1px solid var(--border)', borderRadius: 4 }}>Type: {m.type}</span>
-                      {m.cadence && (
-                        <span style={{ padding: '2px 6px', border: '1px solid var(--border)', borderRadius: 4 }}>Cadence: {m.cadence.frequency}</span>
-                      )}
-                    </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <button 
-                        className="btn-secondary" 
-                        style={{ padding: '4px 8px', fontSize: 12 }}
-                        onClick={() => toggleModuleStatus(m.id)}
-                      >
-                        {m.status === 'active' ? 'Pause' : 'Activate'}
-                      </button>
-                      {m.type === 'generator' && (
-                        <button 
-                          className="btn-primary" 
-                          style={{ padding: '4px 8px', fontSize: 12 }}
-                          onClick={() => handleGenerateBlocks(m.id)}
-                          disabled={m.status !== 'active'}
-                        >
-                          Schedule this week
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
+      {/* Modules — grouped by family, all controls preserved */}
+      <div className="formcard">
+        <div className="tok-h">Modules</div>
+        {Object.entries(families).map(([family, mods]) => (
+          <div key={family} className="mod-family">
+            <div className="mod-family-label">{family}</div>
+            {mods.map(m => (
+              <div key={m.id} className="modrow">
+                <div className="ml">
+                  <span className="mn">{m.name}</span>
+                  <span className="md">{m.type}{m.cadence ? ` · ${m.cadence.frequency}` : ''}</span>
+                </div>
+                <div className="mod-actions">
+                  {m.type === 'generator' && (
+                    <button
+                      className="mod-btn gold"
+                      onClick={() => handleGenerateBlocks(m.id)}
+                      disabled={m.status !== 'active'}
+                    >
+                      Schedule this week
+                    </button>
+                  )}
+                  <button className="mod-btn" onClick={() => toggleModuleStatus(m.id)}>
+                    {m.status === 'active' ? 'Pause' : 'Activate'}
+                  </button>
+                  <span className={`badge ${m.status}`}>{m.status}</span>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
