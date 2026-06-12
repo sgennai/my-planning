@@ -1258,6 +1258,8 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
             : (it.category === 'gym' || it.category === 'physical') ? 'physical'
             : (it.kind === 'ics' || it.kind === 'block') ? 'cal'
             : 'routine';
+          // Calendar (ICS) events keep their per-calendar colour (Settings) for the band.
+          const bandColor = it.kind === 'ics' ? it.color : undefined;
           const meta = isRoutine ? (it.note || (CATS[it.category] && CATS[it.category].label) || `${it.duration} min`)
             : isBlock ? `${it.note ? it.note + ' · ' : ''}${it.duration} min`
             : `From ${it.note === 'WORK' ? 'work' : 'household'} calendar · ${it.duration} min`;
@@ -1266,7 +1268,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
               <div className="ag-time">{fmtHeroTime(it.startMin)}</div>
               <div
                 className={`ag-card ${variant}${it.completed ? ' done' : ''}${isPast ? ' is-past' : ''}`}
-                style={{ cursor: (isRoutine || isBlock) ? 'pointer' : 'default' }}
+                style={{ cursor: (isRoutine || isBlock) ? 'pointer' : 'default', borderLeftColor: bandColor }}
                 onClick={isRoutine ? () => handleRoutineClick(it.itemId, viewDate) : isBlock ? () => setOpenBlockId(it.blockId) : undefined}
               >
                 <div className="h">
