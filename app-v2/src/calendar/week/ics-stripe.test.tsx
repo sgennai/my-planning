@@ -37,4 +37,25 @@ describe('ICS event never renders a striped background', () => {
     // left edge carries the household colour
     expect(ev.style.borderLeftColor.replace(/\s/g, '')).toMatch(/#3C8A5E|rgb\(60,138,94\)/i);
   });
+
+  it('does not apply a translucent inline fill from a low-opacity calendar colour', () => {
+    // 20% opacity household colour must NOT make the event see-through (which would
+    // let the hour-lines show through and read as horizontal stripes).
+    const start = new Date('2026-06-10T09:00:00');
+    const end = new Date('2026-06-10T10:00:00');
+    const ics = [{ source: 'household', title: 'Piano', start, end, allDay: false, uid: 'x',
+      color: '#A4C639', colorVal: { hex: '#A4C639', opacity: 0.2, striped: false } }];
+    const { container } = render(
+      <WeekGrid routine={[]} overrides={{}} scheduledBlocks={[]} projects={[]} weekStart={weekStart}
+        now={now} singleCol={null} onDayClick={() => {}} onCreateBlock={() => {}} onBlockClick={() => {}}
+        onRoutineClick={() => {}} onUpdateBlock={() => {}} elsewhereToggles={{}} icsOccurrences={ics}
+        completions={{}} onToggleComplete={() => {}} categoryStyles={null} calendarToggles={{ routine: true, work: true, household: true }}
+        weekendCollapsed={false} onToggleWeekendCollapse={() => {}} />
+    );
+    const ev = container.querySelector('.cal-item') as HTMLElement;
+    // no inline background at all → opaque fill comes from the CSS palette class
+    expect(ev.style.background).toBe('');
+    expect(ev.style.backgroundImage).toBe('');
+    expect(ev.className).toContain('ev-work');
+  });
 });
