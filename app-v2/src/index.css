@@ -8400,3 +8400,15 @@ h1, h2, h3, h4 { font-family: var(--f-disp); color: var(--ink); letter-spacing: 
 .day-view .day-header-date { font-size: 16px; width: 26px; height: 26px; margin-top: 2px; }
 .day-view .day-header.today .day-header-date { background: var(--gold); color: #fff; }
 .day-view .hour-label { right: 8px; font-size: 10px; }
+
+/* Neutralise the legacy imported-ICS styling on grid events: the dashed "read-only"
+   left edge (read as stripes), the translucent grey/blue fill (let hour-lines bleed
+   through), and the faded title/time. Calendar events now use the calm palette with
+   their solid Settings colour on the (inline) left edge. */
+.cal-item.ics-event { border-left-style: solid; }
+.cal-item.ics-event.ics-work,
+.cal-item.ics-event.ics-household { background: #EEF0F3; }
+:root[data-theme="dark"] .cal-item.ics-event.ics-work,
+:root[data-theme="dark"] .cal-item.ics-event.ics-household { background: rgba(255,255,255,0.05); }
+.cal-item.ics-event .cal-item-title,
+.cal-item.ics-event .cal-item-time { opacity: 1; }
