@@ -1056,6 +1056,10 @@ export function CalItem({ item, date, hourHeight, projects, onBlockClick, onRout
     : 'routine';
   cls += ` ev-${evVariant}`;
   if (item._completed || (isBlock && block && block.status === 'completed')) cls += ' ev-done';
+  // Calendar (ICS) events keep their per-calendar colour (Settings) on the left edge.
+  const evBandColor = isIcs
+    ? ((item._ics && item._ics.color) || (item._ics && item._ics.source === 'work' ? '#8C8C96' : '#7896AF'))
+    : undefined;
 
   const onClick = (e) => {
     // Don't trigger when the click was actually on the resize handle or completion checkbox
@@ -1156,6 +1160,7 @@ export function CalItem({ item, date, hourHeight, projects, onBlockClick, onRout
         height,
         left: `calc(${leftPct}% + 2px + ${ewOffset}px)`,
         width: `calc(${widthPct}% - 4px - ${ewOffset}px)`,
+        borderLeftColor: evBandColor,
       }}
     >
       {isRoutine && !isTiny && (
