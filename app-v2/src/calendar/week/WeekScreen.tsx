@@ -1132,23 +1132,8 @@ export function CalItem({ item, date, hourHeight, projects, onBlockClick, onRout
   }
   const ewOffset = item._elsewhereOverlap ? EW_BAR + 4 : 0;
 
-  // Background — uses full colorVal (with opacity+stripes) for routine and ICS items.
-  let itemBackground;
-  if (item._completed) {
-    itemBackground = '#7EB8A4';
-  } else if (isBlock) {
-    itemBackground = project?.color || style.color;
-  } else if (isRoutine) {
-    itemBackground = colorValToBackground(style.colorVal, style.color);
-  } else if (isIcs) {
-    itemBackground = colorValToBackground(item._ics.colorVal || item._ics.color, item._ics.color || style.color);
-  } else {
-    itemBackground = style.color;
-  }
-  const itemStriped = isRoutine ? parseColorVal(style.colorVal).striped
-    : isIcs ? parseColorVal(item._ics.colorVal || item._ics.color).striped
-    : false;
-  const stripedTextStyle = itemStriped ? { textShadow: '0 0 3px rgba(0,0,0,0.95), 0 1px 6px rgba(0,0,0,0.85), 0 2px 10px rgba(0,0,0,0.7)' } : undefined;
+  // Event blocks now use the calm CSS palette (light fill + coloured left edge);
+  // the old striped/solid colorVal background is no longer applied.
 
   return (
     <div
