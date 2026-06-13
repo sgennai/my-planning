@@ -8300,6 +8300,8 @@ h1, h2, h3, h4 { font-family: var(--f-disp); color: var(--ink); letter-spacing: 
 .tt-picker .pk-btn:hover { color: var(--gold); border-color: var(--gold-line); background: var(--gold-tint); }
 .tt-picker .pk-btn.on { color: var(--gold); border-color: var(--gold-line); background: var(--gold-tint); }
 .tt-picker .pk-empty { font-size: 13px; color: var(--muted-soft); padding: 12px 0; text-align: center; }
+.tt-picker .pk-past-toggle { display: flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted-soft); cursor: pointer; margin-left: auto; margin-right: 8px; user-select: none; }
+.tt-picker .pk-past-toggle input { accent-color: var(--gold); cursor: pointer; }
 
 @media (max-width: 880px) {
   .plan-screen .routine-grid { grid-template-columns: 1fr; }

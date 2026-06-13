@@ -83,6 +83,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
   const [planView, setPlanView] = useState('timeline');
   const [weekendCollapsed, setWeekendCollapsed] = useState(false);
   const [todoPickerOpen, setTodoPickerOpen] = useState(false); // ＋ Add from Todoist picker (Commit 2)
+  const [showPastTodoist, setShowPastTodoist] = useState(false);
   const [openBlockId, setOpenBlockId] = useState(null); // scheduled block popover
   const [openRoutineEdit, setOpenRoutineEdit] = useState(null); // { itemId, date } for routine click popover
   const [refLibraryOpen, setRefLibraryOpen] = useState(false);
@@ -1532,11 +1533,20 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
         <div className="tt-picker" onClick={e => e.stopPropagation()}>
           <div className="pk-h">
             <span>From Todoist · {todoistProjectName || 'Perso'}</span>
+            <label className="pk-past-toggle">
+              <input type="checkbox" checked={showPastTodoist} onChange={e => setShowPastTodoist(e.target.checked)} />
+              Past
+            </label>
             <button className="pk-close" onClick={() => setTodoPickerOpen(false)} aria-label="Close">×</button>
           </div>
           <div className="pk-list">
             {(() => {
-              const available = todoistPickerTasks.filter(t => !todoistSlots[t.id]);
+              const now = new Date();
+              const pad = n => String(n).padStart(2, '0');
+              const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+              const available = todoistPickerTasks
+                .filter(t => !todoistSlots[t.id])
+                .filter(t => showPastTodoist || !t.due?.date || t.due.date.substring(0, 10) >= todayStr);
               if (todoistError) return <div className="pk-empty" style={{ color: 'var(--coral)' }}>{todoistError}</div>;
               if (todoistLoading && available.length === 0) return <div className="pk-empty">Loading…</div>;
               if (available.length === 0) return <div className="pk-empty">Nothing left to add.</div>;
