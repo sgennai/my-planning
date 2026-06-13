@@ -9,7 +9,7 @@ describe('WP-7 Create Pipeline Transition', () => {
     render(<CreateScreen data={data} onPersist={onPersist} />);
     
     // Add idea
-    const addButton = screen.getByText('+');
+    const addButton = screen.getByText('+ Capture an idea');
     fireEvent.click(addButton);
     
     expect(onPersist).toHaveBeenCalled();
@@ -33,7 +33,7 @@ describe('WP-7 Create Pipeline Transition', () => {
 
     render(<CreateScreen data={data} onPersist={onPersist} />);
     
-    const draftButton = screen.getByText('Draft with Claude (Copy)');
+    const draftButton = screen.getAllByText('Draft with Claude →')[0];
     fireEvent.click(draftButton);
 
     await waitFor(() => {

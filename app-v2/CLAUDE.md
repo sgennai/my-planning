@@ -16,7 +16,11 @@ v1 runtime-Babel single-global-scope app.
   (`.prac-screen`: DrillView for JSON tracks, Interview workspace for user-authored track,
   bilingual EN/FR toggle, `renderRefPanel` with chip-per-item keyPhrases), and **Intake**
   (`.intk-screen`: `.intake-add` 4-col Quick Add, `.icard`/`.iact`/`.ib` card list, `itemSrc`
-  domain/feed/time derivation, `.segment` tab switcher). Create still pending its pass.
+  domain/feed/time derivation, `.segment` tab switcher), and **Create** (`.crt-screen`:
+  `.kanban` 4-col grid, `.kcol`/`.kcard`/`.kc-tag`/`.kc-h` reference chrome, inline-editable
+  `.kcard-edit` flush inputs, `.kcard-sub` angle subtitle, `.kcard-body` draft textarea,
+  `.kcard-act` per-card text-link actions, `.kempty` empty states, `.addbtn` column footers,
+  `.crdt-digest` weekly digest with three named sections). All five screens restyled.
   **Note:** Certifications tab styling (same `.icard` chrome + `.src` subtitle for
   signalValue/cost/effortHrs) is provisional — may get its own dedicated reference frame later.
 - **Plan-screen override:** `design/my-planning-plan-screen-reference.html` supersedes the
