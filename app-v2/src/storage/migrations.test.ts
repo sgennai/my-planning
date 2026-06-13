@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { migrate } from './migrations';
+import { DEFAULT_MODULES } from '../modules/seed-modules';
 
 describe('Migrations', () => {
   it('migrates v24 interviewPrep to v25 practiceItems while preserving progress', () => {
@@ -61,5 +62,19 @@ describe('Migrations', () => {
     expect(narrativeItem).toBeDefined();
     expect(narrativeItem.track).toBe('narrative');
     expect(narrativeItem.answer.bullets.length).toBeGreaterThan(0);
+  });
+
+  it('seeds DEFAULT_MODULES when modules is empty', () => {
+    const { data, migrated } = migrate({ modules: [] });
+    expect(migrated).toBe(true);
+    expect(data.modules.length).toBe(DEFAULT_MODULES.length);
+    expect(data.modules[0].id).toBe(DEFAULT_MODULES[0].id);
+  });
+
+  it('does not overwrite existing modules (non-destructive)', () => {
+    const existing = [{ id: 'custom-mod', name: 'My module', family: 'Custom', type: 'generator', status: 'active' }];
+    const { data } = migrate({ modules: existing });
+    expect(data.modules.length).toBe(1);
+    expect(data.modules[0].id).toBe('custom-mod');
   });
 });

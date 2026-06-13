@@ -1,4 +1,5 @@
 import { SCHEMA_VERSION, SEED_ROUTINE, SEED_PROJECTS, SEED_REFERENCE_LIBRARY, SEED_PRACTICE_CONTENT } from './data';
+import { DEFAULT_MODULES } from '../modules/seed-modules';
 import type { PracticeItem } from './types';
 
 export function migrate(data: any): { data: any, migrated: boolean } {
@@ -136,7 +137,9 @@ export function migrate(data: any): { data: any, migrated: boolean } {
     };
     changed = true;
   }
-  if (!Array.isArray(next.modules)) { next.modules = []; changed = true; }
+  // Seed the module registry when it's missing/empty (non-destructive: never
+  // overwrites an existing non-empty list, so user pause/activate state is kept).
+  if (!Array.isArray(next.modules) || next.modules.length === 0) { next.modules = DEFAULT_MODULES; changed = true; }
   if (!Array.isArray(next.learning)) { next.learning = []; changed = true; }
   if (!Array.isArray(next.content)) { next.content = []; changed = true; }
   if (!next.create || typeof next.create !== 'object') {
