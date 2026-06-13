@@ -1,11 +1,16 @@
 {
   "track": "clevel",
-  "trackLabel": "C-Level Questioning",
-  "_note": "Bilingual expansion (EN/FR) for the C-Level track per MASTER.md: role sets (CFO/CMO/CDO/CTO), sector sets (Banking/Insurance/Telco), and situation segmentation (first meeting / qualification / executive dinner). Layers ALONGSIDE the migrated legacy clevelQs (cl-01..cl-15) — ids do not collide. Same intent/followUp/listenFor style. prompt = rehearse asking it out loud; reference = read-only seed (loader-owned). All text fields are {en,fr}; resolve with localize(field,lang).",
+  "version": "2",
   "items": [
     {
-      "id": "cl-cfo-a1",
-      "tags": ["role:cfo", "objective:value", "situation:qualification"],
+      "id": "cl-cfo-1",
+      "role": "cfo",
+      "tags": [
+        "role:cfo",
+        "objective:value",
+        "situation:qualification",
+        "sector:banking"
+      ],
       "prompt": {
         "en": "Bank CFO, qualification meeting. Ask this calmly, peer-to-peer, then go silent and let them fill it: \"Beyond the business case on paper, what makes an investment something you'll personally defend to your board?\"",
         "fr": "DAF d'une banque, réunion de qualification. Posez cette question calmement, d'égal à égal, puis taisez-vous et laissez-le répondre : « Au-delà du business case sur le papier, qu'est-ce qui fait qu'un investissement, vous le défendez personnellement devant votre conseil ? »"
@@ -13,15 +18,25 @@
       "reference": {
         "intent": {
           "en": "Surfaces what truly earns CFO sponsorship — beyond ROI math, it's reversibility, reputation, and board narrative.",
-          "fr": "Révèle ce qui déclenche vraiment le parrainage d'un DAF — au-delà du calcul de ROI : réversibilité, réputation et récit pour le conseil."
+          "fr": "Révèle ce qui déclenche vraiment le parrainage d'un DAF — au-delà du ROI : réversibilité, réputation et récit pour le conseil."
         },
         "followUp": {
           "en": "\"And what's made you regret backing something in the past?\"",
           "fr": "« Et qu'est-ce qui vous a déjà fait regretter d'avoir soutenu un projet ? »"
         },
         "listenFor": {
-          "en": ["payback window", "reversibility / optionality", "reputational risk", "board defensibility"],
-          "fr": ["délai de retour", "réversibilité / optionalité", "risque réputationnel", "défendabilité devant le conseil"]
+          "en": [
+            "payback window",
+            "reversibility / optionality",
+            "reputational risk",
+            "board defensibility"
+          ],
+          "fr": [
+            "délai de retour",
+            "réversibilité / optionalité",
+            "risque réputationnel",
+            "défendabilité devant le conseil"
+          ]
         },
         "delivery": {
           "en": "Ask it once, then stop. The silence after is where a CFO tells you the real decision criteria.",
@@ -30,112 +45,1612 @@
       }
     },
     {
-      "id": "cl-cfo-a2",
-      "tags": ["role:cfo", "objective:risk", "situation:qualification"],
+      "id": "cl-cfo-2",
+      "role": "cfo",
+      "tags": [
+        "role:cfo",
+        "objective:risk",
+        "situation:reframe"
+      ],
       "prompt": {
-        "en": "Reframe from cost to cost-of-inaction. Out loud: \"When you look at the cost of doing nothing here — staying on the current path — how do you quantify that internally?\" Say it twice, the second time slower.",
-        "fr": "Recadrez du coût vers le coût de l'inaction. À voix haute : « Quand vous regardez le coût de ne rien faire — rester sur la trajectoire actuelle — comment le chiffrez-vous en interne ? » Dites-la deux fois, plus lentement la seconde."
+        "en": "Reframe from cost to cost-of-inaction. Out loud: \"When you look at the cost of doing nothing here — staying on the current path for another two years — what does that number look like to you?\"",
+        "fr": "Recadrez du coût vers le coût de l'inaction. À voix haute : « Quand vous regardez le coût de ne rien faire — rester sur la trajectoire actuelle deux ans de plus — quel chiffre voyez-vous ? »"
       },
       "reference": {
         "intent": {
-          "en": "Moves the economics from your price to their cost of delay — the frame where a CFO sells the deal internally for you.",
-          "fr": "Déplace l'économie de votre prix vers leur coût du délai — le cadrage où un DAF vend l'affaire en interne à votre place."
+          "en": "Forces the CFO to size the status quo as a number, which is the only competition your proposal really has.",
+          "fr": "Force le DAF à chiffrer le statu quo — c'est en réalité le seul concurrent de votre proposition."
         },
         "followUp": {
-          "en": "\"What's the part of that cost the rest of the board underestimates?\"",
-          "fr": "« Quelle part de ce coût le reste du conseil sous-estime-t-il ? »"
+          "en": "\"And which line on the P&L would feel it first?\"",
+          "fr": "« Et quelle ligne du P&L le ressentirait en premier ? »"
         },
         "listenFor": {
-          "en": ["cost of delay", "competitive erosion", "value leakage", "opportunity cost"],
-          "fr": ["coût du délai", "érosion concurrentielle", "fuite de valeur", "coût d'opportunité"]
+          "en": [
+            "status quo cost",
+            "compounding loss",
+            "P&L line",
+            "two-year horizon"
+          ],
+          "fr": [
+            "coût du statu quo",
+            "perte qui s'aggrave",
+            "ligne du P&L",
+            "horizon deux ans"
+          ]
         },
         "delivery": {
-          "en": "Calm volume. You're not selling urgency — you're helping them quantify a risk they already feel.",
-          "fr": "Volume calme. Vous ne vendez pas l'urgence — vous les aidez à chiffrer un risque qu'ils ressentent déjà."
+          "en": "Slow your pace. The reframe lands only if you give the CFO room to do the math out loud.",
+          "fr": "Ralentissez le débit. Le recadrage n'opère que si vous laissez au DAF le temps de faire le calcul à voix haute."
         }
       }
     },
     {
-      "id": "cl-cmo-a1",
-      "tags": ["role:cmo", "objective:value"],
+      "id": "cl-cfo-3",
+      "role": "cfo",
+      "tags": [
+        "role:cfo",
+        "objective:credibility",
+        "situation:board-narrative"
+      ],
       "prompt": {
-        "en": "CMO conversation. Out loud, ask the question that separates a strategic CMO from a campaign manager: \"Where would you most want marketing to move the revenue number directly, rather than just feed the funnel?\"",
-        "fr": "Échange avec un DMM (directeur marketing). À voix haute, posez la question qui distingue un DMM stratège d'un responsable de campagnes : « Où aimeriez-vous le plus que le marketing fasse bouger directement le chiffre d'affaires, plutôt que seulement alimenter le tunnel ? »"
+        "en": "CFO, mid-cycle. Ask: \"When you next stand in front of the board, what's the one operating-metric story you'd most like to be able to tell?\"",
+        "fr": "DAF, en milieu de cycle. Demandez : « Lors de votre prochain passage devant le conseil, quelle histoire — sur un indicateur opérationnel — aimeriez-vous le plus pouvoir raconter ? »"
       },
       "reference": {
         "intent": {
-          "en": "Tests whether the CMO thinks in pipeline or in revenue — and reveals where they feel marketing's impact is invisible.",
-          "fr": "Teste si le DMM raisonne en pipeline ou en chiffre d'affaires — et révèle où il juge l'impact du marketing invisible."
+          "en": "Gets you the metric the CFO is personally measured on upward — your value case has to map to that or it dies in the deck.",
+          "fr": "Vous donne l'indicateur sur lequel le DAF est jugé en interne — votre proposition doit s'y rattacher, sinon elle meurt dans la présentation."
         },
         "followUp": {
-          "en": "\"What's stopping you from being measured that way today?\"",
-          "fr": "« Qu'est-ce qui vous empêche d'être mesuré ainsi aujourd'hui ? »"
+          "en": "\"What story are you tired of telling them?\"",
+          "fr": "« Quelle histoire en avez-vous assez de leur raconter ? »"
         },
         "listenFor": {
-          "en": ["revenue attribution", "mid-funnel blind spots", "pipeline influence vs sourced", "board credibility"],
-          "fr": ["attribution du revenu", "angles morts du milieu de tunnel", "pipeline influencé vs généré", "crédibilité devant le conseil"]
+          "en": [
+            "board KPI",
+            "narrative arc",
+            "trajectory",
+            "credibility with chair"
+          ],
+          "fr": [
+            "KPI du conseil",
+            "arc narratif",
+            "trajectoire",
+            "crédibilité auprès du président"
+          ]
         },
         "delivery": {
-          "en": "Lead them up to revenue altitude; don't get pulled into channel tactics.",
-          "fr": "Amenez-les à l'altitude du chiffre d'affaires ; ne vous laissez pas entraîner dans les tactiques de canaux."
+          "en": "Stay quiet after the question. CFOs rehearse board narratives constantly — they'll give you the unfiltered one if you don't fill the gap.",
+          "fr": "Restez silencieux après la question. Les DAF répètent leurs récits pour le conseil sans cesse — ils vous donneront la version brute si vous ne comblez pas le silence."
         }
       }
     },
     {
-      "id": "cl-cdo-a1",
-      "tags": ["role:cdo", "objective:value"],
+      "id": "cl-cfo-4",
+      "role": "cfo",
+      "tags": [
+        "role:cfo",
+        "objective:value",
+        "situation:procurement-pressure"
+      ],
       "prompt": {
-        "en": "Chief Data Officer. Out loud: \"Where in the business is your data creating real advantage today — and where is it just sitting as a cost?\" Ask it, pause, let them think.",
-        "fr": "Chief Data Officer (directeur des données). À voix haute : « Où, dans l'entreprise, vos données créent-elles un véritable avantage aujourd'hui — et où ne sont-elles qu'un coût qui dort ? » Posez-la, marquez une pause, laissez-le réfléchir."
+        "en": "Procurement has pushed back hard on price and the CFO is the next conversation. Open with: \"Before we talk price, can I understand what 'good value' looks like to you for a decision of this size — independent of what's on the table?\"",
+        "fr": "Les achats ont mis la pression sur le prix et le DAF est le prochain échange. Ouvrez avec : « Avant de parler prix, puis-je comprendre ce que représente pour vous une « bonne valeur » sur une décision de cette taille — indépendamment de ce qui est sur la table ? »"
       },
       "reference": {
         "intent": {
-          "en": "Separates data-as-asset from data-as-liability in their own words, and exposes where value is trapped.",
-          "fr": "Distingue, dans ses propres mots, la donnée-actif de la donnée-passif, et révèle où la valeur est piégée."
+          "en": "Resets the conversation from negotiated price back to value criteria — and surfaces whether procurement's frame matches the CFO's.",
+          "fr": "Recadre la conversation du prix négocié vers les critères de valeur — et révèle si le cadrage des achats correspond à celui du DAF."
         },
         "followUp": {
-          "en": "\"What would it take to turn the second kind into the first?\"",
-          "fr": "« Que faudrait-il pour transformer le second type en premier ? »"
+          "en": "\"And where do you think procurement and you see this differently?\"",
+          "fr": "« Et sur quoi pensez-vous que les achats et vous ne voyez pas les choses de la même façon ? »"
         },
         "listenFor": {
-          "en": ["data product thinking", "fragmentation / silos", "governance maturity", "time-to-insight"],
-          "fr": ["logique de produit-donnée", "fragmentation / silos", "maturité de gouvernance", "délai d'accès à l'insight"]
+          "en": [
+            "TCO vs unit price",
+            "strategic value",
+            "procurement gap",
+            "time-to-impact"
+          ],
+          "fr": [
+            "TCO vs prix unitaire",
+            "valeur stratégique",
+            "écart avec les achats",
+            "délai d'impact"
+          ]
         },
         "delivery": {
-          "en": "Use their language: 'data product', 'time-to-insight'. It signals you operate at their altitude.",
-          "fr": "Employez leur vocabulaire : « produit-donnée », « délai d'accès à l'insight ». Cela montre que vous êtes à leur niveau."
+          "en": "Don't apologise for going around procurement — frame it as serving the CFO's own criteria. Confidence, not avoidance.",
+          "fr": "Ne vous excusez pas de contourner les achats — présentez-le comme servant les propres critères du DAF. Assurance, pas évitement."
         }
       }
     },
     {
-      "id": "cl-cdo-a2",
-      "tags": ["role:cdo", "objective:ai-readiness"],
+      "id": "cl-cfo-5",
+      "role": "cfo",
+      "tags": [
+        "role:cfo",
+        "objective:decision-process",
+        "situation:budget-cycle"
+      ],
       "prompt": {
-        "en": "Out loud: \"How ready is your data foundation for the AI ambitions the rest of the C-suite is talking about?\" Then stay quiet — this question often surfaces the real gap.",
-        "fr": "À voix haute : « À quel point votre socle de données est-il prêt pour les ambitions d'IA dont parle le reste du comité de direction ? » Puis taisez-vous — cette question fait souvent émerger le vrai écart."
+        "en": "Mid-Q3 with a CFO. Ask: \"How is this year's budget cycle different from last year's for you — what's the single thing that's harder to defend now?\"",
+        "fr": "Mi-T3 avec un DAF. Demandez : « En quoi le cycle budgétaire de cette année est-il différent de celui de l'an dernier — quelle est la chose la plus difficile à défendre maintenant ? »"
       },
       "reference": {
         "intent": {
-          "en": "Lets the CDO voice the gap between executive AI hype and data reality — positioning you as the one who sees it.",
-          "fr": "Permet au CDO d'exprimer l'écart entre le battage IA des dirigeants et la réalité des données — vous positionnant comme celui qui le perçoit."
+          "en": "Pulls the CFO into the present tense — what they're actually wrestling with this quarter, not abstract priorities.",
+          "fr": "Ancre le DAF dans le présent — ce sur quoi il lutte vraiment ce trimestre, pas des priorités abstraites."
         },
         "followUp": {
-          "en": "\"Who else in the leadership team understands that gap as clearly as you do?\"",
-          "fr": "« Qui d'autre, dans l'équipe dirigeante, perçoit cet écart aussi clairement que vous ? »"
+          "en": "\"What did you have to cut this year that surprised you?\"",
+          "fr": "« Qu'avez-vous dû couper cette année qui vous a surpris ? »"
         },
         "listenFor": {
-          "en": ["data quality / lineage", "shadow AI", "platform readiness", "executive misalignment"],
-          "fr": ["qualité / traçabilité des données", "IA non gouvernée", "maturité de la plateforme", "désalignement des dirigeants"]
+          "en": [
+            "budget pressure",
+            "defensibility",
+            "trade-offs",
+            "Q4 close"
+          ],
+          "fr": [
+            "pression budgétaire",
+            "défendabilité",
+            "arbitrages",
+            "clôture T4"
+          ]
         },
         "delivery": {
-          "en": "Non-judgmental tone. You're an ally surfacing reality, not a critic exposing weakness.",
-          "fr": "Ton sans jugement. Vous êtes un allié qui révèle la réalité, pas un critique qui pointe une faiblesse."
+          "en": "This is a question between peers who both deal with quarterly heat. Drop the customer/vendor posture entirely.",
+          "fr": "C'est une question entre pairs qui gèrent tous deux la pression trimestrielle. Abandonnez complètement la posture client/fournisseur."
         }
       }
     },
     {
-      "id": "cl-cto-a1",
-      "tags": ["role:cto", "objective:strategy"],
+      "id": "cl-cfo-6",
+      "role": "cfo",
+      "tags": [
+        "role:cfo",
+        "objective:risk",
+        "situation:risk-appetite"
+      ],
+      "prompt": {
+        "en": "CFO who's been burned by a previous tech investment. Ask: \"What's your hurdle rate of confidence on a project like this — what would you need to see, evidence-wise, before you'd green-light a real pilot?\"",
+        "fr": "DAF échaudé par un précédent investissement technologique. Demandez : « Quel est votre seuil de confiance sur un projet comme celui-ci — quelles preuves faudrait-il pour que vous donniez le feu vert à un vrai pilote ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Lets the CFO define their own evidence bar — which becomes the agreed test, instead of you guessing what would be enough.",
+          "fr": "Laisse le DAF définir lui-même son seuil de preuve — qui devient le test convenu, plutôt que vous deviez deviner ce qui suffirait."
+        },
+        "followUp": {
+          "en": "\"And what would make you walk away even if the numbers worked?\"",
+          "fr": "« Et qu'est-ce qui vous ferait renoncer même si les chiffres tenaient la route ? »"
+        },
+        "listenFor": {
+          "en": [
+            "evidence bar",
+            "pilot scope",
+            "walk-away triggers",
+            "past scar"
+          ],
+          "fr": [
+            "seuil de preuve",
+            "périmètre du pilote",
+            "raisons de renoncer",
+            "cicatrice passée"
+          ]
+        },
+        "delivery": {
+          "en": "When they describe a past failure, do not pivot to selling. Ask one more follow-up about what they learned. That's where trust is built.",
+          "fr": "Quand ils décrivent un échec passé, ne pivotez pas vers la vente. Posez encore une question sur ce qu'ils en ont appris. C'est là que se construit la confiance."
+        }
+      }
+    },
+    {
+      "id": "cl-cfo-7",
+      "role": "cfo",
+      "tags": [
+        "role:cfo",
+        "objective:value",
+        "situation:capex-vs-opex"
+      ],
+      "prompt": {
+        "en": "Working capital is tight. Ask the CFO: \"Are you trying to move spending from capex to opex this year, or the other way — and how does that shape what you'd say yes to first?\"",
+        "fr": "Le besoin en fonds de roulement est tendu. Demandez au DAF : « Cherchez-vous à déplacer la dépense du capex vers l'opex cette année, ou l'inverse — et comment cela oriente-t-il ce à quoi vous diriez oui en premier ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Reveals balance-sheet strategy that quietly governs which proposals can even be considered — let alone approved.",
+          "fr": "Révèle la stratégie de bilan qui gouverne en silence quelles propositions peuvent même être considérées — sans parler d'être approuvées."
+        },
+        "followUp": {
+          "en": "\"What's the working-capital target you're trying to hit this year?\"",
+          "fr": "« Quel est l'objectif de BFR que vous visez cette année ? »"
+        },
+        "listenFor": {
+          "en": [
+            "capex pressure",
+            "opex shift",
+            "balance-sheet posture",
+            "cash conversion"
+          ],
+          "fr": [
+            "pression capex",
+            "bascule opex",
+            "posture de bilan",
+            "conversion de trésorerie"
+          ]
+        },
+        "delivery": {
+          "en": "This question requires you to actually understand the answer. If 'capex shift to opex' isn't a sentence you can complete in your sleep, study before asking.",
+          "fr": "Cette question exige que vous compreniez vraiment la réponse. Si « passage capex/opex » n'est pas une phrase que vous formulez les yeux fermés, étudiez avant de poser."
+        }
+      }
+    },
+    {
+      "id": "cl-cfo-8",
+      "role": "cfo",
+      "tags": [
+        "role:cfo",
+        "objective:relationship",
+        "situation:executive-dinner"
+      ],
+      "prompt": {
+        "en": "Executive dinner, seated next to a CFO. Drop the deal entirely. Out loud: \"What does a really good week look like for you in your role — not a quarter, a week?\"",
+        "fr": "Dîner d'affaires, assis à côté d'un DAF. Abandonnez complètement le deal. À voix haute : « À quoi ressemble une vraiment bonne semaine pour vous dans votre poste — pas un trimestre, une semaine ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Moves you out of professional script and into a human conversation — which is the only currency that compounds across dinners.",
+          "fr": "Vous sort du script professionnel pour entrer dans une vraie conversation humaine — la seule monnaie qui se capitalise au fil des dîners."
+        },
+        "followUp": {
+          "en": "\"And what does a bad week look like — what's draining you most?\"",
+          "fr": "« Et une mauvaise semaine — qu'est-ce qui vous épuise le plus ? »"
+        },
+        "listenFor": {
+          "en": [
+            "weekly texture",
+            "human pace",
+            "what drains",
+            "what energises"
+          ],
+          "fr": [
+            "texture d'une semaine",
+            "rythme humain",
+            "ce qui épuise",
+            "ce qui ressource"
+          ]
+        },
+        "delivery": {
+          "en": "No notepad, no leaning forward. Lean back. CFOs spend all day being pitched at dinners — be the rare one who isn't.",
+          "fr": "Pas de bloc-notes, pas de buste penché en avant. Penchez-vous en arrière. Les DAF passent leurs dîners à être démarchés — soyez le rare qui ne le fait pas."
+        }
+      }
+    },
+    {
+      "id": "cl-coo-1",
+      "role": "coo",
+      "tags": [
+        "role:coo",
+        "objective:efficiency",
+        "situation:first-meeting"
+      ],
+      "prompt": {
+        "en": "First meeting with a COO. Ask: \"If you walked into the operation on a Monday and could change one thing without asking anyone's permission, what would it be?\"",
+        "fr": "Premier rendez-vous avec un COO. Demandez : « Si vous arriviez à l'opération un lundi en pouvant changer une chose sans demander la permission, ce serait quoi ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Gets to the COO's private frustration — the bottleneck they've been unable to dislodge politically, which is often where you can help.",
+          "fr": "Va à la frustration privée du COO — le goulot qu'il n'a pas réussi à débloquer politiquement, souvent là où vous pouvez aider."
+        },
+        "followUp": {
+          "en": "\"And what's stopped you from changing it already?\"",
+          "fr": "« Et qu'est-ce qui vous a empêché de le changer jusqu'ici ? »"
+        },
+        "listenFor": {
+          "en": [
+            "personal bottleneck",
+            "political block",
+            "sequencing",
+            "executive energy"
+          ],
+          "fr": [
+            "goulot personnel",
+            "blocage politique",
+            "séquencement",
+            "énergie exécutive"
+          ]
+        },
+        "delivery": {
+          "en": "The answer is often a who, not a what. Don't be afraid of that — it tells you where the real change effort lives.",
+          "fr": "La réponse est souvent un qui, pas un quoi. N'en ayez pas peur — cela vous indique où vit le vrai chantier de transformation."
+        }
+      }
+    },
+    {
+      "id": "cl-coo-2",
+      "role": "coo",
+      "tags": [
+        "role:coo",
+        "objective:efficiency",
+        "situation:throughput-vs-quality"
+      ],
+      "prompt": {
+        "en": "COO under throughput pressure. Out loud: \"Where in the operation are you currently choosing between speed and quality — and which one is winning right now?\"",
+        "fr": "COO sous pression de cadence. À voix haute : « À quel endroit de l'opération arbitrez-vous aujourd'hui entre vitesse et qualité — et laquelle l'emporte en ce moment ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "COOs live in this trade-off daily. Naming it as a peer earns you credibility before any solution discussion.",
+          "fr": "Un COO vit cet arbitrage au quotidien. Le nommer en pair vous gagne de la crédibilité avant même toute discussion de solution."
+        },
+        "followUp": {
+          "en": "\"And which one is your CEO actually pushing you on this quarter?\"",
+          "fr": "« Et sur laquelle des deux votre PDG vous pousse-t-il réellement ce trimestre ? »"
+        },
+        "listenFor": {
+          "en": [
+            "throughput target",
+            "quality drift",
+            "rework cost",
+            "leadership signal"
+          ],
+          "fr": [
+            "objectif de cadence",
+            "dérive qualité",
+            "coût de reprise",
+            "signal du leadership"
+          ]
+        },
+        "delivery": {
+          "en": "Don't propose a solution that pretends the trade-off doesn't exist. COOs trust people who acknowledge the math is hard.",
+          "fr": "Ne proposez pas de solution qui prétend que l'arbitrage n'existe pas. Les COO font confiance à ceux qui reconnaissent que le calcul est difficile."
+        }
+      }
+    },
+    {
+      "id": "cl-coo-3",
+      "role": "coo",
+      "tags": [
+        "role:coo",
+        "objective:strategy",
+        "situation:change-resistance"
+      ],
+      "prompt": {
+        "en": "COO whose last transformation didn't land. Ask: \"What did the last big change in this operation actually feel like on the floor — and what would you do differently this time?\"",
+        "fr": "COO dont la dernière transformation n'a pas pris. Demandez : « À quoi a vraiment ressemblé le dernier grand changement, vu du terrain — et que feriez-vous différemment cette fois ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Treats the COO as someone with scar tissue, not a blank slate. The 'what would you do differently' is where you discover the real adoption strategy.",
+          "fr": "Traite le COO comme quelqu'un qui a des cicatrices, pas une page blanche. Le « différemment cette fois » révèle la vraie stratégie d'adoption."
+        },
+        "followUp": {
+          "en": "\"What does the floor still remember about it?\"",
+          "fr": "« De quoi le terrain se souvient-il encore ? »"
+        },
+        "listenFor": {
+          "en": [
+            "change fatigue",
+            "trust deficit",
+            "middle manager",
+            "adoption signal"
+          ],
+          "fr": [
+            "fatigue du changement",
+            "déficit de confiance",
+            "encadrement intermédiaire",
+            "signal d'adoption"
+          ]
+        },
+        "delivery": {
+          "en": "Use 'floor', 'shop', 'plant', 'team' — the COO's language. Avoid 'stakeholders' and 'change management' — those are consulting words.",
+          "fr": "Utilisez « terrain », « équipe », « atelier » — le vocabulaire du COO. Évitez « parties prenantes » et « conduite du changement » — ce sont des mots de consultants."
+        }
+      }
+    },
+    {
+      "id": "cl-coo-4",
+      "role": "coo",
+      "tags": [
+        "role:coo",
+        "objective:strategy",
+        "situation:cross-functional"
+      ],
+      "prompt": {
+        "en": "COO sitting between sales and finance. Ask: \"Which two functions in the business are currently making your operation harder — and what would 'getting them aligned' actually unlock for you?\"",
+        "fr": "COO coincé entre les ventes et la finance. Demandez : « Quelles deux fonctions de l'entreprise rendent aujourd'hui votre opération plus difficile — et qu'est-ce que leur « alignement » débloquerait concrètement pour vous ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Surfaces cross-functional friction the COO carries quietly — and where outside help can change the political math, not just the process.",
+          "fr": "Révèle les frictions transverses que le COO porte en silence — et où un appui externe peut changer l'arithmétique politique, pas juste le processus."
+        },
+        "followUp": {
+          "en": "\"And which one of them does the CEO actually back up?\"",
+          "fr": "« Et laquelle des deux le PDG soutient-il réellement ? »"
+        },
+        "listenFor": {
+          "en": [
+            "functional friction",
+            "leadership backing",
+            "political cost",
+            "alignment unlock"
+          ],
+          "fr": [
+            "friction transverse",
+            "appui du leadership",
+            "coût politique",
+            "déblocage par l'alignement"
+          ]
+        },
+        "delivery": {
+          "en": "Don't take sides. The value of the question is the diagnosis, not your agreement with the COO's grievance.",
+          "fr": "Ne prenez pas parti. La valeur de la question est le diagnostic, pas votre accord avec le grief du COO."
+        }
+      }
+    },
+    {
+      "id": "cl-coo-5",
+      "role": "coo",
+      "tags": [
+        "role:coo",
+        "objective:efficiency",
+        "situation:vendor-consolidation"
+      ],
+      "prompt": {
+        "en": "Procurement is pushing vendor consolidation across the COO's operation. Ask: \"Which of your current vendors do you genuinely not want to lose — and what would you say is at stake there?\"",
+        "fr": "Les achats poussent à la consolidation des fournisseurs dans l'opération du COO. Demandez : « Lesquels de vos fournisseurs actuels ne voulez-vous vraiment pas perdre — et qu'est-ce qui est en jeu là ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Bypasses the abstract 'consolidation' framing and gets to specific operational dependencies the COO will defend.",
+          "fr": "Contourne le cadrage abstrait de « consolidation » pour atteindre les dépendances opérationnelles concrètes que le COO défendra."
+        },
+        "followUp": {
+          "en": "\"And which one would you happily replace tomorrow?\"",
+          "fr": "« Et lequel remplaceriez-vous volontiers dès demain ? »"
+        },
+        "listenFor": {
+          "en": [
+            "irreplaceable vendor",
+            "operational dependency",
+            "switching cost",
+            "procurement override"
+          ],
+          "fr": [
+            "fournisseur irremplaçable",
+            "dépendance opérationnelle",
+            "coût de transition",
+            "prééminence des achats"
+          ]
+        },
+        "delivery": {
+          "en": "If you're the vendor being assessed: ask this anyway. You learn whether you're the one they want to keep or the one they'd replace.",
+          "fr": "Si vous êtes le fournisseur évalué : posez la question quand même. Vous apprenez si vous êtes celui qu'ils veulent garder ou celui qu'ils remplaceraient."
+        }
+      }
+    },
+    {
+      "id": "cl-coo-6",
+      "role": "coo",
+      "tags": [
+        "role:coo",
+        "objective:risk",
+        "situation:capacity-pressure"
+      ],
+      "prompt": {
+        "en": "Talent and labor are tight. Ask the COO: \"Where in the operation are you most exposed if you can't hire fast enough next year — and what's your Plan B?\"",
+        "fr": "Le marché du travail est tendu. Demandez au COO : « Où votre opération est-elle la plus exposée si vous ne recrutez pas assez vite l'an prochain — et quel est votre plan B ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "COOs are constantly stress-testing capacity. The Plan B answer tells you whether automation, outsourcing, or process redesign is the live option.",
+          "fr": "Les COO stressent en permanence la capacité. La réponse sur le plan B vous indique si l'automatisation, l'externalisation ou la refonte est l'option vive."
+        },
+        "followUp": {
+          "en": "\"What did you have to leave undone last year because of capacity?\"",
+          "fr": "« Qu'avez-vous dû laisser de côté l'an dernier faute de capacité ? »"
+        },
+        "listenFor": {
+          "en": [
+            "hiring exposure",
+            "Plan B (automate / outsource / redesign)",
+            "attrition risk",
+            "skills gap"
+          ],
+          "fr": [
+            "exposition aux recrutements",
+            "plan B (automatiser / externaliser / refondre)",
+            "risque d'attrition",
+            "manque de compétences"
+          ]
+        },
+        "delivery": {
+          "en": "This is also a CFO-adjacent topic. The COO often knows the labor math better than the CFO — don't be surprised by sharper numbers than expected.",
+          "fr": "C'est aussi un sujet proche du DAF. Le COO connaît souvent mieux le calcul de main-d'œuvre que le DAF — attendez-vous à des chiffres plus précis que prévu."
+        }
+      }
+    },
+    {
+      "id": "cl-coo-7",
+      "role": "coo",
+      "tags": [
+        "role:coo",
+        "objective:credibility",
+        "situation:post-incident"
+      ],
+      "prompt": {
+        "en": "There's been a recent operational incident — outage, recall, missed SLA. Ask: \"What did you learn about the operation from that incident that you didn't expect — and what's changed since?\"",
+        "fr": "Il y a eu un incident opérationnel récent — panne, rappel, SLA non tenu. Demandez : « Qu'avez-vous appris d'inattendu sur votre opération à travers cet incident — et qu'est-ce qui a changé depuis ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Lets the COO talk about the incident as a teacher, not a wound — which both calms the room and surfaces the real organisational lesson.",
+          "fr": "Permet au COO de parler de l'incident comme d'un enseignement, pas d'une plaie — ce qui apaise la conversation et fait émerger la vraie leçon organisationnelle."
+        },
+        "followUp": {
+          "en": "\"And what did the post-mortem say that surprised even you?\"",
+          "fr": "« Et qu'a dit le post-mortem qui vous a surpris vous-même ? »"
+        },
+        "listenFor": {
+          "en": [
+            "root cause vs symptom",
+            "blast radius",
+            "institutional memory",
+            "what changed structurally"
+          ],
+          "fr": [
+            "cause racine vs symptôme",
+            "périmètre d'impact",
+            "mémoire institutionnelle",
+            "ce qui a changé structurellement"
+          ]
+        },
+        "delivery": {
+          "en": "Don't be the person who immediately offers a solution that would have prevented the incident. Sit with the answer. That respect is rare.",
+          "fr": "Ne soyez pas celui qui dégaine immédiatement une solution qui aurait empêché l'incident. Restez avec la réponse. Ce respect est rare."
+        }
+      }
+    },
+    {
+      "id": "cl-coo-8",
+      "role": "coo",
+      "tags": [
+        "role:coo",
+        "objective:strategy",
+        "situation:supply-chain"
+      ],
+      "prompt": {
+        "en": "Supply chain has been volatile. Ask: \"What's the single supplier or single point in your supply chain that keeps you up at night — and what's the cost of de-risking it?\"",
+        "fr": "La chaîne d'approvisionnement est instable. Demandez : « Quel est le fournisseur unique, ou le point unique dans votre chaîne, qui vous empêche de dormir — et combien coûterait sa dérisquage ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Concrete operational fear. The 'cost of de-risking' frame moves the conversation from anxiety to a tractable trade-off.",
+          "fr": "Peur opérationnelle concrète. Le cadrage « coût du dérisquage » fait passer la conversation de l'anxiété à un arbitrage maniable."
+        },
+        "followUp": {
+          "en": "\"What would you redesign first if cost weren't the constraint?\"",
+          "fr": "« Que redessineriez-vous en premier si le coût n'était pas la contrainte ? »"
+        },
+        "listenFor": {
+          "en": [
+            "single point of failure",
+            "de-risking cost",
+            "geopolitical exposure",
+            "redundancy trade-off"
+          ],
+          "fr": [
+            "point unique de défaillance",
+            "coût du dérisquage",
+            "exposition géopolitique",
+            "arbitrage redondance"
+          ]
+        },
+        "delivery": {
+          "en": "Listen for the geography of the answer. Where the supplier sits often matters more to the COO right now than what they supply.",
+          "fr": "Écoutez la géographie de la réponse. Où se trouve le fournisseur compte souvent plus pour le COO aujourd'hui que ce qu'il fournit."
+        }
+      }
+    },
+    {
+      "id": "cl-ceo-1",
+      "role": "ceo",
+      "tags": [
+        "role:ceo",
+        "objective:strategy",
+        "situation:first-meeting"
+      ],
+      "prompt": {
+        "en": "First meeting with a CEO, 30 minutes. Open with: \"In your own words, not the investor-deck version — what does this company need to become in the next three years that it isn't today?\"",
+        "fr": "Premier rendez-vous avec un PDG, 30 minutes. Ouvrez avec : « Avec vos mots à vous, pas la version de la présentation aux investisseurs — que doit devenir cette entreprise dans les trois prochaines années qu'elle n'est pas aujourd'hui ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Bypasses the rehearsed strategy narrative and gets to the CEO's private answer — which is the only one that actually drives priorities.",
+          "fr": "Contourne le récit stratégique répété et atteint la réponse privée du PDG — la seule qui guide vraiment les priorités."
+        },
+        "followUp": {
+          "en": "\"What in that picture are you most uncertain about?\"",
+          "fr": "« Dans cette vision, qu'est-ce qui vous rend le plus incertain ? »"
+        },
+        "listenFor": {
+          "en": [
+            "personal vision",
+            "gap to today",
+            "uncertainty",
+            "ambition signal"
+          ],
+          "fr": [
+            "vision personnelle",
+            "écart par rapport à aujourd'hui",
+            "incertitude",
+            "signal d'ambition"
+          ]
+        },
+        "delivery": {
+          "en": "The 'not the investor-deck version' is doing the work. Say it cleanly, then stop. A CEO will reward the invitation to be unrehearsed.",
+          "fr": "C'est le « pas la version de la présentation aux investisseurs » qui travaille. Dites-le clairement, puis arrêtez-vous. Un PDG saura récompenser l'invitation à ne pas se répéter."
+        }
+      }
+    },
+    {
+      "id": "cl-ceo-2",
+      "role": "ceo",
+      "tags": [
+        "role:ceo",
+        "objective:credibility",
+        "situation:board-narrative"
+      ],
+      "prompt": {
+        "en": "Mid-year, CEO is shaping the next board meeting. Ask: \"What's the story you're hoping not to have to tell the board this year — and what would it take to make sure you don't?\"",
+        "fr": "Mi-année, le PDG prépare le prochain conseil. Demandez : « Quelle est l'histoire que vous espérez ne pas avoir à raconter au conseil cette année — et que faudrait-il pour être sûr de ne pas la raconter ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Surfaces the CEO's downside scenario — usually a number, a market move, or a person — and reveals what would change their priority list this quarter.",
+          "fr": "Révèle le scénario à risque du PDG — souvent un chiffre, un mouvement de marché ou une personne — et ce qui changerait sa liste de priorités ce trimestre."
+        },
+        "followUp": {
+          "en": "\"What do you wish the board cared less about than they do?\"",
+          "fr": "« Sur quoi aimeriez-vous que le conseil s'attarde moins ? »"
+        },
+        "listenFor": {
+          "en": [
+            "downside narrative",
+            "board pressure",
+            "mitigation lever",
+            "unspoken metric"
+          ],
+          "fr": [
+            "récit du scénario à risque",
+            "pression du conseil",
+            "levier de mitigation",
+            "indicateur tu"
+          ]
+        },
+        "delivery": {
+          "en": "If you're not yet trusted enough for this question, you'll feel it. Wait. Ask a smaller question first and earn the right to come back.",
+          "fr": "Si vous n'avez pas encore assez de confiance pour cette question, vous le sentirez. Patientez. Posez une question plus petite et gagnez le droit d'y revenir."
+        }
+      }
+    },
+    {
+      "id": "cl-ceo-3",
+      "role": "ceo",
+      "tags": [
+        "role:ceo",
+        "objective:strategy",
+        "situation:competitive-position"
+      ],
+      "prompt": {
+        "en": "CEO in a competitive market. Ask: \"Which competitor's move would worry you most over the next 18 months — and what would you do the morning after they made it?\"",
+        "fr": "PDG dans un marché concurrentiel. Demandez : « Quel mouvement d'un concurrent vous inquiéterait le plus dans les 18 mois à venir — et que feriez-vous le lendemain matin ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Lets the CEO articulate their threat model in detail — which is where the real strategic conversation starts.",
+          "fr": "Permet au PDG d'expliciter son modèle de menace en détail — c'est là que commence la vraie conversation stratégique."
+        },
+        "followUp": {
+          "en": "\"And what's quietly stopping you from doing some of that already?\"",
+          "fr": "« Et qu'est-ce qui vous empêche en silence d'en faire déjà une partie ? »"
+        },
+        "listenFor": {
+          "en": [
+            "named threat",
+            "reaction playbook",
+            "strategic latency",
+            "preemption"
+          ],
+          "fr": [
+            "menace nommée",
+            "plan de réaction",
+            "latence stratégique",
+            "préemption"
+          ]
+        },
+        "delivery": {
+          "en": "CEOs love this question because it's strategic without being abstract. Don't dilute it with a softening preamble — ask it directly.",
+          "fr": "Les PDG aiment cette question parce qu'elle est stratégique sans être abstraite. Ne l'affaiblissez pas par un préambule — posez-la directement."
+        }
+      }
+    },
+    {
+      "id": "cl-ceo-4",
+      "role": "ceo",
+      "tags": [
+        "role:ceo",
+        "objective:credibility",
+        "situation:why-us-why-now"
+      ],
+      "prompt": {
+        "en": "CEO who's skeptical of the agenda. Defend your proposal with: \"I want to test something — if this conversation weren't happening, what would you be solving instead in the next 90 days? I want to make sure we're not displacing something more important.\"",
+        "fr": "PDG sceptique sur l'agenda. Défendez votre proposition par : « Je veux tester quelque chose — si cette conversation n'avait pas lieu, que seriez-vous en train de résoudre à la place dans les 90 prochains jours ? Je veux m'assurer qu'on ne déplace pas quelque chose de plus important. »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Demonstrates the rare seller behaviour: actively checking whether you're the right priority. CEOs trust people willing to disqualify themselves.",
+          "fr": "Démontre un comportement rare : vérifier activement que vous êtes la bonne priorité. Les PDG font confiance à ceux qui acceptent de se disqualifier."
+        },
+        "followUp": {
+          "en": "\"And which of those, if we did this right, would actually accelerate?\"",
+          "fr": "« Et parmi ceux-là, lequel, si nous faisons bien ce projet, accélérerait réellement ? »"
+        },
+        "listenFor": {
+          "en": [
+            "displaced priority",
+            "opportunity cost",
+            "sequencing",
+            "leadership focus"
+          ],
+          "fr": [
+            "priorité déplacée",
+            "coût d'opportunité",
+            "séquencement",
+            "focalisation du leadership"
+          ]
+        },
+        "delivery": {
+          "en": "Mean it. If the CEO names something genuinely more urgent, name it back and offer to delay. That single act builds more trust than any pitch.",
+          "fr": "Soyez sincère. Si le PDG nomme quelque chose de réellement plus urgent, nommez-le à votre tour et proposez de reporter. Ce seul geste bâtit plus de confiance qu'aucun argumentaire."
+        }
+      }
+    },
+    {
+      "id": "cl-ceo-5",
+      "role": "ceo",
+      "tags": [
+        "role:ceo",
+        "objective:risk",
+        "situation:bet-sizing"
+      ],
+      "prompt": {
+        "en": "CEO weighing a meaningful bet. Ask: \"When you place a bet of this size, what's your usual ratio between conviction and evidence — do you tend to lead with one and let the other catch up?\"",
+        "fr": "PDG qui pèse un pari significatif. Demandez : « Quand vous engagez un pari de cette taille, quel est votre rapport habituel entre conviction et preuves — menez-vous plutôt avec l'une et laissez l'autre rattraper ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Profiles the CEO's decision style. Some lead with conviction and seek confirming evidence; others won't move without proof. Sell accordingly.",
+          "fr": "Établit le style de décision du PDG. Certains mènent par la conviction et cherchent les preuves qui confirment ; d'autres ne bougent pas sans preuves. Vendez en conséquence."
+        },
+        "followUp": {
+          "en": "\"And when has that ratio gotten you in trouble?\"",
+          "fr": "« Et quand ce rapport vous a-t-il causé des ennuis ? »"
+        },
+        "listenFor": {
+          "en": [
+            "conviction-led",
+            "evidence-led",
+            "decision speed",
+            "past misstep"
+          ],
+          "fr": [
+            "par conviction",
+            "par les preuves",
+            "vitesse de décision",
+            "faux-pas passé"
+          ]
+        },
+        "delivery": {
+          "en": "This is a meta question — about how they decide, not what they decide. CEOs find it refreshing because most people only ask the latter.",
+          "fr": "C'est une méta-question — sur la façon dont ils décident, pas sur ce qu'ils décident. Les PDG trouvent cela rafraîchissant parce que la plupart des gens ne posent que la seconde."
+        }
+      }
+    },
+    {
+      "id": "cl-ceo-6",
+      "role": "ceo",
+      "tags": [
+        "role:ceo",
+        "objective:relationship",
+        "situation:executive-dinner"
+      ],
+      "prompt": {
+        "en": "Executive dinner, two seats away from a CEO. Don't try to bridge the deal. Ask: \"What's something you've changed your mind about recently — in business or in life?\"",
+        "fr": "Dîner d'affaires, deux places d'un PDG. N'essayez pas de pivoter vers le deal. Demandez : « Sur quoi avez-vous récemment changé d'avis — dans le business ou dans la vie ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Invites self-reflection at peer level. CEOs are surrounded by people who confirm their views — being asked what they've revised is rare.",
+          "fr": "Invite à la réflexion entre pairs. Les PDG sont entourés de gens qui confirment leurs vues — qu'on leur demande ce qu'ils ont révisé est rare."
+        },
+        "followUp": {
+          "en": "\"What changed your mind on it?\"",
+          "fr": "« Qu'est-ce qui vous a fait changer d'avis ? »"
+        },
+        "listenFor": {
+          "en": [
+            "revised belief",
+            "trigger",
+            "public vs private",
+            "intellectual humility"
+          ],
+          "fr": [
+            "croyance révisée",
+            "déclencheur",
+            "public vs privé",
+            "humilité intellectuelle"
+          ]
+        },
+        "delivery": {
+          "en": "If they ask the same back at you, have a real answer ready. The exchange only works as a genuine trade.",
+          "fr": "S'ils retournent la question, ayez une vraie réponse prête. L'échange ne fonctionne qu'en troc sincère."
+        }
+      }
+    },
+    {
+      "id": "cl-ceo-7",
+      "role": "ceo",
+      "tags": [
+        "role:ceo",
+        "objective:strategy",
+        "situation:founder-vs-hired"
+      ],
+      "prompt": {
+        "en": "CEO who is a founder. Ask: \"Which parts of running this company still feel like yours to do personally, and which have you genuinely handed off — and how do you know the difference?\"",
+        "fr": "PDG qui est fondateur. Demandez : « Quelles parties de la direction de cette entreprise restent à faire personnellement, et lesquelles avez-vous vraiment déléguées — et à quoi voyez-vous la différence ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Founder-CEOs live this tension constantly. Naming it as a peer earns trust no pitch can. A hired CEO answer to the same question reveals different fault lines.",
+          "fr": "Les PDG-fondateurs vivent cette tension en permanence. La nommer en pair gagne une confiance qu'aucun argumentaire n'atteint. Un PDG recruté répondra différemment et révélera d'autres fractures."
+        },
+        "followUp": {
+          "en": "\"And what's the most recent thing you've handed off that hurt to hand off?\"",
+          "fr": "« Et qu'avez-vous délégué récemment qui a fait mal à déléguer ? »"
+        },
+        "listenFor": {
+          "en": [
+            "founder grip",
+            "scale tension",
+            "handoff readiness",
+            "identity"
+          ],
+          "fr": [
+            "emprise du fondateur",
+            "tension d'échelle",
+            "préparation à la délégation",
+            "identité"
+          ]
+        },
+        "delivery": {
+          "en": "If you're talking to a hired CEO, swap the word 'founder' for 'as the person who took this seat'. The question still works.",
+          "fr": "Si vous parlez à un PDG recruté, remplacez « fondateur » par « celui qui a pris ce siège ». La question fonctionne toujours."
+        }
+      }
+    },
+    {
+      "id": "cl-ceo-8",
+      "role": "ceo",
+      "tags": [
+        "role:ceo",
+        "objective:strategy",
+        "situation:legacy"
+      ],
+      "prompt": {
+        "en": "Late-tenure CEO. Ask: \"When you eventually hand this seat over, what's the one thing you'd want your successor to inherit in better shape than you found it?\"",
+        "fr": "PDG en fin de mandat. Demandez : « Quand vous transmettrez ce siège, qu'aimeriez-vous que votre successeur hérite en meilleur état que vous ne l'avez trouvé ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Surfaces what the CEO wants to be remembered for — which is often quieter and more institutional than the headline strategy.",
+          "fr": "Fait émerger ce pour quoi le PDG veut être retenu — souvent plus discret et plus institutionnel que la stratégie affichée."
+        },
+        "followUp": {
+          "en": "\"What would you not be able to live with leaving behind unfinished?\"",
+          "fr": "« Que ne pourriez-vous pas supporter de laisser inachevé ? »"
+        },
+        "listenFor": {
+          "en": [
+            "legacy frame",
+            "institutional capital",
+            "culture",
+            "unfinished business"
+          ],
+          "fr": [
+            "cadre du legs",
+            "capital institutionnel",
+            "culture",
+            "inachevé"
+          ]
+        },
+        "delivery": {
+          "en": "This is a question for trust, not a question for a deal. Don't try to bridge it back to your proposal in the same conversation.",
+          "fr": "C'est une question pour la confiance, pas pour le deal. N'essayez pas de la raccrocher à votre proposition dans la même conversation."
+        }
+      }
+    },
+    {
+      "id": "cl-cio-1",
+      "role": "cio",
+      "tags": [
+        "role:cio",
+        "objective:strategy",
+        "situation:first-meeting"
+      ],
+      "prompt": {
+        "en": "First meeting with a CIO. Ask: \"How much of your week right now is spent on the technology, versus on the business of technology — and which one are you trying to shift?\"",
+        "fr": "Premier rendez-vous avec un DSI. Demandez : « Quelle part de votre semaine consacrez-vous aujourd'hui à la technologie elle-même, par rapport au « business » de la technologie — et laquelle des deux cherchez-vous à faire évoluer ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Tells you where the CIO sits on the strategic/operational spectrum — and where they want to move. Both your message and your proof points depend on it.",
+          "fr": "Vous indique où se situe le DSI sur le spectre stratégique/opérationnel — et où il veut aller. Votre message et vos preuves en dépendent."
+        },
+        "followUp": {
+          "en": "\"What stopped you from making that shift already?\"",
+          "fr": "« Qu'est-ce qui vous a empêché de faire cette bascule jusqu'ici ? »"
+        },
+        "listenFor": {
+          "en": [
+            "run-the-business vs change",
+            "org maturity",
+            "budget split",
+            "seat at the table"
+          ],
+          "fr": [
+            "maintenir vs transformer",
+            "maturité organisationnelle",
+            "répartition du budget",
+            "place à la table"
+          ]
+        },
+        "delivery": {
+          "en": "Avoid 'digital transformation'. Use 'business of technology' or 'IT operating model' — those are the CIO's own words.",
+          "fr": "Évitez « transformation numérique ». Utilisez « business de la technologie » ou « modèle opérationnel IT » — ce sont les mots du DSI."
+        }
+      }
+    },
+    {
+      "id": "cl-cio-2",
+      "role": "cio",
+      "tags": [
+        "role:cio",
+        "objective:risk",
+        "situation:tech-debt"
+      ],
+      "prompt": {
+        "en": "CIO under cost pressure. Ask: \"Where is technical debt actively costing you right now — not someday, this quarter — and what's the conversation you're having about it with the CFO?\"",
+        "fr": "DSI sous pression de coûts. Demandez : « Où la dette technique vous coûte-t-elle activement aujourd'hui — pas un jour, ce trimestre — et quelle conversation avez-vous à ce sujet avec le DAF ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Brings tech debt from abstract to financial. The CFO mention pulls in the political dimension — who has to be convinced for budget to move.",
+          "fr": "Fait passer la dette technique de l'abstrait au financier. La mention du DAF amène la dimension politique — qui doit être convaincu pour que le budget bouge."
+        },
+        "followUp": {
+          "en": "\"What's the piece of debt you've been quietly hoping to retire for two years?\"",
+          "fr": "« Quel est le morceau de dette que vous espérez en silence éliminer depuis deux ans ? »"
+        },
+        "listenFor": {
+          "en": [
+            "debt service cost",
+            "CFO conversation",
+            "retirement plan",
+            "quiet wish list"
+          ],
+          "fr": [
+            "coût du service de la dette",
+            "conversation avec le DAF",
+            "plan d'extinction",
+            "liste discrète"
+          ]
+        },
+        "delivery": {
+          "en": "Don't equate 'tech debt' with 'old systems we should replace'. CIOs make sharper distinctions — listen for which they treat as load-bearing.",
+          "fr": "N'équivalez pas « dette technique » à « vieux systèmes à remplacer ». Les DSI font des distinctions plus fines — écoutez ce qu'ils considèrent comme porteur."
+        }
+      }
+    },
+    {
+      "id": "cl-cio-3",
+      "role": "cio",
+      "tags": [
+        "role:cio",
+        "objective:strategy",
+        "situation:build-vs-buy"
+      ],
+      "prompt": {
+        "en": "CIO weighing build vs buy. Ask: \"Where on the stack do you think your team genuinely creates differentiation, and where would you rather rent someone else's expertise — even if the cost is higher?\"",
+        "fr": "DSI qui arbitre faire vs acheter. Demandez : « Où dans votre pile pensez-vous que votre équipe crée une vraie différenciation, et où préféreriez-vous louer l'expertise de quelqu'un d'autre — même plus cher ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Surfaces the CIO's strategic boundary. The 'even if the cost is higher' phrase legitimises buy decisions and reveals where the real preference is.",
+          "fr": "Révèle la frontière stratégique du DSI. Le « même plus cher » légitime les décisions d'achat et révèle la vraie préférence."
+        },
+        "followUp": {
+          "en": "\"Where did your team build something that, knowing what you know now, you'd happily hand over?\"",
+          "fr": "« Où votre équipe a-t-elle construit quelque chose que, avec le recul, vous transmettriez volontiers ? »"
+        },
+        "listenFor": {
+          "en": [
+            "differentiation line",
+            "rent expertise",
+            "total cost",
+            "retention"
+          ],
+          "fr": [
+            "frontière de différenciation",
+            "location d'expertise",
+            "coût total",
+            "fidélisation des talents"
+          ]
+        },
+        "delivery": {
+          "en": "This is the CIO's strategic answer. The CTO version is more architectural; the CIO version is more about people and political capital.",
+          "fr": "C'est la réponse stratégique du DSI. La version CTO est plus architecturale ; la version DSI porte davantage sur les personnes et le capital politique."
+        }
+      }
+    },
+    {
+      "id": "cl-cio-4",
+      "role": "cio",
+      "tags": [
+        "role:cio",
+        "objective:risk",
+        "situation:cyber-pressure"
+      ],
+      "prompt": {
+        "en": "Recent breach in the sector. Ask the CIO: \"Where in your environment do you feel most exposed, and what does the conversation with your CEO sound like the morning after a sector breach?\"",
+        "fr": "Brèche récente dans le secteur. Demandez au DSI : « Où vous sentez-vous le plus exposé dans votre environnement, et à quoi ressemble la conversation avec votre PDG le lendemain d'une brèche dans le secteur ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Connects technical exposure to executive accountability. The 'CEO morning after' framing pulls the answer toward what the CIO actually has to defend.",
+          "fr": "Relie l'exposition technique à la responsabilité exécutive. Le cadrage « lendemain matin avec le PDG » tire la réponse vers ce que le DSI doit réellement défendre."
+        },
+        "followUp": {
+          "en": "\"And what would you wish you'd done six months earlier?\"",
+          "fr": "« Et qu'auriez-vous aimé avoir fait six mois plus tôt ? »"
+        },
+        "listenFor": {
+          "en": [
+            "attack surface",
+            "executive exposure",
+            "compensating control",
+            "time-to-detect"
+          ],
+          "fr": [
+            "surface d'attaque",
+            "exposition exécutive",
+            "contrôle compensatoire",
+            "délai de détection"
+          ]
+        },
+        "delivery": {
+          "en": "Don't sell. CIOs after a sector breach are flooded with vendors. Your value here is being the rare one who asks instead of pitches.",
+          "fr": "Ne vendez pas. Les DSI après une brèche sectorielle sont submergés de fournisseurs. Votre valeur ici est d'être le rare qui demande au lieu de vendre."
+        }
+      }
+    },
+    {
+      "id": "cl-cio-5",
+      "role": "cio",
+      "tags": [
+        "role:cio",
+        "objective:ai-readiness",
+        "situation:governance"
+      ],
+      "prompt": {
+        "en": "AI is on every agenda. Ask the CIO: \"What does 'AI-ready' actually look like in your organisation — not in the analyst report, in your reality — and how far from that are you today?\"",
+        "fr": "L'IA est à tous les ordres du jour. Demandez au DSI : « À quoi ressemble vraiment « prêt pour l'IA » dans votre organisation — pas dans le rapport d'analyste, dans votre réalité — et à quelle distance êtes-vous aujourd'hui ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Forces the CIO past slogan and into specifics: data quality, governance, talent, security. The 'not in the analyst report' line is doing the work.",
+          "fr": "Force le DSI à dépasser le slogan pour entrer dans le concret : qualité des données, gouvernance, compétences, sécurité. C'est la précision « pas dans le rapport d'analyste » qui travaille."
+        },
+        "followUp": {
+          "en": "\"Where is the gap between what the CEO thinks you can do and what you can actually do?\"",
+          "fr": "« Où se situe l'écart entre ce que le PDG pense que vous pouvez faire et ce que vous pouvez réellement faire ? »"
+        },
+        "listenFor": {
+          "en": [
+            "data foundation",
+            "governance gap",
+            "CEO expectation",
+            "skills inventory"
+          ],
+          "fr": [
+            "socle de données",
+            "écart de gouvernance",
+            "attente du PDG",
+            "inventaire des compétences"
+          ]
+        },
+        "delivery": {
+          "en": "When the CIO admits a gap, do not pounce. Mirror it back as a peer and ask what they've already tried.",
+          "fr": "Quand le DSI reconnaît un écart, ne sautez pas dessus. Reformulez-le en pair et demandez ce qu'il a déjà tenté."
+        }
+      }
+    },
+    {
+      "id": "cl-cio-6",
+      "role": "cio",
+      "tags": [
+        "role:cio",
+        "objective:efficiency",
+        "situation:cloud-cost"
+      ],
+      "prompt": {
+        "en": "Cloud bill is up. Ask the CIO: \"Are you currently optimising the cloud bill, re-architecting for a different cost shape, or fighting with the business about what they're consuming — which one is taking most of your time?\"",
+        "fr": "La facture cloud monte. Demandez au DSI : « Êtes-vous en train d'optimiser la facture, de ré-architecturer pour un autre profil de coût, ou de batailler avec le métier sur ce qu'il consomme — laquelle de ces trois prend le plus de votre temps ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Three distinct conversations get tangled under 'FinOps'. Forcing the CIO to pick one tells you which problem your solution can actually attach to.",
+          "fr": "Trois conversations distinctes se mélangent sous « FinOps ». Forcer le DSI à choisir vous indique à quel problème votre solution peut réellement se rattacher."
+        },
+        "followUp": {
+          "en": "\"And which of those would actually move the bill the most if you nailed it?\"",
+          "fr": "« Et laquelle des trois ferait vraiment bouger la facture si vous la réussissiez ? »"
+        },
+        "listenFor": {
+          "en": [
+            "FinOps focus",
+            "architecture reshape",
+            "business demand",
+            "political cost"
+          ],
+          "fr": [
+            "focalisation FinOps",
+            "refonte d'architecture",
+            "demande métier",
+            "coût politique"
+          ]
+        },
+        "delivery": {
+          "en": "Use the word 'bill', not 'spend'. CIOs feel the bill arriving every month — 'spend' is the analyst's word.",
+          "fr": "Utilisez le mot « facture », pas « dépenses ». Les DSI voient la facture arriver chaque mois — « dépenses » est le mot de l'analyste."
+        }
+      }
+    },
+    {
+      "id": "cl-cio-7",
+      "role": "cio",
+      "tags": [
+        "role:cio",
+        "objective:strategy",
+        "situation:business-alignment"
+      ],
+      "prompt": {
+        "en": "CIO under pressure to be more strategic. Ask: \"Which business leader currently treats you as a true partner, and which one still treats you as a cost centre — and how do you change that?\"",
+        "fr": "DSI sous pression d'être plus stratégique. Demandez : « Quel dirigeant métier vous traite aujourd'hui en vrai partenaire, et lequel vous traite encore en centre de coûts — et comment changez-vous cela ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Reveals the political map of the CIO's organisation — where the relationship work is and where the budget battles are.",
+          "fr": "Révèle la carte politique de l'organisation du DSI — où se trouve le travail relationnel et où se trouvent les batailles budgétaires."
+        },
+        "followUp": {
+          "en": "\"What did the partner ones say yes to that the cost-centre ones still won't?\"",
+          "fr": "« À quoi les partenaires ont-ils dit oui que les centres-de-coûts refusent encore ? »"
+        },
+        "listenFor": {
+          "en": [
+            "partner vs cost-centre",
+            "political map",
+            "early win",
+            "budget gravity"
+          ],
+          "fr": [
+            "partenaire vs centre de coûts",
+            "carte politique",
+            "victoire précoce",
+            "gravité budgétaire"
+          ]
+        },
+        "delivery": {
+          "en": "This is a question about people, with names. The CIO may not say the names — that's fine. The hesitation tells you everything.",
+          "fr": "C'est une question sur des personnes, avec des noms. Le DSI ne donnera peut-être pas les noms — peu importe. C'est l'hésitation qui parle."
+        }
+      }
+    },
+    {
+      "id": "cl-cio-8",
+      "role": "cio",
+      "tags": [
+        "role:cio",
+        "objective:risk",
+        "situation:between-cfo-and-business"
+      ],
+      "prompt": {
+        "en": "CIO caught between CFO budget pressure and business demand. Ask: \"Where are you currently saying no to the business that you wish you didn't have to — and what would change for you if that no became a yes?\"",
+        "fr": "DSI coincé entre la pression budgétaire du DAF et la demande métier. Demandez : « Où dites-vous non au métier aujourd'hui sans le vouloir — et qu'est-ce qui changerait pour vous si ce non devenait un oui ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Surfaces the demand the CIO is rationing — usually where capacity or budget meets political weight. That's where outside help unlocks the most.",
+          "fr": "Révèle la demande que le DSI rationne — généralement là où la capacité ou le budget rencontre le poids politique. C'est là qu'un appui externe débloque le plus."
+        },
+        "followUp": {
+          "en": "\"And which 'yes' would the CFO veto fastest?\"",
+          "fr": "« Et lequel des « oui » le DAF retoquerait-il le plus vite ? »"
+        },
+        "listenFor": {
+          "en": [
+            "rationed demand",
+            "CFO veto",
+            "capacity gate",
+            "political weight"
+          ],
+          "fr": [
+            "demande rationnée",
+            "veto du DAF",
+            "plafond de capacité",
+            "poids politique"
+          ]
+        },
+        "delivery": {
+          "en": "Don't promise to make the CFO say yes. Offer to help reframe the ask. CIOs distrust people who claim to handle their CFO.",
+          "fr": "Ne promettez pas de faire dire oui au DAF. Proposez d'aider à reformuler la demande. Les DSI se méfient de ceux qui prétendent gérer leur DAF."
+        }
+      }
+    },
+    {
+      "id": "cl-cmo-1",
+      "role": "cmo",
+      "tags": [
+        "role:cmo",
+        "objective:strategy",
+        "situation:strategic-vs-tactical"
+      ],
+      "prompt": {
+        "en": "CMO conversation. Out loud, ask the question that separates a strategic CMO from a campaign manager: \"Where would you move the company strategically if marketing had a real seat at the executive table — and what's stopping that today?\"",
+        "fr": "Conversation avec une CMO. À voix haute, posez la question qui sépare une CMO stratégique d'une gestionnaire de campagnes : « Où feriez-vous bouger l'entreprise stratégiquement si le marketing avait une vraie place à la table exécutive — et qu'est-ce qui bloque cela aujourd'hui ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Lets a strategic CMO show themselves; lets a tactical CMO reveal themselves. Either answer tells you who you're really selling to.",
+          "fr": "Permet à une CMO stratégique de se révéler ; à une CMO tactique de se trahir. L'une ou l'autre vous indique à qui vous vendez vraiment."
+        },
+        "followUp": {
+          "en": "\"What's the most strategic conversation you've been left out of this year?\"",
+          "fr": "« Quelle est la conversation la plus stratégique dont vous avez été exclue cette année ? »"
+        },
+        "listenFor": {
+          "en": [
+            "seat at the table",
+            "strategy vs execution",
+            "exclusion",
+            "ambition signal"
+          ],
+          "fr": [
+            "place à la table",
+            "stratégie vs exécution",
+            "exclusion",
+            "signal d'ambition"
+          ]
+        },
+        "delivery": {
+          "en": "Don't soften the question. CMOs trying to be more strategic are tired of being asked about campaigns. Be the rare person who doesn't.",
+          "fr": "N'adoucissez pas la question. Les CMO qui veulent être plus stratégiques sont lassées des questions sur les campagnes. Soyez la rare personne qui ne le fait pas."
+        }
+      }
+    },
+    {
+      "id": "cl-cmo-2",
+      "role": "cmo",
+      "tags": [
+        "role:cmo",
+        "objective:strategy",
+        "situation:brand-vs-demand"
+      ],
+      "prompt": {
+        "en": "CMO under quarterly demand pressure. Ask: \"How are you currently splitting your investment between brand and demand — and where do you feel that split is wrong this year?\"",
+        "fr": "CMO sous pression de demande trimestrielle. Demandez : « Comment répartissez-vous actuellement votre investissement entre marque et demande — et où sentez-vous que cette répartition est erronée cette année ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Brand vs demand is the CMO's central trade-off. The 'wrong this year' framing lets them name a discomfort they may not say aloud in front of their CEO.",
+          "fr": "Marque vs demande, c'est l'arbitrage central de la CMO. Le cadrage « erronée cette année » la laisse nommer une gêne qu'elle ne dirait peut-être pas devant son PDG."
+        },
+        "followUp": {
+          "en": "\"What would you reallocate tomorrow if your CFO didn't push back?\"",
+          "fr": "« Que réaffecteriez-vous demain si votre DAF ne contestait pas ? »"
+        },
+        "listenFor": {
+          "en": [
+            "brand starvation",
+            "demand reliance",
+            "CFO friction",
+            "reallocation"
+          ],
+          "fr": [
+            "sous-investissement marque",
+            "dépendance à la demande",
+            "friction DAF",
+            "réallocation"
+          ]
+        },
+        "delivery": {
+          "en": "Listen for whether the CMO uses 'demand' or 'pipeline' or 'leads' — the word choice tells you who they're really accountable to.",
+          "fr": "Écoutez si la CMO dit « demande », « pipeline » ou « leads » — le choix du mot révèle à qui elle rend des comptes."
+        }
+      }
+    },
+    {
+      "id": "cl-cmo-3",
+      "role": "cmo",
+      "tags": [
+        "role:cmo",
+        "objective:credibility",
+        "situation:attribution"
+      ],
+      "prompt": {
+        "en": "CMO who's been hammered on attribution. Ask: \"Of everything your team is measuring right now, what do you trust the least — and what do you wish you could measure that you can't?\"",
+        "fr": "CMO mise sous pression sur l'attribution. Demandez : « De tout ce que mesure votre équipe en ce moment, qu'est-ce que vous croyez le moins — et qu'aimeriez-vous mesurer sans le pouvoir ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Invites honesty about measurement. CMOs are tired of being asked to defend numbers they themselves don't fully believe.",
+          "fr": "Invite à l'honnêteté sur la mesure. Les CMO sont lassées de défendre des chiffres auxquels elles-mêmes ne croient pas pleinement."
+        },
+        "followUp": {
+          "en": "\"What number does your CEO believe that you wish they didn't?\"",
+          "fr": "« Quel chiffre votre PDG croit-il que vous aimeriez qu'il ne croie pas ? »"
+        },
+        "listenFor": {
+          "en": [
+            "measurement honesty",
+            "attribution model",
+            "invisible value",
+            "CEO belief"
+          ],
+          "fr": [
+            "honnêteté de la mesure",
+            "modèle d'attribution",
+            "valeur invisible",
+            "croyance du PDG"
+          ]
+        },
+        "delivery": {
+          "en": "If the CMO opens up here, do not try to sell them a measurement product. Honour the candour with more inquiry, not a pitch.",
+          "fr": "Si la CMO s'ouvre ici, ne lui vendez pas un outil de mesure. Honorez la franchise par plus de questions, pas par un argumentaire."
+        }
+      }
+    },
+    {
+      "id": "cl-cmo-4",
+      "role": "cmo",
+      "tags": [
+        "role:cmo",
+        "objective:ai-readiness",
+        "situation:ai-in-marketing"
+      ],
+      "prompt": {
+        "en": "Every CMO is being asked about AI. Ask: \"Strip away the noise — what's the one place AI is genuinely changing your job day-to-day, and what's still pure theatre?\"",
+        "fr": "Chaque CMO est interrogée sur l'IA. Demandez : « Retirons le bruit — où l'IA change-t-elle vraiment votre métier au quotidien, et qu'est-ce qui reste pur théâtre ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Lets the CMO separate real adoption from performative adoption — both useful signals about where they actually want help.",
+          "fr": "Permet à la CMO de séparer l'adoption réelle de l'adoption performative — les deux signaux utiles pour savoir où elle veut vraiment de l'aide."
+        },
+        "followUp": {
+          "en": "\"And what have you tried that quietly didn't work?\"",
+          "fr": "« Et qu'avez-vous essayé qui n'a pas fonctionné, sans le dire ? »"
+        },
+        "listenFor": {
+          "en": [
+            "real use case",
+            "performative use",
+            "CEO expectation",
+            "quiet failure"
+          ],
+          "fr": [
+            "cas d'usage réel",
+            "usage performatif",
+            "attente du PDG",
+            "échec silencieux"
+          ]
+        },
+        "delivery": {
+          "en": "The 'pure theatre' phrase is the unlock. It gives the CMO permission to be honest in a way most vendor conversations don't.",
+          "fr": "C'est l'expression « pur théâtre » qui ouvre la porte. Elle autorise la CMO à être honnête comme la plupart des conversations fournisseur ne le permettent pas."
+        }
+      }
+    },
+    {
+      "id": "cl-cmo-5",
+      "role": "cmo",
+      "tags": [
+        "role:cmo",
+        "objective:cx",
+        "situation:customer-led"
+      ],
+      "prompt": {
+        "en": "CMO who positions as customer-led. Ask: \"When was the last time customer evidence changed a real decision at the executive table — not your decision, an exec table decision?\"",
+        "fr": "CMO qui se présente comme « customer-led ». Demandez : « Quand pour la dernière fois une donnée client a-t-elle modifié une vraie décision à la table exécutive — pas votre décision, une décision de la table exec ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Tests whether 'customer-led' is real or rhetorical. The answer reveals how much power the customer voice actually has in this company.",
+          "fr": "Teste si « customer-led » est réel ou rhétorique. La réponse révèle le pouvoir réel de la voix client dans cette entreprise."
+        },
+        "followUp": {
+          "en": "\"And what customer evidence is your CEO most likely to ignore?\"",
+          "fr": "« Et quelle donnée client votre PDG est-il le plus susceptible d'ignorer ? »"
+        },
+        "listenFor": {
+          "en": [
+            "customer voice power",
+            "executive openness",
+            "ignored evidence",
+            "cultural reality"
+          ],
+          "fr": [
+            "pouvoir de la voix client",
+            "ouverture exécutive",
+            "preuve ignorée",
+            "réalité culturelle"
+          ]
+        },
+        "delivery": {
+          "en": "Don't pretend you didn't ask the harder version. The 'most likely to ignore' is where the real conversation is. Hold the question.",
+          "fr": "Ne faites pas semblant de ne pas avoir posé la version plus dure. C'est dans le « plus susceptible d'ignorer » que se trouve la vraie conversation. Tenez la question."
+        }
+      }
+    },
+    {
+      "id": "cl-cmo-6",
+      "role": "cmo",
+      "tags": [
+        "role:cmo",
+        "objective:strategy",
+        "situation:marketing-sales-alignment"
+      ],
+      "prompt": {
+        "en": "CMO and CRO are not in sync. Ask the CMO: \"Where is the marketing-sales handoff currently broken, and is the fix on your side, theirs, or both — honestly?\"",
+        "fr": "CMO et CRO ne sont pas alignés. Demandez à la CMO : « Où la passation marketing-ventes est-elle aujourd'hui cassée, et la réparation est-elle de votre côté, du leur, ou des deux — honnêtement ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "The 'honestly' is the key word. It invites a CMO to skip the diplomatic answer and tell you what the political reality is.",
+          "fr": "C'est « honnêtement » qui fait le travail. Cela invite la CMO à sauter la réponse diplomatique et vous dire la réalité politique."
+        },
+        "followUp": {
+          "en": "\"What would you ask sales to stop doing if you could?\"",
+          "fr": "« Qu'aimeriez-vous demander aux ventes d'arrêter de faire si vous le pouviez ? »"
+        },
+        "listenFor": {
+          "en": [
+            "handoff failure",
+            "mutual fault",
+            "political honesty",
+            "stop-doing list"
+          ],
+          "fr": [
+            "passation cassée",
+            "tort partagé",
+            "franchise politique",
+            "liste à arrêter"
+          ]
+        },
+        "delivery": {
+          "en": "If you're selling sales tech, you may hear yourself in the answer. Don't deflect. Acknowledge if so, and ask what would have made the difference.",
+          "fr": "Si vous vendez des outils de vente, vous pourriez vous reconnaître dans la réponse. Ne déviez pas. Reconnaissez si nécessaire, et demandez ce qui aurait fait la différence."
+        }
+      }
+    },
+    {
+      "id": "cl-cmo-7",
+      "role": "cmo",
+      "tags": [
+        "role:cmo",
+        "objective:strategy",
+        "situation:saturated-market"
+      ],
+      "prompt": {
+        "en": "CMO in a saturated category. Ask: \"When the category is crowded and feature-parity is real, where do you see your team finding its next 10 points of share — narrative, channel, audience, or something else?\"",
+        "fr": "CMO sur un marché saturé. Demandez : « Quand la catégorie est encombrée et la parité fonctionnelle réelle, où votre équipe ira-t-elle chercher ses 10 prochains points de part — narratif, canal, audience, ou autre chose ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Forces a strategic answer when the easy ones are exhausted. Surfaces the CMO's actual growth thesis.",
+          "fr": "Force une réponse stratégique quand les faciles sont épuisées. Révèle la vraie thèse de croissance de la CMO."
+        },
+        "followUp": {
+          "en": "\"And what's the share you'd most regret losing in the meantime?\"",
+          "fr": "« Et quelle part regretteriez-vous le plus de perdre entre-temps ? »"
+        },
+        "listenFor": {
+          "en": [
+            "share growth thesis",
+            "narrative bet",
+            "new audience",
+            "defensive position"
+          ],
+          "fr": [
+            "thèse de gain de part",
+            "pari narratif",
+            "nouvelle audience",
+            "position défensive"
+          ]
+        },
+        "delivery": {
+          "en": "Avoid 'differentiation' as a word — it's the topic every CMO has been beaten over the head with. Use 'where do you grow' instead.",
+          "fr": "Évitez « différenciation » — c'est le sujet dont chaque CMO a été assommée. Utilisez « où grandissez-vous » à la place."
+        }
+      }
+    },
+    {
+      "id": "cl-cmo-8",
+      "role": "cmo",
+      "tags": [
+        "role:cmo",
+        "objective:relationship",
+        "situation:executive-dinner"
+      ],
+      "prompt": {
+        "en": "Executive dinner with a CMO. Skip work. Out loud: \"Which book or person changed how you think about your work in the last year — and what did it actually change?\"",
+        "fr": "Dîner d'affaires avec une CMO. Sautez le travail. À voix haute : « Quel livre ou quelle personne a changé votre façon de penser votre métier l'an dernier — et qu'est-ce que cela a vraiment changé ? »"
+      },
+      "reference": {
+        "intent": {
+          "en": "Invites the CMO to talk about their own development — rare in dinner settings, and the source of the warmest follow-up emails.",
+          "fr": "Invite la CMO à parler de son propre développement — rare en dîner, et source des suivis les plus chaleureux."
+        },
+        "followUp": {
+          "en": "\"Did anyone you respect disagree with that take?\"",
+          "fr": "« Quelqu'un que vous respectez n'était-il pas d'accord avec cette idée ? »"
+        },
+        "listenFor": {
+          "en": [
+            "formative input",
+            "intellectual debt",
+            "disagreement tested",
+            "applied change"
+          ],
+          "fr": [
+            "apport formateur",
+            "dette intellectuelle",
+            "désaccord testé",
+            "changement appliqué"
+          ]
+        },
+        "delivery": {
+          "en": "Have your own honest answer ready. The exchange is the point — a one-way version feels like an interrogation.",
+          "fr": "Ayez votre propre réponse honnête prête. C'est l'échange qui compte — une version à sens unique ressemble à un interrogatoire."
+        }
+      }
+    },
+    {
+      "id": "cl-cto-1",
+      "role": "cto",
+      "tags": [
+        "role:cto",
+        "objective:strategy",
+        "situation:build-vs-buy"
+      ],
       "prompt": {
         "en": "CTO. Out loud: \"Where do you draw the line between what you build in-house and what you buy — and is that line moving?\" Ask it as a peer who's seen the trade-off many times.",
         "fr": "CTO. À voix haute : « Où placez-vous la frontière entre ce que vous développez en interne et ce que vous achetez — et cette frontière bouge-t-elle ? » Posez-la en pair qui a vu ce dilemme bien des fois."
@@ -150,8 +1665,18 @@
           "fr": "« Qu'avez-vous développé que, avec le recul, vous auriez préféré acheter ? »"
         },
         "listenFor": {
-          "en": ["core vs context", "engineering capacity", "maintenance burden", "differentiation"],
-          "fr": ["cœur de métier vs périphérie", "capacité d'ingénierie", "charge de maintenance", "différenciation"]
+          "en": [
+            "core vs context",
+            "engineering capacity",
+            "maintenance burden",
+            "differentiation"
+          ],
+          "fr": [
+            "cœur de métier vs périphérie",
+            "capacité d'ingénierie",
+            "charge de maintenance",
+            "différenciation"
+          ]
         },
         "delivery": {
           "en": "No pitch. A CTO opens up to peers, not to vendors selling 'buy'.",
@@ -160,262 +1685,289 @@
       }
     },
     {
-      "id": "cl-cto-a2",
-      "tags": ["role:cto", "objective:risk"],
+      "id": "cl-cto-2",
+      "role": "cto",
+      "tags": [
+        "role:cto",
+        "objective:risk",
+        "situation:modernisation"
+      ],
       "prompt": {
-        "en": "Out loud, a sharp risk question: \"What's the part of your current architecture you'd least want to depend on for the next three years?\" Pause and let the honesty land.",
-        "fr": "À voix haute, une question de risque incisive : « Quelle partie de votre architecture actuelle aimeriez-vous le moins devoir garder pendant trois ans ? » Marquez une pause et laissez l'honnêteté s'installer."
+        "en": "CTO mid-modernisation. Ask: \"Which piece of the modernisation programme are you most confident will succeed — and which one are you privately nervous about?\"",
+        "fr": "CTO en pleine modernisation. Demandez : « Quelle pièce du programme de modernisation est celle dont vous êtes le plus sûr qu'elle réussira — et laquelle vous rend secrètement nerveux ? »"
       },
       "reference": {
         "intent": {
-          "en": "Surfaces the fragile dependency they already worry about — the structural risk a credible advisor names.",
-          "fr": "Fait émerger la dépendance fragile qui les inquiète déjà — le risque structurel qu'un conseiller crédible sait nommer."
+          "en": "Most CTOs only ever describe the confident bit publicly. The 'privately nervous' frame invites the conversation worth having.",
+          "fr": "La plupart des CTO ne décrivent publiquement que la partie où ils sont sûrs. Le cadrage « secrètement nerveux » invite la conversation qui vaut la peine."
         },
         "followUp": {
-          "en": "\"What's kept you from replacing it so far?\"",
-          "fr": "« Qu'est-ce qui vous a empêché de le remplacer jusqu'ici ? »"
+          "en": "\"What's the failure mode you've been quietly preparing for?\"",
+          "fr": "« Quel scénario d'échec préparez-vous en silence ? »"
         },
         "listenFor": {
-          "en": ["legacy core", "single point of failure", "technical debt", "vendor lock-in"],
-          "fr": ["socle hérité (legacy)", "point unique de défaillance", "dette technique", "dépendance fournisseur"]
+          "en": [
+            "named risk",
+            "silent contingency",
+            "time-to-rollback",
+            "political consequence"
+          ],
+          "fr": [
+            "risque nommé",
+            "contingence silencieuse",
+            "délai de rollback",
+            "conséquence politique"
+          ]
         },
         "delivery": {
-          "en": "Calm and curious. You're mapping risk with them, not interrogating them.",
-          "fr": "Calme et curieux. Vous cartographiez le risque avec eux, vous ne les interrogez pas."
+          "en": "Treat the admission as a gift. Don't immediately offer a product against it — sit with the answer, ask one more question.",
+          "fr": "Traitez l'aveu comme un cadeau. Ne dégainez pas un produit contre — restez avec la réponse, posez une question de plus."
         }
       }
     },
     {
-      "id": "cl-bank-a1",
-      "tags": ["sector:banking", "objective:efficiency"],
+      "id": "cl-cto-3",
+      "role": "cto",
+      "tags": [
+        "role:cto",
+        "objective:strategy",
+        "situation:platform-architecture"
+      ],
       "prompt": {
-        "en": "Banking executive. Out loud: \"With the cost-income ratio under the pressure it is, where are you finding efficiency that doesn't quietly add regulatory risk?\"",
-        "fr": "Dirigeant bancaire. À voix haute : « Avec la pression actuelle sur le coefficient d'exploitation, où trouvez-vous de l'efficacité sans ajouter discrètement du risque réglementaire ? »"
+        "en": "CTO making a platform call. Ask: \"What's the architectural decision in front of you right now whose answer changes the next five years for your team — and what's pulling you in each direction?\"",
+        "fr": "CTO devant un choix de plateforme. Demandez : « Quelle décision d'architecture avez-vous devant vous dont la réponse engage les cinq prochaines années de votre équipe — et qu'est-ce qui vous tire dans chaque direction ? »"
       },
       "reference": {
         "intent": {
-          "en": "Shows you understand the banking squeeze (cost-income ratio) AND the regulatory constraint that bounds every efficiency play.",
-          "fr": "Montre que vous comprenez l'étau bancaire (coefficient d'exploitation) ET la contrainte réglementaire qui borne chaque gain d'efficacité."
+          "en": "CTOs love being treated as architects, not gatekeepers. The five-year frame elevates the conversation past today's sprint.",
+          "fr": "Les CTO aiment être traités en architectes, pas en gardiens. L'horizon cinq ans élève la conversation au-delà du sprint en cours."
         },
         "followUp": {
-          "en": "\"Where does compliance cost you the most speed?\"",
-          "fr": "« Où la conformité vous coûte-t-elle le plus de rapidité ? »"
+          "en": "\"What does your team most want, and what does your board most want — and where do those diverge?\"",
+          "fr": "« Que veut le plus votre équipe, et que veut le plus votre conseil — et où divergent-ils ? »"
         },
         "listenFor": {
-          "en": ["cost-income ratio", "regulatory burden", "process automation", "legacy modernization"],
-          "fr": ["coefficient d'exploitation", "charge réglementaire", "automatisation des processus", "modernisation du legacy"]
+          "en": [
+            "five-year lock-in",
+            "architectural debt",
+            "team pull vs board pull",
+            "reversibility"
+          ],
+          "fr": [
+            "verrouillage cinq ans",
+            "dette d'architecture",
+            "poussée équipe vs conseil",
+            "réversibilité"
+          ]
         },
         "delivery": {
-          "en": "Use the sector term ('cost-income ratio') early — it earns immediate credibility in a bank.",
-          "fr": "Employez le terme sectoriel (« coefficient d'exploitation ») tôt — cela installe une crédibilité immédiate dans une banque."
+          "en": "Engage with the specifics if you can. CTOs can tell within thirty seconds whether you actually understand the architectural call.",
+          "fr": "Engagez sur le concret si vous le pouvez. Un CTO sait en trente secondes si vous comprenez réellement la décision d'architecture."
         }
       }
     },
     {
-      "id": "cl-bank-a2",
-      "tags": ["sector:banking", "objective:cx"],
+      "id": "cl-cto-4",
+      "role": "cto",
+      "tags": [
+        "role:cto",
+        "objective:strategy",
+        "situation:scaling-team"
+      ],
       "prompt": {
-        "en": "Out loud: \"Where does your legacy core most get in the way of the customer experience you actually want to offer?\" Ask, then listen for where modernization is blocked.",
-        "fr": "À voix haute : « Où votre socle bancaire hérité gêne-t-il le plus l'expérience client que vous voulez réellement offrir ? » Posez la question, puis écoutez où la modernisation est bloquée."
+        "en": "CTO scaling fast. Ask: \"What does your engineering org look like when it's twice the size — and what part of how it works today won't survive that scale?\"",
+        "fr": "CTO en forte croissance. Demandez : « À quoi ressemble votre organisation d'ingénierie quand elle a doublé — et quelle partie de son fonctionnement actuel ne survivra pas à cette échelle ? »"
       },
       "reference": {
         "intent": {
-          "en": "Connects legacy core pain to a business outcome (customer experience), where the budget conversation actually lives.",
-          "fr": "Relie la douleur du socle hérité à un résultat métier (l'expérience client), là où se joue réellement la discussion budgétaire."
+          "en": "Forces the CTO to name the practices, tools, or rituals that will break under scale. That list is where outside help becomes welcome.",
+          "fr": "Force le CTO à nommer les pratiques, outils ou rituels qui casseront à l'échelle. Cette liste est là où un appui externe devient bienvenu."
         },
         "followUp": {
-          "en": "\"If that constraint disappeared, what would you ship first?\"",
-          "fr": "« Si cette contrainte disparaissait, que livreriez-vous en premier ? »"
+          "en": "\"Who do you most want to hire next, and what's stopping you?\"",
+          "fr": "« Qui voulez-vous recruter en priorité, et qu'est-ce qui vous en empêche ? »"
         },
         "listenFor": {
-          "en": ["core banking constraints", "time-to-market", "digital onboarding", "omnichannel gaps"],
-          "fr": ["contraintes du core banking", "délai de mise sur le marché", "onboarding digital", "lacunes omnicanal"]
+          "en": [
+            "scaling friction",
+            "ritual fragility",
+            "hiring bar",
+            "spans of control"
+          ],
+          "fr": [
+            "friction d'échelle",
+            "fragilité des rituels",
+            "exigence de recrutement",
+            "spans de contrôle"
+          ]
         },
         "delivery": {
-          "en": "Frame around what they want to offer, not what's broken — keeps it forward-looking.",
-          "fr": "Cadrez autour de ce qu'ils veulent offrir, pas de ce qui est cassé — cela reste tourné vers l'avenir."
+          "en": "Listen for the difference between a CTO who's been here before and one who's facing this scale for the first time. Calibrate your advice accordingly.",
+          "fr": "Écoutez la différence entre un CTO qui a déjà vécu cette taille et un qui l'affronte pour la première fois. Calibrez votre avis en conséquence."
         }
       }
     },
     {
-      "id": "cl-ins-a1",
-      "tags": ["sector:insurance", "objective:efficiency"],
+      "id": "cl-cto-5",
+      "role": "cto",
+      "tags": [
+        "role:cto",
+        "objective:ai-readiness",
+        "situation:ai-strategy"
+      ],
       "prompt": {
-        "en": "Insurance executive. Out loud: \"If you could make one part of the claims or underwriting journey dramatically faster without raising risk, where would it be?\"",
-        "fr": "Dirigeant en assurance. À voix haute : « Si vous pouviez rendre une partie du parcours de sinistres ou de souscription nettement plus rapide sans augmenter le risque, laquelle choisiriez-vous ? »"
+        "en": "AI from the CTO angle. Ask: \"Where in your stack are you investing in AI primitives yourselves, and where are you betting that someone else will commoditise it for you — and what's your read on that bet?\"",
+        "fr": "L'IA vue du CTO. Demandez : « Dans quelle partie de votre pile investissez-vous vous-mêmes dans les primitives IA, et où pariez-vous que quelqu'un d'autre va la banaliser pour vous — et quel est votre regard sur ce pari ? »"
       },
       "reference": {
         "intent": {
-          "en": "Anchors on the two value engines of insurance — claims and underwriting — and the speed/risk trade-off that governs both.",
-          "fr": "S'ancre sur les deux moteurs de valeur de l'assurance — sinistres et souscription — et l'arbitrage rapidité/risque qui régit les deux."
+          "en": "Strategic AI question, not tactical. Surfaces the CTO's commoditisation thesis — which determines what you can credibly sell them.",
+          "fr": "Question IA stratégique, pas tactique. Révèle la thèse de banalisation du CTO — qui détermine ce que vous pouvez crédiblement lui vendre."
         },
         "followUp": {
-          "en": "\"What's the risk everyone's afraid of if that step got faster?\"",
-          "fr": "« Quel est le risque que tout le monde redoute si cette étape devenait plus rapide ? »"
+          "en": "\"What model or platform are you most worried about being locked into?\"",
+          "fr": "« Quel modèle ou plateforme craignez-vous le plus d'avoir verrouillé ? »"
         },
         "listenFor": {
-          "en": ["claims cycle time", "underwriting accuracy", "loss ratio", "fraud risk"],
-          "fr": ["délai de traitement des sinistres", "précision de la souscription", "ratio de sinistralité", "risque de fraude"]
+          "en": [
+            "primitive vs platform",
+            "commoditisation thesis",
+            "lock-in fear",
+            "strategic moat"
+          ],
+          "fr": [
+            "primitive vs plateforme",
+            "thèse de banalisation",
+            "peur du verrouillage",
+            "douve stratégique"
+          ]
         },
         "delivery": {
-          "en": "Speed-without-risk is the insurer's holy grail — naming it shows you know the business.",
-          "fr": "La rapidité sans risque est le Graal de l'assureur — la nommer montre que vous connaissez le métier."
+          "en": "Be specific about model names, providers, infrastructure choices. CTOs trust people who name what they mean.",
+          "fr": "Soyez précis sur les noms de modèles, fournisseurs, choix d'infrastructure. Les CTO font confiance à ceux qui nomment ce qu'ils veulent dire."
         }
       }
     },
     {
-      "id": "cl-ins-a2",
-      "tags": ["sector:insurance", "objective:value"],
+      "id": "cl-cto-6",
+      "role": "cto",
+      "tags": [
+        "role:cto",
+        "objective:risk",
+        "situation:reliability"
+      ],
       "prompt": {
-        "en": "Out loud: \"What do you wish you understood about your policyholders that you currently don't?\" Ask it warmly; it opens a real data and retention conversation.",
-        "fr": "À voix haute : « Qu'aimeriez-vous comprendre de vos assurés que vous ne comprenez pas aujourd'hui ? » Posez-la chaleureusement ; elle ouvre une vraie conversation sur la donnée et la rétention."
+        "en": "CTO whose org just had a reliability incident. Ask: \"What did that incident actually expose about your reliability culture — not your systems, your culture — and what would you change in the next 30 days about how the team responds?\"",
+        "fr": "CTO dont l'équipe vient de subir un incident de fiabilité. Demandez : « Qu'a vraiment révélé cet incident sur votre culture de fiabilité — pas vos systèmes, votre culture — et que changeriez-vous dans les 30 jours sur la façon dont l'équipe réagit ? »"
       },
       "reference": {
         "intent": {
-          "en": "Surfaces the customer-knowledge gap that drives both retention and pricing — high-value territory for an insurer.",
-          "fr": "Révèle l'écart de connaissance client qui pilote à la fois la rétention et la tarification — un territoire à forte valeur pour un assureur."
+          "en": "The 'culture not systems' split forces the harder, more honest answer. Reliability is almost always a culture problem disguised as a tools problem.",
+          "fr": "Le clivage « culture pas systèmes » force la réponse la plus dure et la plus honnête. La fiabilité est presque toujours un problème de culture déguisé en problème d'outillage."
         },
         "followUp": {
-          "en": "\"What decision would that understanding change first?\"",
-          "fr": "« Quelle décision cette compréhension changerait-elle en premier ? »"
+          "en": "\"Whose career is on the line if it happens again?\"",
+          "fr": "« Qui paye sa carrière si cela se reproduit ? »"
         },
         "listenFor": {
-          "en": ["retention / churn", "lifetime value", "risk segmentation", "personalization"],
-          "fr": ["rétention / attrition", "valeur vie client", "segmentation du risque", "personnalisation"]
+          "en": [
+            "culture vs tools",
+            "blameless practice",
+            "accountability",
+            "30-day action"
+          ],
+          "fr": [
+            "culture vs outils",
+            "pratique sans blâme",
+            "responsabilité",
+            "action à 30 jours"
+          ]
         },
         "delivery": {
-          "en": "Tie the data gap to a decision — executives care about decisions, not data for its own sake.",
-          "fr": "Reliez l'écart de données à une décision — les dirigeants se soucient des décisions, pas de la donnée en soi."
+          "en": "Don't propose monitoring tools. If you do, you have outed yourself as someone who didn't actually listen.",
+          "fr": "Ne proposez pas d'outils de monitoring. Si vous le faites, vous vous êtes dénoncé comme quelqu'un qui n'a pas écouté."
         }
       }
     },
     {
-      "id": "cl-telco-a1",
-      "tags": ["sector:telco", "objective:cx"],
+      "id": "cl-cto-7",
+      "role": "cto",
+      "tags": [
+        "role:cto",
+        "objective:risk",
+        "situation:vendor-lock-in"
+      ],
       "prompt": {
-        "en": "Telco executive. Out loud: \"Where is churn actually being decided in your customer journey — and how much visibility do you have into that exact moment?\"",
-        "fr": "Dirigeant télécom. À voix haute : « Où l'attrition se joue-t-elle réellement dans votre parcours client — et quelle visibilité avez-vous sur ce moment précis ? »"
+        "en": "CTO weighing vendor commitments. Ask: \"Which vendor or platform do you feel most locked into right now, and what's the cost of getting unlocked — both in time and in pride?\"",
+        "fr": "CTO qui pèse ses engagements fournisseurs. Demandez : « Sur quel fournisseur ou plateforme vous sentez-vous le plus verrouillé en ce moment, et quel serait le coût de la libération — en temps et en orgueil ? »"
       },
       "reference": {
         "intent": {
-          "en": "Churn is the telco obsession; the sharp move is asking where the churn decision is made, not just the rate.",
-          "fr": "L'attrition est l'obsession du télécom ; le mouvement fin consiste à demander où se prend la décision de partir, pas seulement le taux."
+          "en": "The 'in pride' phrase invites the unspoken truth — switching costs are often political and reputational, not technical.",
+          "fr": "C'est « en orgueil » qui invite la vérité tue — les coûts de transition sont souvent politiques et réputationnels, pas techniques."
         },
         "followUp": {
-          "en": "\"By the time you see the churn signal, is it already too late to act?\"",
-          "fr": "« Quand vous voyez le signal d'attrition, est-il déjà trop tard pour agir ? »"
+          "en": "\"Which one would you secretly keep even if cost weren't the issue?\"",
+          "fr": "« Lequel garderiez-vous secrètement même si le coût n'était pas un sujet ? »"
         },
         "listenFor": {
-          "en": ["churn / retention", "journey visibility", "leading indicators", "intervention timing"],
-          "fr": ["attrition / rétention", "visibilité du parcours", "indicateurs avancés", "moment d'intervention"]
+          "en": [
+            "lock-in depth",
+            "exit cost",
+            "reputational sunk cost",
+            "secret loyalty"
+          ],
+          "fr": [
+            "profondeur du verrouillage",
+            "coût de sortie",
+            "coût irrécupérable de réputation",
+            "loyauté secrète"
+          ]
         },
         "delivery": {
-          "en": "Ask about the moment, not the metric — it shows operational, not surface, understanding.",
-          "fr": "Interrogez le moment, pas la métrique — cela montre une compréhension opérationnelle, pas de surface."
+          "en": "If your product would benefit from them unlocking, do not say it. Let the CTO arrive there themselves, or let them not.",
+          "fr": "Si votre produit gagnerait à ce qu'ils se libèrent, ne le dites pas. Laissez le CTO y arriver lui-même, ou pas."
         }
       }
     },
     {
-      "id": "cl-telco-a2",
-      "tags": ["sector:telco", "objective:value"],
+      "id": "cl-cto-8",
+      "role": "cto",
+      "tags": [
+        "role:cto",
+        "objective:strategy",
+        "situation:engineering-culture"
+      ],
       "prompt": {
-        "en": "Out loud, a growth question: \"Beyond connectivity, where do you see the next real revenue — the value beyond the pipe?\" Pause; this is where a telco's strategy shows.",
-        "fr": "À voix haute, une question de croissance : « Au-delà de la connectivité, où voyez-vous le prochain vrai revenu — la valeur au-delà du tuyau ? » Marquez une pause ; c'est là que la stratégie d'un télécom se révèle."
+        "en": "CTO at a culture inflection. Ask: \"What's the one thing about how engineers experience working here that you'd most want to be true a year from now that isn't true today?\"",
+        "fr": "CTO à un point d'inflexion culturel. Demandez : « Quelle est la chose, dans l'expérience des ingénieurs ici, que vous aimeriez par-dessus tout voir vraie dans un an et qui ne l'est pas aujourd'hui ? »"
       },
       "reference": {
         "intent": {
-          "en": "'Beyond the pipe' is telco shorthand for escaping commoditized connectivity — it signals strategic fluency instantly.",
-          "fr": "« Au-delà du tuyau » est le raccourci télécom pour sortir de la connectivité banalisée — cela signale immédiatement une aisance stratégique."
+          "en": "Personal, specific, and forward-looking. Gets the CTO out of organisation-chart language and into what they actually want to build culturally.",
+          "fr": "Personnel, précis, prospectif. Sort le CTO du langage d'organigramme pour entrer dans ce qu'il veut vraiment bâtir culturellement."
         },
         "followUp": {
-          "en": "\"What's the capability you're missing to capture it?\"",
-          "fr": "« Quelle capacité vous manque-t-il pour la capter ? »"
+          "en": "\"What signal would tell you you'd made it?\"",
+          "fr": "« Quel signal vous dirait que c'est gagné ? »"
         },
         "listenFor": {
-          "en": ["beyond connectivity / ARPU", "B2B / platform plays", "5G monetization", "customer data value"],
-          "fr": ["au-delà de la connectivité / ARPU", "offres B2B / plateforme", "monétisation de la 5G", "valeur de la donnée client"]
+          "en": [
+            "lived experience",
+            "signal of culture",
+            "one-year horizon",
+            "leadership intent"
+          ],
+          "fr": [
+            "expérience vécue",
+            "signal de culture",
+            "horizon un an",
+            "intention du leadership"
+          ]
         },
         "delivery": {
-          "en": "Forward-looking and confident — you're discussing their future, not selling their present.",
-          "fr": "Tourné vers l'avenir et assuré — vous discutez de leur futur, vous ne vendez pas leur présent."
-        }
-      }
-    },
-    {
-      "id": "cl-first-a1",
-      "tags": ["situation:first-meeting", "objective:credibility"],
-      "prompt": {
-        "en": "First-time executive meeting, the opener that earns the room. Out loud: \"What's changed most in your priorities over the last six months that someone on the outside wouldn't see?\"",
-        "fr": "Première réunion avec un dirigeant, l'ouverture qui gagne la salle. À voix haute : « Qu'est-ce qui a le plus changé dans vos priorités ces six derniers mois et qu'on ne verrait pas de l'extérieur ? »"
-      },
-      "reference": {
-        "intent": {
-          "en": "Signals you're after their real agenda, not a generic pitch — and gives you the current priority to anchor everything on.",
-          "fr": "Montre que vous cherchez leur véritable agenda, pas un argumentaire générique — et vous donne la priorité actuelle sur laquelle tout ancrer."
-        },
-        "followUp": {
-          "en": "\"What made that shift happen?\"",
-          "fr": "« Qu'est-ce qui a provoqué ce changement ? »"
-        },
-        "listenFor": {
-          "en": ["recent strategic shift", "board / macro pressure", "the real agenda", "what's urgent vs important"],
-          "fr": ["virage stratégique récent", "pression du conseil / macro", "le véritable agenda", "l'urgent vs l'important"]
-        },
-        "delivery": {
-          "en": "Ask it early, then mostly listen. The first meeting is won by curiosity, not by your deck.",
-          "fr": "Posez-la tôt, puis écoutez surtout. La première réunion se gagne par la curiosité, pas par votre présentation."
-        }
-      }
-    },
-    {
-      "id": "cl-qual-a1",
-      "tags": ["situation:qualification", "objective:decision-process", "method:meddpicc"],
-      "prompt": {
-        "en": "Qualification meeting, mapping the buying committee without sounding like an interrogation. Out loud: \"If this became a real priority, who beyond you would need to be convinced — and what would each of them need to see?\"",
-        "fr": "Réunion de qualification, pour cartographier le comité d'achat sans donner l'impression d'un interrogatoire. À voix haute : « Si cela devenait une vraie priorité, qui d'autre que vous faudrait-il convaincre — et qu'est-ce que chacun aurait besoin de voir ? »"
-      },
-      "reference": {
-        "intent": {
-          "en": "MEDDPICC in one question: economic buyer, decision process, and decision criteria — surfaced conversationally, not as a checklist.",
-          "fr": "MEDDPICC en une question : acheteur économique, processus de décision et critères de décision — révélés par la conversation, pas par une checklist."
-        },
-        "followUp": {
-          "en": "\"And who, realistically, could say no?\"",
-          "fr": "« Et qui, réalistement, pourrait dire non ? »"
-        },
-        "listenFor": {
-          "en": ["economic buyer", "decision rights", "decision criteria per stakeholder", "blockers"],
-          "fr": ["acheteur économique", "droits de décision", "critères de décision par partie prenante", "bloqueurs"]
-        },
-        "delivery": {
-          "en": "Conditional framing ('if this became a priority') lowers the stakes and gets a more honest map.",
-          "fr": "Le cadrage conditionnel (« si cela devenait une priorité ») abaisse l'enjeu et donne une cartographie plus honnête."
-        }
-      }
-    },
-    {
-      "id": "cl-dinner-a1",
-      "tags": ["situation:executive-dinner", "objective:relationship"],
-      "prompt": {
-        "en": "Executive dinner — informal, strategic altitude, relationship-building. Out loud, unhurried: \"If you fast-forward three years and your strategy worked, what's different about the business that you'd be most proud of?\"",
-        "fr": "Dîner avec un dirigeant — informel, à altitude stratégique, pour bâtir la relation. À voix haute, sans précipitation : « Si vous vous projetez dans trois ans et que votre stratégie a réussi, qu'est-ce qui aurait changé dans l'entreprise et dont vous seriez le plus fier ? »"
-      },
-      "reference": {
-        "intent": {
-          "en": "A dinner question that invites vision and pride, not transactions — it builds the human relationship senior deals run on.",
-          "fr": "Une question de dîner qui invite la vision et la fierté, pas la transaction — elle bâtit la relation humaine sur laquelle reposent les grands deals."
-        },
-        "followUp": {
-          "en": "\"What part of that feels most within your control — and what doesn't?\"",
-          "fr": "« Quelle part de cela vous semble la plus sous votre contrôle — et laquelle ne l'est pas ? »"
-        },
-        "listenFor": {
-          "en": ["personal legacy / pride", "strategic intent", "what keeps them up at night", "where they feel exposed"],
-          "fr": ["héritage / fierté personnelle", "intention stratégique", "ce qui les empêche de dormir", "où ils se sentent exposés"]
-        },
-        "delivery": {
-          "en": "No agenda, no follow-up pitch. The restraint at dinner is what makes you memorable.",
-          "fr": "Pas d'agenda, pas de relance commerciale. C'est la retenue au dîner qui vous rend mémorable."
+          "en": "This is a long-game question. Don't try to monetise the answer in the same conversation — it ages the relationship faster than anything else.",
+          "fr": "C'est une question de long terme. N'essayez pas de monétiser la réponse dans la même conversation — c'est ce qui vieillit le plus vite la relation."
         }
       }
     }

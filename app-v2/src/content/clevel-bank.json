@@ -1,0 +1,1629 @@
+{
+  "bank": "clevel",
+  "version": "1",
+  "items": [
+    {
+      "id": "bnk-cfo-1",
+      "role": "cfo",
+      "tags": [
+        "discovery"
+      ],
+      "question": {
+        "en": "What does a good investment look like to you for a decision of this size?",
+        "fr": "À quoi ressemble pour vous un bon investissement pour une décision de cette taille ?"
+      },
+      "useWhen": {
+        "en": "Opening discovery, before any number is on the table.",
+        "fr": "Ouverture de discovery, avant qu'aucun chiffre ne soit sur la table."
+      }
+    },
+    {
+      "id": "bnk-cfo-2",
+      "role": "cfo",
+      "tags": [
+        "risk"
+      ],
+      "question": {
+        "en": "What's the cost of doing nothing here over the next two years?",
+        "fr": "Quel est le coût de ne rien faire ici sur les deux prochaines années ?"
+      },
+      "useWhen": {
+        "en": "When you need to size the status quo as your real competitor.",
+        "fr": "Quand il faut chiffrer le statu quo comme votre vrai concurrent."
+      }
+    },
+    {
+      "id": "bnk-cfo-3",
+      "role": "cfo",
+      "tags": [
+        "board"
+      ],
+      "question": {
+        "en": "When you go in front of the board next, what's the operating-metric story you'd most want to tell?",
+        "fr": "Lors de votre prochain conseil, quelle histoire — sur un indicateur opérationnel — aimeriez-vous le plus pouvoir raconter ?"
+      },
+      "useWhen": {
+        "en": "To find the metric the CFO is personally measured on upward.",
+        "fr": "Pour trouver l'indicateur sur lequel le DAF est jugé en interne."
+      }
+    },
+    {
+      "id": "bnk-cfo-4",
+      "role": "cfo",
+      "tags": [
+        "board"
+      ],
+      "question": {
+        "en": "What story are you tired of telling the board?",
+        "fr": "Quelle histoire en avez-vous assez de raconter au conseil ?"
+      },
+      "useWhen": {
+        "en": "After a 'good story' question, to surface the unspoken frustration.",
+        "fr": "Après une question sur la « bonne histoire », pour faire émerger la frustration tue."
+      }
+    },
+    {
+      "id": "bnk-cfo-5",
+      "role": "cfo",
+      "tags": [
+        "risk",
+        "past"
+      ],
+      "question": {
+        "en": "What's a previous tech investment you regret backing — what did you learn?",
+        "fr": "Quel investissement technologique passé regrettez-vous d'avoir soutenu — qu'en avez-vous appris ?"
+      },
+      "useWhen": {
+        "en": "Builds trust by inviting a scar story before you pitch.",
+        "fr": "Bâtit la confiance en invitant une histoire de cicatrice avant tout argumentaire."
+      }
+    },
+    {
+      "id": "bnk-cfo-6",
+      "role": "cfo",
+      "tags": [
+        "procurement"
+      ],
+      "question": {
+        "en": "Independent of what's on the table, what does 'good value' look like for you on a decision of this size?",
+        "fr": "Indépendamment de ce qui est sur la table, à quoi ressemble pour vous une « bonne valeur » sur une décision de cette taille ?"
+      },
+      "useWhen": {
+        "en": "After procurement has hammered on price.",
+        "fr": "Après que les achats ont martelé sur le prix."
+      }
+    },
+    {
+      "id": "bnk-cfo-7",
+      "role": "cfo",
+      "tags": [
+        "budget-cycle"
+      ],
+      "question": {
+        "en": "How is this budget cycle different from last year's — what's harder to defend now?",
+        "fr": "En quoi ce cycle budgétaire diffère-t-il de l'an dernier — qu'est-ce qui est plus dur à défendre maintenant ?"
+      },
+      "useWhen": {
+        "en": "Mid-cycle, to anchor in the present tense.",
+        "fr": "En milieu de cycle, pour ancrer dans le présent."
+      }
+    },
+    {
+      "id": "bnk-cfo-8",
+      "role": "cfo",
+      "tags": [
+        "risk"
+      ],
+      "question": {
+        "en": "What's your evidence bar for approving a real pilot here?",
+        "fr": "Quel est votre seuil de preuve pour valider un vrai pilote ici ?"
+      },
+      "useWhen": {
+        "en": "Lets the CFO define their own bar — which becomes the test.",
+        "fr": "Laisse le DAF définir lui-même son seuil — qui devient le test."
+      }
+    },
+    {
+      "id": "bnk-cfo-9",
+      "role": "cfo",
+      "tags": [
+        "risk"
+      ],
+      "question": {
+        "en": "What would make you walk away from this even if the numbers worked?",
+        "fr": "Qu'est-ce qui vous ferait renoncer même si les chiffres tenaient la route ?"
+      },
+      "useWhen": {
+        "en": "Surfaces the non-financial veto criteria.",
+        "fr": "Révèle les critères de veto non financiers."
+      }
+    },
+    {
+      "id": "bnk-cfo-10",
+      "role": "cfo",
+      "tags": [
+        "balance-sheet"
+      ],
+      "question": {
+        "en": "Are you trying to move spending from capex to opex this year — or the reverse?",
+        "fr": "Cherchez-vous à déplacer la dépense du capex vers l'opex cette année — ou l'inverse ?"
+      },
+      "useWhen": {
+        "en": "Reveals balance-sheet strategy that governs what gets considered.",
+        "fr": "Révèle la stratégie de bilan qui gouverne ce qui peut être considéré."
+      }
+    },
+    {
+      "id": "bnk-cfo-11",
+      "role": "cfo",
+      "tags": [
+        "working-capital"
+      ],
+      "question": {
+        "en": "What's your working-capital target this year, and what's pressuring it most?",
+        "fr": "Quel est votre objectif de BFR cette année, et qu'est-ce qui le met le plus sous pression ?"
+      },
+      "useWhen": {
+        "en": "When cash is part of the story but unspoken.",
+        "fr": "Quand la trésorerie fait partie de l'histoire mais reste non dite."
+      }
+    },
+    {
+      "id": "bnk-cfo-12",
+      "role": "cfo",
+      "tags": [
+        "decision-process"
+      ],
+      "question": {
+        "en": "Who else needs to agree with you for this to happen — and who could quietly block it?",
+        "fr": "Qui d'autre doit être d'accord avec vous pour que cela se fasse — et qui pourrait silencieusement bloquer ?"
+      },
+      "useWhen": {
+        "en": "MEDDPICC champion + blockers, asked at peer level.",
+        "fr": "Champion MEDDPICC + bloqueurs, posée d'égal à égal."
+      }
+    },
+    {
+      "id": "bnk-cfo-13",
+      "role": "cfo",
+      "tags": [
+        "value"
+      ],
+      "question": {
+        "en": "Which metric — if it moved by 10% — would actually change how the CEO talks about this year?",
+        "fr": "Quel indicateur — s'il bougeait de 10 % — changerait vraiment la façon dont le PDG parle de cette année ?"
+      },
+      "useWhen": {
+        "en": "Forces the conversation to a CEO-grade metric.",
+        "fr": "Force la conversation vers un indicateur de niveau PDG."
+      }
+    },
+    {
+      "id": "bnk-cfo-14",
+      "role": "cfo",
+      "tags": [
+        "timing"
+      ],
+      "question": {
+        "en": "If this had to start in 90 days instead of next year, what would that take?",
+        "fr": "Si cela devait démarrer dans 90 jours plutôt que l'an prochain, qu'est-ce que cela demanderait ?"
+      },
+      "useWhen": {
+        "en": "Tests urgency without faking it.",
+        "fr": "Teste l'urgence sans la simuler."
+      }
+    },
+    {
+      "id": "bnk-cfo-15",
+      "role": "cfo",
+      "tags": [
+        "relationship"
+      ],
+      "question": {
+        "en": "What does a good week look like for you in this seat — not a quarter, a week?",
+        "fr": "À quoi ressemble une bonne semaine pour vous dans ce poste — pas un trimestre, une semaine ?"
+      },
+      "useWhen": {
+        "en": "Executive dinner or relaxed setting, to move past the script.",
+        "fr": "En dîner ou cadre détendu, pour sortir du script."
+      }
+    },
+    {
+      "id": "bnk-cfo-16",
+      "role": "cfo",
+      "tags": [
+        "risk",
+        "sector:banking"
+      ],
+      "question": {
+        "en": "Where are CRR3 and DORA actually moving your budget priorities this year?",
+        "fr": "Où CRR3 et DORA déplacent-ils vraiment vos priorités budgétaires cette année ?"
+      },
+      "useWhen": {
+        "en": "Banking-sector specific; signals you know the regulation.",
+        "fr": "Spécifique banque ; signale que vous connaissez la régulation."
+      }
+    },
+    {
+      "id": "bnk-cfo-17",
+      "role": "cfo",
+      "tags": [
+        "value"
+      ],
+      "question": {
+        "en": "Where would you spend more this year if you trusted the case more?",
+        "fr": "Où dépenseriez-vous davantage cette année si vous aviez plus confiance dans le business case ?"
+      },
+      "useWhen": {
+        "en": "Surfaces under-served budgets ready to grow.",
+        "fr": "Révèle les budgets sous-dotés prêts à grandir."
+      }
+    },
+    {
+      "id": "bnk-cfo-18",
+      "role": "cfo",
+      "tags": [
+        "risk"
+      ],
+      "question": {
+        "en": "What's the single financial number that would worry you most if it got out tomorrow?",
+        "fr": "Quel est le chiffre financier qui vous inquiéterait le plus s'il sortait demain ?"
+      },
+      "useWhen": {
+        "en": "Trust-building; only ask once you have it.",
+        "fr": "Construit la confiance ; à ne poser que quand elle est acquise."
+      }
+    },
+    {
+      "id": "bnk-coo-1",
+      "role": "coo",
+      "tags": [
+        "discovery"
+      ],
+      "question": {
+        "en": "If you could change one thing in the operation without anyone's permission, what would it be?",
+        "fr": "Si vous pouviez changer une chose dans l'opération sans la permission de personne, ce serait quoi ?"
+      },
+      "useWhen": {
+        "en": "Opener — surfaces the private frustration.",
+        "fr": "Ouverture — révèle la frustration privée."
+      }
+    },
+    {
+      "id": "bnk-coo-2",
+      "role": "coo",
+      "tags": [
+        "efficiency"
+      ],
+      "question": {
+        "en": "Where are you choosing between speed and quality right now, and which is winning?",
+        "fr": "Où arbitrez-vous aujourd'hui entre vitesse et qualité, et laquelle l'emporte ?"
+      },
+      "useWhen": {
+        "en": "When throughput is under pressure.",
+        "fr": "Quand la cadence est sous pression."
+      }
+    },
+    {
+      "id": "bnk-coo-3",
+      "role": "coo",
+      "tags": [
+        "efficiency"
+      ],
+      "question": {
+        "en": "What's the biggest source of rework you wish you could eliminate?",
+        "fr": "Quelle est la principale source de reprises que vous aimeriez éliminer ?"
+      },
+      "useWhen": {
+        "en": "Concrete, costable, and operational.",
+        "fr": "Concret, chiffrable, opérationnel."
+      }
+    },
+    {
+      "id": "bnk-coo-4",
+      "role": "coo",
+      "tags": [
+        "change"
+      ],
+      "question": {
+        "en": "What did the last big change in this operation feel like on the floor — and what would you do differently?",
+        "fr": "À quoi a ressemblé le dernier grand changement, vu du terrain — et que feriez-vous différemment ?"
+      },
+      "useWhen": {
+        "en": "Treats the COO as someone with scar tissue, not a blank slate.",
+        "fr": "Traite le COO comme quelqu'un qui a des cicatrices, pas une page blanche."
+      }
+    },
+    {
+      "id": "bnk-coo-5",
+      "role": "coo",
+      "tags": [
+        "cross-functional"
+      ],
+      "question": {
+        "en": "Which two functions in the business make your operation harder, and what would alignment actually unlock?",
+        "fr": "Quelles deux fonctions rendent votre opération plus difficile, et qu'est-ce qu'un alignement débloquerait vraiment ?"
+      },
+      "useWhen": {
+        "en": "Surfaces cross-functional friction at peer level.",
+        "fr": "Révèle la friction transverse entre pairs."
+      }
+    },
+    {
+      "id": "bnk-coo-6",
+      "role": "coo",
+      "tags": [
+        "vendor"
+      ],
+      "question": {
+        "en": "Which current vendor do you genuinely not want to lose, and which would you happily replace?",
+        "fr": "Quel fournisseur ne voulez-vous vraiment pas perdre, et lequel remplaceriez-vous volontiers ?"
+      },
+      "useWhen": {
+        "en": "Mid-consolidation — gets to specifics.",
+        "fr": "En pleine consolidation — va au concret."
+      }
+    },
+    {
+      "id": "bnk-coo-7",
+      "role": "coo",
+      "tags": [
+        "capacity"
+      ],
+      "question": {
+        "en": "Where in the operation are you most exposed if you can't hire fast enough next year?",
+        "fr": "Où votre opération est-elle la plus exposée si vous ne recrutez pas assez vite l'an prochain ?"
+      },
+      "useWhen": {
+        "en": "Capacity stress test.",
+        "fr": "Test de résistance de la capacité."
+      }
+    },
+    {
+      "id": "bnk-coo-8",
+      "role": "coo",
+      "tags": [
+        "capacity"
+      ],
+      "question": {
+        "en": "What did you have to leave undone last year because of capacity?",
+        "fr": "Qu'avez-vous dû laisser de côté l'an dernier faute de capacité ?"
+      },
+      "useWhen": {
+        "en": "Concrete proof of what capacity costs.",
+        "fr": "Preuve concrète de ce que coûte le manque de capacité."
+      }
+    },
+    {
+      "id": "bnk-coo-9",
+      "role": "coo",
+      "tags": [
+        "incident"
+      ],
+      "question": {
+        "en": "What did the last incident teach you that surprised you?",
+        "fr": "Que vous a appris d'inattendu le dernier incident ?"
+      },
+      "useWhen": {
+        "en": "Post-incident, peer-level.",
+        "fr": "Après incident, entre pairs."
+      }
+    },
+    {
+      "id": "bnk-coo-10",
+      "role": "coo",
+      "tags": [
+        "supply-chain"
+      ],
+      "question": {
+        "en": "Which single point in your supply chain keeps you up at night?",
+        "fr": "Quel point unique dans votre chaîne d'approvisionnement vous empêche de dormir ?"
+      },
+      "useWhen": {
+        "en": "Resilience conversation, when geopolitics is in the news.",
+        "fr": "Conversation résilience, quand la géopolitique fait l'actualité."
+      }
+    },
+    {
+      "id": "bnk-coo-11",
+      "role": "coo",
+      "tags": [
+        "metric"
+      ],
+      "question": {
+        "en": "Which operational metric does your CEO push hardest on, and which one do you wish they pushed harder?",
+        "fr": "Quel indicateur opérationnel votre PDG pousse-t-il le plus, et lequel aimeriez-vous qu'il pousse davantage ?"
+      },
+      "useWhen": {
+        "en": "Reveals CEO-COO misalignment, when it exists.",
+        "fr": "Révèle le désalignement PDG-COO quand il existe."
+      }
+    },
+    {
+      "id": "bnk-coo-12",
+      "role": "coo",
+      "tags": [
+        "automation"
+      ],
+      "question": {
+        "en": "Where in the operation are you betting on automation, and where are you betting against it?",
+        "fr": "Où pariez-vous sur l'automatisation dans l'opération, et où pariez-vous contre ?"
+      },
+      "useWhen": {
+        "en": "Pro-automation defaults are everywhere; COOs are more nuanced.",
+        "fr": "Les défauts pro-automatisation sont partout ; les COO sont plus nuancés."
+      }
+    },
+    {
+      "id": "bnk-coo-13",
+      "role": "coo",
+      "tags": [
+        "decision-process"
+      ],
+      "question": {
+        "en": "Who owns the call on big operational investments — you, the CFO, the CEO, or all three?",
+        "fr": "Qui décide pour les gros investissements opérationnels — vous, le DAF, le PDG, ou les trois ?"
+      },
+      "useWhen": {
+        "en": "Power-mapping the operational budget.",
+        "fr": "Cartographie du pouvoir sur le budget opérationnel."
+      }
+    },
+    {
+      "id": "bnk-coo-14",
+      "role": "coo",
+      "tags": [
+        "talent"
+      ],
+      "question": {
+        "en": "Where are you losing the people you most want to keep, and what's pulling them away?",
+        "fr": "Où perdez-vous les personnes que vous voulez le plus garder, et qu'est-ce qui les attire ailleurs ?"
+      },
+      "useWhen": {
+        "en": "Attrition is operational; this question often surprises COOs.",
+        "fr": "L'attrition est opérationnelle ; cette question surprend souvent les COO."
+      }
+    },
+    {
+      "id": "bnk-coo-15",
+      "role": "coo",
+      "tags": [
+        "timing"
+      ],
+      "question": {
+        "en": "If you started this in Q1 instead of Q3, what would that buy you?",
+        "fr": "Si vous démarriez cela au T1 plutôt qu'au T3, qu'est-ce que cela vous achèterait ?"
+      },
+      "useWhen": {
+        "en": "Tests urgency against a concrete acceleration.",
+        "fr": "Teste l'urgence contre une accélération concrète."
+      }
+    },
+    {
+      "id": "bnk-coo-16",
+      "role": "coo",
+      "tags": [
+        "sector:banking"
+      ],
+      "question": {
+        "en": "Where does DORA actually change how you run operations day-to-day?",
+        "fr": "Où DORA change-t-il vraiment la conduite des opérations au quotidien ?"
+      },
+      "useWhen": {
+        "en": "Banking COO; current regulation in force.",
+        "fr": "COO banque ; régulation en vigueur."
+      }
+    },
+    {
+      "id": "bnk-coo-17",
+      "role": "coo",
+      "tags": [
+        "sector:insurance"
+      ],
+      "question": {
+        "en": "How is IFRS 17 still reshaping your operational priorities three years in?",
+        "fr": "Comment IFRS 17 façonne-t-il encore vos priorités opérationnelles trois ans après ?"
+      },
+      "useWhen": {
+        "en": "Insurance COO; the long tail of the regulation.",
+        "fr": "COO assurance ; la longue traîne de la régulation."
+      }
+    },
+    {
+      "id": "bnk-coo-18",
+      "role": "coo",
+      "tags": [
+        "relationship"
+      ],
+      "question": {
+        "en": "What's the part of running this operation that most surprised you when you took the seat?",
+        "fr": "Qu'est-ce qui, dans la conduite de cette opération, vous a le plus surpris en prenant le poste ?"
+      },
+      "useWhen": {
+        "en": "Dinner setting, or once trust is established.",
+        "fr": "En dîner, ou une fois la confiance établie."
+      }
+    },
+    {
+      "id": "bnk-ceo-1",
+      "role": "ceo",
+      "tags": [
+        "discovery"
+      ],
+      "question": {
+        "en": "In your own words — not the investor-deck version — what does this company need to become in three years?",
+        "fr": "Avec vos mots à vous — pas la version de la présentation aux investisseurs — que doit devenir cette entreprise dans trois ans ?"
+      },
+      "useWhen": {
+        "en": "Opening; bypasses rehearsed strategy.",
+        "fr": "Ouverture ; contourne la stratégie répétée."
+      }
+    },
+    {
+      "id": "bnk-ceo-2",
+      "role": "ceo",
+      "tags": [
+        "board"
+      ],
+      "question": {
+        "en": "What's the story you're hoping not to have to tell the board this year?",
+        "fr": "Quelle est l'histoire que vous espérez ne pas avoir à raconter au conseil cette année ?"
+      },
+      "useWhen": {
+        "en": "Reveals downside scenario, only ask once trusted.",
+        "fr": "Révèle le scénario à risque, à ne poser qu'avec la confiance."
+      }
+    },
+    {
+      "id": "bnk-ceo-3",
+      "role": "ceo",
+      "tags": [
+        "board"
+      ],
+      "question": {
+        "en": "What do you wish the board cared less about than they do?",
+        "fr": "Sur quoi aimeriez-vous que le conseil s'attarde moins ?"
+      },
+      "useWhen": {
+        "en": "Surfaces board-vs-CEO priority gap.",
+        "fr": "Révèle l'écart de priorité conseil-PDG."
+      }
+    },
+    {
+      "id": "bnk-ceo-4",
+      "role": "ceo",
+      "tags": [
+        "competition"
+      ],
+      "question": {
+        "en": "Which competitor's move would worry you most in the next 18 months, and what would you do the morning after?",
+        "fr": "Quel mouvement d'un concurrent vous inquiéterait le plus dans les 18 mois, et que feriez-vous le lendemain ?"
+      },
+      "useWhen": {
+        "en": "Lets the CEO articulate threat model in detail.",
+        "fr": "Permet au PDG d'expliciter son modèle de menace."
+      }
+    },
+    {
+      "id": "bnk-ceo-5",
+      "role": "ceo",
+      "tags": [
+        "competition"
+      ],
+      "question": {
+        "en": "What's quietly stopping you from doing some of that already?",
+        "fr": "Qu'est-ce qui vous empêche en silence d'en faire déjà une partie ?"
+      },
+      "useWhen": {
+        "en": "Follow-up on competitive threat; gets to internal blockers.",
+        "fr": "Suivi sur la menace concurrentielle ; va aux bloqueurs internes."
+      }
+    },
+    {
+      "id": "bnk-ceo-6",
+      "role": "ceo",
+      "tags": [
+        "priority"
+      ],
+      "question": {
+        "en": "If this conversation weren't happening, what would you be solving in the next 90 days?",
+        "fr": "Si cette conversation n'avait pas lieu, que résoudriez-vous dans les 90 prochains jours ?"
+      },
+      "useWhen": {
+        "en": "Tests whether you're the right priority.",
+        "fr": "Teste si vous êtes la bonne priorité."
+      }
+    },
+    {
+      "id": "bnk-ceo-7",
+      "role": "ceo",
+      "tags": [
+        "decision"
+      ],
+      "question": {
+        "en": "When you place a bet of this size, do you lead with conviction or evidence?",
+        "fr": "Quand vous engagez un pari de cette taille, menez-vous par la conviction ou par les preuves ?"
+      },
+      "useWhen": {
+        "en": "Profiles decision style; how to sell to them.",
+        "fr": "Établit le style de décision ; comment vous lui vendez."
+      }
+    },
+    {
+      "id": "bnk-ceo-8",
+      "role": "ceo",
+      "tags": [
+        "decision"
+      ],
+      "question": {
+        "en": "When has that decision ratio gotten you in trouble?",
+        "fr": "Quand ce rapport décisionnel vous a-t-il causé des ennuis ?"
+      },
+      "useWhen": {
+        "en": "Follow-up that earns peer respect.",
+        "fr": "Suivi qui gagne le respect entre pairs."
+      }
+    },
+    {
+      "id": "bnk-ceo-9",
+      "role": "ceo",
+      "tags": [
+        "legacy"
+      ],
+      "question": {
+        "en": "When you eventually hand this seat over, what would you want your successor to inherit in better shape?",
+        "fr": "Quand vous transmettrez ce siège, qu'aimeriez-vous que votre successeur hérite en meilleur état ?"
+      },
+      "useWhen": {
+        "en": "Late-tenure or legacy framing.",
+        "fr": "En fin de mandat ou cadrage du legs."
+      }
+    },
+    {
+      "id": "bnk-ceo-10",
+      "role": "ceo",
+      "tags": [
+        "founder"
+      ],
+      "question": {
+        "en": "Which parts of running this company still feel like yours personally, and which have you handed off?",
+        "fr": "Quelles parties de la direction restent à faire personnellement, et lesquelles avez-vous déléguées ?"
+      },
+      "useWhen": {
+        "en": "Founder-CEO; tension naming.",
+        "fr": "PDG-fondateur ; nommer la tension."
+      }
+    },
+    {
+      "id": "bnk-ceo-11",
+      "role": "ceo",
+      "tags": [
+        "risk"
+      ],
+      "question": {
+        "en": "Where is the single biggest reputational exposure in this business, and how comfortable are you with it?",
+        "fr": "Où se trouve la plus grande exposition réputationnelle de cette entreprise, et à quel point êtes-vous à l'aise avec elle ?"
+      },
+      "useWhen": {
+        "en": "Surfaces what they'd never put in a deck.",
+        "fr": "Révèle ce qu'ils ne mettraient jamais dans une présentation."
+      }
+    },
+    {
+      "id": "bnk-ceo-12",
+      "role": "ceo",
+      "tags": [
+        "growth"
+      ],
+      "question": {
+        "en": "Where do you expect the next 10 points of growth to come from — and where do you expect to lose 10 points?",
+        "fr": "D'où attendez-vous les 10 prochains points de croissance — et où en perdriez-vous 10 ?"
+      },
+      "useWhen": {
+        "en": "Balanced growth thesis question.",
+        "fr": "Question équilibrée sur la thèse de croissance."
+      }
+    },
+    {
+      "id": "bnk-ceo-13",
+      "role": "ceo",
+      "tags": [
+        "talent"
+      ],
+      "question": {
+        "en": "Who's the most important hire still ahead of you, and why haven't they joined yet?",
+        "fr": "Quel est le recrutement le plus important encore à venir, et pourquoi n'est-il pas déjà là ?"
+      },
+      "useWhen": {
+        "en": "Talent is a CEO bottleneck more than they admit.",
+        "fr": "Le talent est un goulot PDG plus qu'on ne l'admet."
+      }
+    },
+    {
+      "id": "bnk-ceo-14",
+      "role": "ceo",
+      "tags": [
+        "dinner"
+      ],
+      "question": {
+        "en": "What's something you've changed your mind about recently — in business or in life?",
+        "fr": "Sur quoi avez-vous récemment changé d'avis — business ou vie ?"
+      },
+      "useWhen": {
+        "en": "Dinner conversation; peer level.",
+        "fr": "Conversation de dîner ; entre pairs."
+      }
+    },
+    {
+      "id": "bnk-ceo-15",
+      "role": "ceo",
+      "tags": [
+        "dinner"
+      ],
+      "question": {
+        "en": "Which book or person has changed how you think this year?",
+        "fr": "Quel livre ou quelle personne a changé votre façon de penser cette année ?"
+      },
+      "useWhen": {
+        "en": "Dinner; warmest follow-ups come from this.",
+        "fr": "En dîner ; les suivis les plus chaleureux viennent de là."
+      }
+    },
+    {
+      "id": "bnk-ceo-16",
+      "role": "ceo",
+      "tags": [
+        "urgency"
+      ],
+      "question": {
+        "en": "What would have to be true for you to want this done this year, not next?",
+        "fr": "Que faudrait-il pour que vous vouliez cela fait cette année, pas l'an prochain ?"
+      },
+      "useWhen": {
+        "en": "Tests urgency by inversion.",
+        "fr": "Teste l'urgence par inversion."
+      }
+    },
+    {
+      "id": "bnk-ceo-17",
+      "role": "ceo",
+      "tags": [
+        "risk"
+      ],
+      "question": {
+        "en": "What's the call you're glad you didn't have to make this year, and what's the one still ahead?",
+        "fr": "Quelle décision êtes-vous heureux de ne pas avoir eu à prendre cette année, et laquelle est encore devant vous ?"
+      },
+      "useWhen": {
+        "en": "Tactical and human at once.",
+        "fr": "Tactique et humain à la fois."
+      }
+    },
+    {
+      "id": "bnk-ceo-18",
+      "role": "ceo",
+      "tags": [
+        "alignment"
+      ],
+      "question": {
+        "en": "Where in the executive team is there genuine disagreement about direction — and is that healthy or stuck?",
+        "fr": "Où, dans l'équipe exécutive, y a-t-il un vrai désaccord sur la direction — et est-ce sain ou bloqué ?"
+      },
+      "useWhen": {
+        "en": "Surfaces team dynamics without naming names.",
+        "fr": "Révèle les dynamiques d'équipe sans nommer les personnes."
+      }
+    },
+    {
+      "id": "bnk-cio-1",
+      "role": "cio",
+      "tags": [
+        "discovery"
+      ],
+      "question": {
+        "en": "How much of your week is on technology versus the business of technology — and which way are you trying to shift?",
+        "fr": "Quelle part de votre semaine est sur la technologie versus sur le business de la technologie — et dans quel sens cherchez-vous à faire évoluer cela ?"
+      },
+      "useWhen": {
+        "en": "Opener; positions you to their spectrum.",
+        "fr": "Ouverture ; vous positionne sur leur spectre."
+      }
+    },
+    {
+      "id": "bnk-cio-2",
+      "role": "cio",
+      "tags": [
+        "tech-debt"
+      ],
+      "question": {
+        "en": "Where is technical debt actively costing you this quarter — not someday, this quarter?",
+        "fr": "Où la dette technique vous coûte-t-elle activement ce trimestre — pas un jour, ce trimestre ?"
+      },
+      "useWhen": {
+        "en": "Brings debt from abstract to financial.",
+        "fr": "Fait passer la dette de l'abstrait au financier."
+      }
+    },
+    {
+      "id": "bnk-cio-3",
+      "role": "cio",
+      "tags": [
+        "tech-debt"
+      ],
+      "question": {
+        "en": "Which piece of debt have you been quietly hoping to retire for two years?",
+        "fr": "Quel morceau de dette espérez-vous en silence éliminer depuis deux ans ?"
+      },
+      "useWhen": {
+        "en": "Surfaces the quiet wish list.",
+        "fr": "Révèle la liste discrète."
+      }
+    },
+    {
+      "id": "bnk-cio-4",
+      "role": "cio",
+      "tags": [
+        "build-buy"
+      ],
+      "question": {
+        "en": "Where on the stack do you create real differentiation, and where would you rather rent someone else's expertise?",
+        "fr": "Où dans la pile créez-vous une vraie différenciation, et où préféreriez-vous louer l'expertise d'autrui ?"
+      },
+      "useWhen": {
+        "en": "Strategic boundary question.",
+        "fr": "Question de frontière stratégique."
+      }
+    },
+    {
+      "id": "bnk-cio-5",
+      "role": "cio",
+      "tags": [
+        "cyber"
+      ],
+      "question": {
+        "en": "Where in your environment do you feel most exposed?",
+        "fr": "Où dans votre environnement vous sentez-vous le plus exposé ?"
+      },
+      "useWhen": {
+        "en": "After a sector breach or during board cyber review.",
+        "fr": "Après une brèche sectorielle ou pendant une revue cyber conseil."
+      }
+    },
+    {
+      "id": "bnk-cio-6",
+      "role": "cio",
+      "tags": [
+        "cyber"
+      ],
+      "question": {
+        "en": "What's the conversation with your CEO the morning after a sector breach?",
+        "fr": "À quoi ressemble la conversation avec votre PDG le lendemain d'une brèche sectorielle ?"
+      },
+      "useWhen": {
+        "en": "Connects exposure to executive accountability.",
+        "fr": "Relie l'exposition à la responsabilité exécutive."
+      }
+    },
+    {
+      "id": "bnk-cio-7",
+      "role": "cio",
+      "tags": [
+        "ai-readiness"
+      ],
+      "question": {
+        "en": "What does AI-ready actually look like in your reality — not the analyst report?",
+        "fr": "À quoi ressemble vraiment « prêt pour l'IA » dans votre réalité — pas dans le rapport d'analyste ?"
+      },
+      "useWhen": {
+        "en": "Forces specificity past the slogan.",
+        "fr": "Force la précision au-delà du slogan."
+      }
+    },
+    {
+      "id": "bnk-cio-8",
+      "role": "cio",
+      "tags": [
+        "ai-readiness"
+      ],
+      "question": {
+        "en": "Where is the gap between what the CEO thinks you can do with AI and what you can actually do?",
+        "fr": "Où se situe l'écart entre ce que le PDG pense que vous pouvez faire en IA et ce que vous pouvez réellement faire ?"
+      },
+      "useWhen": {
+        "en": "Reveals expectation mismatch.",
+        "fr": "Révèle le décalage d'attentes."
+      }
+    },
+    {
+      "id": "bnk-cio-9",
+      "role": "cio",
+      "tags": [
+        "cloud-cost"
+      ],
+      "question": {
+        "en": "Are you optimising the cloud bill, re-architecting for a different cost shape, or fighting with the business — which takes most of your time?",
+        "fr": "Optimisez-vous la facture cloud, ré-architecturez-vous pour un autre profil de coût, ou batailler avec le métier — lequel prend le plus de temps ?"
+      },
+      "useWhen": {
+        "en": "Three FinOps conversations get tangled — separate them.",
+        "fr": "Trois conversations FinOps se mélangent — séparez-les."
+      }
+    },
+    {
+      "id": "bnk-cio-10",
+      "role": "cio",
+      "tags": [
+        "alignment"
+      ],
+      "question": {
+        "en": "Which business leader currently treats you as a true partner, and which still treats you as a cost centre?",
+        "fr": "Quel dirigeant métier vous traite en vrai partenaire, et lequel vous traite encore en centre de coûts ?"
+      },
+      "useWhen": {
+        "en": "Reveals political map.",
+        "fr": "Révèle la carte politique."
+      }
+    },
+    {
+      "id": "bnk-cio-11",
+      "role": "cio",
+      "tags": [
+        "budget"
+      ],
+      "question": {
+        "en": "Where are you saying no to the business that you wish you didn't have to?",
+        "fr": "Où dites-vous non au métier alors que vous ne le voulez pas ?"
+      },
+      "useWhen": {
+        "en": "Surfaces rationed demand.",
+        "fr": "Révèle la demande rationnée."
+      }
+    },
+    {
+      "id": "bnk-cio-12",
+      "role": "cio",
+      "tags": [
+        "vendor"
+      ],
+      "question": {
+        "en": "Which vendor partnership has actually paid off, and which one disappointed you most?",
+        "fr": "Quel partenariat fournisseur a vraiment porté, et lequel vous a le plus déçu ?"
+      },
+      "useWhen": {
+        "en": "Earns honesty by inviting both sides.",
+        "fr": "Gagne l'honnêteté en invitant les deux côtés."
+      }
+    },
+    {
+      "id": "bnk-cio-13",
+      "role": "cio",
+      "tags": [
+        "decision-process"
+      ],
+      "question": {
+        "en": "When IT spends real money, who actually decides — you, the CFO, the business, or all three?",
+        "fr": "Quand l'IT engage de l'argent réel, qui décide vraiment — vous, le DAF, le métier, ou les trois ?"
+      },
+      "useWhen": {
+        "en": "Power-mapping IT spend.",
+        "fr": "Cartographie du pouvoir sur la dépense IT."
+      }
+    },
+    {
+      "id": "bnk-cio-14",
+      "role": "cio",
+      "tags": [
+        "talent"
+      ],
+      "question": {
+        "en": "What skill is hardest to hire right now, and what are you doing instead?",
+        "fr": "Quelle compétence est la plus dure à recruter en ce moment, et que faites-vous à la place ?"
+      },
+      "useWhen": {
+        "en": "Capacity question with strategic edge.",
+        "fr": "Question de capacité à dimension stratégique."
+      }
+    },
+    {
+      "id": "bnk-cio-15",
+      "role": "cio",
+      "tags": [
+        "sector:banking"
+      ],
+      "question": {
+        "en": "Where is DORA forcing real architectural change, not just paperwork?",
+        "fr": "Où DORA force-t-il un vrai changement d'architecture, pas juste du papier ?"
+      },
+      "useWhen": {
+        "en": "Banking CIO, current regulation.",
+        "fr": "DSI banque, régulation en vigueur."
+      }
+    },
+    {
+      "id": "bnk-cio-16",
+      "role": "cio",
+      "tags": [
+        "governance"
+      ],
+      "question": {
+        "en": "What policy or governance call are you about to make that you're least confident about?",
+        "fr": "Quelle décision de politique ou de gouvernance êtes-vous sur le point de prendre et qui vous met le moins à l'aise ?"
+      },
+      "useWhen": {
+        "en": "Trust-building; only after rapport.",
+        "fr": "Construit la confiance ; uniquement après rapport."
+      }
+    },
+    {
+      "id": "bnk-cio-17",
+      "role": "cio",
+      "tags": [
+        "modernisation"
+      ],
+      "question": {
+        "en": "If you had a year of CEO air-cover, what's the one modernisation you'd push hardest?",
+        "fr": "Si vous aviez un an de couverture du PDG, quelle modernisation pousseriez-vous le plus fort ?"
+      },
+      "useWhen": {
+        "en": "Reveals the dream priority behind political reality.",
+        "fr": "Révèle la priorité rêvée derrière la réalité politique."
+      }
+    },
+    {
+      "id": "bnk-cio-18",
+      "role": "cio",
+      "tags": [
+        "relationship"
+      ],
+      "question": {
+        "en": "What's the part of being CIO that surprised you most when you took the seat?",
+        "fr": "Qu'est-ce qui, dans le poste de DSI, vous a le plus surpris en arrivant ?"
+      },
+      "useWhen": {
+        "en": "Dinner setting or once trust is established.",
+        "fr": "En dîner ou une fois la confiance établie."
+      }
+    },
+    {
+      "id": "bnk-cmo-1",
+      "role": "cmo",
+      "tags": [
+        "discovery",
+        "strategic"
+      ],
+      "question": {
+        "en": "Where would you move the company strategically if marketing had a real seat at the table?",
+        "fr": "Où feriez-vous bouger l'entreprise stratégiquement si le marketing avait une vraie place à la table ?"
+      },
+      "useWhen": {
+        "en": "Tests strategic-vs-tactical CMO at the open.",
+        "fr": "Teste CMO stratégique vs tactique dès l'ouverture."
+      }
+    },
+    {
+      "id": "bnk-cmo-2",
+      "role": "cmo",
+      "tags": [
+        "seat-at-table"
+      ],
+      "question": {
+        "en": "Which strategic conversation have you been left out of this year that you should have been in?",
+        "fr": "De quelle conversation stratégique avez-vous été exclue cette année alors que vous auriez dû y être ?"
+      },
+      "useWhen": {
+        "en": "Surfaces the exclusion the CMO carries quietly.",
+        "fr": "Révèle l'exclusion que la CMO porte en silence."
+      }
+    },
+    {
+      "id": "bnk-cmo-3",
+      "role": "cmo",
+      "tags": [
+        "brand-vs-demand"
+      ],
+      "question": {
+        "en": "How is your spend split between brand and demand, and where do you feel that split is wrong?",
+        "fr": "Comment se répartit votre budget entre marque et demande, et où sentez-vous que ce ratio est erroné ?"
+      },
+      "useWhen": {
+        "en": "Central CMO trade-off.",
+        "fr": "Arbitrage central de la CMO."
+      }
+    },
+    {
+      "id": "bnk-cmo-4",
+      "role": "cmo",
+      "tags": [
+        "brand-vs-demand"
+      ],
+      "question": {
+        "en": "What would you reallocate tomorrow if your CFO didn't push back?",
+        "fr": "Que réaffecteriez-vous demain si votre DAF ne contestait pas ?"
+      },
+      "useWhen": {
+        "en": "Follow-up; surfaces real preference.",
+        "fr": "Suivi ; révèle la préférence réelle."
+      }
+    },
+    {
+      "id": "bnk-cmo-5",
+      "role": "cmo",
+      "tags": [
+        "measurement"
+      ],
+      "question": {
+        "en": "Of everything your team measures, what do you trust the least?",
+        "fr": "De tout ce que mesure votre équipe, qu'est-ce que vous croyez le moins ?"
+      },
+      "useWhen": {
+        "en": "Attribution honesty.",
+        "fr": "Honnêteté sur l'attribution."
+      }
+    },
+    {
+      "id": "bnk-cmo-6",
+      "role": "cmo",
+      "tags": [
+        "measurement"
+      ],
+      "question": {
+        "en": "What number does your CEO believe that you wish they didn't?",
+        "fr": "Quel chiffre votre PDG croit-il que vous aimeriez qu'il ne croie pas ?"
+      },
+      "useWhen": {
+        "en": "Bold; only after rapport.",
+        "fr": "Audacieuse ; uniquement après rapport."
+      }
+    },
+    {
+      "id": "bnk-cmo-7",
+      "role": "cmo",
+      "tags": [
+        "ai-marketing"
+      ],
+      "question": {
+        "en": "Strip the noise — where is AI genuinely changing your job, and what's pure theatre?",
+        "fr": "Retirons le bruit — où l'IA change-t-elle vraiment votre métier, et qu'est-ce qui reste pur théâtre ?"
+      },
+      "useWhen": {
+        "en": "Permission to be honest about AI hype.",
+        "fr": "Autorise l'honnêteté sur le battage IA."
+      }
+    },
+    {
+      "id": "bnk-cmo-8",
+      "role": "cmo",
+      "tags": [
+        "cx"
+      ],
+      "question": {
+        "en": "When was the last time customer evidence changed a real decision at the executive table?",
+        "fr": "Quand pour la dernière fois une donnée client a-t-elle modifié une vraie décision à la table exécutive ?"
+      },
+      "useWhen": {
+        "en": "Tests if 'customer-led' is real or rhetorical.",
+        "fr": "Teste si « customer-led » est réel ou rhétorique."
+      }
+    },
+    {
+      "id": "bnk-cmo-9",
+      "role": "cmo",
+      "tags": [
+        "cx"
+      ],
+      "question": {
+        "en": "What customer evidence is your CEO most likely to ignore?",
+        "fr": "Quelle donnée client votre PDG est-il le plus susceptible d'ignorer ?"
+      },
+      "useWhen": {
+        "en": "Goes deeper than the polite version.",
+        "fr": "Va plus loin que la version polie."
+      }
+    },
+    {
+      "id": "bnk-cmo-10",
+      "role": "cmo",
+      "tags": [
+        "marketing-sales"
+      ],
+      "question": {
+        "en": "Where is the marketing-sales handoff broken — is the fix on your side, theirs, or both?",
+        "fr": "Où la passation marketing-ventes est-elle cassée — la réparation est-elle de votre côté, du leur, ou des deux ?"
+      },
+      "useWhen": {
+        "en": "Mid-CMO/CRO tension.",
+        "fr": "En pleine tension CMO/CRO."
+      }
+    },
+    {
+      "id": "bnk-cmo-11",
+      "role": "cmo",
+      "tags": [
+        "marketing-sales"
+      ],
+      "question": {
+        "en": "What would you ask sales to stop doing if you could?",
+        "fr": "Qu'aimeriez-vous demander aux ventes d'arrêter de faire si vous le pouviez ?"
+      },
+      "useWhen": {
+        "en": "Follow-up; reveals frustration cleanly.",
+        "fr": "Suivi ; révèle la frustration clairement."
+      }
+    },
+    {
+      "id": "bnk-cmo-12",
+      "role": "cmo",
+      "tags": [
+        "growth"
+      ],
+      "question": {
+        "en": "Where are the next 10 points of share coming from — narrative, channel, audience, or something else?",
+        "fr": "D'où viendront les 10 prochains points de part — narratif, canal, audience, ou autre chose ?"
+      },
+      "useWhen": {
+        "en": "Strategic growth thesis in a saturated category.",
+        "fr": "Thèse de croissance dans une catégorie saturée."
+      }
+    },
+    {
+      "id": "bnk-cmo-13",
+      "role": "cmo",
+      "tags": [
+        "growth"
+      ],
+      "question": {
+        "en": "Which audience are you currently under-investing in, and why?",
+        "fr": "Sur quelle audience sous-investissez-vous, et pourquoi ?"
+      },
+      "useWhen": {
+        "en": "Reveals the unloved segment with upside.",
+        "fr": "Révèle le segment délaissé à fort potentiel."
+      }
+    },
+    {
+      "id": "bnk-cmo-14",
+      "role": "cmo",
+      "tags": [
+        "brand"
+      ],
+      "question": {
+        "en": "What's the brand truth that's hardest to defend in market right now?",
+        "fr": "Quelle est la vérité de marque la plus difficile à défendre en marché en ce moment ?"
+      },
+      "useWhen": {
+        "en": "Strategic CMO question; brand fragility.",
+        "fr": "Question stratégique CMO ; fragilité de la marque."
+      }
+    },
+    {
+      "id": "bnk-cmo-15",
+      "role": "cmo",
+      "tags": [
+        "team"
+      ],
+      "question": {
+        "en": "Which capability is hardest to build in your team right now, and what would you trade for it?",
+        "fr": "Quelle capacité est la plus difficile à bâtir dans votre équipe, et que troqueriez-vous pour l'obtenir ?"
+      },
+      "useWhen": {
+        "en": "Talent + skill gap with strategic frame.",
+        "fr": "Talent + écart de compétences avec cadre stratégique."
+      }
+    },
+    {
+      "id": "bnk-cmo-16",
+      "role": "cmo",
+      "tags": [
+        "competition"
+      ],
+      "question": {
+        "en": "Which competitor's marketing makes you uncomfortable, and what are they doing right?",
+        "fr": "Quelle marketing de concurrent vous rend mal à l'aise, et que font-ils de bien ?"
+      },
+      "useWhen": {
+        "en": "Honesty about competitive admiration.",
+        "fr": "Honnêteté sur l'admiration concurrentielle."
+      }
+    },
+    {
+      "id": "bnk-cmo-17",
+      "role": "cmo",
+      "tags": [
+        "dinner"
+      ],
+      "question": {
+        "en": "Which book or person changed how you think about your work last year?",
+        "fr": "Quel livre ou quelle personne a changé votre façon de penser votre métier l'an dernier ?"
+      },
+      "useWhen": {
+        "en": "Executive dinner setting.",
+        "fr": "En dîner d'affaires."
+      }
+    },
+    {
+      "id": "bnk-cmo-18",
+      "role": "cmo",
+      "tags": [
+        "dinner"
+      ],
+      "question": {
+        "en": "Did anyone you respect disagree with that take?",
+        "fr": "Quelqu'un que vous respectez n'était-il pas d'accord avec cette idée ?"
+      },
+      "useWhen": {
+        "en": "Dinner follow-up; tests rigour.",
+        "fr": "Suivi de dîner ; teste la rigueur."
+      }
+    },
+    {
+      "id": "bnk-cto-1",
+      "role": "cto",
+      "tags": [
+        "build-buy"
+      ],
+      "question": {
+        "en": "Where do you draw the line between what you build in-house and what you buy — and is that line moving?",
+        "fr": "Où placez-vous la frontière entre ce que vous développez en interne et ce que vous achetez — et cette frontière bouge-t-elle ?"
+      },
+      "useWhen": {
+        "en": "Opener; reveals philosophy.",
+        "fr": "Ouverture ; révèle la philosophie."
+      }
+    },
+    {
+      "id": "bnk-cto-2",
+      "role": "cto",
+      "tags": [
+        "build-buy"
+      ],
+      "question": {
+        "en": "What did you build that, knowing what you know now, you'd rather have bought?",
+        "fr": "Qu'avez-vous développé que, avec le recul, vous auriez préféré acheter ?"
+      },
+      "useWhen": {
+        "en": "Follow-up; surfaces over-extension.",
+        "fr": "Suivi ; révèle la surextension."
+      }
+    },
+    {
+      "id": "bnk-cto-3",
+      "role": "cto",
+      "tags": [
+        "modernisation"
+      ],
+      "question": {
+        "en": "Which piece of the modernisation programme are you most confident in, and which are you privately nervous about?",
+        "fr": "Quelle pièce du programme de modernisation est celle dont vous êtes le plus sûr, et laquelle vous rend secrètement nerveux ?"
+      },
+      "useWhen": {
+        "en": "Invites the real conversation.",
+        "fr": "Invite la vraie conversation."
+      }
+    },
+    {
+      "id": "bnk-cto-4",
+      "role": "cto",
+      "tags": [
+        "modernisation"
+      ],
+      "question": {
+        "en": "What's the failure mode you've been quietly preparing for?",
+        "fr": "Quel scénario d'échec préparez-vous en silence ?"
+      },
+      "useWhen": {
+        "en": "Once rapport is there.",
+        "fr": "Une fois la confiance acquise."
+      }
+    },
+    {
+      "id": "bnk-cto-5",
+      "role": "cto",
+      "tags": [
+        "architecture"
+      ],
+      "question": {
+        "en": "What's the architectural call in front of you whose answer changes the next five years?",
+        "fr": "Quelle décision d'architecture avez-vous devant vous dont la réponse engage les cinq prochaines années ?"
+      },
+      "useWhen": {
+        "en": "Long-horizon strategic question.",
+        "fr": "Question stratégique de long terme."
+      }
+    },
+    {
+      "id": "bnk-cto-6",
+      "role": "cto",
+      "tags": [
+        "scaling"
+      ],
+      "question": {
+        "en": "What does your engineering org look like at twice the size, and what won't survive that?",
+        "fr": "À quoi ressemble votre organisation d'ingénierie au double, et que ne survivra pas à cette taille ?"
+      },
+      "useWhen": {
+        "en": "Scaling fast.",
+        "fr": "En forte croissance."
+      }
+    },
+    {
+      "id": "bnk-cto-7",
+      "role": "cto",
+      "tags": [
+        "talent"
+      ],
+      "question": {
+        "en": "Who do you most want to hire next, and what's stopping you?",
+        "fr": "Qui voulez-vous recruter en priorité, et qu'est-ce qui vous en empêche ?"
+      },
+      "useWhen": {
+        "en": "Talent bottleneck.",
+        "fr": "Goulot de talent."
+      }
+    },
+    {
+      "id": "bnk-cto-8",
+      "role": "cto",
+      "tags": [
+        "ai-strategy"
+      ],
+      "question": {
+        "en": "Where in your stack are you betting that someone else will commoditise AI primitives for you?",
+        "fr": "Dans quelle partie de votre pile pariez-vous que quelqu'un d'autre va banaliser les primitives IA pour vous ?"
+      },
+      "useWhen": {
+        "en": "Strategic AI question, not tactical.",
+        "fr": "Question IA stratégique, pas tactique."
+      }
+    },
+    {
+      "id": "bnk-cto-9",
+      "role": "cto",
+      "tags": [
+        "ai-strategy"
+      ],
+      "question": {
+        "en": "What model or platform are you most worried about being locked into?",
+        "fr": "Quel modèle ou plateforme craignez-vous le plus d'avoir verrouillé ?"
+      },
+      "useWhen": {
+        "en": "Lock-in fear is real even for AI-bullish CTOs.",
+        "fr": "La peur du verrouillage est réelle même chez les CTO pro-IA."
+      }
+    },
+    {
+      "id": "bnk-cto-10",
+      "role": "cto",
+      "tags": [
+        "reliability"
+      ],
+      "question": {
+        "en": "What did the last reliability incident expose about your culture — not your systems?",
+        "fr": "Qu'a révélé le dernier incident de fiabilité sur votre culture — pas vos systèmes ?"
+      },
+      "useWhen": {
+        "en": "Post-incident, culture-first frame.",
+        "fr": "Après incident, cadrage culture d'abord."
+      }
+    },
+    {
+      "id": "bnk-cto-11",
+      "role": "cto",
+      "tags": [
+        "reliability"
+      ],
+      "question": {
+        "en": "Whose career is on the line if it happens again?",
+        "fr": "Qui paye sa carrière si cela se reproduit ?"
+      },
+      "useWhen": {
+        "en": "Sharp follow-up; tests org accountability.",
+        "fr": "Suivi tranchant ; teste la responsabilité organisationnelle."
+      }
+    },
+    {
+      "id": "bnk-cto-12",
+      "role": "cto",
+      "tags": [
+        "lock-in"
+      ],
+      "question": {
+        "en": "Which vendor or platform do you feel most locked into, and what's the cost of getting unlocked?",
+        "fr": "Sur quel fournisseur ou plateforme vous sentez-vous le plus verrouillé, et quel est le coût de la libération ?"
+      },
+      "useWhen": {
+        "en": "Vendor commitments.",
+        "fr": "Engagements fournisseurs."
+      }
+    },
+    {
+      "id": "bnk-cto-13",
+      "role": "cto",
+      "tags": [
+        "lock-in"
+      ],
+      "question": {
+        "en": "Which one would you secretly keep even if cost weren't the issue?",
+        "fr": "Lequel garderiez-vous secrètement même si le coût n'était pas un sujet ?"
+      },
+      "useWhen": {
+        "en": "Follow-up; surfaces real loyalty.",
+        "fr": "Suivi ; révèle la loyauté réelle."
+      }
+    },
+    {
+      "id": "bnk-cto-14",
+      "role": "cto",
+      "tags": [
+        "culture"
+      ],
+      "question": {
+        "en": "What's the one thing about how engineers experience working here that you'd most want to be true in a year that isn't today?",
+        "fr": "Quelle est la chose, dans l'expérience des ingénieurs ici, que vous aimeriez par-dessus tout voir vraie dans un an et qui ne l'est pas aujourd'hui ?"
+      },
+      "useWhen": {
+        "en": "Long-game culture question.",
+        "fr": "Question culture de long terme."
+      }
+    },
+    {
+      "id": "bnk-cto-15",
+      "role": "cto",
+      "tags": [
+        "alignment"
+      ],
+      "question": {
+        "en": "Where does your engineering roadmap most disagree with your product roadmap?",
+        "fr": "Où votre feuille de route ingénierie est-elle le plus en désaccord avec celle du produit ?"
+      },
+      "useWhen": {
+        "en": "Surfaces eng-product tension.",
+        "fr": "Révèle la tension ingénierie-produit."
+      }
+    },
+    {
+      "id": "bnk-cto-16",
+      "role": "cto",
+      "tags": [
+        "board"
+      ],
+      "question": {
+        "en": "What technical reality does your board most often misunderstand?",
+        "fr": "Quelle réalité technique votre conseil comprend-il le plus souvent de travers ?"
+      },
+      "useWhen": {
+        "en": "Bold; trust required.",
+        "fr": "Audacieuse ; confiance requise."
+      }
+    },
+    {
+      "id": "bnk-cto-17",
+      "role": "cto",
+      "tags": [
+        "governance"
+      ],
+      "question": {
+        "en": "What guardrail do you wish you'd put in two years earlier?",
+        "fr": "Quel garde-fou regrettez-vous de ne pas avoir posé deux ans plus tôt ?"
+      },
+      "useWhen": {
+        "en": "Reflective; reveals what they value now.",
+        "fr": "Réflexive ; révèle ce qu'ils valorisent maintenant."
+      }
+    },
+    {
+      "id": "bnk-cto-18",
+      "role": "cto",
+      "tags": [
+        "relationship"
+      ],
+      "question": {
+        "en": "What part of being CTO most surprised you when you took the seat?",
+        "fr": "Qu'est-ce qui, dans le poste de CTO, vous a le plus surpris en arrivant ?"
+      },
+      "useWhen": {
+        "en": "Dinner or once rapport is established.",
+        "fr": "En dîner ou une fois le rapport établi."
+      }
+    }
+  ]
+}
