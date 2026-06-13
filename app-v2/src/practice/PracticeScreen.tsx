@@ -18,6 +18,37 @@ export function localize(field: any, lang: string): string {
   return val;
 }
 
+// Keys that get the gold-tinted full-width block in the reference panel
+const _REF_FULL_KEYS = new Set(['model', 'intent', 'pattern']);
+
+// Renders a structured reference panel.
+// Pre-localizes array fields (e.g. keyPhrases.en: string[]) so they render as chips.
+export function renderRefPanel(ref: any, lang: string) {
+  const entries = Object.entries(ref || {});
+  if (entries.length === 0) return null;
+  return (
+    <div className="prac-ref">
+      {entries.map(([key, val]: [string, any]) => {
+        const isFull = _REF_FULL_KEYS.has(key);
+        const label = key.replace(/([A-Z])/g, ' $1').replace(/^(.)/, (s: string) => s.toUpperCase());
+        const raw = (val && typeof val === 'object' && !Array.isArray(val))
+          ? (val[lang] ?? val.en ?? val)
+          : val;
+        const isArr = Array.isArray(raw);
+        return (
+          <div key={key} className={`prac-block${isFull ? ' full' : ''}`}>
+            <div className="prac-rl">{label}</div>
+            {isArr
+              ? <div className="prac-kp">{(raw as string[]).map((s: string, i: number) => <span key={i}>{s}</span>)}</div>
+              : <div className="prac-rt">{typeof raw === 'string' ? raw : localize(val, lang)}</div>
+            }
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // INTERVIEW PREP PAGE
 // ═══════════════════════════════════════════════════════════════════
@@ -225,13 +256,16 @@ export function IPRehearsalView({ queue, ip, onRate, onExit }) {
         )}
         {phase === 'answer' && (
           <div className="ip-rehearsal-answer-area">
-            {IP_ANSWER_BLOCKS.filter(b => b.primary && q.answer[b.field]).map(b => (
-              <div key={b.field} className="ip-rehearsal-answer-block">
-                <div className="ip-ra-label">{b.label}</div>
-                <div className="ip-ra-text">{q.answer[b.field]}</div>
+            {IP_ANSWER_BLOCKS.filter(b => b.primary && q.answer[b.field]).length > 0 ? (
+              <div className="prac-ref">
+                {IP_ANSWER_BLOCKS.filter(b => b.primary && q.answer[b.field]).map(b => (
+                  <div key={b.field} className={`prac-block${b.field === 'answer60Sec' ? ' full' : ''}`}>
+                    <div className="prac-rl">{b.label}</div>
+                    <div className="prac-rt">{q.answer[b.field]}</div>
+                  </div>
+                ))}
               </div>
-            ))}
-            {IP_ANSWER_BLOCKS.filter(b => b.primary).every(b => !q.answer[b.field]) && (
+            ) : (
               <div className="ip-ra-empty">No answer written yet. Exit rehearsal to add one.</div>
             )}
             <div className="ip-rehearsal-rate-section">
@@ -425,17 +459,7 @@ export function IPWorkspace({ question, ip, onUpdateAnswer, onUpdateQuestion, on
           <button className="ip-ws-btn ip-ws-btn--danger" onClick={() => { if (window.confirm('Delete this question?')) onDelete(question.id); }}>Delete</button>
         </div>
       </div>
-      {question.reference && Object.keys(question.reference).length > 0 && (
-        <div className="ip-reference-blocks">
-          <div className="ip-reference-header">Reference</div>
-          {Object.entries(question.reference).map(([key, val]) => (
-            <div key={key} className="ip-rehearsal-answer-block">
-              <div className="ip-ra-label" style={{ textTransform: 'capitalize' }}>{key.replace(/([A-Z])/g, ' $1')}</div>
-              <div className="ip-ra-text">{localize(val, lang)}</div>
-            </div>
-          ))}
-        </div>
-      )}
+      {question.reference && Object.keys(question.reference).length > 0 && renderRefPanel(question.reference, lang)}
       <div className="ip-blocks-area">
         {visibleBlocks.map(b => (
           <IPAnswerBlock key={b.field} field={b.field} label={b.label} placeholder={b.placeholder}
@@ -1149,18 +1173,67 @@ export function IPMockInterview({ questions, ip, onComplete, onExit }) {
   return null;
 }
 
-// ─── InterviewPrepScreen ──────────────────────────────────────────
+// ─── DrillView — one-at-a-time card for JSON-content tracks ──────
+function DrillView({ items, lang }: { items: any[] | null, lang: 'en'|'fr' }) {
+  const [idx, setIdx] = useState(0);
+  const [revealed, setRevealed] = useState(false);
+
+  if (!items || items.length === 0) {
+    return (
+      <div className="prac-drill-empty">
+        <div className="prac-drill-empty-title">Content coming soon.</div>
+        <div className="prac-drill-empty-sub">This track will be wired up shortly.</div>
+      </div>
+    );
+  }
+
+  const item = items[idx];
+  const ref = item.reference || {};
+  const tags: string[] = item.tags || [];
+
+  const next = () => { setIdx(i => (i + 1) % items.length); setRevealed(false); };
+  const prev = () => { setIdx(i => (i - 1 + items.length) % items.length); setRevealed(false); };
+
+  return (
+    <div className="prac-drill-wrap">
+      <div className="prac-drill-counter">
+        <button className="prac-drill-navbtn" onClick={prev}>←</button>
+        {idx + 1} / {items.length}
+        <button className="prac-drill-navbtn" onClick={next}>→</button>
+      </div>
+      <div className="prac-drill">
+        <div className="prac-spread">
+          <div className="prac-tags">
+            {tags.slice(0, 3).map((t: string) => <span key={t} className="prac-chip-tag">{t}</span>)}
+          </div>
+          <span className="prac-confdots"><i/><i/><i/><i/><i/></span>
+        </div>
+        <p className="prac-prompt">{localize(item.prompt, lang)}</p>
+        <div className="prac-actions">
+          {!revealed
+            ? <button className="prac-btn prac-btn--primary" onClick={() => setRevealed(true)}>Reveal the model</button>
+            : <button className="prac-btn prac-btn--secondary" onClick={() => setRevealed(false)}>Hide model</button>
+          }
+          <button className="prac-btn prac-btn--ghost" onClick={next}>Skip →</button>
+        </div>
+        {revealed && renderRefPanel(ref, lang)}
+      </div>
+    </div>
+  );
+}
+
+// ─── PracticeScreen ───────────────────────────────────────────────
 export function PracticeScreen({ data, onPersist, onBack, onSignOut }) {
   const [activeTrack, setActiveTrack] = useState('interview');
   const [lang, setLang] = useState<'en'|'fr'>('en');
   
   const tracks = [
-    { id: 'interview', name: 'Practice Hub', categories: interviewJson.categories },
-    { id: 'sales', name: 'Core Sales Execution', categories: [] },
-    { id: 'clevel', name: 'C-Level Discussions', categories: clevelJson.categories || [] },
-    { id: 'execpresence', name: 'Executive Presence', categories: [] },
-    { id: 'bfsi', name: 'Banking & Insurance Fluency', categories: bfsiJson.categories || [] },
-    { id: 'leadership', name: 'Leadership & Mirror Management', categories: leadershipJson.categories || [] }
+    { id: 'interview',    label: 'Interview',            name: 'Interview Prep',                    purpose: 'Prepare answers, stories, and rubric for every question.',           items: null,                    categories: interviewJson.categories },
+    { id: 'clevel',       label: 'C-Level',              name: 'C-Level Discussions',               purpose: 'Navigate executive conversations — CFO, CPO, CIO.',                 items: clevelJson.items || [],   categories: [] },
+    { id: 'sales',        label: 'Core Sales',           name: 'Core Sales Execution',              purpose: 'Master the frameworks every enterprise seller must command.',        items: null,                    categories: [] },
+    { id: 'execpresence', label: 'Exec Presence',        name: 'Executive Presence',                purpose: 'Own the room — structure, voice, and delivery.',                    items: null,                    categories: [] },
+    { id: 'bfsi',         label: 'Banking & Insurance',  name: 'Banking & Insurance Fluency',       purpose: 'Speak the language of EU-regulated financial institutions.',          items: bfsiJson.items || [],     categories: [] },
+    { id: 'leadership',   label: 'Leadership',           name: 'Leadership & Mirror Management',    purpose: 'Build, develop, and represent your team.',                          items: leadershipJson.items || [], categories: [] },
   ];
   
   const currentTrackDef = tracks.find(t => t.id === activeTrack) || tracks[0];
@@ -1209,15 +1282,6 @@ export function PracticeScreen({ data, onPersist, onBack, onSignOut }) {
   const [mode, setMode] = useState('browse'); // 'browse'|'rehearse'|'stories'|'progress'|'mock'
   const [rehearseQueue, setRehearseQueue] = useState([]);
   const [showSearch, setShowSearch] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef(null);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    const handler = e => { if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [menuOpen]);
 
   const { categories, questions } = ip;
 
@@ -1415,126 +1479,127 @@ export function PracticeScreen({ data, onPersist, onBack, onSignOut }) {
   // ── Render modes ──────────────────────────────────────────────
   if (mode === 'rehearse') {
     return (
-      <div className="ip-screen">
+      <LangContext.Provider value={lang}>
+      <div className="prac-screen">
         {searchOverlay}
         <IPRehearsalView queue={rehearseQueue} ip={ip} onRate={handleRate} onExit={() => { setMode('browse'); setRehearseQueue([]); }} />
       </div>
+      </LangContext.Provider>
     );
   }
 
   if (mode === 'stories') {
     return (
-      <div className="ip-screen">
+      <LangContext.Provider value={lang}>
+      <div className="prac-screen">
         {searchOverlay}
-        <div className="ip-topbar">
-          <button className="ip-back-btn" onClick={() => setMode('browse')}>← Questions</button>
-          <div className="ip-topbar-center">
-            <span className="ip-topbar-title">Story Bank</span>
-            <span className="ip-topbar-sub">{stories.length} {stories.length === 1 ? 'story' : 'stories'}</span>
-          </div>
-          <div className="ip-topbar-right">
-            <button className="ip-topbar-btn-sm" onClick={() => setShowSearch(true)} title="Search">🔍</button>
-          </div>
+        <div className="prac-mode-header">
+          <button className="prac-back-btn" onClick={() => setMode('browse')}>← Practice</button>
+          <span className="prac-mode-title">Story Bank</span>
+          <span className="prac-mode-sub">{stories.length} {stories.length === 1 ? 'story' : 'stories'}</span>
         </div>
-        <IPStoryBankView ip={ip} onAddStory={addStory} onUpdateStory={updateStory} onDeleteStory={deleteStory} />
+        <IPStoryBankView ip={ip} onAddStory={addStory} onUpdateStory={updateStory} onDeleteStory={deleteStory} onCreateIdea={handleCreateIdea} />
       </div>
+      </LangContext.Provider>
     );
   }
 
   if (mode === 'progress') {
     return (
-      <div className="ip-screen">
+      <LangContext.Provider value={lang}>
+      <div className="prac-screen">
         {searchOverlay}
-        <div className="ip-topbar">
-          <button className="ip-back-btn" onClick={() => setMode('browse')}>← Questions</button>
-          <div className="ip-topbar-center">
-            <span className="ip-topbar-title">Progress</span>
-            <span className="ip-topbar-sub">{stats.total} questions · {stats.interviewReady} interview-ready</span>
-          </div>
-          <div className="ip-topbar-right">
-            <button className="ip-topbar-btn-sm" onClick={() => setShowSearch(true)} title="Search">🔍</button>
-          </div>
+        <div className="prac-mode-header">
+          <button className="prac-back-btn" onClick={() => setMode('browse')}>← Practice</button>
+          <span className="prac-mode-title">Progress</span>
+          <span className="prac-mode-sub">{stats.total} questions · {stats.interviewReady} interview-ready</span>
         </div>
         <IPProgressView ip={ip} />
       </div>
+      </LangContext.Provider>
     );
   }
 
   if (mode === 'mock') {
     return (
-      <div className="ip-screen">
-        <div className="ip-topbar">
-          <button className="ip-back-btn" onClick={() => setMode('browse')}>← Questions</button>
-          <div className="ip-topbar-center">
-            <span className="ip-topbar-title">Mock Interview</span>
-            </div>
-          <div className="ip-topbar-right" />
+      <LangContext.Provider value={lang}>
+      <div className="prac-screen">
+        <div className="prac-mode-header">
+          <button className="prac-back-btn" onClick={() => setMode('browse')}>← Practice</button>
+          <span className="prac-mode-title">Mock Interview</span>
         </div>
         <IPMockInterview questions={questions} ip={ip} onComplete={handleMockComplete} onExit={() => setMode('browse')} />
       </div>
+      </LangContext.Provider>
     );
   }
 
   // ── Browse mode (main) ────────────────────────────────────────
   return (
     <LangContext.Provider value={lang}>
-    <div className="ip-screen">
+    <div className="prac-screen">
       {searchOverlay}
-      <div className="ip-topbar">
-        <div className="ip-topbar-center">
-          <div className="ip-topbar-tabs">
-     {tracks.map(t => (
-       <button key={t.id} className={`ip-topbar-tab${activeTrack === t.id ? ' active' : ''}`} onClick={() => { setActiveTrack(t.id); setSelCatId(null); setSelQId(null); }}>
-         {t.name}
-       </button>
-     ))}
-   </div>
-        </div>
-        <div className="ip-topbar-right">
-          <button className="ip-topbar-btn-sm" onClick={() => setLang(l => l === 'en' ? 'fr' : 'en')} title="Toggle Language">
-            {lang.toUpperCase()}
-          </button>
-          <button className="ip-topbar-btn-sm" onClick={() => setShowSearch(true)} title="Search all">🔍</button>
-          <button className="ip-topbar-stories-btn" onClick={() => setMode('stories')}>
-            Story Bank{stories.length > 0 ? ` (${stories.length})` : ''}
-          </button>
-          <button className="ip-topbar-stories-btn" onClick={() => setMode('progress')}>Progress</button>
-          <button className="ip-topbar-stories-btn" onClick={exportData}>Export</button>
-          <label className="ip-topbar-stories-btn ip-topbar-import-lbl">
-            Import
-            <input type="file" accept=".json" style={{ display: 'none' }}
-              onChange={e => { if (e.target.files[0]) { importData(e.target.files[0]); e.target.value = ''; } }} />
-          </label>
-          <div className="app-menu-wrap" ref={menuRef}>
-            <button className="app-topbar-btn app-topbar-btn-icon" onClick={() => setMenuOpen(v => !v)} aria-label="Menu" title="Menu">☰</button>
-            {menuOpen && (
-              <div className="app-menu-dropdown">
-                <button className="app-menu-item" onClick={() => { onBack(); setMenuOpen(false); }}>Calendar</button>
-                <button className="app-menu-item app-menu-item--disabled" disabled>Practice Hub</button>
-                <div className="app-menu-divider" />
-                <button className="app-menu-item" onClick={() => { onBack('weeklyReview'); setMenuOpen(false); }}>Weekly Review</button>
-                <button className="app-menu-item" onClick={() => { onBack('refLibrary'); setMenuOpen(false); }}>Reference Library</button>
-                <button className="app-menu-item" onClick={() => { onBack('settings'); setMenuOpen(false); }}>Settings</button>
-                <div className="app-menu-divider" />
-                <button className="app-menu-item app-menu-item--danger" onClick={() => { onSignOut(); setMenuOpen(false); }}>Sign out</button>
-              </div>
-            )}
+
+      {/* Page header — eb / title / purpose + EN/FR segment */}
+      <div className="ph">
+        <div className="ph-top">
+          <div>
+            <div className="eb">Practice</div>
+            <h2 className="t">{currentTrackDef.name}</h2>
+            <div className="p">{currentTrackDef.purpose}</div>
+          </div>
+          <div className="prac-segment">
+            <span className={lang === 'en' ? 'on' : ''} onClick={() => setLang('en')}>EN</span>
+            <span className={lang === 'fr' ? 'on' : ''} onClick={() => setLang('fr')}>FR</span>
           </div>
         </div>
       </div>
-      <IPDashboard stats={stats} onStartRehearsal={startGlobalRehearsal} onStartMock={() => setMode('mock')} />
-      <div className="ip-cols">
-        <IPCategoryList ip={ip} selectedId={selCatId}
-          onSelect={id => { setSelCatId(id); setSelQId(null); }}
-          onAdd={addCategory} onRename={renameCategory} onDelete={deleteCategory} onReorder={reorderCategory}
-          stats={stats.catStats} />
-        <IPQuestionList questions={catQuestions} selectedId={selQId} onSelect={setSelQId} onAdd={addQuestion} />
-        <IPWorkspace question={selectedQ} ip={ip}
-          onUpdateAnswer={updateAnswer} onUpdateQuestion={updateQuestion}
-          onRehearseOne={rehearseOne} onMarkReady={markReady}
-          onDelete={deleteQuestion} onDuplicate={duplicateQuestion} onMove={moveQuestion}
-          onLinkStory={linkStory} onUnlinkStory={unlinkStory} />
+
+      {/* Track pills */}
+      <div className="prac-pills">
+        {tracks.map(t => (
+          <button key={t.id}
+            className={`prac-pill${activeTrack === t.id ? ' on' : ''}${t.items === null && t.id !== 'interview' ? ' soon' : ''}`}
+            disabled={t.items === null && t.id !== 'interview'}
+            onClick={() => { setActiveTrack(t.id); setSelCatId(null); setSelQId(null); }}>
+            {t.label}
+          </button>
+        ))}
       </div>
+
+      {activeTrack === 'interview' ? (
+        <>
+          {/* Utility row — secondary actions */}
+          <div className="prac-util">
+            <button className="prac-util-btn" onClick={() => setShowSearch(true)}>Search</button>
+            <button className="prac-util-btn" onClick={() => setMode('stories')}>
+              Story Bank{stories.length > 0 ? ` (${stories.length})` : ''}
+            </button>
+            <button className="prac-util-btn" onClick={() => setMode('progress')}>Progress</button>
+            <button className="prac-util-btn" onClick={exportData}>Export</button>
+            <label className="prac-util-btn">
+              Import
+              <input type="file" accept=".json" style={{ display: 'none' }}
+                onChange={e => { if (e.target.files[0]) { importData(e.target.files[0]); e.target.value = ''; } }} />
+            </label>
+          </div>
+          <IPDashboard stats={stats} onStartRehearsal={startGlobalRehearsal} onStartMock={() => setMode('mock')} />
+          <div className="ip-cols">
+            <IPCategoryList ip={ip} selectedId={selCatId}
+              onSelect={id => { setSelCatId(id); setSelQId(null); }}
+              onAdd={addCategory} onRename={renameCategory} onDelete={deleteCategory} onReorder={reorderCategory}
+              stats={stats.catStats} />
+            <IPQuestionList questions={catQuestions} selectedId={selQId} onSelect={setSelQId} onAdd={addQuestion} />
+            <IPWorkspace question={selectedQ} ip={ip}
+              onUpdateAnswer={updateAnswer} onUpdateQuestion={updateQuestion}
+              onRehearseOne={rehearseOne} onMarkReady={markReady}
+              onDelete={deleteQuestion} onDuplicate={duplicateQuestion} onMove={moveQuestion}
+              onLinkStory={linkStory} onUnlinkStory={unlinkStory} onCreateIdea={handleCreateIdea} />
+          </div>
+        </>
+      ) : (
+        <DrillView key={activeTrack} items={currentTrackDef.items} lang={lang} />
+      )}
     </div>
     </LangContext.Provider>
   );
