@@ -1,6 +1,28 @@
 import React, { useState, useMemo } from 'react';
 import type { AppDataV26, LearningItem, TimeBlock, ContentIdea } from '../storage/types';
 
+function itemSrc(item: LearningItem): string {
+  const i = item as any;
+  if (item.kind === 'podcast') {
+    const src = i.podcast || item.source || 'feeds';
+    const mins = i.durationMin || item.estMinutes;
+    return mins ? `${src} · ${mins} min` : src;
+  }
+  if (item.kind === 'reading') {
+    let domain = item.source || '';
+    if (!domain && item.url) {
+      try { domain = new URL(item.url).hostname.replace(/^www\./, ''); } catch { domain = ''; }
+    }
+    return item.estMinutes ? `${domain} · ${item.estMinutes} min` : domain;
+  }
+  if (item.kind === 'certification') {
+    const src = i.vendor || item.source || 'certification';
+    return i.effortHrs ? `${src} · ${i.effortHrs}h` : src;
+  }
+  const src = item.source || item.kind;
+  return item.estMinutes ? `${src} · ${item.estMinutes} min` : src;
+}
+
 interface IntakeScreenProps {
   data: AppDataV26;
   onPersist: (data: AppDataV26) => void;
@@ -11,7 +33,7 @@ export function IntakeScreen({ data, onPersist, onScheduleBlock }: IntakeScreenP
   const [activeTab, setActiveTab] = useState<'queue' | 'certifications'>('queue');
   const [kindFilter, setKindFilter] = useState<string>('all');
   const [sortMode, setSortMode] = useState<'priority' | 'time' | 'topic'>('priority');
-  
+
   const [urlInput, setUrlInput] = useState('');
   const [titleInput, setTitleInput] = useState('');
   const [kindInput, setKindInput] = useState<'reading' | 'podcast' | 'other'>('reading');
@@ -21,7 +43,6 @@ export function IntakeScreen({ data, onPersist, onScheduleBlock }: IntakeScreenP
   const handleQuickAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (!urlInput.trim()) return;
-
     const newItem: LearningItem = {
       id: 'intake-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
       kind: kindInput,
@@ -31,12 +52,7 @@ export function IntakeScreen({ data, onPersist, onScheduleBlock }: IntakeScreenP
       priority: 0,
       addedAt: new Date().toISOString()
     };
-
-    onPersist({
-      ...data,
-      learning: [newItem, ...items]
-    });
-
+    onPersist({ ...data, learning: [newItem, ...items] });
     setUrlInput('');
     setTitleInput('');
   };
@@ -72,7 +88,7 @@ export function IntakeScreen({ data, onPersist, onScheduleBlock }: IntakeScreenP
     };
     const ideas = data.create?.ideas || [];
     onPersist({ ...data, create: { ...data.create!, ideas: [newIdea, ...ideas] } });
-    alert("Post idea created in the Create Engine!");
+    alert('Post idea created in the Create Engine!');
   };
 
   const handleAddBlock = (item: LearningItem) => {
@@ -84,128 +100,127 @@ export function IntakeScreen({ data, onPersist, onScheduleBlock }: IntakeScreenP
       isLogged: false,
       origin: 'intake',
       refId: item.id
-    } as any); // Let the main app fill in start/end or rely on drag drop. Wait, onScheduleBlock might need more fields.
-    // Actually, in app-v2 pendingCalAction just takes the payload and opens a modal or drops it on calendar.
+    } as any);
   };
 
   const visibleItems = useMemo(() => {
     let filtered = items.filter(x => !x._deleted && x.status !== 'completed');
-    
     if (activeTab === 'certifications') {
       filtered = filtered.filter(x => x.kind === 'certification');
     } else {
       filtered = filtered.filter(x => x.kind !== 'certification');
-      if (kindFilter !== 'all') {
-        filtered = filtered.filter(x => x.kind === kindFilter);
-      }
+      if (kindFilter !== 'all') filtered = filtered.filter(x => x.kind === kindFilter);
     }
-
     filtered.sort((a, b) => {
-      if (activeTab === 'certifications') {
-        // Sort by signalValue/cost or just priority for now
-        return (b.priority || 0) - (a.priority || 0);
-      }
-      if (sortMode === 'time') {
-        return (a.estMinutes || 999) - (b.estMinutes || 999);
-      } else if (sortMode === 'topic') {
-        return (a.topic || '').localeCompare(b.topic || '');
-      }
+      if (activeTab === 'certifications') return (b.priority || 0) - (a.priority || 0);
+      if (sortMode === 'time') return (a.estMinutes || 999) - (b.estMinutes || 999);
+      if (sortMode === 'topic') return (a.topic || '').localeCompare(b.topic || '');
       return (b.priority || 0) - (a.priority || 0);
     });
-
     return filtered;
   }, [items, activeTab, kindFilter, sortMode]);
 
   return (
-    <div className="practice-screen fade-in" style={{ padding: 20, overflowY: 'auto', height: '100%' }}>
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
-        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 600 }}>Intake Engine</h1>
+    <div className="intk-screen fade-in">
+      <div className="ph">
+        <div className="eb">Intake</div>
+        <h2 className="t">What to consume next</h2>
+        <div className="p">Your reading, podcasts, and certifications — prioritized.</div>
       </div>
 
-      <div className="card" style={{ marginBottom: 20 }}>
-        <h3 style={{ marginTop: 0 }}>Quick Add</h3>
-        <form onSubmit={handleQuickAdd} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+      <form className="intake-add" onSubmit={handleQuickAdd}>
+        <div className="field">
+          <label>Add a link</label>
           <input
             type="url"
             value={urlInput}
             onChange={e => setUrlInput(e.target.value)}
-            placeholder="Paste URL..."
-            className="input"
+            placeholder="Paste a URL…"
             required
-            style={{ flex: 2 }}
           />
+        </div>
+        <div className="field">
+          <label>Title</label>
           <input
             type="text"
             value={titleInput}
             onChange={e => setTitleInput(e.target.value)}
-            placeholder="Title (optional)"
-            className="input"
-            style={{ flex: 1 }}
+            placeholder="Optional"
           />
-          <select value={kindInput} onChange={e => setKindInput(e.target.value as any)} className="input">
+        </div>
+        <div className="field">
+          <label>Kind</label>
+          <select
+            value={kindInput}
+            onChange={e => setKindInput(e.target.value as any)}
+            className="intk-sel"
+          >
             <option value="reading">Reading</option>
             <option value="podcast">Podcast</option>
             <option value="other">Other</option>
           </select>
-          <button type="submit" className="btn btn-primary">Save</button>
-        </form>
-      </div>
-
-      <div style={{ display: 'flex', gap: 20, marginBottom: 20 }}>
-        <div className="view-switcher">
-          <button className={`view-switcher-btn ${activeTab === 'queue' ? 'active' : ''}`} onClick={() => setActiveTab('queue')}>Queue</button>
-          <button className={`view-switcher-btn ${activeTab === 'certifications' ? 'active' : ''}`} onClick={() => setActiveTab('certifications')}>Certifications</button>
         </div>
-        
+        <button type="submit" className="intk-save-btn">Save</button>
+      </form>
+
+      <div className="intake-controls">
+        <div className="segment">
+          <span className={activeTab === 'queue' ? 'on' : ''} onClick={() => setActiveTab('queue')}>Queue</span>
+          <span className={activeTab === 'certifications' ? 'on' : ''} onClick={() => setActiveTab('certifications')}>Certifications</span>
+        </div>
         {activeTab === 'queue' && (
           <>
-            <select value={kindFilter} onChange={e => setKindFilter(e.target.value)} className="input">
-              <option value="all">All Kinds</option>
+            <select value={kindFilter} onChange={e => setKindFilter(e.target.value)} className="intk-sel">
+              <option value="all">All kinds</option>
               <option value="reading">Reading</option>
               <option value="podcast">Podcast</option>
               <option value="webinar">Webinar</option>
               <option value="course">Course</option>
             </select>
-            <select value={sortMode} onChange={e => setSortMode(e.target.value as any)} className="input">
-              <option value="priority">Sort by Priority</option>
-              <option value="time">Sort by Time (est.)</option>
-              <option value="topic">Sort by Topic</option>
+            <select value={sortMode} onChange={e => setSortMode(e.target.value as any)} className="intk-sel">
+              <option value="priority">Sort by priority</option>
+              <option value="time">Sort by time (est.)</option>
+              <option value="topic">Sort by topic</option>
             </select>
           </>
         )}
       </div>
 
-      <div className="practice-grid" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {visibleItems.length === 0 && <div className="empty-state">No items in queue.</div>}
-        {visibleItems.map(item => (
-          <div key={item.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px' }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                <span style={{ fontSize: 12, padding: '2px 6px', background: 'var(--color-bg-secondary)', borderRadius: 4, textTransform: 'uppercase' }}>
-                  {item.kind}
-                </span>
-                {item.topic && <span style={{ fontSize: 12, opacity: 0.6 }}>{item.topic}</span>}
-                {item.estMinutes && <span style={{ fontSize: 12, opacity: 0.6 }}>· {item.estMinutes}m</span>}
-              </div>
-              <a href={item.url} target="_blank" rel="noreferrer" style={{ fontWeight: 600, fontSize: 16, textDecoration: 'none', color: 'var(--color-text)' }}>
-                {item.title || item.url}
-              </a>
-              {activeTab === 'certifications' && item.kind === 'certification' && (
-                <div style={{ fontSize: 13, opacity: 0.8, marginTop: 4 }}>
-                  {(item as any).signalValue && <span>Signal: {(item as any).signalValue} </span>}
-                  {(item as any).cost && <span>· Cost: ${(item as any).cost} </span>}
-                  {(item as any).effortHrs && <span>· Effort: {(item as any).effortHrs}h</span>}
+      <div className="intk-list">
+        {visibleItems.length === 0 && (
+          <div className="intk-empty">No items in queue.</div>
+        )}
+        {visibleItems.map(item => {
+          const cert = item as any;
+          const certMeta = activeTab === 'certifications' && item.kind === 'certification'
+            ? [
+                cert.signalValue && `Signal: ${cert.signalValue}`,
+                cert.cost != null && `Cost: $${cert.cost}`,
+                cert.effortHrs != null && `Effort: ${cert.effortHrs}h`,
+              ].filter(Boolean).join(' · ')
+            : '';
+          const src = itemSrc(item);
+          return (
+            <div key={item.id} className="icard">
+              <div className="body">
+                <div className="meta">
+                  <span className="chip-tag">{item.kind}</span>
+                  {src && <span className="src">{src}</span>}
                 </div>
-              )}
+                <a href={item.url} target="_blank" rel="noreferrer" className="ttl">
+                  {item.title || item.url}
+                </a>
+                {certMeta && <div className="src cert-meta">{certMeta}</div>}
+              </div>
+              <div className="iact">
+                <button className="ib go" onClick={() => handleCreateIdea(item)}>Post idea</button>
+                <button className="ib" onClick={() => handleAddBlock(item)}>Block</button>
+                <button className="ib" onClick={() => handleToggleComplete(item)}>Done</button>
+                <button className="ib del" onClick={() => handleDelete(item.id)}>Delete</button>
+              </div>
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button className="btn" onClick={() => handleCreateIdea(item)} title="Turn into Post Idea">💡 Post Idea</button>
-              <button className="btn" onClick={() => handleAddBlock(item)} title="Add Consume Block">📅 Block</button>
-              <button className="btn" onClick={() => handleToggleComplete(item)} title="Mark Complete">✓ Done</button>
-              <button className="btn" onClick={() => handleDelete(item.id)} title="Delete">🗑</button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
