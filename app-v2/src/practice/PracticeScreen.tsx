@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo, Fragment, use
 import { pad } from '../ui/helpers';
 import interviewJson from '../content/interview.json';
 import clevelJson from '../content/clevel.json';
+import clevelBankJson from '../content/clevel-bank.json';
 import bfsiJson from '../content/bfsi.json';
 import leadershipJson from '../content/leadership.json';
 import salesJson from '../content/sales.json';
@@ -1228,7 +1229,25 @@ function DrillView({ items, lang }: { items: any[] | null, lang: 'en'|'fr' }) {
 export function PracticeScreen({ data, onPersist, onBack, onSignOut }) {
   const [activeTrack, setActiveTrack] = useState('interview');
   const [lang, setLang] = useState<'en'|'fr'>('en');
-  
+  const [clevelSubView, setClevelSubView] = useState('drills'); // 'drills' | 'bank'
+  const [activeRole, setActiveRole] = useState('all');          // 'all' | 'cfo' | 'coo' | 'ceo' | 'cio' | 'cmo' | 'cto'
+  const chipRowRef = React.useRef(null);
+
+  // Reset C-Level sub-nav when leaving the track
+  useEffect(() => {
+    if (activeTrack !== 'clevel') {
+      setClevelSubView('drills');
+      setActiveRole('all');
+    }
+  }, [activeTrack]);
+
+  // Scroll active role chip into view (mobile)
+  useEffect(() => {
+    if (!chipRowRef.current) return;
+    const active = chipRowRef.current.querySelector('.clvl-role-chip.on');
+    if (active) active.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+  }, [activeRole]);
+
   const tracks = [
     { id: 'interview',    label: 'Interview',            name: 'Interview Prep',                    purpose: 'Prepare answers, stories, and rubric for every question.',           items: null,                    categories: interviewJson.categories },
     { id: 'clevel',       label: 'C-Level',              name: 'C-Level Discussions',               purpose: 'Navigate executive conversations — CFO, CPO, CIO.',                 items: clevelJson.items || [],   categories: [] },
@@ -1598,6 +1617,53 @@ export function PracticeScreen({ data, onPersist, onBack, onSignOut }) {
               onDelete={deleteQuestion} onDuplicate={duplicateQuestion} onMove={moveQuestion}
               onLinkStory={linkStory} onUnlinkStory={unlinkStory} onCreateIdea={handleCreateIdea} />
           </div>
+        </>
+      ) : activeTrack === 'clevel' ? (
+        <>
+          {/* C-Level sub-nav: Drills | Bank toggle + role chip filter */}
+          <div className="clvl-controls">
+            <div className="prac-segment clvl-sub">
+              <span className={clevelSubView === 'drills' ? 'on' : ''} onClick={() => setClevelSubView('drills')}>Drills</span>
+              <span className={clevelSubView === 'bank'   ? 'on' : ''} onClick={() => setClevelSubView('bank')}>Bank</span>
+            </div>
+            <div className="clvl-roles" ref={chipRowRef}>
+              {['all','cfo','coo','ceo','cio','cmo','cto'].map(role => (
+                <button key={role} className={`clvl-role-chip${activeRole === role ? ' on' : ''}`}
+                  onClick={() => setActiveRole(role)}>
+                  {role === 'all' ? 'All' : role.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* C-Level content: Drills or Bank */}
+          {clevelSubView === 'drills' ? (() => {
+            const items = activeRole === 'all'
+              ? clevelJson.items
+              : clevelJson.items.filter((i: any) => i.role === activeRole);
+            if (items.length === 0)
+              return <div className="prac-drill-wrap"><div className="clvl-empty">No drills for this role yet.</div></div>;
+            return <DrillView key={`drills-${activeRole}`} items={items} lang={lang} />;
+          })() : (() => {
+            const items = activeRole === 'all'
+              ? clevelBankJson.items
+              : clevelBankJson.items.filter((i: any) => i.role === activeRole);
+            if (items.length === 0)
+              return <div className="clvl-bank-wrap"><div className="clvl-empty">No questions for this role yet.</div></div>;
+            return (
+              <div className="clvl-bank-wrap">
+                {items.map((item: any) => (
+                  <div key={item.id} className="clvl-bank-row">
+                    <div className="clvl-bank-body">
+                      <div className="clvl-bank-q">{localize(item.question, lang)}</div>
+                      <div className="clvl-bank-when">{localize(item.useWhen, lang)}</div>
+                    </div>
+                    {activeRole === 'all' && <span className="clvl-bank-role">{item.role.toUpperCase()}</span>}
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </>
       ) : (
         <DrillView key={activeTrack} items={currentTrackDef.items} lang={lang} />

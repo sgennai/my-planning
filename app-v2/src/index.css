@@ -9177,3 +9177,94 @@ button.addbtn { display: block; width: 100%; }
   .sync-err { display: none; }
   .sync-err--mobile { display: flex; }
 }
+
+/* ───────── C-LEVEL SUB-NAV (Drills | Bank + role chips) ───────── */
+.clvl-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 28px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line-soft);
+}
+.clvl-sub { margin: 0; }
+
+/* Role chip row */
+.clvl-roles {
+  display: flex;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+.clvl-role-chip {
+  flex: none;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  white-space: nowrap;
+  padding: 5px 13px;
+  border-radius: 99px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background 120ms, color 120ms, border-color 120ms;
+}
+.clvl-role-chip:hover { color: var(--gold); border-color: var(--gold-line); background: var(--gold-tint); }
+.clvl-role-chip.on { background: var(--gold-tint); color: var(--gold); border-color: var(--gold-line); font-weight: 700; }
+
+/* Bank list */
+.clvl-bank-wrap {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 28px 24px;
+}
+.clvl-bank-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.clvl-bank-row:last-child { border-bottom: none; }
+.clvl-bank-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.clvl-bank-q { font-family: var(--f-ui); font-size: 14px; font-weight: 500; color: var(--ink); line-height: 1.45; }
+.clvl-bank-when { font-family: var(--f-ui); font-size: 12px; color: var(--muted); line-height: 1.4; }
+.clvl-bank-role {
+  flex: none;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  color: var(--muted-soft);
+  padding-top: 3px;
+}
+
+/* Empty state (drills and bank) */
+.clvl-empty {
+  font-family: var(--f-ui);
+  font-size: 13px;
+  color: var(--muted-soft);
+  padding: 32px 0;
+  text-align: center;
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .clvl-controls { background: rgba(28,31,38,0.98); }
+[data-theme="dark"] .clvl-bank-q { color: rgba(255,255,255,0.88); }
+[data-theme="dark"] .clvl-bank-row { border-color: rgba(255,255,255,0.08); }
+
+/* Mobile: scrollable chip row */
+@media (max-width: 880px) {
+  .clvl-controls { padding: 10px 16px; }
+  .clvl-roles {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .clvl-roles::-webkit-scrollbar { display: none; }
+  .clvl-bank-wrap { padding: 6px 16px 20px; }
+}
