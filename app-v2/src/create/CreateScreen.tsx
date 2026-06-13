@@ -68,15 +68,21 @@ export function CreateScreen({ data, onPersist }: CreateScreenProps) {
       category: 'create',
       origin: 'create'
     };
-    const nextPosts = posts.map(p => p.id === post.id ? { ...p, status: 'scheduled' as const, updatedAt: new Date().toISOString() } : p);
+    const scheduledAt = new Date().toISOString();
+    const nextPosts = posts.map(p => p.id === post.id ? { ...p, status: 'scheduled' as const, scheduledFor: scheduledAt, updatedAt: scheduledAt } : p);
     onPersist({ ...data, scheduledBlocks: [...data.scheduledBlocks, tb], create: { ...data.create!, posts: nextPosts } });
     alert('Publish reminder scheduled for today at 9:00 AM. Please publish manually when ready.');
   };
 
-  // Digest data
-  const sevenDaysAgo = Date.now() - 7 * 86400000;
-  const consumed  = data.learning?.filter(l => l.completedAt && new Date(l.completedAt).getTime() > sevenDaysAgo) || [];
-  const practiced = data.practiceItems?.filter(p => p.lastPracticedAt && new Date(p.lastPracticedAt).getTime() > sevenDaysAgo) || [];
+  // Digest data — all three sections use start-of-ISO-week (Monday 00:00) as the cutoff
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0=Sun … 6=Sat
+  const daysSinceMonday = (dayOfWeek + 6) % 7;  // 0 on Mon, 6 on Sun
+  const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysSinceMonday);
+  const weekStartMs = weekStart.getTime();
+  const consumed  = data.learning?.filter(l => l.completedAt && new Date(l.completedAt).getTime() >= weekStartMs) || [];
+  const practiced = data.practiceItems?.filter(p => p.lastPracticedAt && new Date(p.lastPracticedAt).getTime() >= weekStartMs) || [];
+  const publishedThisWeek = posts.filter(p => p.publishedAt && new Date(p.publishedAt).getTime() >= weekStartMs);
 
   return (
     <div className="crt-screen fade-in">
@@ -165,7 +171,7 @@ export function CreateScreen({ data, onPersist }: CreateScreenProps) {
                 <div key={post.id} className="kcard">
                   <div className="kc-tag">Scheduled</div>
                   <div className="kc-h">{post.title}</div>
-                  <button className="kcard-act" onClick={() => handleUpdatePost(post.id, { status: 'published' })}>
+                  <button className="kcard-act" onClick={() => handleUpdatePost(post.id, { status: 'published', publishedAt: new Date().toISOString() })}>
                     Mark Published
                   </button>
                 </div>
@@ -215,9 +221,9 @@ export function CreateScreen({ data, onPersist }: CreateScreenProps) {
             </div>
             <div className="crdt-section">
               <div className="crdt-sh">Published</div>
-              {publishedPosts.length === 0
-                ? <div className="crdt-empty">No posts published yet.</div>
-                : publishedPosts.map(p => <div key={p.id} className="crdt-row">{p.title}</div>)
+              {publishedThisWeek.length === 0
+                ? <div className="crdt-empty">No posts published this week.</div>
+                : publishedThisWeek.map(p => <div key={p.id} className="crdt-row">{p.title}</div>)
               }
             </div>
           </div>
