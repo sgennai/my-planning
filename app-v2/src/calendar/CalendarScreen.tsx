@@ -960,10 +960,23 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
 
   const todoistProxyBase = calendarSettings.proxyUrl ? `${calendarSettings.proxyUrl.replace(/\/+$/, '')}/todoist` : null;
 
-  // The Add-from-Todoist picker shows the whole open Perso project, regardless
-  // of due date — slots, not dates, decide what's on today. (The old To-dos pane's
-  // days-ahead filter was removed with it; date-filtering here hid undated tasks.)
-  const todoistTasks = allTodoistTasks;
+  const todoistTasks = allTodoistTasks; // full list — used for slotted display (slot takes priority over date)
+
+  // Picker view: honour daysAhead. 0 = show everything; N = only tasks with a due date
+  // falling within today … today+(N-1). Tasks with no due date are always hidden when N > 0.
+  const todoistPickerTasks = React.useMemo(() => {
+    if (todoistDaysAhead === 0) return allTodoistTasks;
+    const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    const cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate() + todoistDaysAhead - 1);
+    const cutoffStr = `${cutoff.getFullYear()}-${pad(cutoff.getMonth() + 1)}-${pad(cutoff.getDate())}`;
+    return allTodoistTasks.filter(t => {
+      if (!t.due?.date) return false;
+      const d = t.due.date.substring(0, 10);
+      return d >= todayStr && d <= cutoffStr;
+    });
+  }, [allTodoistTasks, todoistDaysAhead]);
 
   const todoistPendingTasks = React.useMemo(() => data.todoistPending || [], [data.todoistPending]);
 
@@ -1523,7 +1536,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
           </div>
           <div className="pk-list">
             {(() => {
-              const available = todoistTasks.filter(t => !todoistSlots[t.id]);
+              const available = todoistPickerTasks.filter(t => !todoistSlots[t.id]);
               if (todoistError) return <div className="pk-empty" style={{ color: 'var(--coral)' }}>{todoistError}</div>;
               if (todoistLoading && available.length === 0) return <div className="pk-empty">Loading…</div>;
               if (available.length === 0) return <div className="pk-empty">Nothing left to add.</div>;
