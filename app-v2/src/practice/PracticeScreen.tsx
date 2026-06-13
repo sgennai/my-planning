@@ -5,6 +5,8 @@ import interviewJson from '../content/interview.json';
 import clevelJson from '../content/clevel.json';
 import bfsiJson from '../content/bfsi.json';
 import leadershipJson from '../content/leadership.json';
+import salesJson from '../content/sales.json';
+import execpresenceJson from '../content/execpresence.json';
 import { getStatusFromConfidence, getNextPracticeDate, isDueForPractice, selectPracticeBatch, searchPracticeItems } from './practice-logic';
 
 export const LangContext = React.createContext<'en'|'fr'>('en');
@@ -1230,8 +1232,8 @@ export function PracticeScreen({ data, onPersist, onBack, onSignOut }) {
   const tracks = [
     { id: 'interview',    label: 'Interview',            name: 'Interview Prep',                    purpose: 'Prepare answers, stories, and rubric for every question.',           items: null,                    categories: interviewJson.categories },
     { id: 'clevel',       label: 'C-Level',              name: 'C-Level Discussions',               purpose: 'Navigate executive conversations — CFO, CPO, CIO.',                 items: clevelJson.items || [],   categories: [] },
-    { id: 'sales',        label: 'Core Sales',           name: 'Core Sales Execution',              purpose: 'Master the frameworks every enterprise seller must command.',        items: null,                    categories: [] },
-    { id: 'execpresence', label: 'Exec Presence',        name: 'Executive Presence',                purpose: 'Own the room — structure, voice, and delivery.',                    items: null,                    categories: [] },
+    { id: 'sales',        label: 'Core Sales',           name: 'Core Sales Execution',              purpose: 'Master the frameworks every enterprise seller must command.',        items: salesJson.items || [],        categories: [] },
+    { id: 'execpresence', label: 'Exec Presence',        name: 'Executive Presence',                purpose: 'Own the room — structure, voice, and delivery.',                    items: execpresenceJson.items || [],  categories: [] },
     { id: 'bfsi',         label: 'Banking & Insurance',  name: 'Banking & Insurance Fluency',       purpose: 'Speak the language of EU-regulated financial institutions.',          items: bfsiJson.items || [],     categories: [] },
     { id: 'leadership',   label: 'Leadership',           name: 'Leadership & Mirror Management',    purpose: 'Build, develop, and represent your team.',                          items: leadershipJson.items || [], categories: [] },
   ];
