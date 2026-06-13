@@ -101,6 +101,7 @@ export function App() {
   const [data, setData] = useState(null);
   const [saving, setSaving] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState(null);
+  const [syncError, setSyncError] = useState(null);
   const [appPage, setAppPage] = useState('calendar');
   const [pendingCalAction, setPendingCalAction] = useState(null);
   const [remoteConflicts, setRemoteConflicts] = useState([]);
@@ -151,8 +152,15 @@ export function App() {
   const runBackgroundSync = useCallback(async () => {
     if (!data?.calendars?.syncUrl || !data?.calendars?.syncSecret) return;
     try {
-      const changedEntities = await syncData(data.calendars.syncUrl, data.calendars.syncSecret);
-      
+      const { pulledIds: changedEntities, error: syncErr } = await syncData(data.calendars.syncUrl, data.calendars.syncSecret);
+
+      if (syncErr) {
+        setSyncError(syncErr);
+        return;
+      }
+      setSyncError(null);
+      setLastSyncedAt(new Date());
+
       const freshData = await loadData() || data;
       const { mergePracticeContent } = await import('./practice/content-loader');
       const { mergeIntakeContent } = await import('./intake/intake-loader');
@@ -161,7 +169,7 @@ export function App() {
         if (mergePracticeContent(freshData)) didContentChange = true;
         if (mergeIntakeContent(freshData)) didContentChange = true;
       }
-      
+
       if (changedEntities.length > 0 || didContentChange) {
         if (freshData) {
           if (didContentChange) {
@@ -169,11 +177,11 @@ export function App() {
             await saveData(freshData);
           }
           setData(freshData);
-          
+
           // Only show notice if the user is actively editing a text field right now
           const activeTag = document.activeElement ? document.activeElement.tagName : '';
           const isActivelyEditing = activeTag === 'INPUT' || activeTag === 'TEXTAREA';
-          
+
           if (isActivelyEditing) {
             setRemoteConflicts(prev => {
               const newConflicts = new Set(prev);
@@ -184,7 +192,7 @@ export function App() {
         }
       }
     } catch (e) {
-      console.error('Background sync failed silently:', e);
+      console.error('Background sync error:', e);
     }
   }, [data?.calendars?.syncUrl, data?.calendars?.syncSecret]);
 
@@ -326,6 +334,9 @@ export function App() {
         onToggleTheme={toggleTheme}
         onOpenSettings={openSettings}
         onSignOut={handleSignOut}
+        syncError={syncError}
+        lastSyncedAt={lastSyncedAt}
+        onRetrySync={runBackgroundSync}
       >
         {pageContent}
       </AppShell>

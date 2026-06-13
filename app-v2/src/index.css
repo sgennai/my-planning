@@ -9124,3 +9124,54 @@ button.addbtn { display: block; width: 100%; }
   .crt-body { padding: 14px 16px 24px; }
   .kanban { grid-template-columns: 1fr; }
 }
+
+/* ───────── SYNC ERROR STRIP ───────── */
+.sync-err {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 0 10px;
+  border-top: 1px solid var(--line);
+  margin-bottom: 10px;
+  font-size: 12px;
+  font-family: var(--f-mono);
+  color: #C0622B;
+}
+[data-theme="dark"] .sync-err { color: #D4845A; }
+.sync-ts {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+.sync-retry {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  touch-action: manipulation;
+}
+.sync-retry:hover { opacity: 0.75; }
+
+/* Mobile: strip fixed above the bottom tab bar; sidebar strip hidden */
+.sync-err--mobile {
+  position: fixed;
+  bottom: calc(60px + env(safe-area-inset-bottom));
+  left: 0; right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  padding: 6px 16px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+  z-index: 190;
+  display: none;
+  font-size: 12px;
+}
+@media (max-width: 880px) {
+  .sync-err { display: none; }
+  .sync-err--mobile { display: flex; }
+}

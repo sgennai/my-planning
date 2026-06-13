@@ -281,8 +281,13 @@ export async function importDataBlob(file: File): Promise<any> {
   });
 }
 
-export async function syncData(syncUrl: string, secret: string): Promise<{id: string, storeName: string}[]> {
-  if (!syncUrl || !secret) return [];
+export interface SyncResult {
+  pulledIds: { id: string; storeName: string }[];
+  error: Error | null;
+}
+
+export async function syncData(syncUrl: string, secret: string): Promise<SyncResult> {
+  if (!syncUrl || !secret) return { pulledIds: [], error: null };
   
   const normalizedUrl = syncUrl.replace(/\/+$/, '');
   const db = await initDB();
@@ -353,11 +358,11 @@ export async function syncData(syncUrl: string, secret: string): Promise<{id: st
 
     // If push succeeded and pull succeeded, we update our sync time.
     localStorage.setItem('my-planning-sync-time', now);
-    return changedEntities;
+    return { pulledIds: changedEntities, error: null };
   } catch (e) {
     // Fail silently (offline or server error). Changes remain dirty for next sync.
     console.warn('Sync failed silently (will retry next time):', e);
-    return [];
+    return { pulledIds: [], error: e as Error };
   }
 }
 

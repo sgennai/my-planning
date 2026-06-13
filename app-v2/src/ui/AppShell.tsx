@@ -95,7 +95,20 @@ function NorthStar({ profile, createdAt }) {
   );
 }
 
-export function AppShell({ appPage, onNavigate, data, theme, onToggleTheme, onOpenSettings, onSignOut, children }) {
+function formatLastSynced(lastSyncedAt) {
+  if (!lastSyncedAt) return 'never synced';
+  const diffMs = Date.now() - lastSyncedAt.getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const d = lastSyncedAt;
+  const now = new Date();
+  const hhmm = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  if (d.toDateString() === now.toDateString()) return `today ${hhmm}`;
+  return `${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} ${hhmm}`;
+}
+
+export function AppShell({ appPage, onNavigate, data, theme, onToggleTheme, onOpenSettings, onSignOut, syncError, lastSyncedAt, onRetrySync, children }) {
   const isDark = theme === 'dark';
   const profile = (data && data.userProfile) || null;
   const createdAt = (data && data.createdAt) || null;
@@ -125,6 +138,12 @@ export function AppShell({ appPage, onNavigate, data, theme, onToggleTheme, onOp
         </nav>
 
         <div className="shell-foot">
+          {syncError && (
+            <div className="sync-err">
+              <span>⚠ Sync unavailable · <button className="sync-retry" onClick={onRetrySync}>retry</button></span>
+              <span className="sync-ts">Last synced {formatLastSynced(lastSyncedAt)}</span>
+            </div>
+          )}
           <div className="shell-controls">
             <span className="ctl">{isDark ? <IconMoon /> : <IconSun />}{isDark ? 'Dark' : 'Light'}</span>
             <button
@@ -148,6 +167,14 @@ export function AppShell({ appPage, onNavigate, data, theme, onToggleTheme, onOp
         <button onClick={onOpenSettings} aria-label="Settings" title="Settings"><IconCog /></button>
         <button onClick={onSignOut} aria-label="Sign out" title="Sign out"><IconExit /></button>
       </div>
+
+      {/* ── mobile sync-error strip (above tab bar) ── */}
+      {syncError && (
+        <div className="sync-err sync-err--mobile">
+          ⚠ Sync unavailable · <button className="sync-retry" onClick={onRetrySync}>retry</button>
+          <span className="sync-ts"> · Last synced {formatLastSynced(lastSyncedAt)}</span>
+        </div>
+      )}
 
       {/* ── mobile bottom tab bar ── */}
       <nav className="shell-tabs">

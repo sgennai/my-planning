@@ -75,7 +75,8 @@ describe('WP-2 Sync Test Suite', () => {
     await saveData(data2);
     
     const res = await syncData(SYNC_URL, SECRET);
-    expect(res).toEqual([]); // failed silently
+    expect(res.pulledIds).toEqual([]);
+    expect(res.error).toBeInstanceOf(Error); // failed silently, error surfaced in result
     
     (globalThis as any).fetch.mockRestore();
     await syncData(SYNC_URL, SECRET);
@@ -100,7 +101,7 @@ describe('WP-2 Sync Test Suite', () => {
     });
 
     const changes = await syncData(SYNC_URL, SECRET);
-    expect(changes).toContainEqual({ id: 'todo-1', storeName: STORES.TODOS });
+    expect(changes.pulledIds).toContainEqual({ id: 'todo-1', storeName: STORES.TODOS });
     
     const freshA = await loadData();
     expect(freshA!.featureFlags.a).toBe(1);
@@ -135,7 +136,7 @@ describe('WP-2 Sync Test Suite', () => {
     });
 
     const changes2 = await syncData(SYNC_URL, SECRET);
-    expect(changes2).toContainEqual({ id: 'prefs', storeName: STORES.SINGLETONS });
+    expect(changes2.pulledIds).toContainEqual({ id: 'prefs', storeName: STORES.SINGLETONS });
     
     freshA = await loadData();
     expect(freshA!.prefs.theme).toBe('dark'); // Newer remote change applied
