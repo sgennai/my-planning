@@ -1544,9 +1544,12 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
               const now = new Date();
               const pad = n => String(n).padStart(2, '0');
               const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
-              const available = todoistPickerTasks
-                .filter(t => !todoistSlots[t.id])
-                .filter(t => showPastTodoist || !t.due?.date || t.due.date.substring(0, 10) >= todayStr);
+              const pickerSet = new Set(todoistPickerTasks.map(t => t.id));
+              const available = allTodoistTasks.filter(t => {
+                if (todoistSlots[t.id]) return false;
+                if (pickerSet.has(t.id)) return true;
+                return showPastTodoist && t.due?.date && t.due.date.substring(0, 10) < todayStr;
+              });
               if (todoistError) return <div className="pk-empty" style={{ color: 'var(--coral)' }}>{todoistError}</div>;
               if (todoistLoading && available.length === 0) return <div className="pk-empty">Loading…</div>;
               if (available.length === 0) return <div className="pk-empty">Nothing left to add.</div>;
