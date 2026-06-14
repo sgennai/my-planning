@@ -116,39 +116,35 @@ export function App() {
   const loadOrCreate = useCallback(async () => {
     setPhase('loading');
     try {
-      // Parse bootstrap credentials from URL hash (#bootstrap=<base64>) before any async work.
-      // This lets a new device inherit syncUrl/syncSecret/proxyUrl from a setup link generated
-      // on an already-configured device, triggering a full sync on first boot.
-      let bootstrapCreds = null;
-      if (typeof window !== 'undefined' && window.location.hash.startsWith('#bootstrap=')) {
-        try {
-          const encoded = window.location.hash.slice('#bootstrap='.length);
-          bootstrapCreds = JSON.parse(atob(encoded));
-          history.replaceState(null, '', location.pathname + location.search);
-        } catch { /* ignore malformed bootstrap */ }
-      }
+      let resolvedData;
+      let needsSave = false;
 
       const existing = await loadData();
       if (existing) {
         const { data: migrated, migrated: didMigrate } = migrate(existing);
         setLastSyncedAt(new Date());
-        if (didMigrate) migrated.lastModified = new Date().toISOString();
-        if (bootstrapCreds) {
-          migrated.calendars = { ...migrated.calendars, ...bootstrapCreds };
-          await saveData(migrated);
-        } else if (didMigrate) {
-          await saveData(migrated);
-        }
-        setData(migrated);
+        if (didMigrate) { migrated.lastModified = new Date().toISOString(); needsSave = true; }
+        resolvedData = migrated;
       } else {
-        const fresh = makeDefaultData();
-        if (bootstrapCreds) {
-          fresh.calendars = { ...fresh.calendars, ...bootstrapCreds };
-        }
-        await saveData(fresh);
-        setData(fresh);
+        resolvedData = makeDefaultData();
+        needsSave = true;
         setLastSyncedAt(new Date());
       }
+
+      // Fill empty calendar fields from build-time env vars (VITE_SYNC_URL, VITE_SYNC_SECRET,
+      // VITE_PROXY_URL). Only fills fields that are absent in IndexedDB — existing values win.
+      const envMerge = {
+        ...(import.meta.env.VITE_SYNC_URL    && !resolvedData.calendars?.syncUrl    && { syncUrl:    import.meta.env.VITE_SYNC_URL }),
+        ...(import.meta.env.VITE_SYNC_SECRET && !resolvedData.calendars?.syncSecret && { syncSecret: import.meta.env.VITE_SYNC_SECRET }),
+        ...(import.meta.env.VITE_PROXY_URL   && !resolvedData.calendars?.proxyUrl   && { proxyUrl:   import.meta.env.VITE_PROXY_URL }),
+      };
+      if (Object.keys(envMerge).length > 0) {
+        resolvedData.calendars = { ...resolvedData.calendars, ...envMerge };
+        needsSave = true;
+      }
+
+      if (needsSave) await saveData(resolvedData);
+      setData(resolvedData);
       setPhase('ready');
     } catch (e) {
       setError(`Load failed: ${e.message}`);
