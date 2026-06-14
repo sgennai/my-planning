@@ -1226,7 +1226,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
 
       {/* LEFT — agenda (Timeline) or single-day hour-grid (Day) */}
       <div className="plan-agenda">
-        {planView === 'day' && !isMobile ? (
+        {planView === 'day' ? (
           <div className="plan-day-grid day-view">
             <WeekGrid
               routine={(data.routine || []).filter(it => it.category !== 'supplement')}
@@ -1481,46 +1481,28 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
           </button>
         </div>
         <div className="calendar-panel">
-          {isMobile ? (
-            <AgendaView
-              routine={(data.routine || []).filter(it => it.category !== 'supplement')}
-              overrides={data.overrides || {}}
-              scheduledBlocks={blocks}
-              projects={projects}
-              weekStart={weekStart}
-              now={now}
-              onBlockClick={(blockId) => setOpenBlockId(blockId)}
-              onRoutineClick={handleRoutineClick}
-              elsewhereToggles={elsewhere}
-              icsOccurrences={icsOccurrences}
-              completions={data.routineCompletions || {}}
-              onToggleComplete={toggleRoutineCompletion}
-              categoryStyles={categoryStyles}
-            />
-          ) : (
-            <WeekGrid
-              routine={(data.routine || []).filter(it => it.category !== 'supplement')}
-              overrides={data.overrides || {}}
-              scheduledBlocks={blocks}
-              projects={projects}
-              weekStart={weekStart}
-              now={now}
-              singleCol={null}
-              onDayClick={planDayClick}
-              onCreateBlock={createBlock}
-              onBlockClick={(blockId) => setOpenBlockId(blockId)}
-              onRoutineClick={handleRoutineClick}
-              onUpdateBlock={updateBlock}
-              elsewhereToggles={elsewhere}
-              icsOccurrences={icsOccurrences}
-              completions={data.routineCompletions || {}}
-              onToggleComplete={toggleRoutineCompletion}
-              categoryStyles={categoryStyles}
-              calendarToggles={calendarToggles}
-              weekendCollapsed={weekendCollapsed}
-              onToggleWeekendCollapse={() => setWeekendCollapsed(v => !v)}
-            />
-          )}
+          <WeekGrid
+            routine={(data.routine || []).filter(it => it.category !== 'supplement')}
+            overrides={data.overrides || {}}
+            scheduledBlocks={blocks}
+            projects={projects}
+            weekStart={weekStart}
+            now={now}
+            singleCol={null}
+            onDayClick={planDayClick}
+            onCreateBlock={createBlock}
+            onBlockClick={(blockId) => setOpenBlockId(blockId)}
+            onRoutineClick={handleRoutineClick}
+            onUpdateBlock={updateBlock}
+            elsewhereToggles={elsewhere}
+            icsOccurrences={icsOccurrences}
+            completions={data.routineCompletions || {}}
+            onToggleComplete={toggleRoutineCompletion}
+            categoryStyles={categoryStyles}
+            calendarToggles={calendarToggles}
+            weekendCollapsed={weekendCollapsed}
+            onToggleWeekendCollapse={() => setWeekendCollapsed(v => !v)}
+          />
         </div>
       </>
     )}
