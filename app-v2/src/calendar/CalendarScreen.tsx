@@ -619,6 +619,20 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
   // Keep ref in sync so the fetch effect can read latest pending without it being a dep
   React.useEffect(() => { todoistPendingRef.current = data.todoistPending || []; }, [data.todoistPending]);
 
+  // Lock shell-main scroll on mobile when in grid view so the inner WeekGrid captures touch-scroll
+  React.useEffect(() => {
+    const mq = window.matchMedia('(max-width: 880px)');
+    if (!mq.matches) return;
+    const shellMain = document.querySelector('.shell-main');
+    if (!shellMain) return;
+    if (planView === 'day' || planView === 'week') {
+      shellMain.classList.add('grid-view-lock');
+    } else {
+      shellMain.classList.remove('grid-view-lock');
+    }
+    return () => { shellMain.classList.remove('grid-view-lock'); };
+  }, [planView]);
+
   const completeTodoistTask = useCallback(async (taskId) => {
     const token = (data.todoist || {}).token;
     const proxy = ((data.calendars || {}).proxyUrl || '').replace(/\/+$/, '');

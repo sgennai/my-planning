@@ -563,6 +563,7 @@
       border-radius: var(--radius-xl);
       box-shadow: var(--shadow-card);
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       flex: 1;
       min-height: 0;
       overscroll-behavior: contain;
@@ -8205,7 +8206,9 @@ h1, h2, h3, h4 { font-family: var(--f-disp); color: var(--ink); letter-spacing: 
 /* Week view (deferred restyle) — give the kept hour-grid a usable height
    now that it no longer lives inside the old full-height today-wrap. */
 .plan-screen .calendar-panel { display: flex; flex-direction: column; height: calc(100vh - 172px); min-height: 360px; }
-@media (max-width: 880px) { .plan-screen .calendar-panel { height: auto; min-height: 0; } }
+@media (max-width: 880px) { .plan-screen .calendar-panel { height: calc(100dvh - 320px); min-height: 280px; overflow: hidden; } }
+@media (max-width: 880px) { .plan-day-grid { height: calc(100dvh - 300px); min-height: 280px; } }
+@media (max-width: 880px) { .shell-main.grid-view-lock { overflow-y: hidden; } }
 
 /* ═══════════════════════════════════════════════════════════════════════
    PLAN SCREEN — revised (design/my-planning-plan-screen-reference.html)
