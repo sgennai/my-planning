@@ -1,7 +1,6 @@
 # Deployment guide — My Planning v2
 
-Deployed on **Cloudflare Pages** at `sgennai.github.io/my-planning/v2/`
-(base path `/my-planning/v2/`, set in `vite.config.ts`).
+Deployed on **Cloudflare Pages** (base path `/`, set in `vite.config.ts`).
 
 ---
 
@@ -111,6 +110,76 @@ Worker rejects legitimate clients.
 
 ---
 
+## HTTP Basic Auth
+
+The deployed site is gated by HTTP Basic Auth implemented in
+`functions/_middleware.ts` (a Cloudflare Pages Function). The middleware
+intercepts every request, checks the `Authorization: Basic <base64>` header,
+and returns a 401 with `WWW-Authenticate: Basic realm="My Planning"` if the
+header is missing or the credentials don't match. The browser's native auth
+dialog handles the prompt.
+
+### Environment variables (runtime — not build-time)
+
+| Variable | Purpose |
+|---|---|
+| `BASIC_AUTH_USER` | Login username |
+| `BASIC_AUTH_PASS` | Login password |
+
+These are **runtime** env vars, not `VITE_`-prefixed. They are never baked
+into the JS bundle — the Pages Function reads them from `context.env` at
+request time. Changing them requires a redeploy but not a rebuild.
+
+Set them in the same dashboard location as the `VITE_*` vars:
+Cloudflare dashboard → **Pages** → `my-planning` → **Settings** →
+**Environment variables** → **Production**.
+
+### Generating a strong password
+
+```sh
+openssl rand -base64 32
+```
+
+Copy the output as `BASIC_AUTH_PASS`. Use any memorable string as
+`BASIC_AUTH_USER` (e.g. `stephane`).
+
+### Important: shared-password model
+
+This is single shared-credential auth — there are no per-device accounts. All
+devices use the same username and password. There is no per-device revocation;
+rotating the password invalidates **all** sessions simultaneously.
+
+### Rotating the password
+
+1. Generate a new password (`openssl rand -base64 32`).
+2. Update `BASIC_AUTH_PASS` in Pages → **Settings** → **Environment variables**.
+3. Redeploy (push a commit, or **Deployments** → **Retry deployment**).
+4. On next request, browsers that had the old credentials cached will receive a
+   401 and the native auth dialog will re-prompt.
+
+**PWA / service worker behaviour during rotation:** After a normal rotation,
+devices that are currently authenticated continue to serve the cached PWA bundle
+without interruption — the service worker has already fetched and cached all
+assets, so the middleware is not in the request path for those assets. The user
+will be re-prompted naturally at the start of their next session (when the
+session credential cache expires or the browser is restarted). This is
+desirable: the app stays available offline and there is no disruption for
+in-progress sessions.
+
+**Hard invalidation (credential compromise):** If an immediate forced re-auth
+is ever needed on all devices, do both steps together:
+
+1. Rotate `BASIC_AUTH_PASS` as above.
+2. Bump the service worker version — edit any comment or constant in
+   `vite.config.ts` or `src/main.tsx` to produce a cache-busting build. The
+   updated SW forces all clients to fetch fresh assets on next online load,
+   which triggers the 401 + re-prompt for the new credentials.
+
+The SW version bump is not needed for routine rotation — document it here for
+the compromise scenario only.
+
+---
+
 ## Local development
 
 Create `app-v2/.env.local` (gitignored by Vite by default — never commit it):
@@ -121,6 +190,10 @@ VITE_SYNC_SECRET=your-sync-secret-here
 VITE_PROXY_URL=https://my-planning-proxy.<you>.workers.dev
 ```
 
+> `BASIC_AUTH_USER` and `BASIC_AUTH_PASS` are not needed in `.env.local` —
+> the Pages Function middleware only runs on Cloudflare, not in the local Vite
+> dev server. Local dev is unprotected by design.
+
 You may also commit a `app-v2/.env` with **placeholder values only** as
 documentation for contributors — never real secrets:
 
@@ -129,6 +202,8 @@ documentation for contributors — never real secrets:
 VITE_SYNC_URL=
 VITE_SYNC_SECRET=
 VITE_PROXY_URL=
+# BASIC_AUTH_USER and BASIC_AUTH_PASS are runtime vars (Pages Function only).
+# Set them in the Cloudflare Pages dashboard, not here.
 ```
 
 Vite loads files in this precedence order (later wins):
