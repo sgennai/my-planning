@@ -116,17 +116,35 @@ export function App() {
   const loadOrCreate = useCallback(async () => {
     setPhase('loading');
     try {
+      // Parse bootstrap credentials from URL hash (#bootstrap=<base64>) before any async work.
+      // This lets a new device inherit syncUrl/syncSecret/proxyUrl from a setup link generated
+      // on an already-configured device, triggering a full sync on first boot.
+      let bootstrapCreds = null;
+      if (typeof window !== 'undefined' && window.location.hash.startsWith('#bootstrap=')) {
+        try {
+          const encoded = window.location.hash.slice('#bootstrap='.length);
+          bootstrapCreds = JSON.parse(atob(encoded));
+          history.replaceState(null, '', location.pathname + location.search);
+        } catch { /* ignore malformed bootstrap */ }
+      }
+
       const existing = await loadData();
       if (existing) {
         const { data: migrated, migrated: didMigrate } = migrate(existing);
-        setData(migrated);
         setLastSyncedAt(new Date());
-        if (didMigrate) {
-          migrated.lastModified = new Date().toISOString();
+        if (didMigrate) migrated.lastModified = new Date().toISOString();
+        if (bootstrapCreds) {
+          migrated.calendars = { ...migrated.calendars, ...bootstrapCreds };
+          await saveData(migrated);
+        } else if (didMigrate) {
           await saveData(migrated);
         }
+        setData(migrated);
       } else {
         const fresh = makeDefaultData();
+        if (bootstrapCreds) {
+          fresh.calendars = { ...fresh.calendars, ...bootstrapCreds };
+        }
         await saveData(fresh);
         setData(fresh);
         setLastSyncedAt(new Date());

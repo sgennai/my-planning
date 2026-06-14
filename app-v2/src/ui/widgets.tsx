@@ -619,6 +619,7 @@ export function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, on
   const [todoistProjects, setTodoistProjects] = useState([]);
   const [todoistProjectsLoading, setTodoistProjectsLoading] = useState(false);
   const [todoistProjectsError, setTodoistProjectsError] = useState(null);
+  const [setupLinkCopied, setSetupLinkCopied] = useState(false);
 
   const fetchTodoistProjects = async () => {
     const token = todoistToken.trim();
@@ -802,6 +803,39 @@ export function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, on
                 </div>
               </div>
             </div>
+
+            {/* ── NEW DEVICE SETUP ── */}
+            {(syncUrl.trim() && syncSecret.trim()) && (
+              <div className="sm-section">
+                <div className="sm-eyebrow">New Device Setup</div>
+                <div className="sm-card">
+                  <div className="sm-field">
+                    <div className="sm-hint" style={{ marginBottom: 10 }}>
+                      Visit this link on any new device to configure it with your sync credentials in one tap — it will then pull all other settings automatically.
+                    </div>
+                    <button
+                      className="sm-btn sm-setup-link-btn"
+                      onClick={() => {
+                        const creds = btoa(JSON.stringify({
+                          syncUrl: syncUrl.trim(),
+                          syncSecret: syncSecret.trim(),
+                          proxyUrl: proxyUrl.trim(),
+                        }));
+                        const url = `${window.location.origin}${window.location.pathname}#bootstrap=${creds}`;
+                        navigator.clipboard.writeText(url).then(() => {
+                          setSetupLinkCopied(true);
+                          setTimeout(() => setSetupLinkCopied(false), 2500);
+                        }).catch(() => {
+                          prompt('Copy this URL to set up a new device:', url);
+                        });
+                      }}
+                    >
+                      {setupLinkCopied ? '✓ Copied to clipboard' : 'Copy setup link'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* ── APPEARANCE ── */}
             <div className="sm-section">
