@@ -286,9 +286,65 @@ export interface SyncResult {
   error: Error | null;
 }
 
+// Set on a fresh device (empty IndexedDB) when the initial pull from the Worker
+// fails (offline, Worker down, auth error). Cleared after the first successful pull.
+// While set, syncData() skips push and force-applies all remote records, preventing
+// local defaults (stamped updatedAt=now) from overwriting the Worker's authoritative
+// data via last-write-wins. Trade-off: offline edits made before this first sync are
+// overwritten on next online sync — correct for a personal single-user app.
+export const NEEDS_INITIAL_PULL_KEY = 'my-planning-needs-initial-pull';
+
+export async function pullAndReplaceFromWorker(
+  syncUrl: string,
+  secret: string
+): Promise<{ ok: boolean; error: Error | null }> {
+  if (!syncUrl || !secret) return { ok: false, error: null };
+  const normalizedUrl = syncUrl.replace(/\/+$/, '');
+  const db = await initDB();
+  try {
+    const res = await fetch(`${normalizedUrl}/sync/pull?since=1970-01-01T00:00:00.000Z`, {
+      headers: { 'X-Sync-Secret': secret }
+    });
+    if (!res.ok) throw new Error(`Pull failed: ${res.statusText}`);
+    const { records = [] } = await res.json();
+    if (records.length > 0) {
+      const tx = db.transaction(Object.values(STORES), 'readwrite');
+      for (const rec of records) {
+        if (!Object.values(STORES).includes(rec.storeName)) continue;
+        const store = tx.objectStore(rec.storeName);
+        if (rec.deleted) {
+          await store.put({ id: rec.id, _deleted: true, updatedAt: rec.updatedAt });
+        } else {
+          // Unconditional write — no LWW check. On initial device boot the Worker is
+          // authoritative regardless of local timestamps.
+          await store.put({ ...rec.payload, updatedAt: rec.updatedAt });
+        }
+      }
+      await tx.done;
+    }
+    console.info('[sync] first-load pull from Worker:', { records: records.length });
+    return { ok: true, error: null };
+  } catch (e) {
+    console.warn('[sync] first-load pull failed, will retry; offline edits at risk', e);
+    return { ok: false, error: e as Error };
+  }
+}
+
 export async function syncData(syncUrl: string, secret: string): Promise<SyncResult> {
   if (!syncUrl || !secret) return { pulledIds: [], error: null };
-  
+
+  // Fresh-device guard: flag is set when the initial pull on first boot failed
+  // (offline, Worker down). Skip push entirely and force-apply all remote records.
+  // Prevents local defaults (updatedAt=now) from overwriting the Worker's canonical
+  // data via last-write-wins. Cleared after first successful pull.
+  if (localStorage.getItem(NEEDS_INITIAL_PULL_KEY) === 'true') {
+    const { ok, error } = await pullAndReplaceFromWorker(syncUrl, secret);
+    if (!ok) return { pulledIds: [], error };
+    localStorage.removeItem(NEEDS_INITIAL_PULL_KEY);
+    localStorage.setItem('my-planning-sync-time', new Date().toISOString());
+    return { pulledIds: [{ id: 'initial', storeName: STORES.SINGLETONS }], error: null };
+  }
+
   const normalizedUrl = syncUrl.replace(/\/+$/, '');
   const db = await initDB();
   const lastSyncStr = localStorage.getItem('my-planning-sync-time') || '1970-01-01T00:00:00.000Z';

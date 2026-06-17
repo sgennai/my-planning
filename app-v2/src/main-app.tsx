@@ -7,7 +7,7 @@ import { CalendarScreen } from './calendar/CalendarScreen';
 import { ModuleDashboard } from './modules/ModuleDashboard';
 import { IntakeScreen } from './intake/IntakeScreen';
 import { CreateScreen } from './create/CreateScreen';
-import { loadData, saveData, syncData } from './storage/db';
+import { loadData, saveData, syncData, pullAndReplaceFromWorker, NEEDS_INITIAL_PULL_KEY } from './storage/db';
 import { DEFAULT_MODULES } from './modules/seed-modules';
 import { AppShell } from './ui/AppShell';
 
@@ -126,8 +126,40 @@ export function App() {
         if (didMigrate) { migrated.lastModified = new Date().toISOString(); needsSave = true; }
         resolvedData = migrated;
       } else {
-        resolvedData = makeDefaultData();
-        needsSave = true;
+        // Fresh device: attempt pull-before-save so the Worker's authoritative data is not
+        // overwritten by local defaults through last-write-wins (defaults get updatedAt=now,
+        // newer than any record the Worker holds from prior devices).
+        const envSyncUrl    = import.meta.env.VITE_SYNC_URL    || '';
+        const envSyncSecret = import.meta.env.VITE_SYNC_SECRET || '';
+
+        if (envSyncUrl && envSyncSecret) {
+          const { ok } = await pullAndReplaceFromWorker(envSyncUrl, envSyncSecret);
+          if (ok) {
+            // Pull succeeded: load Worker records from IndexedDB
+            const pulled = await loadData();
+            if (pulled) {
+              const { data: migrated, migrated: didMigrate } = migrate(pulled);
+              // Mark all Worker records as already synced so they are not re-pushed
+              localStorage.setItem('my-planning-sync-time', new Date().toISOString());
+              resolvedData = migrated;
+              needsSave = didMigrate;
+            } else {
+              // Worker had no records yet (truly first device ever)
+              resolvedData = makeDefaultData();
+              needsSave = true;
+            }
+          } else {
+            // Pull failed (offline, Worker down). Save defaults and gate push until the
+            // first successful pull via NEEDS_INITIAL_PULL_KEY.
+            resolvedData = makeDefaultData();
+            needsSave = true;
+            localStorage.setItem(NEEDS_INITIAL_PULL_KEY, 'true');
+          }
+        } else {
+          // No credentials at build time: first device ever, or not yet configured.
+          resolvedData = makeDefaultData();
+          needsSave = true;
+        }
         setLastSyncedAt(new Date());
       }
 

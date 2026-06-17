@@ -211,3 +211,36 @@ Vite loads files in this precedence order (later wins):
 
 So `.env` with empty placeholders is safe to commit; `.env.local` with real
 values overrides it locally and is never tracked.
+
+---
+
+## Sync architecture: first-boot trade-off
+
+On a fresh device (empty IndexedDB), `loadOrCreate` in `src/main-app.tsx`
+attempts a **pull-before-save**: it fetches all records from the Worker before
+writing any local defaults. This prevents the Worker's authoritative data from
+being overwritten by empty defaults through the normal last-write-wins rule
+(defaults are stamped `updatedAt=now`, which is always newer than records the
+Worker received from another device weeks or months ago).
+
+### Offline first-boot
+
+If the initial pull fails (device offline, Worker down), the app saves defaults
+locally and sets the `my-planning-needs-initial-pull` flag in `localStorage`.
+While this flag is set, `syncData()` in `src/storage/db.ts` **skips push
+entirely** and **force-applies** all remote records on the next online sync —
+bypassing the LWW check that would otherwise let the phone's newer-timestamped
+defaults win.
+
+### Trade-off (do not "fix" this into a three-way merge)
+
+Any edits made on the device while offline and before the first successful pull
+are **overwritten** by the Worker's data when the device comes online. This is
+intentional. For a personal single-user app the correct recovery from an offline
+first-boot is "Worker wins" — per-field three-way merge with conflict resolution
+is disproportionate for this edge case and would require schema-level change
+tracking that does not exist here.
+
+If you ever need to implement per-field merge, the entry point is the
+`NEEDS_INITIAL_PULL_KEY` flag path in `syncData()` and the
+`pullAndReplaceFromWorker()` function — both in `src/storage/db.ts`.

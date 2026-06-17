@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import 'fake-indexeddb/auto';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { syncData, loadData, saveData, initDB, STORES, _resetForTest } from './db';
+import { syncData, loadData, saveData, initDB, STORES, _resetForTest, pullAndReplaceFromWorker, NEEDS_INITIAL_PULL_KEY } from './db';
 
 // Simulate remote D1 worker
 let serverStore = new Map<string, any>();
@@ -146,13 +146,87 @@ describe('WP-2 Sync Test Suite', () => {
     const data = makeDefaultData();
     await saveData(data);
     await syncData(SYNC_URL, SECRET);
-    
+
     const countBefore = fetchCallCount;
-    
+
     await syncData(SYNC_URL, SECRET);
     expect(fetchCallCount - countBefore).toBe(1); // Only pull
-    
+
     await syncData(SYNC_URL, SECRET);
     expect(fetchCallCount - countBefore).toBe(2);
+  });
+
+  it('fresh device online: pull-first preserves Worker data, defaults do not overwrite', async () => {
+    // Simulate laptop: save data with a distinctive setting and push to Worker
+    const laptop = makeDefaultData();
+    laptop.prefs.theme = 'dark';
+    laptop.featureFlags = { fromLaptop: true };
+    await saveData(laptop);
+    await syncData(SYNC_URL, SECRET);
+    expect(serverStore.size).toBeGreaterThan(0);
+
+    // Simulate fresh device: clear IndexedDB and all localStorage
+    _resetForTest();
+    const db = await initDB();
+    const wipe = db.transaction(Object.values(STORES), 'readwrite');
+    for (const s of Object.values(STORES)) await wipe.objectStore(s).clear();
+    await wipe.done;
+    localStorage.clear();
+
+    // Pull-before-save: unconditional force-apply of Worker records
+    const { ok, error } = await pullAndReplaceFromWorker(SYNC_URL, SECRET);
+    expect(ok).toBe(true);
+    expect(error).toBeNull();
+
+    // IndexedDB now contains the laptop's data
+    const pulled = await loadData();
+    expect(pulled).not.toBeNull();
+    expect(pulled!.prefs.theme).toBe('dark');
+    expect(pulled!.featureFlags).toEqual({ fromLaptop: true });
+
+    // Normal sync after pull: Worker data must not be overwritten
+    localStorage.setItem('my-planning-sync-time', new Date().toISOString());
+    await syncData(SYNC_URL, SECRET);
+
+    const serverPrefs = serverStore.get(`${STORES.SINGLETONS}:prefs`);
+    expect(serverPrefs.payload.value.theme).toBe('dark');
+    const serverFlags = serverStore.get(`${STORES.SINGLETONS}:featureFlags`);
+    expect(serverFlags.payload.value.fromLaptop).toBe(true);
+  });
+
+  it('fresh device offline: flag prevents push, force-applies remote data on first online sync', async () => {
+    // Seed Worker with laptop data using a fixed past timestamp (older than any default)
+    const laptopTime = '2024-01-01T00:00:00.000Z';
+    serverStore.set(`${STORES.SINGLETONS}:prefs`, {
+      id: 'prefs', storeName: STORES.SINGLETONS,
+      updatedAt: laptopTime, deleted: false,
+      payload: { id: 'prefs', value: { theme: 'dark' } }
+    });
+    serverStore.set(`${STORES.SINGLETONS}:schemaVersion`, {
+      id: 'schemaVersion', storeName: STORES.SINGLETONS,
+      updatedAt: laptopTime, deleted: false,
+      payload: { id: 'schemaVersion', value: 26 }
+    });
+
+    // Fresh device offline: defaults saved with updatedAt=now (newer than laptopTime)
+    const fresh = makeDefaultData(); // prefs.theme defaults to 'light'
+    await saveData(fresh);
+    localStorage.setItem(NEEDS_INITIAL_PULL_KEY, 'true');
+
+    // First online sync: flag detected → skip push, force-apply remote
+    const result = await syncData(SYNC_URL, SECRET);
+    expect(result.error).toBeNull();
+    expect(result.pulledIds.length).toBeGreaterThan(0); // signals caller to reload
+
+    // Flag cleared after successful pull
+    expect(localStorage.getItem(NEEDS_INITIAL_PULL_KEY)).toBeNull();
+
+    // Remote data wins (force-apply) despite being older than local defaults
+    const loaded = await loadData();
+    expect(loaded!.prefs.theme).toBe('dark'); // not the default 'light'
+
+    // Worker prefs untouched (push was skipped entirely)
+    const serverPrefs = serverStore.get(`${STORES.SINGLETONS}:prefs`);
+    expect(serverPrefs.payload.value.theme).toBe('dark');
   });
 });
