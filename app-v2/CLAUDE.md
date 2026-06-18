@@ -70,8 +70,10 @@ v1 runtime-Babel single-global-scope app.
   `modules/ModuleDashboard.tsx` (Setup). Each currently renders full-page with its **own back
   button** (`← Back to Calendar`, etc.) — these get removed once AppShell is the only nav.
 - `src/storage/` — `types.ts` (`AppDataV26`, `UserProfile`, entities), `migrations.ts`,
-  `db.ts` (IndexedDB + `syncData`), `data.tsx` (seeds).
+  `db.ts` (IndexedDB + `syncData` + `pullAndReplaceFromWorker` + `NEEDS_INITIAL_PULL_KEY`), `data.tsx` (seeds).
 - `src/ui/widgets.tsx` — `WeatherStrip`, `InboxModal`, `SettingsModal`, `WeeklyResetOverlay`.
+- `functions/_middleware.ts` — Cloudflare Pages Function; HTTP Basic Auth gate (runtime env
+  vars `BASIC_AUTH_USER` / `BASIC_AUTH_PASS`, timing-safe comparison, fail-closed).
 
 ## Controls that must keep their behaviour
 
@@ -89,9 +91,21 @@ must not.
 - **Later phases:** restyle Practice, Intake, Create, Setup one screen at a time against the
   reference.
 
+## Deployment
+
+- **Host:** Cloudflare Pages. Base path `/` (`vite.config.ts`). PWA via `vite-plugin-pwa`.
+- **Auth:** HTTP Basic Auth via `functions/_middleware.ts` (Pages Function). Runtime env vars
+  `BASIC_AUTH_USER` / `BASIC_AUTH_PASS` set in the Cloudflare dashboard — never in source.
+- **Build-time env vars** baked into the JS bundle by Vite (fill empty fields on first boot):
+  `VITE_SYNC_URL`, `VITE_SYNC_SECRET`, `VITE_PROXY_URL`. Set in Pages → Settings → Env vars.
+  Local dev: copy to `app-v2/.env.local` (gitignored). See `DEPLOY.md` for full rotation steps.
+- **Sync first-boot:** `loadOrCreate()` calls `pullAndReplaceFromWorker()` before `saveData()`
+  on a fresh device (empty IndexedDB), so Worker data is never overwritten by local defaults
+  via last-write-wins. If the pull fails (offline), `NEEDS_INITIAL_PULL_KEY` in `localStorage`
+  gates push until the first successful online sync. See `DEPLOY.md` → "Sync architecture".
+
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (21 tests; **cost-guard** lives in
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (30 tests; **cost-guard** lives in
   `src/storage/sync.test.ts` — must stay green). Dev: `npm run dev`. Build: `npm run build`.
 - `persist(nextData)` for all state writes; migrations are non-destructive forever.
-- Base path is `/my-planning/v2/` (see `vite.config.ts`); PWA via `vite-plugin-pwa`.
