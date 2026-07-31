@@ -1095,12 +1095,9 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
   };
 
   // ── Plan-screen header + aside derivations (presentation only) ──
-  const _hr = now.getHours();
-  const greeting = _hr < 12 ? 'Good morning' : _hr < 18 ? 'Good afternoon' : 'Good evening';
   const planEyebrow = isToday
     ? `Today · ${viewDate.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })}`
     : viewDate.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'short' });
-  const planTitle = isToday ? `${greeting}, Stephane` : viewDate.toLocaleDateString(undefined, { weekday: 'long' });
   const currentTemp = (() => {
     if (!weatherCache || !weatherCache.hours || !weatherCache.hours.length) return null;
     const target = now.getTime();
@@ -1192,8 +1189,6 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
         <div className="ph-top">
           <div>
             <div className="eb">{planEyebrow}</div>
-            <h2 className="t">{planTitle}</h2>
-            <div className="p">Your routine, calendar, and the rep that matters today.</div>
           </div>
           {currentTemp != null && (
             <div className="plan-weather" tabIndex={0} aria-label="Weather, next 3 days">
