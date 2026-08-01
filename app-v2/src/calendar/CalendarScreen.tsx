@@ -1485,7 +1485,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
           ))}
           <span className="cal-spacer" />
           <button className="wk-collapse" onClick={() => setWeekendCollapsed(v => !v)} title={weekendCollapsed ? 'Show weekend' : 'Collapse weekend'}>
-            <span className="wk-collapse-ic">{weekendCollapsed ? '›' : '‹'}</span>
+            <span className="wk-collapse-ic">{weekendCollapsed ? '‹' : '›'}</span>
             {weekendCollapsed ? 'Show weekend' : 'Collapse weekend'}
           </button>
         </div>
