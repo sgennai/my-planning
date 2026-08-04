@@ -1,4 +1,8 @@
 {
+  "statusLine": {
+    "type": "command",
+    "command": "echo \"📋 My Planning 2.0  ·  $(git branch --show-current 2>/dev/null || echo detached)\""
+  },
   "hooks": {
     "PreToolUse": [
       {
