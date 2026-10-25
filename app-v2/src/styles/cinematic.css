@@ -1,0 +1,725 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   ROUTINE — cinematic control centre
+   ---------------------------------------------------------------------------
+   Visual contract: cinematic-routine-claude-kit/reference/
+   APPROVED-cinematic-landscape.png (1448x1086, 4:3).
+
+   Geometry is taken from that reference and expressed in fractions rather
+   than the reference's pixels, so it holds at 1024x768 (the iPad 7th gen
+   landscape target, same 4:3 ratio) and scales up on desktop:
+
+     rail 104/1448 -> 7.2%   left column 354/1296 -> 27%   gaps 14 -> ~0.95%
+
+   The dark palette is scoped to `.cin`. The other five sections keep the
+   light surface they already have; only the shell rail is shared, and it
+   carries the dark treatment in both.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.cin {
+  --bg-0: #081220;
+  --bg-1: #0A1424;
+  --panel: #101A2C;
+  --panel-2: #15233A;
+  --panel-3: #1B2B45;
+  --edge: rgba(75, 126, 208, 0.27);
+  --edge-soft: rgba(75, 126, 208, 0.15);
+  --edge-lit: rgba(90, 160, 255, 0.58);
+  --ink-0: #F5F8FF;
+  --ink-1: #C8D6EC;
+  --ink-2: #9DB0CA;
+  --ink-3: #6B7F9C;
+  --blue: #256BFF;
+  --blue-lit: #2C8CFF;
+  --blue-glow: rgba(44, 140, 255, 0.45);
+  --mint: #33D5B1;
+
+  --r-card: 14px;
+  --r-tile: 13px;
+  --gap: 10px;
+
+  /* Two-level shadow: a tight contact shadow plus a soft ambient one. */
+  --lift-1: 0 1px 2px rgba(0, 0, 0, .45);
+  --lift-2: 0 1px 2px rgba(0, 0, 0, .45), 0 10px 28px rgba(0, 0, 0, .40);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 0 calc(var(--gap) + 4px) calc(var(--gap) + 4px);
+  padding-top: max(14px, calc(env(safe-area-inset-top) + 8px));
+  gap: 12px;
+  background: var(--bg-0);
+  color: var(--ink-1);
+  font-family: var(--font-ui);
+  overflow: hidden;
+}
+
+/* Depth: a cool wash top-left and a vignette, so the field is not flat. */
+.cin::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 8% 0%, rgba(38, 88, 170, .22) 0%, transparent 58%),
+    radial-gradient(90% 70% at 100% 100%, rgba(16, 44, 96, .22) 0%, transparent 60%),
+    radial-gradient(140% 120% at 50% 50%, transparent 55%, rgba(0, 0, 0, .45) 100%);
+}
+.cin > * { position: relative; z-index: 1; }
+
+/* ───────────────────────────── HEADER ───────────────────────────────── */
+
+.cin-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  flex: none;
+  padding: 2px 4px 0;
+}
+
+.cin-date {
+  font-size: clamp(22px, 2.55vw, 30px);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--ink-0);
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.cin-sub {
+  margin-top: 5px;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: lowercase;
+  color: var(--ink-3);
+}
+
+/* Seven-day micro-selector; the active day is a glowing blue disc. */
+.cin-week { display: flex; gap: clamp(8px, 1.4vw, 18px); flex: none; }
+.cin-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  min-width: 34px;
+  min-height: 44px;
+  padding: 2px 4px;
+  border: none;
+  background: transparent;
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: 500;
+  position: relative;
+}
+.cin-day::after { content: ""; position: absolute; inset: -4px; }
+.cin-day .dot {
+  width: 13px; height: 13px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(120, 150, 195, .5);
+  background: transparent;
+  transition: background var(--dur-2) var(--ease), border-color var(--dur-2) var(--ease),
+              box-shadow var(--dur-2) var(--ease), transform var(--dur-2) var(--ease);
+}
+.cin-day.has .dot { background: rgba(70, 130, 220, .38); border-color: rgba(100, 160, 240, .6); }
+/* Today is marked by its label, not by a second glowing disc. */
+.cin-day.today { color: var(--ink-1); }
+.cin-day.today .dot { border-color: rgba(150, 190, 240, .75); }
+.cin-day.on { color: var(--ink-0); font-weight: 700; }
+.cin-day.on .dot {
+  background: var(--blue-lit);
+  border-color: var(--blue-lit);
+  transform: scale(1.18);
+  box-shadow: 0 0 0 4px rgba(44, 140, 255, .18), 0 0 14px 2px var(--blue-glow);
+}
+
+.cin-gear {
+  width: 34px; height: 34px;
+  display: grid; place-items: center;
+  border: none; background: transparent;
+  border-radius: 999px;
+  color: var(--ink-3);
+  position: relative;
+}
+.cin-gear::after { content: ""; position: absolute; inset: -5px; }
+.cin-gear svg { width: 17px; height: 17px; }
+.cin-gear:active { color: var(--ink-1); background: rgba(255,255,255,.06); }
+
+/* ───────────────────────────── BODY ─────────────────────────────────── */
+
+.cin-body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 27fr 73fr;
+  gap: var(--gap);
+}
+
+.cin-left {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  /* hero 612 : podcast 284 in the reference */
+  grid-template-rows: 2.15fr 1fr;
+  gap: var(--gap);
+}
+
+/* ─────────────────── HERO: progress instrument + week ───────────────── */
+
+.cin-hero {
+  position: relative;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--r-card);
+  border: 1px solid var(--edge);
+  background: linear-gradient(180deg, #16294a 0%, #112039 42%, #0C1930 100%);
+  box-shadow: var(--lift-2);
+  overflow: hidden;
+}
+
+/* The mountain/evening-sky plate sits in the lower half, behind the ring. */
+.cin-hero-plate {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 62%;
+  overflow: hidden;
+}
+.cin-hero-plate img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 42%; }
+.cin-hero-plate::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #112039 0%, rgba(17,32,57,.62) 22%, rgba(12,25,48,.30) 58%, rgba(10,20,36,.72) 100%);
+}
+
+.cin-ring-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 8px 10px 0;
+}
+.cin-ring { position: relative; width: min(100%, 220px); aspect-ratio: 1; }
+.cin-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); display: block; }
+.cin-ring .track { stroke: rgba(130, 170, 230, .17); }
+.cin-ring .arc {
+  stroke: url(#cinArc);
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgba(44, 140, 255, .55));
+  /* The sweep is the completion feedback; 380ms sits in the brief's band. */
+  transition: stroke-dashoffset 380ms var(--ease);
+}
+.cin-ring-read {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+.cin-count {
+  font-size: clamp(30px, 4.4vw, 46px);
+  font-weight: 700;
+  color: var(--ink-0);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.cin-count .of { font-size: .56em; font-weight: 500; color: var(--ink-2); }
+.cin-count-label {
+  margin-top: 7px;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--ink-2);
+  text-align: center;
+  line-height: 1.5;
+}
+
+.cin-motto {
+  position: relative;
+  padding: 0 18px 12px;
+  text-align: center;
+  font-size: 12.5px;
+  font-style: italic;
+  line-height: 1.45;
+  color: rgba(205, 222, 245, .82);
+  flex: none;
+}
+
+/* Weekly graph, inside the hero under a hairline. */
+.cin-weekly {
+  position: relative;
+  flex: none;
+  padding: 11px 14px 12px;
+  border-top: 1px solid rgba(120, 160, 220, .16);
+  background: linear-gradient(180deg, rgba(8,16,30,.55), rgba(8,16,30,.78));
+}
+.cin-weekly-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 9px;
+}
+.cin-weekly-title {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.17em;
+  color: var(--ink-2);
+}
+.cin-weekly-avg { font-size: 11.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.cin-weekly-avg b { color: var(--ink-0); font-weight: 700; }
+
+.cin-chart { position: relative; display: flex; align-items: flex-end; gap: 4px; height: 76px; }
+.cin-grid { position: absolute; inset: 0 30px 15px 0; pointer-events: none; }
+.cin-grid i {
+  position: absolute;
+  left: 0; right: 0;
+  border-top: 1px dashed rgba(130, 170, 230, .17);
+}
+.cin-grid i span {
+  position: absolute;
+  right: -30px;
+  top: -6px;
+  font-size: 8.5px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.cin-bars { display: flex; align-items: flex-end; gap: clamp(3px, .5vw, 7px); flex: 1; height: 100%; padding-right: 30px; }
+.cin-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; min-width: 0; }
+.cin-bar {
+  width: 100%;
+  max-width: 13px;
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  border-radius: 999px;
+  background: rgba(120, 160, 220, .10);
+  overflow: hidden;
+}
+.cin-bar > i {
+  display: block;
+  width: 100%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #4D9BFF 0%, #2563EB 58%, #1A3F9E 100%);
+  box-shadow: 0 0 8px rgba(44, 140, 255, .35);
+  transition: height 380ms var(--ease);
+}
+.cin-bar-col.on .cin-bar > i {
+  background: linear-gradient(180deg, #5FE8CB 0%, #33D5B1 60%, #1B8E77 100%);
+  box-shadow: 0 0 9px rgba(51, 213, 177, .4);
+}
+.cin-bar-label { font-size: 9px; color: var(--ink-3); }
+.cin-bar-col.on .cin-bar-label { color: var(--ink-0); font-weight: 700; }
+
+/* ───────────────────────── PODCAST PANEL ────────────────────────────── */
+
+.cin-pod {
+  position: relative;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 13px 15px 14px;
+  border-radius: var(--r-card);
+  border: 1px solid var(--edge);
+  box-shadow: var(--lift-2);
+  overflow: hidden;
+  text-align: left;
+  background: var(--panel);
+  color: inherit;
+  width: 100%;
+  transition: transform var(--dur-release) var(--spring), border-color var(--dur-2) var(--ease),
+              box-shadow var(--dur-2) var(--ease);
+}
+.cin-pod:active { transform: scale(.975); transition-duration: var(--dur-press); }
+.cin-pod-plate { position: absolute; inset: 0; }
+.cin-pod-plate img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 45%; }
+.cin-pod-plate::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(105deg, rgba(8,16,30,.90) 0%, rgba(8,16,30,.62) 46%, rgba(8,16,30,.34) 100%);
+}
+.cin-pod > * { position: relative; }
+.cin-pod-eyebrow {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--ink-2);
+}
+.cin-pod-title {
+  margin-top: 6px;
+  font-size: clamp(15px, 1.75vw, 19px);
+  font-weight: 700;
+  color: var(--ink-0);
+  letter-spacing: -0.015em;
+  line-height: 1.18;
+}
+.cin-pod-sub { margin-top: 3px; font-size: 11.5px; color: var(--ink-2); }
+.cin-pod-foot { display: flex; align-items: center; gap: 11px; margin-top: 10px; padding-left: 51px; }
+
+.cin-play {
+  position: absolute;
+  left: 15px;
+  bottom: 14px;
+  z-index: 2;
+  width: 40px; height: 40px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: none;
+  background: var(--blue);
+  color: #fff;
+  box-shadow: 0 0 0 5px rgba(37, 107, 255, .16), 0 5px 16px rgba(0, 0, 0, .45);
+  transition: transform var(--dur-release) var(--spring), background var(--dur-1) var(--ease);
+}
+.cin-play::after { content: ""; position: absolute; inset: -3px; }
+.cin-play svg { width: 17px; height: 17px; margin-left: 2px; }
+.cin-play:active { transform: scale(.92); transition-duration: var(--dur-press); background: var(--blue-lit); }
+
+/* Decorative waveform. It is not a scrubber and carries no playback state. */
+.cin-wave { display: flex; align-items: center; gap: 2px; height: 26px; flex: 1; min-width: 0; overflow: hidden; }
+.cin-wave i {
+  flex: 1;
+  min-width: 1.5px;
+  max-width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(150, 200, 255, .95), rgba(60, 120, 220, .55));
+}
+
+/* ───────────────────────── ACTIVITY MATRIX ──────────────────────────── */
+
+.cin-matrix {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  gap: var(--gap);
+  /* Graceful overflow at large text sizes rather than clipped activities. */
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ───────────────────────────── TILE ─────────────────────────────────── */
+
+.cin-cell { position: relative; min-width: 0; min-height: 0; display: flex; }
+
+.cin-tile {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0;
+  border: 1px solid var(--edge-soft);
+  border-radius: var(--r-tile);
+  background: var(--panel);
+  box-shadow: var(--lift-1);
+  overflow: hidden;
+  text-align: left;
+  color: inherit;
+  /* Press-in is quick; the release is a spring. */
+  transition:
+    transform var(--dur-release) var(--spring),
+    border-color 220ms var(--ease),
+    box-shadow 220ms var(--ease);
+}
+.cin-tile:active {
+  transform: scale(.975);
+  transition-duration: var(--dur-press);
+  border-color: var(--edge-lit);
+  box-shadow: 0 1px 2px rgba(0,0,0,.55);
+}
+
+/* The photographic strip occupies the upper part and fades into the copy. */
+.cin-photo { position: absolute; left: 0; right: 0; top: 0; height: 62%; overflow: hidden; }
+.cin-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cin-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(10,20,36,.12) 0%, rgba(13,24,42,.30) 42%, rgba(16,26,44,.86) 80%, var(--panel) 100%);
+}
+
+.cin-tile-body { position: relative; padding: 0 11px 11px; }
+.cin-tile-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.cin-tile-icon { color: var(--ink-0); opacity: .95; flex: none; filter: drop-shadow(0 1px 3px rgba(0,0,0,.6)); }
+.cin-tile-icon svg { width: 21px; height: 21px; }
+
+.cin-tile-title {
+  font-size: clamp(12.5px, 1.35vw, 15px);
+  font-weight: 650;
+  color: var(--ink-0);
+  letter-spacing: -0.012em;
+  line-height: 1.22;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cin-tile-meta {
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--ink-2);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* A clock-bearing activity states its time in blue, as the reference does. */
+.cin-time { display: inline-flex; align-items: center; gap: 5px; color: var(--blue-lit); font-weight: 600; }
+.cin-time svg { width: 13px; height: 13px; }
+
+.cin-chip {
+  display: inline-block;
+  margin-top: 5px;
+  padding: 2.5px 7px;
+  border-radius: 5px;
+  background: rgba(150, 175, 210, .16);
+  color: var(--ink-2);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+/* ── Status mark ─────────────────────────────────────────────────────── */
+.cin-status {
+  position: relative;
+  flex: none;
+  width: 27px; height: 27px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1.75px solid rgba(160, 190, 230, .55);
+  background: rgba(10, 20, 36, .42);
+  color: transparent;
+  transition: background 220ms var(--ease), border-color 220ms var(--ease), box-shadow 320ms var(--ease);
+}
+.cin-status svg { width: 15px; height: 15px; }
+.cin-status .mark { stroke-dasharray: 24; stroke-dashoffset: 24; }
+
+.cin-tile.done { border-color: var(--edge-lit); }
+.cin-tile.done .cin-status,
+.cin-pod.done .cin-status {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(37, 107, 255, .16), 0 0 14px 2px var(--blue-glow);
+}
+.cin-tile.done .cin-status .mark,
+.cin-pod.done .cin-status .mark {
+  animation: cin-draw 190ms var(--ease) 40ms forwards;
+}
+@keyframes cin-draw { to { stroke-dashoffset: 0; } }
+
+/* A single glow pulse on the moment of completion — not a loop. */
+.cin-tile.done .cin-status::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 999px;
+  border: 1px solid rgba(80, 150, 255, .7);
+  animation: cin-pulse 520ms var(--ease) forwards;
+}
+@keyframes cin-pulse {
+  0%   { opacity: .85; transform: scale(.82); }
+  70%  { opacity: .25; transform: scale(1.16); }
+  100% { opacity: 0;   transform: scale(1.26); }
+}
+
+/* The acknowledgement sweep: a translucent cobalt light crosses the tile
+   once. The photograph stays visible; nothing is painted opaque over it. */
+.cin-tile.done .cin-sweep,
+.cin-pod.done .cin-sweep {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(104deg, transparent 20%, rgba(60, 140, 255, .26) 48%, transparent 74%);
+  animation: cin-sweep 620ms var(--ease) forwards;
+}
+@keyframes cin-sweep {
+  from { transform: translateX(-62%); opacity: 0; }
+  35%  { opacity: 1; }
+  to   { transform: translateX(62%); opacity: 0; }
+}
+
+/* A completed tile keeps its photo but settles back a touch. */
+.cin-tile.done .cin-photo img,
+.cin-pod.done .cin-pod-plate img { opacity: .82; transition: opacity 300ms var(--ease); }
+.cin-tile.done .cin-tile-title { color: var(--ink-1); }
+
+.cin-tile.skipped { opacity: .62; border-style: dashed; }
+
+/* Partial group: a count rather than a tick. */
+.cin-status.part {
+  border-color: var(--blue-lit);
+  background: rgba(37, 107, 255, .2);
+  color: #CFE2FF;
+  font-size: 9.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Secondary action: a real control, kept clear of the status mark ──── */
+.cin-more {
+  position: absolute;
+  top: 7px; right: 7px;
+  z-index: 2;
+  width: 26px; height: 26px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 7px;
+  background: rgba(8, 16, 30, .5);
+  color: rgba(225, 236, 252, .85);
+  transition: background var(--dur-1) var(--ease);
+}
+.cin-more::after { content: ""; position: absolute; inset: -9px; }
+.cin-more svg { width: 15px; height: 15px; }
+.cin-more:active { background: rgba(37, 107, 255, .55); }
+
+/* ── Entry stagger: first open only ──────────────────────────────────── */
+.cin-matrix.intro .cin-cell,
+.cin-body.intro .cin-left > * {
+  opacity: 0;
+  animation: cin-in 300ms var(--ease) forwards;
+  animation-delay: calc(var(--i) * 20ms);
+}
+@keyframes cin-in {
+  from { opacity: 0; transform: translateY(7px) scale(.993); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ── Day change: a light content transition ──────────────────────────── */
+.cin-body { animation: cin-day 190ms var(--ease); }
+@keyframes cin-day { from { opacity: 0; } to { opacity: 1; } }
+
+/* ── Photographic placeholder ────────────────────────────────────────── */
+/* Used only while a real asset is absent. Deliberately composed — a lit
+   plate with the activity's own mark — so a missing photograph reads as
+   art direction rather than a broken image. */
+.cin-plate {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(90% 70% at 26% 14%, var(--plate-lit, rgba(70,120,200,.42)) 0%, transparent 58%),
+    radial-gradient(70% 60% at 82% 88%, rgba(10, 24, 48, .55) 0%, transparent 70%),
+    linear-gradient(158deg, var(--plate-a, #1B3254) 0%, var(--plate-b, #101E36) 60%, #0A1424 100%);
+}
+.cin-plate svg { width: 42%; height: 42%; max-width: 68px; color: rgba(205, 226, 255, .30); }
+.cin-plate::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(130% 110% at 50% 50%, transparent 40%, rgba(5, 12, 24, .5) 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cin-tile, .cin-pod, .cin-play, .cin-ring .arc, .cin-bar > i { transition: none; }
+  .cin-tile.done .cin-sweep, .cin-tile.done .cin-status::after,
+  .cin-pod.done .cin-sweep { animation: none; display: none; }
+  .cin-matrix.intro .cin-cell, .cin-body.intro .cin-left > * { opacity: 1; animation: none; }
+  .cin-status .mark { stroke-dashoffset: 0; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PORTRAIT — 768 x 1024
+   ---------------------------------------------------------------------------
+   The same dark cinematic system, re-composed for vertical reading: the
+   instrument and the week become one horizontal module across the top, the
+   podcast keeps its media panel at reduced height, and the activities fall
+   into two columns. Navigation returns to the floating pill at the foot.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (orientation: portrait) {
+  .cin { padding-top: max(14px, calc(env(safe-area-inset-top) + 10px)); }
+  .cin-play { left: auto; right: 14px; bottom: 50%; transform: translateY(50%); }
+  .cin-pod-foot { padding-left: 0; padding-right: 51px; }
+
+  .cin-head { padding-right: 0; }
+  .cin-date { font-size: clamp(20px, 3.6vw, 27px); }
+  .cin-week { gap: clamp(3px, 1vw, 9px); }
+  .cin-day { min-width: 28px; }
+  .cin-gear { align-self: center; }
+
+  .cin-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    gap: var(--gap);
+  }
+
+  /* The instrument and the week sit side by side in one low band. */
+  .cin-left {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+    gap: var(--gap);
+  }
+  .cin-hero { flex-direction: row; align-items: stretch; }
+  .cin-hero-plate { height: 100%; width: 46%; right: auto; }
+  .cin-hero-plate::after {
+    background: linear-gradient(90deg, rgba(17,32,57,.30) 0%, rgba(14,27,48,.80) 72%, var(--panel) 100%);
+  }
+  .cin-ring-wrap { flex: none; width: 46%; padding: 12px 6px; }
+  .cin-ring { width: min(100%, 132px); }
+  .cin-count { font-size: 27px; }
+  .cin-count-label { font-size: 8px; margin-top: 5px; }
+  .cin-motto { display: none; }
+  .cin-weekly {
+    flex: 1;
+    border-top: none;
+    border-left: 1px solid rgba(120, 160, 220, .16);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 10px 12px;
+  }
+  .cin-chart { height: 62px; }
+
+  .cin-pod { flex-direction: row; align-items: center; gap: 12px; padding: 12px 14px; }
+  .cin-pod-title { font-size: 16px; margin-top: 3px; }
+  .cin-pod-foot { margin-top: 0; flex: 1; justify-content: flex-end; }
+  .cin-pod-foot .cin-wave { max-width: 120px; }
+
+  /* Six rows of twelve tiles have to clear 1024px with the header, the
+     instrument band and the floating nav all taking their share — hence the
+     tighter floor here than in landscape. Below it the matrix scrolls
+     rather than squeezing the type. */
+  .cin-matrix {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: minmax(92px, 1fr);
+  }
+  /* Three-across spans have no meaning in two columns. */
+  .cin-cell { grid-column: auto !important; }
+  .cin-photo { height: 50%; }
+  .cin-tile-body { padding: 0 10px 9px; }
+  .cin-tile-row { margin-bottom: 4px; }
+  .cin-tile-icon svg { width: 19px; height: 19px; }
+  .cin-status { width: 25px; height: 25px; }
+  .cin-tile-title { font-size: 13.5px; }
+  .cin-chip { margin-top: 3px; }
+}
+
+/* Portrait on a phone: one column, and the grid scrolls. */
+@media (orientation: portrait) and (max-width: 560px) {
+  .cin-left { grid-template-columns: minmax(0, 1fr); }
+  .cin-matrix { grid-template-columns: minmax(0, 1fr); grid-auto-rows: minmax(96px, auto); }
+  .cin-head { flex-direction: column; gap: 10px; }
+  .cin-week { align-self: flex-start; }
+}

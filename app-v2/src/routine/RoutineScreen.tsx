@@ -1,10 +1,13 @@
-// The Routine dashboard — the app's default landing page.
+// The Routine dashboard — cinematic control centre.
 //
-// Every activity for the selected day, including the two optional ones, on one
-// screen with no scrolling at iPad size. The whole tile is the completion
-// control: one tap marks it done, another undoes it. Nothing here depends on
-// hover, and the day's activities are derived from the recurrence rules for
-// the current Europe/Paris date, so the dashboard rolls over on its own.
+// Visual contract: cinematic-routine-claude-kit/reference/
+// APPROVED-cinematic-landscape.png. Landscape is the asymmetric bento of
+// that reference: a left analytical column (the daily instrument with its
+// weekly graph, and the podcast panel) beside a dense three-column matrix
+// of photographic activity tiles.
+//
+// The whole tile completes an activity in one tap. Secondary controls are
+// separate real buttons, kept clear of the status mark.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { RoutineActivity } from './model';
 import {
@@ -12,24 +15,40 @@ import {
   weekProgress, toggleActivity, isOverdue,
   type ResolvedActivity,
 } from './engine';
-import {
-  dayKeyOf, addDaysKey, dayNameShort, type DayKey,
-} from './dates';
-import { ActivityIcon } from './activity-icons';
+import { dayKeyOf, dayNameShort, type DayKey } from './dates';
 import { dayParts, metaFor } from './format';
+import { ActivityIcon } from './activity-icons';
+import { ActivityPhoto } from './ActivityPhoto';
 import { RoutineSettings } from './RoutineSettings';
-import { useClock } from '../ui/useClock';
-import { IconChevronLeft, IconChevronRight, IconCog, IconTimer, IconLink } from '../ui/icons';
 import { RoutineTimer } from './RoutineTimer';
+import { useClock } from '../ui/useClock';
+import { IconCog, IconClock, IconEllipsis, IconPlay } from '../ui/icons';
 
 const EMPTY: never[] = [];
+const PODCAST_ID = 'ra-podcast';
 
 function useMinuteClock(): Date {
   const minute = useClock(60000);
   return useMemo(() => new Date(minute), [minute]);
 }
 
-// ── Formatting ──────────────────────────────────────────────────────────
+function Check() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.1" strokeLinecap="round" strokeLinejoin="round">
+      <path className="mark" d="m5 12.5 4.5 4.5L19 7" />
+    </svg>
+  );
+}
+
+/** Status mark shared by the tiles and the podcast panel. */
+function Status({ row }: { row: ResolvedActivity }) {
+  const partial = row.children.length > 0 && row.childrenDone > 0 && !row.done;
+  return (
+    <span className={`cin-status${partial ? ' part' : ''}`} aria-hidden>
+      {row.done ? <Check /> : partial ? `${row.childrenDone}/${row.children.length}` : null}
+    </span>
+  );
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TILE
@@ -38,132 +57,195 @@ function useMinuteClock(): Date {
 interface TileProps {
   row: ResolvedActivity;
   index: number;
-  wide: boolean;
+  span: number;
   date: DayKey;
   today: DayKey;
   now: Date;
   onToggle: (a: RoutineActivity) => void;
-  onOpenTimer: (a: RoutineActivity) => void;
+  onSecondary: (a: RoutineActivity) => void;
 }
 
-function Tile({ row, index, wide, date, today, now, onToggle, onOpenTimer }: TileProps) {
+function Tile({ row, index, span, date, today, now, onToggle, onSecondary }: TileProps) {
   const a = row.activity;
   const late = isOverdue(row, date, today, now);
-  const partial = row.children.length > 0 && row.childrenDone > 0 && !row.done;
   const optional = a.required === false;
-  const hasAux = !!a.timerSec || !!a.link?.url;
-  // A stack of three or more parts has content the title cannot carry; it
-  // takes a double cell in landscape and spends it listing them. Two-part
-  // groups are already named in full by their title ("Creatine + Vitamin D")
-  // and would only be using the width as decoration.
-  const listsParts = row.children.length >= 3;
-  const meta = metaFor(a);
-  // The parts list is only rendered where the tile has the double cell to
-  // hold it; in portrait the tile is single-width and would just ellipsis
-  // it, so the timing line is the better fact to show. Both are emitted and
-  // CSS picks — no media query in JS to drift out of sync with the layout.
-  const parts = listsParts ? row.children.map(c => c.title).join(', ') : null;
-
-  const cls = [
-    'rt-tile',
-    row.done ? 'is-done' : '',
-    row.skipped ? 'is-skipped' : '',
-  ].filter(Boolean).join(' ');
+  const timed = a.timing.type === 'fixed';
+  const parts = row.children.length >= 3 ? row.children.map(c => c.title).join(', ') : null;
+  const meta = parts || metaFor(a);
+  // A timer or a link is a genuinely available secondary action; nothing
+  // else earns the control, so the tile shows none.
+  const secondary = !!a.timerSec || !!a.link?.url;
 
   return (
     <div
-      className="rt-cell rt-tile-cell"
-      data-wide={wide ? 'true' : undefined}
-      data-span={listsParts ? '2' : undefined}
-      data-optional={optional ? 'true' : undefined}
-      data-aux={hasAux ? 'true' : undefined}
-      style={{ '--i': index } as React.CSSProperties}
+      className="cin-cell"
+      style={{ '--i': index, gridColumn: span > 1 ? `span ${span}` : undefined } as React.CSSProperties}
     >
       <button
-        className={cls}
+        className={`cin-tile${row.done ? ' done' : ''}${row.skipped ? ' skipped' : ''}`}
         onClick={() => onToggle(a)}
         aria-pressed={row.done}
         aria-label={`${a.title}${meta ? `, ${meta}` : ''}${optional ? ', optional' : ''}. ${row.done ? 'Completed' : 'Not completed'}.`}
       >
-        <span className="rt-tile-icon" aria-hidden><ActivityIcon name={a.icon} /></span>
+        <ActivityPhoto className="cin-photo" name={a.photo} icon={a.icon} />
+        {row.done && <span className="cin-sweep" aria-hidden />}
 
-        <span className="rt-tile-text">
-          <span className="rt-tile-title">
-            <span className="rt-tile-name">{a.title}</span>
-            {optional && <span className="rt-chip">Optional</span>}
+        <span className="cin-tile-body">
+          <span className="cin-tile-row">
+            <span className="cin-tile-icon" aria-hidden><ActivityIcon name={a.icon} /></span>
+            <Status row={row} />
           </span>
-          {(meta || late || row.skipped) && (
-            <span className="rt-tile-meta">
-              {row.skipped ? 'Set aside' : (
-                <>
-                  {parts && <span className="rt-parts">{parts}</span>}
-                  <span className={parts ? 'rt-meta-alt' : undefined}>{meta}</span>
-                </>
-              )}
-              {late && <span className="late">overdue</span>}
+          <span className="cin-tile-title">{a.title}</span>
+          {(meta || late) && (
+            <span className="cin-tile-meta">
+              {timed ? (
+                <span className="cin-time"><IconClock />{(a.timing as { start: string }).start}</span>
+              ) : (row.skipped ? 'Set aside' : meta)}
+              {late && <span style={{ color: 'var(--mint)' }}> · due</span>}
             </span>
           )}
-        </span>
-
-        <span className={`rt-status${partial ? ' is-part' : ''}`} aria-hidden>
-          {row.done ? (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-              <path className="mark" d="m5 12.5 4.5 4.5L19 7" />
-            </svg>
-          ) : partial ? `${row.childrenDone}/${row.children.length}` : null}
+          {optional && <span className="cin-chip">OPTIONAL</span>}
         </span>
       </button>
 
-      {/* Secondary controls sit outside the completion button so a tap can
-          never be ambiguous about what it does. */}
-      {!!a.timerSec && (
+      {secondary && (
         <button
-          className="rt-tile-aux"
-          onClick={() => onOpenTimer(a)}
-          aria-label={`Start the timer for ${a.title}`}
-        ><IconTimer /></button>
-      )}
-      {!a.timerSec && a.link?.url && (
-        <a
-          className="rt-tile-aux"
-          href={a.link.url}
-          target="_blank"
-          rel="noreferrer noopener"
-          aria-label={a.link.label || `Open the link for ${a.title}`}
-        ><IconLink /></a>
+          className="cin-more"
+          onClick={() => onSecondary(a)}
+          aria-label={a.timerSec ? `Start the timer for ${a.title}` : (a.link?.label || `Open the link for ${a.title}`)}
+        ><IconEllipsis /></button>
       )}
     </div>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// PROGRESS RING
+// HERO — the daily instrument and the week
 // ═══════════════════════════════════════════════════════════════════════════
 
-function ProgressRing({ done, total }: { done: number; total: number }) {
-  const R = 23;
+function Hero({ done, total, week, viewDate }: {
+  done: number; total: number;
+  week: ReturnType<typeof weekProgress>;
+  viewDate: DayKey;
+}) {
+  const R = 86;
   const C = 2 * Math.PI * R;
   const pct = total === 0 ? 0 : done / total;
+
+  // The week's average is over days that have actually come round.
+  const elapsed = week.days.filter(d => !d.isFuture || d.completed > 0);
+  const avgDone = elapsed.length ? Math.round(elapsed.reduce((s, d) => s + d.completed, 0) / elapsed.length) : 0;
+  const avgTotal = elapsed.length ? Math.round(elapsed.reduce((s, d) => s + d.total, 0) / elapsed.length) : 0;
+
   return (
-    <div className="rt-ring-group">
-      <div className="rt-ring">
-        <svg viewBox="0 0 54 54" aria-hidden>
-          <circle className="track" cx="27" cy="27" r={R} fill="none" strokeWidth="6" />
-          <circle
-            className="fill"
-            cx="27" cy="27" r={R}
-            fill="none"
-            strokeWidth="6"
-            strokeDasharray={C}
-            strokeDashoffset={C * (1 - pct)}
-          />
-        </svg>
+    <section className="cin-hero" style={{ '--i': 0 } as React.CSSProperties}>
+      <ActivityPhoto className="cin-hero-plate" name="summit" icon="target" />
+
+      <div className="cin-ring-wrap">
+        <div className="cin-ring">
+          <svg viewBox="0 0 200 200" aria-hidden>
+            <defs>
+              <linearGradient id="cinArc" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#5FB0FF" />
+                <stop offset="55%" stopColor="#2C8CFF" />
+                <stop offset="100%" stopColor="#1E5BE0" />
+              </linearGradient>
+            </defs>
+            <circle className="track" cx="100" cy="100" r={R} fill="none" strokeWidth="13" />
+            <circle
+              className="arc"
+              cx="100" cy="100" r={R}
+              fill="none"
+              strokeWidth="13"
+              strokeDasharray={C}
+              strokeDashoffset={C * (1 - pct)}
+            />
+          </svg>
+          <div className="cin-ring-read">
+            <div className="cin-count">{done}<span className="of"> / {total}</span></div>
+            <div className="cin-count-label">TODAY<br />COMPLETED</div>
+          </div>
+        </div>
       </div>
-      <div className="rt-ring-label">
-        <span className="rt-ring-count">{done} / {total}</span>
-        <span className="rt-ring-word">completed</span>
+
+      <p className="cin-motto">Small things, done daily.</p>
+
+      <div className="cin-weekly">
+        <div className="cin-weekly-top">
+          <span className="cin-weekly-title">YOUR WEEK</span>
+          <span className="cin-weekly-avg"><b>{avgDone}</b> / {avgTotal} avg</span>
+        </div>
+        <div className="cin-chart">
+          <div className="cin-grid" aria-hidden>
+            <i style={{ top: 0 }}><span>100%</span></i>
+            <i style={{ top: '50%' }}><span>50%</span></i>
+            <i style={{ bottom: 0 }}><span>0%</span></i>
+          </div>
+          <div className="cin-bars">
+            {week.days.map(d => (
+              <div key={d.key} className={`cin-bar-col${d.key === viewDate ? ' on' : ''}`}>
+                <span className="cin-bar">
+                  <i style={{ height: `${Math.max(d.pct, d.pct > 0 ? 7 : 0)}%` }} />
+                </span>
+                <span className="cin-bar-label">{dayNameShort(d.key).slice(0, 2)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PODCAST PANEL — the daily Podcast activity, as its own media card
+// ═══════════════════════════════════════════════════════════════════════════
+
+// A fixed decorative profile: the waveform is artwork, not a scrubber, and
+// must never imply a position in an episode.
+const WAVE = [28, 52, 38, 70, 46, 88, 60, 96, 54, 76, 40, 64, 34, 80, 48, 92, 58, 72, 42, 60, 30, 50, 36, 66, 44, 84, 52, 38, 28, 46];
+
+function PodcastPanel({ row, onToggle }: { row: ResolvedActivity; onToggle: (a: RoutineActivity) => void }) {
+  const a = row.activity;
+  const link = a.link?.url;
+  return (
+    <section className="cin-cell" style={{ '--i': 1 } as React.CSSProperties}>
+      <button
+        className={`cin-pod${row.done ? ' done' : ''}`}
+        onClick={() => onToggle(a)}
+        aria-pressed={row.done}
+        aria-label={`${a.title}. ${row.done ? 'Completed' : 'Not completed'}.`}
+      >
+        <ActivityPhoto className="cin-pod-plate" name="podcast" icon="headphones" />
+        {row.done && <span className="cin-sweep" aria-hidden />}
+
+        <div>
+          <div className="cin-pod-eyebrow">PODCAST</div>
+          {/* No episode is connected, so the panel says what it is rather
+              than inventing a title, a duration or a playback position. */}
+          <div className="cin-pod-title">{a.title}</div>
+          <div className="cin-pod-sub">{a.description || 'Listen today'}</div>
+        </div>
+
+        <div className="cin-pod-foot">
+          <span className="cin-wave" aria-hidden>
+            {WAVE.map((h, i) => <i key={i} style={{ height: `${h}%` }} />)}
+          </span>
+          <Status row={row} />
+        </div>
+      </button>
+
+      {link && (
+        <a
+          className="cin-play"
+          href={link}
+          target="_blank"
+          rel="noreferrer noopener"
+          aria-label={a.link?.label || 'Open podcasts'}
+          onClick={e => e.stopPropagation()}
+        ><IconPlay /></a>
+      )}
+    </section>
   );
 }
 
@@ -189,16 +271,12 @@ export function RoutineScreen({ data, onPersist }: Props) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [timerFor, setTimerFor] = useState<RoutineActivity | null>(null);
 
-  // The entrance stagger plays once, when the dashboard first opens — not on
-  // every day change, and never again while it sits on the desk all day.
   const [intro, setIntro] = useState(true);
   useEffect(() => {
     const id = window.setTimeout(() => setIntro(false), 900);
     return () => window.clearTimeout(id);
   }, []);
 
-  // Follow the Paris date when it rolls over, unless the user has
-  // deliberately navigated to another day.
   const prevToday = useRef(today);
   useEffect(() => {
     if (prevToday.current !== today) {
@@ -212,8 +290,6 @@ export function RoutineScreen({ data, onPersist }: Props) {
   const log: unknown[] = useMemo(() => data?.progressLog || EMPTY, [data?.progressLog]);
   const index = useMemo(() => buildCompletionIndex(log), [log]);
 
-  // Scheduled first, optional last, each in its configured order — so the
-  // optional pair always lands at the end of the grid without being hidden.
   const rows: ResolvedActivity[] = useMemo(() => {
     const all = activitiesForDay(activities, viewDate, 'routine')
       .map(a => resolveActivity(a, index, viewDate));
@@ -222,9 +298,27 @@ export function RoutineScreen({ data, onPersist }: Props) {
     return [...required, ...optional];
   }, [activities, index, viewDate]);
 
+  // Progress counts every scheduled activity, the podcast included — only
+  // its presentation moves to the left column.
   const progress = useMemo(() => dayProgressFromRows(rows), [rows]);
   const week = useMemo(
     () => weekProgress(activities, index, viewDate, today), [activities, index, viewDate, today]);
+
+  const podcastRow = rows.find(r => r.activity.id === PODCAST_ID) || null;
+  const tiles = useMemo(() => rows.filter(r => r.activity.id !== PODCAST_ID), [rows]);
+
+  // Short days leave gaps in a three-column matrix; the last tiles widen so
+  // the composition closes instead of trailing off into empty cells.
+  const spans = useMemo(() => {
+    const n = tiles.length;
+    const rem = n % 3;
+    return tiles.map((_, i) => {
+      if (rem === 0) return 1;
+      if (rem === 1 && i === n - 1) return 3;
+      if (rem === 2 && i === n - 2) return 2;
+      return 1;
+    });
+  }, [tiles]);
 
   const persistLog = useCallback((nextLog: unknown[]) => {
     onPersist({ ...data, progressLog: nextLog, lastModified: new Date().toISOString() });
@@ -234,6 +328,11 @@ export function RoutineScreen({ data, onPersist }: Props) {
     persistLog(toggleActivity(log, a, viewDate, index));
   }, [log, viewDate, index, persistLog]);
 
+  const handleSecondary = useCallback((a: RoutineActivity) => {
+    if (a.timerSec) { setTimerFor(a); return; }
+    if (a.link?.url) window.open(a.link.url, '_blank', 'noopener,noreferrer');
+  }, []);
+
   const saveActivities = useCallback((next: RoutineActivity[]) => {
     onPersist({ ...data, routineActivities: next, lastModified: new Date().toISOString() });
   }, [data, onPersist]);
@@ -241,75 +340,55 @@ export function RoutineScreen({ data, onPersist }: Props) {
   const parts = dayParts(viewDate);
 
   return (
-    <div className="rt">
-      <header className="rt-head">
-        <div className="rt-head-left">
-          <div className="ds-eyebrow rt-brand">My Planning</div>
-          <h1 className="rt-date">
-            {parts.name}
-            <button className="rt-gear" onClick={() => setSettingsOpen(true)} aria-label="Routine settings"><IconCog /></button>
-          </h1>
-          <div className="rt-date-sub">
-            {parts.rest}
-            {viewDate !== today && (
-              <button className="rt-today-btn" onClick={() => setViewDate(today)}>Today</button>
-            )}
-          </div>
+    <div className="cin">
+      <header className="cin-head">
+        <div>
+          <h1 className="cin-date">{parts.name}, {parts.rest.replace(/ \d{4}$/, '')}</h1>
+          <div className="cin-sub">make today count</div>
         </div>
 
-        <div className="rt-progress">
-          <ProgressRing done={progress.completed} total={progress.total} />
-          <button className="rt-step" onClick={() => setViewDate(addDaysKey(viewDate, -1))} aria-label="Previous day"><IconChevronLeft /></button>
-          <div className="rt-week" role="group" aria-label="This week">
-            {week.days.map(d => {
-              const full = d.total > 0 && d.completed === d.total;
-              const cls = [
-                'rt-week-day',
-                d.key === viewDate ? 'is-selected' : '',
-                d.isFuture && d.completed === 0 ? 'is-future' : '',
-                full ? 'is-full' : d.completed > 0 ? 'is-part' : '',
-              ].filter(Boolean).join(' ');
-              return (
-                <button
-                  key={d.key}
-                  className={cls}
-                  onClick={() => setViewDate(d.key)}
-                  aria-pressed={d.key === viewDate}
-                  aria-label={`${dayNameShort(d.key)} — ${d.isFuture ? 'not yet' : `${d.completed} of ${d.total} completed`}`}
-                >
-                  <span className="rt-week-name">{dayNameShort(d.key).slice(0, 2)}</span>
-                  <span className="rt-week-dot" aria-hidden />
-                </button>
-              );
-            })}
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+          <div className="cin-week" role="group" aria-label="This week">
+            {week.days.map(d => (
+              <button
+                key={d.key}
+                className={`cin-day${d.key === viewDate ? ' on' : ''}${d.key === today ? ' today' : ''}${d.completed > 0 ? ' has' : ''}`}
+                onClick={() => setViewDate(d.key)}
+                aria-pressed={d.key === viewDate}
+                aria-label={`${dayNameShort(d.key)}${d.key === today ? ', today' : ''} — ${d.completed} of ${d.total} completed`}
+              >
+                <span>{dayNameShort(d.key).slice(0, 2)}</span>
+                <span className="dot" aria-hidden />
+              </button>
+            ))}
           </div>
-          <button className="rt-step" onClick={() => setViewDate(addDaysKey(viewDate, 1))} aria-label="Next day"><IconChevronRight /></button>
+          <button className="cin-gear" onClick={() => setSettingsOpen(true)} aria-label="Routine settings"><IconCog /></button>
         </div>
       </header>
 
-      <div
-        className={`rt-grid${intro ? ' is-intro' : ''}`}
-        key={viewDate}
-      >
-        {rows.length === 0 ? (
-          <div className="rt-empty">
-            Nothing scheduled for this day. Open routine settings to add an activity.
-          </div>
-        ) : (
-          rows.map((row, i) => (
+      <div className={`cin-body${intro ? ' intro' : ''}`} key={viewDate}>
+        <div className="cin-left">
+          <Hero done={progress.completed} total={progress.total} week={week} viewDate={viewDate} />
+          {podcastRow
+            ? <PodcastPanel row={podcastRow} onToggle={handleToggle} />
+            : <div className="cin-pod" style={{ display: 'grid', placeItems: 'center', color: 'var(--ink-3)', fontSize: 12 }}>No podcast scheduled</div>}
+        </div>
+
+        <div className={`cin-matrix${intro ? ' intro' : ''}`}>
+          {tiles.map((row, i) => (
             <Tile
               key={row.activity.id}
               row={row}
-              index={i}
-              wide={rows.length % 2 === 1 && i === rows.length - 1}
+              index={i + 2}
+              span={spans[i]}
               date={viewDate}
               today={today}
               now={now}
               onToggle={handleToggle}
-              onOpenTimer={setTimerFor}
+              onSecondary={handleSecondary}
             />
-          ))
-        )}
+          ))}
+        </div>
       </div>
 
       {timerFor && (

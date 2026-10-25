@@ -81,6 +81,8 @@ export interface RoutineActivity {
   variants?: string[];
   /** Key into the activity icon registry (src/routine/activity-icons.tsx). */
   icon?: string;
+  /** Key into the routine photography set (public/routine/<photo>.webp). */
+  photo?: string;
   /** Opaque passthrough for the legacy top-of-hour micro-strength recurrence. */
   recurrence?: unknown;
   /**
@@ -152,6 +154,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     status: 'active',
     order: 10,
     icon: 'bowl',
+    photo: 'breakfast',
     children: [
       { id: 'probiotics', title: 'Probiotics' },
       { id: 'omega3', title: 'Omega 3' },
@@ -171,6 +174,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     status: 'active',
     order: 20,
     icon: 'wallsit',
+    photo: 'wallsit',
   },
 
   // ── Mid-morning ──────────────────────────────────────────────────────
@@ -186,6 +190,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     status: 'active',
     order: 30,
     icon: 'capsule',
+    photo: 'capsule',
     calendarCategory: 'supplement',
     children: [
       { id: 'creatine', title: 'Creatine' },
@@ -204,6 +209,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     status: 'active',
     order: 40,
     icon: 'droplet',
+    photo: 'electrolyte',
   },
 
   // ── Training ─────────────────────────────────────────────────────────
@@ -219,6 +225,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     status: 'active',
     order: 50,
     icon: 'barbell',
+    photo: 'squats',
     timerSec: 20 * 60,
     target: { kind: 'minutes', value: 20 },
   },
@@ -234,6 +241,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     status: 'active',
     order: 60,
     icon: 'bike',
+    photo: 'cycling',
     calendarCategory: 'gym',
     variants: ['Cycling', 'Rowing'],
   },
@@ -251,6 +259,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     status: 'active',
     order: 70,
     icon: 'stopwatch',
+    photo: 'plank',
     timerSec: 2 * 60,
     target: { kind: 'minutes', value: 2 },
   },
@@ -266,6 +275,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     status: 'active',
     order: 80,
     icon: 'dumbbell',
+    photo: 'squats',
     target: { kind: 'reps', value: 40 },
   },
 
@@ -283,6 +293,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     status: 'active',
     order: 90,
     icon: 'sparkle',
+    photo: 'briefings',
     link: { label: 'Open ChatGPT', url: 'https://chatgpt.com/' },
   },
   {
@@ -298,6 +309,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     status: 'active',
     order: 100,
     icon: 'document',
+    photo: 'articles',
     link: { label: 'Open reader', url: 'https://www.inoreader.com/' },
   },
   {
@@ -313,6 +325,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     status: 'active',
     order: 110,
     icon: 'headphones',
+    photo: 'podcast',
     link: { label: 'Open podcasts', url: 'https://podcasts.apple.com/' },
   },
 
@@ -329,6 +342,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     status: 'active',
     order: 120,
     icon: 'moon',
+    photo: 'magnesium',
   },
 
   // ── Optional — present, never counted ────────────────────────────────
@@ -344,6 +358,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     status: 'active',
     order: 130,
     icon: 'waves',
+    photo: 'freediving',
   },
   {
     id: 'ra-read-book',
@@ -357,6 +372,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     status: 'active',
     order: 140,
     icon: 'book',
+    photo: 'book',
   },
 
   // ── Calendar scaffolding ─────────────────────────────────────────────

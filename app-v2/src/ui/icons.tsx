@@ -100,3 +100,9 @@ export const IconBell = (p: P) => (
 export const IconAlert = (p: P) => (
   <svg {...base} {...p}><path d="M12 3.6 2.6 20h18.8z" /><path d="M12 10v4.2M12 17.3h.01" /></svg>
 );
+export const IconClock = (p: P) => (
+  <svg {...base} {...p}><circle cx="12" cy="12" r="8.6" /><path d="M12 7.4V12l3 1.9" /></svg>
+);
+export const IconEllipsis = (p: P) => (
+  <svg {...base} {...p} strokeWidth={2.4}><path d="M6 12h.01M12 12h.01M18 12h.01" /></svg>
+);

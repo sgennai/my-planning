@@ -79,28 +79,6 @@ export function AppShell({
     <div className="shell">
       <main className="shell-main">{children}</main>
 
-      <div className="shell-utils">
-        <button
-          className="ds-icon-btn"
-          onClick={onToggleTheme}
-          role="switch"
-          aria-checked={isDark}
-          aria-label="Dark theme"
-        >{isDark ? <IconMoon /> : <IconSun />}</button>
-        <button className="ds-icon-btn" onClick={onOpenSettings} aria-label="Settings"><IconCog /></button>
-        <button className="ds-icon-btn" onClick={onSignOut} aria-label="Sign out"><IconExit /></button>
-        {/* Sync trouble lives in the utility cluster rather than floating over
-            the dashboard — on a screen tuned to fit every tile exactly, a
-            toast is a tile you can no longer read. */}
-        {syncError && (
-          <button
-            className="ds-icon-btn shell-sync-btn"
-            onClick={onRetrySync}
-            title={`Sync unavailable — last synced ${formatLastSynced(lastSyncedAt)}. Tap to retry.`}
-            aria-label={`Sync unavailable, last synced ${formatLastSynced(lastSyncedAt)}. Retry now.`}
-          ><IconAlert /></button>
-        )}
-      </div>
 
       <nav className="shell-nav" aria-label="Sections" ref={navRef}>
         {box && (

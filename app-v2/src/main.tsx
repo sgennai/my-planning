@@ -8,6 +8,7 @@ import './styles/system.css'
 import './styles/shell.css'
 import './styles/routine.css'
 import './styles/screens.css'
+import './styles/cinematic.css'
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
