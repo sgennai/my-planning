@@ -1,66 +1,12 @@
 // The shared application shell — one navigation surface for all six sections.
 //
-// Landscape on a large screen gets a side rail; everything else gets a bottom
-// tab bar with all six destinations present, so no section is ever more than
-// one tap away and none of them is a dead end. Routine is first and is the
-// default landing page.
-import type { ReactNode } from 'react';
-import { useClock } from './useClock';
-import { IconSun, IconMoon, IconCog, IconExit } from './icons';
+// A floating near-black pill: vertical at the left in landscape, horizontal at
+// the foot in portrait. It floats over the content rather than taking a
+// column, so the Routine grid gets the full width of the iPad.
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { IconSun, IconMoon, IconCog, IconExit, IconAlert } from './icons';
 import { NAV, type AppPage } from './nav';
 import type { UserProfile } from '../storage/types';
-
-// ── North Star: read-only derivation, never writes ──────────────────────
-function parseDeadline(raw: string): Date | null {
-  if (!raw) return null;
-  const s = String(raw).trim();
-  const q = s.match(/Q([1-4])\s*[\s/-]?\s*(\d{4})/i);
-  if (q) return new Date(Number(q[2]), Number(q[1]) * 3, 0); // last day of the quarter
-  const t = Date.parse(s);
-  return Number.isNaN(t) ? null : new Date(t);
-}
-
-function NorthStar({ profile, createdAt }: { profile?: UserProfile | null; createdAt: string | null }) {
-  // Months-remaining depends on "now", which is an external source — read it
-  // through a subscription rather than calling Date.now() mid-render.
-  const now = useClock(60 * 60 * 1000);
-
-  const role = profile?.targetRoles?.[0] || '';
-  const deadlineRaw = profile?.switchDeadline || '';
-  const deadline = parseDeadline(deadlineRaw);
-
-  if (!role && !deadlineRaw) {
-    return (
-      <div className="shell-star">
-        <div className="ds-eyebrow">North Star</div>
-        <div className="role" style={{ color: 'var(--ink-3)' }}>Set your goal in Setup</div>
-      </div>
-    );
-  }
-
-  let when = deadlineRaw;
-  let pct: number | null = null;
-  if (deadline) {
-    const monthsLeft = Math.max(0, Math.round((deadline.getTime() - now) / (1000 * 60 * 60 * 24 * 30.44)));
-    when = `${deadlineRaw} · ~${monthsLeft} mo`;
-    const start = createdAt ? Date.parse(createdAt) : NaN;
-    if (!Number.isNaN(start) && deadline.getTime() > start) {
-      pct = Math.min(100, Math.max(0, Math.round(((now - start) / (deadline.getTime() - start)) * 100)));
-    }
-  }
-
-  return (
-    <div className="shell-star">
-      <div className="ds-eyebrow">North Star</div>
-      <div className="role">{role || 'Your North Star'}</div>
-      <div className="meta">
-        <span>{when}</span>
-        {pct != null && <span className="pct">{pct}%</span>}
-      </div>
-      <div className="ds-meter"><i style={{ width: `${pct ?? 8}%` }} /></div>
-    </div>
-  );
-}
 
 function formatLastSynced(at: Date | null): string {
   if (!at) return 'never synced';
@@ -70,6 +16,37 @@ function formatLastSynced(at: Date | null): string {
   const hhmm = `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`;
   if (at.toDateString() === new Date().toDateString()) return `today ${hhmm}`;
   return `${at.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} ${hhmm}`;
+}
+
+/**
+ * Measures the active nav button and drives the sliding indicator from its
+ * real geometry — the pill is laid out differently per orientation, so a
+ * hardcoded offset would be wrong in one of them.
+ */
+function useNavIndicator(appPage: AppPage) {
+  const navRef = useRef<HTMLElement | null>(null);
+  const [box, setBox] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+
+  useLayoutEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+
+    const measure = () => {
+      const active = nav.querySelector<HTMLElement>('.shell-nav-item.on');
+      if (!active) return;
+      const a = active.getBoundingClientRect();
+      const n = nav.getBoundingClientRect();
+      setBox({ x: a.left - n.left, y: a.top - n.top, w: a.width, h: a.height });
+    };
+
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(nav);
+    window.addEventListener('orientationchange', measure);
+    return () => { ro.disconnect(); window.removeEventListener('orientationchange', measure); };
+  }, [appPage]);
+
+  return { navRef, box };
 }
 
 interface ShellData {
@@ -92,65 +69,16 @@ interface Props {
 }
 
 export function AppShell({
-  appPage, onNavigate, data, theme, onToggleTheme, onOpenSettings, onSignOut,
+  appPage, onNavigate, theme, onToggleTheme, onOpenSettings, onSignOut,
   syncError, lastSyncedAt, onRetrySync, children,
 }: Props) {
   const isDark = theme === 'dark';
-
-  const syncStrip = syncError ? (
-    <div className="shell-sync">
-      <span>Sync unavailable</span>
-      <button onClick={onRetrySync}>Retry</button>
-      <span style={{ opacity: .75 }}>Last synced {formatLastSynced(lastSyncedAt)}</span>
-    </div>
-  ) : null;
+  const { navRef, box } = useNavIndicator(appPage);
 
   return (
     <div className="shell">
-      <aside className="shell-rail">
-        <div className="shell-brand">
-          <div className="mark" aria-hidden>P</div>
-          <div className="name">My Planning</div>
-        </div>
-
-        <nav className="shell-nav" aria-label="Sections">
-          {NAV.map(({ page, label, Icon }) => (
-            <button
-              key={page}
-              className={`shell-nav-item${appPage === page ? ' on' : ''}`}
-              onClick={() => onNavigate(page)}
-              aria-current={appPage === page ? 'page' : undefined}
-            >
-              <Icon />{label}
-            </button>
-          ))}
-        </nav>
-
-        <NorthStar profile={data?.userProfile} createdAt={data?.createdAt ?? null} />
-
-        <div className="shell-foot">
-          {syncStrip}
-          <div className="shell-foot-row">
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-              {isDark ? <IconMoon style={{ width: 16, height: 16 }} /> : <IconSun style={{ width: 16, height: 16 }} />}
-              {isDark ? 'Dark' : 'Light'}
-            </span>
-            <button
-              className={`shell-switch${isDark ? ' on' : ''}`}
-              onClick={onToggleTheme}
-              role="switch"
-              aria-checked={isDark}
-              aria-label="Dark theme"
-            ><i /></button>
-          </div>
-          <button className="shell-link" onClick={onOpenSettings}><IconCog />Settings</button>
-          <button className="shell-link danger" onClick={onSignOut}><IconExit />Sign out</button>
-        </div>
-      </aside>
-
       <main className="shell-main">{children}</main>
 
-      {/* Utilities, for when there is no rail to hold them. */}
       <div className="shell-utils">
         <button
           className="ds-icon-btn"
@@ -161,27 +89,60 @@ export function AppShell({
         >{isDark ? <IconMoon /> : <IconSun />}</button>
         <button className="ds-icon-btn" onClick={onOpenSettings} aria-label="Settings"><IconCog /></button>
         <button className="ds-icon-btn" onClick={onSignOut} aria-label="Sign out"><IconExit /></button>
+        {/* Sync trouble lives in the utility cluster rather than floating over
+            the dashboard — on a screen tuned to fit every tile exactly, a
+            toast is a tile you can no longer read. */}
+        {syncError && (
+          <button
+            className="ds-icon-btn shell-sync-btn"
+            onClick={onRetrySync}
+            title={`Sync unavailable — last synced ${formatLastSynced(lastSyncedAt)}. Tap to retry.`}
+            aria-label={`Sync unavailable, last synced ${formatLastSynced(lastSyncedAt)}. Retry now.`}
+          ><IconAlert /></button>
+        )}
       </div>
 
-      {syncError && (
-        <div className="shell-sync shell-sync--float">
-          <span>Sync unavailable</span>
-          <button onClick={onRetrySync}>Retry</button>
-          <span style={{ opacity: .75 }}>Last synced {formatLastSynced(lastSyncedAt)}</span>
-        </div>
-      )}
-
-      <nav className="shell-tabs" aria-label="Sections">
+      <nav className="shell-nav" aria-label="Sections" ref={navRef}>
+        {box && (
+          <span
+            className="shell-nav-ind"
+            aria-hidden
+            style={{ transform: `translate(${box.x}px, ${box.y}px)`, width: box.w, height: box.h, left: 0, top: 0 }}
+          />
+        )}
         {NAV.map(({ page, label, Icon }) => (
           <button
             key={page}
-            className={`shell-tab${appPage === page ? ' on' : ''}`}
+            className={`shell-nav-item${appPage === page ? ' on' : ''}`}
             onClick={() => onNavigate(page)}
             aria-current={appPage === page ? 'page' : undefined}
           >
             <Icon /><span>{label}</span>
           </button>
         ))}
+
+        {/* In landscape the utilities ride at the foot of the pill, which
+            keeps them off the dashboard header. In portrait the pill is a
+            horizontal bar with no room for them, so the floating cluster
+            above takes over — only one of the two is ever visible. */}
+        <div className="shell-nav-utils">
+          <button
+            className="shell-nav-util"
+            onClick={onToggleTheme}
+            role="switch"
+            aria-checked={isDark}
+            aria-label="Dark theme"
+          >{isDark ? <IconMoon /> : <IconSun />}</button>
+          <button className="shell-nav-util" onClick={onOpenSettings} aria-label="Settings"><IconCog /></button>
+          <button className="shell-nav-util" onClick={onSignOut} aria-label="Sign out"><IconExit /></button>
+          {syncError && (
+            <button
+              className="shell-nav-util is-alert"
+              onClick={onRetrySync}
+              aria-label={`Sync unavailable, last synced ${formatLastSynced(lastSyncedAt)}. Retry now.`}
+            ><IconAlert /></button>
+          )}
+        </div>
       </nav>
     </div>
   );

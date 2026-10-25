@@ -10,9 +10,8 @@ v1 runtime-Babel single-global-scope app.
 ## Sources of truth
 
 - **Design system (current):** `src/styles/system.css` — the single token set for all six
-  sections. Warm stone neutrals, one slate-indigo accent for anything interactive, sage
-  reserved for done, five desaturated category accents, Instrument Serif / Instrument Sans /
-  IBM Plex Mono, radii 10/14/20, touch tokens (`--tap-min: 44px`). It loads **after**
+  sections. Pearl canvas, white panels, near-black ink, one cobalt accent spent sparingly,
+  Inter throughout, radii 12/18/22, touch tokens (`--tap-min: 44px`). It loads **after**
   `index.css` and declares its tokens under
   `:root[data-theme="light"], :root[data-theme="dark"], :root:not([data-theme])` — matching
   the specificity of index.css's own theme blocks, which a bare `:root` would lose to no
@@ -58,27 +57,34 @@ v1 runtime-Babel single-global-scope app.
 
 ## Design language
 
-- **Palette:** canvas `#F7F6F3` / surface `#FFFFFF` / hairline `#E4E1DA`; ink `#1B1A17`,
-  `#57544D`, `#8B877E`, `#B3AEA4`. One **accent** slate-indigo `#3D4F7C` for everything
-  interactive (progress, active nav, focus rings). **Done** is sage `#5E8A6B` and is the only
-  green. **Alert** terracotta `#A8604E` for overdue and destructive. Warm dark mirror at
-  `#141311` / `#1C1B19`, manual toggle, persisted in `prefs.theme`.
-- **Category accents** (desaturated, meaning-led, never decoration): nourishment `#8A7544`,
-  body `#A8604E`, mind `#4A6B8A`, recovery `#6B5A7A`, work `#5A6B74`, open `#8B877E`.
-  A row wears its category as a 3px left edge — that is the only colour it carries.
-- **Type:** Instrument Serif (the date anchor, section and group titles) · Instrument Sans
-  (all UI) · IBM Plex Mono (times, counts, tallies — tabular figures so digits line up).
-- **Shape:** radii 6/10/14/20/pill; 4px spacing grid; two soft warm-tinted shadow levels.
-- **Touch:** `--tap-min: 44px`, `--tap-comfort: 52px`, `--tap-row: 64px`. Nothing interactive
-  is allowed below `--tap-min`; nothing anywhere depends on hover; all text inputs are ≥16px
-  so iPadOS does not zoom the viewport on focus.
-- **Shell:** `ui/AppShell.tsx` + `ui/nav.ts`. A 236px side rail at `min-width: 1000px` **and**
-  `orientation: landscape`; a six-item bottom tab bar everywhere else. The orientation clause
-  matters: an iPad Pro in portrait is 1024px wide and a width-only rule would hand it a rail.
-  Where there is no rail, `.shell-main` reserves 52px at the top for the floating utility
-  cluster (theme / settings / sign out).
-- The **North Star** card (target role + date + % progress) lives in the rail, wired to
-  `UserProfile`, read-only.
+Modern, minimal, premium — a 2026 SaaS dashboard rather than a to-do list. **One** accent
+colour; everything else is neutral.
+
+- **Palette:** canvas `#F5F6F8` (pearl) / surface `#FFFFFF` / hairline `#E7EAEF`; ink
+  `#111827`, `#4B5563`, `#8A93A3`, `#B6BDC8`. One **accent** cobalt `#2563EB` carries
+  everything interactive *and* completion — there is no separate "done" green. Completed
+  tiles take `--surface-done` `#F4F8FF` plus a 3px accent edge. Dark mirror at `#0E1014` /
+  `#171A20`, manual toggle, persisted in `prefs.theme`.
+- **No category colour-coding.** Optional activities are marked with a discreet neutral
+  `OPTIONAL` chip, never a coloured card.
+- **Type:** Inter only. No serif display face, no second type personality. Tabular figures
+  on times and counters so digits don't shift as they animate.
+- **Shape:** radii 8/12/18/22/pill; 4px spacing grid; two very soft shadow levels —
+  hairlines carry most of the structure.
+- **Touch:** `--tap-min: 44px`. Nothing interactive falls below it (small marks get a
+  transparent `::after` to expand the hit area without inflating the visual); nothing
+  depends on hover; all text inputs are ≥16px so iPadOS does not zoom on focus.
+- **Motion** (`--dur-press` 90ms in, `--dur-release` 190ms out on `--spring`): tiles compress
+  to `scale(.98)` on press and spring back; the completion check draws itself via
+  `stroke-dashoffset`; the ring and week bars transition their geometry; the nav indicator
+  glides; cards stagger in once on first open only. All of it is transform/opacity — no
+  backdrop blurs, which an older iPad pays dearly for. `prefers-reduced-motion` kills it.
+- **Shell:** `ui/AppShell.tsx` + `ui/nav.ts`. A floating near-black pill — vertical at the
+  left in landscape, horizontal at the foot in portrait. It **floats over** the content
+  rather than taking a column; `.shell-main` insets to clear it. Orientation, not width,
+  picks the arrangement: an iPad Pro in portrait is 1024px wide and a width-only rule would
+  give it the landscape layout. In landscape the pill also carries theme / settings /
+  sign-out at its foot; in portrait those live in a floating cluster at the top right.
 
 ## Current code structure
 
@@ -127,9 +133,32 @@ for the timed events the Plan calendar renders.
 | `model.ts` | `RoutineActivity`, `ROUTINE_GROUPS`, `SEED_ROUTINE_ACTIVITIES` |
 | `engine.ts` | recurrence, completion records, day/week progress, log mutations |
 | `derive.ts` | the bridge to the Plan calendar, both directions |
+| `format.ts` | the tile's single metadata line and date parts |
+| `activity-icons.tsx` | one line icon per activity, keyed by `RoutineActivity.icon` |
 | `RoutineScreen.tsx` | the dashboard |
 | `RoutineSettings.tsx` | the editor |
+| `RoutineTimer.tsx` | the focused countdown overlay |
 | `Routine.tsx`, `RoutineItemPopover.tsx` | **legacy** — the Plan calendar's agenda view and occurrence popover. Unrelated to the above despite the folder. |
+
+### Layout — the thing to not break
+
+The dashboard is a **bento grid** sized so every tile for the day fits with no scrolling on
+an iPad 7th gen: **4 columns at 1024x768**, **2 columns at 768x1024**. Wednesday is the
+stress test — 11 scheduled + 2 optional = **13 tiles** — and `routine.test.ts` asserts it.
+
+- `.rt` is a flex column filling the shell's content box; the header takes what it needs and
+  `.rt-grid` takes the rest, dividing it into equal rows.
+- `grid-auto-rows: minmax(118px, 1fr)` (84px in portrait): rows share the height but have a
+  readable floor, so enlarged text makes the grid **scroll** rather than clip. Never swap
+  this for a fixed row height, and never `overflow: hidden` it.
+- Landscape tiles are vertical (icon top-left, status top-right, text at the foot); portrait
+  tiles are horizontal (icon, text, status). Same markup, orientation media queries.
+- The last tile spans both columns in portrait when the count is odd (`data-wide`).
+- `This week` fills the landscape grid's leftover cells (`span 3`) and is hidden in portrait,
+  where the header's seven-day dots already carry the week.
+- The whole tile is the completion button. The timer/link control is a **sibling** of that
+  button, not a child (buttons cannot nest) — which is why `.rt-cell` must stay
+  `position: relative` and why tiles with one reserve right-hand padding via `data-aux`.
 
 ### The model
 
@@ -142,8 +171,14 @@ RoutineActivity
            | { type:'flexible' }                     // any time today
   surface  : 'routine' | 'calendar' | 'both'
   required : boolean            // false = optional: shown, never in the denominator
-  children · timerSec · target · link · variants · calendarCategory · homeOnly · recurrence
+  children · timerSec · target · link · variants · icon
+  calendarCategory · homeOnly · recurrence
 ```
+
+The seed is the routine as specified, and nothing more: **no invented doses, rep counts,
+durations or exercise prescriptions**. `routine.test.ts` guards this with a regex over every
+title, description and metadata line — the concept artwork's "5 g creatine + 2,000 IU D3"
+and "3 x 60 seconds" must never creep in.
 
 `surface` is what lets one model feed two very different screens without either filling up
 with rows that do not belong to it. `calendarCategory` keeps the Plan grids' established

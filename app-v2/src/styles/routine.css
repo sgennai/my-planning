@@ -1,631 +1,644 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    ROUTINE — the daily dashboard.
    ---------------------------------------------------------------------------
-   Built for an iPad on a desk stand. The whole day should be reachable in one
-   glance and one tap: rows are 64px tall, the tick target is 44px, and no
-   control anywhere on this screen depends on hover.
+   Target: iPad 7th gen, 1024x768 landscape and 768x1024 portrait. Every tile
+   for the selected day — including the two optional ones — is on screen with
+   no scrolling. Wednesday is the stress test: 11 scheduled + 2 optional = 13.
+
+   The screen is a flex column pinned to the viewport: the header takes what it
+   needs, the grid takes the rest and divides it into equal rows. Rows have a
+   readable floor (`minmax`), so if the user enlarges text the grid scrolls
+   rather than crushing or clipping the tiles.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .rt {
-  padding: var(--sp-6) var(--sp-6) var(--sp-12);
-  max-width: 1320px;
-}
-
-/* ── Header band: the date, the day's score, the week ──────────────────── */
-.rt-head {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--sp-6);
-  align-items: start;
-  margin-bottom: var(--sp-5);
-}
-
-.rt-head-top {
   display: flex;
-  align-items: baseline;
-  gap: var(--sp-5);
-  flex-wrap: wrap;
+  flex-direction: column;
+  /* Fills the shell's content box, which already excludes the nav pill. */
+  min-height: 0;
+  padding: var(--sp-5) var(--sp-5) var(--sp-5);
+  padding-top: max(var(--sp-5), calc(env(safe-area-inset-top) + var(--sp-3)));
+  gap: var(--sp-4);
+  box-sizing: border-box;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HEADER — compact by design; it must not eat the grid's height
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.rt-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-5);
+  flex: none;
+}
+
+.rt-head-left { min-width: 0; flex: 1; }
+.rt-brand { letter-spacing: var(--tr-eyebrow); }
+
 .rt-date {
   font-size: var(--t-anchor);
-  margin-top: var(--sp-1);
-  line-height: 1.05;
   white-space: nowrap;
-}
-.rt-date-rel {
-  font-family: var(--font-mono);
-  font-size: var(--t-meta);
-  color: var(--ink-3);
-}
-.rt-next {
-  display: inline-flex;
-  align-items: baseline;
-  gap: var(--sp-2);
-  margin-top: var(--sp-3);
-  max-width: 100%;
-  padding: var(--sp-2) var(--sp-4);
-  border: 1px solid var(--hairline);
-  border-radius: var(--r-pill);
-  background: var(--surface);
-  font-size: var(--t-meta);
-  color: var(--ink-2);
-}
-.rt-next .t { font-family: var(--font-mono); color: var(--accent); font-weight: 500; }
-
-.rt-daynav { display: flex; align-items: center; gap: var(--sp-2); }
-
-/* Score block */
-.rt-score {
-  display: flex;
-  align-items: flex-end;
-  gap: var(--sp-6);
-}
-.rt-score-fig { text-align: right; }
-.rt-pct {
-  font-family: var(--font-display);
-  font-size: var(--t-hero);
-  line-height: .9;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   color: var(--ink);
-  letter-spacing: var(--tr-tight);
+  line-height: 1.04;
+  margin-top: var(--sp-1);
 }
-.rt-pct.is-complete { color: var(--done); }
-.rt-counts {
-  font-family: var(--font-mono);
-  font-size: var(--t-meta);
+.rt-date-sub {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  font-size: var(--t-lead);
+  font-weight: 400;
   color: var(--ink-3);
-  margin-top: var(--sp-2);
+  letter-spacing: -0.01em;
+  margin-top: 2px;
   white-space: nowrap;
 }
-.rt-score .ds-meter { width: 180px; margin-top: var(--sp-3); }
 
-/* Seven-day strip */
-.rt-week {
+.rt-head-tools {
   display: flex;
-  gap: var(--sp-2);
-  align-items: flex-end;
+  align-items: center;
+  gap: var(--sp-1);
+  margin-top: var(--sp-2);
 }
+.rt-head-tools .ds-icon-btn {
+  width: 36px; height: 36px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--ink-3);
+}
+.rt-head-tools .ds-icon-btn svg { width: 17px; height: 17px; }
+.rt-head-tools .ds-icon-btn:active { background: var(--surface-press); }
+.rt-today-btn {
+  position: relative;
+  flex: none;
+  min-height: 32px;
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--accent-line);
+  background: var(--accent-tint);
+  border-radius: var(--r-pill);
+  color: var(--accent);
+  font-size: var(--t-meta);
+  font-weight: 600;
+  vertical-align: middle;
+}
+.rt-today-btn::after { content: ""; position: absolute; inset: -6px; }
+
+/* ── Progress card: ring + count + seven-day navigator ────────────────── */
+.rt-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex: none;
+  min-width: 0;
+  padding: var(--sp-2) var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
+}
+
+.rt-ring-group {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex: none;
+  padding-right: var(--sp-3);
+  border-right: 1px solid var(--hairline);
+}
+.rt-ring { position: relative; width: 54px; height: 54px; flex: none; }
+.rt-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.rt-ring .track { stroke: var(--surface-sunken); }
+.rt-ring .fill {
+  stroke: var(--accent);
+  stroke-linecap: round;
+  /* The dash offset is the animated property — cheap, and it reads as the
+     arc growing rather than a number swapping. */
+  transition: stroke-dashoffset var(--dur-3) var(--ease);
+}
+.rt-ring-label { display: flex; flex-direction: column; gap: 1px; }
+.rt-ring-count {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+.rt-ring-word { font-size: var(--t-meta); color: var(--ink-3); font-weight: 500; }
+
+.rt-step {
+  width: 32px; height: 32px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: transparent;
+  border-radius: var(--r-pill);
+  color: var(--ink-3);
+  transition: background var(--dur-1) var(--ease), color var(--dur-1) var(--ease);
+}
+.rt-step svg { width: 17px; height: 17px; }
+.rt-step:active { background: var(--surface-press); color: var(--ink); }
+
+.rt-step::after, .rt-gear::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+}
+.rt-step, .rt-gear { position: relative; }
+
+.rt-week { display: flex; gap: var(--sp-1); }
 .rt-week-day {
-  width: 38px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--sp-2);
+  gap: 6px;
+  min-width: 44px;
+  min-height: 48px;
+  justify-content: center;
+  padding: var(--sp-1) 0;
   border: none;
   background: transparent;
-  padding: 0;
-  min-height: var(--tap-min);
-  justify-content: flex-end;
+  border-radius: var(--r-sm);
+  transition: background var(--dur-1) var(--ease);
 }
-.rt-week-bar {
-  width: 100%;
-  height: 46px;
-  display: flex;
-  align-items: flex-end;
-  border-radius: var(--r-xs);
-  background: var(--surface-sunken);
-  overflow: hidden;
-}
-.rt-week-bar > i {
-  display: block;
-  width: 100%;
-  background: var(--accent);
-  border-radius: var(--r-xs);
-  transition: height var(--dur-3) var(--ease);
-}
-.rt-week-day.is-full .rt-week-bar > i { background: var(--done); }
-.rt-week-day.is-future .rt-week-bar { background: transparent; border: 1px dashed var(--hairline); }
-.rt-week-label {
-  font-family: var(--font-mono);
+.rt-week-day:active { background: var(--surface-press); }
+.rt-week-name {
   font-size: var(--t-micro);
+  font-weight: 500;
   color: var(--ink-3);
 }
-.rt-week-day.is-today .rt-week-label { color: var(--ink); font-weight: 700; }
-.rt-week-day.is-today .rt-week-bar { box-shadow: inset 0 0 0 2px var(--accent-line); }
-.rt-week-day.is-selected .rt-week-bar { box-shadow: inset 0 0 0 2px var(--accent); }
+.rt-week-day.is-selected .rt-week-name { color: var(--ink); font-weight: 700; }
 
-/* ── Group columns ────────────────────────────────────────────────────── */
-.rt-groups {
+/* The dot carries the day's state: filled = complete, ring = selected,
+   hollow = future, faint = partial or untouched. */
+.rt-week-dot {
+  width: 14px; height: 14px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid var(--hairline-strong);
+  background: transparent;
+  transition: background var(--dur-2) var(--ease), border-color var(--dur-2) var(--ease),
+              box-shadow var(--dur-2) var(--ease);
+}
+.rt-week-day.is-part .rt-week-dot { background: var(--accent-ghost); border-color: var(--accent-ghost); }
+.rt-week-day.is-full .rt-week-dot { background: var(--accent); border-color: var(--accent); }
+.rt-week-day.is-selected .rt-week-dot {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-tint);
+}
+.rt-week-day.is-future .rt-week-dot { border-color: var(--hairline-strong); background: transparent; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE GRID
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.rt-grid {
+  flex: 1;
+  min-height: 0;
   display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--sp-5);
-  align-items: start;
+  gap: var(--sp-3);
+  align-content: stretch;
+  /* Graceful overflow: at larger text sizes the rows hit their floor and the
+     grid scrolls instead of hiding activities. */
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;
+  animation: rt-day-in var(--dur-2) var(--ease);
 }
 
-.rt-group {
+@keyframes rt-day-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TILE — the whole thing is the completion control
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.rt-tile {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  text-align: left;
   background: var(--surface);
   border: 1px solid var(--hairline);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-1);
+  color: var(--ink);
   overflow: hidden;
+  /* Compression on the way down is quick; the release is springy and longer,
+     which is what makes the tap feel tactile rather than mechanical. */
+  transition:
+    transform var(--dur-release) var(--spring),
+    background-color var(--dur-2) var(--ease),
+    border-color var(--dur-2) var(--ease),
+    box-shadow var(--dur-2) var(--ease);
 }
-.rt-group-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--sp-3);
-  padding: var(--sp-4) var(--sp-5) var(--sp-3);
+.rt-tile:active {
+  transform: scale(.98);
+  transition-duration: var(--dur-press);
 }
-.rt-group-head h2 {
-  font-size: var(--t-lead);
-  display: flex;
-  align-items: baseline;
-  gap: var(--sp-3);
-}
-.rt-group-head .hint {
-  font-family: var(--font-ui);
-  font-size: var(--t-micro);
-  color: var(--ink-4);
-  letter-spacing: 0;
-}
-.rt-group-tally {
-  font-family: var(--font-mono);
-  font-size: var(--t-meta);
-  color: var(--ink-3);
-  white-space: nowrap;
-}
-.rt-group--optional { background: var(--surface-sunken); }
 
-/* ── Activity row ─────────────────────────────────────────────────────── */
-.rt-row {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  min-height: var(--tap-row);
-  padding: var(--sp-2) var(--sp-4) var(--sp-2) var(--sp-3);
-  border-top: 1px solid var(--hairline-faint);
-  position: relative;
+.rt-tile.is-done {
+  background: var(--surface-done);
+  border-color: var(--accent-line);
 }
-.rt-row::before {
-  /* Category accent — a 3px edge, the only colour a row carries. */
+/* A hairline of accent down the leading edge of a completed tile. */
+.rt-tile.is-done::before {
   content: "";
   position: absolute;
   left: 0; top: 0; bottom: 0;
   width: 3px;
-  background: var(--row-accent, transparent);
-  opacity: .8;
+  background: var(--accent);
 }
-.rt-row[data-cat="nourishment"] { --row-accent: var(--cat-nourishment); }
-.rt-row[data-cat="body"]        { --row-accent: var(--cat-body); }
-.rt-row[data-cat="mind"]        { --row-accent: var(--cat-mind); }
-.rt-row[data-cat="recovery"]    { --row-accent: var(--cat-recovery); }
-.rt-row[data-cat="work"]        { --row-accent: var(--cat-work); }
-.rt-row[data-cat="open"]        { --row-accent: var(--cat-open); }
 
-/* The tap target is the row itself, so one touch anywhere completes it. */
-.rt-row-tap {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: var(--sp-4);
-  min-height: calc(var(--tap-row) - var(--sp-4));
-  padding: 0;
-  border: none;
-  background: transparent;
-  text-align: left;
-  border-radius: var(--r-sm);
-}
-.rt-row-tap:active { background: var(--surface-press); }
+.rt-tile.is-skipped { background: var(--surface-sunken); border-style: dashed; }
+.rt-tile.is-skipped .rt-tile-title { color: var(--ink-3); }
 
-/* Checkbox */
-.rt-check {
+.rt-tile-icon {
   flex: none;
-  width: 28px; height: 28px;
-  margin-left: var(--sp-1);
   display: grid;
   place-items: center;
-  border: 2px solid var(--hairline-strong);
+  color: var(--accent);
+  background: var(--accent-tint);
+  border-radius: var(--r-sm);
+}
+.rt-tile-icon svg { width: 22px; height: 22px; }
+.rt-tile.is-skipped .rt-tile-icon { color: var(--ink-3); background: var(--surface-press); }
+
+.rt-tile-text { min-width: 0; flex: 1; }
+.rt-tile-title {
+  font-size: var(--t-card);
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  color: var(--ink);
+  line-height: 1.25;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+/* Two lines at most, then an ellipsis — a third line would push the
+   metadata out of the tile. */
+.rt-tile-name {
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.rt-tile-meta {
+  font-size: var(--t-meta);
+  color: var(--ink-3);
+  line-height: var(--lh-snug);
+  margin-top: 3px;
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rt-tile-meta .late { color: var(--alert); font-weight: 600; }
+
+/* Optional is discreet neutral metadata — never a colour-coded card. */
+.rt-chip {
+  flex: none;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  background: var(--surface-sunken);
+  border-radius: var(--r-xs);
+  padding: 3px var(--sp-2);
+  line-height: 1.2;
+}
+.rt-tile.is-done .rt-chip { background: var(--surface); }
+
+/* ── Status mark ──────────────────────────────────────────────────────── */
+.rt-status {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px; height: 26px;
   border-radius: var(--r-pill);
+  border: 1.75px solid var(--hairline-strong);
   background: var(--surface);
   color: transparent;
-  transition: background var(--dur-1) var(--ease), border-color var(--dur-1) var(--ease);
+  transition: background var(--dur-2) var(--ease), border-color var(--dur-2) var(--ease);
 }
-.rt-check svg { width: 16px; height: 16px; }
-.rt-row.is-done .rt-check {
-  background: var(--done);
-  border-color: var(--done);
-  color: var(--on-accent);
+.rt-tile.is-done .rt-status {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
 }
-.rt-row.is-skipped .rt-check {
-  border-color: var(--hairline-strong);
-  border-style: dashed;
-  background: var(--surface-sunken);
-  color: var(--ink-4);
+.rt-status svg { width: 15px; height: 15px; }
+/* The check draws itself on completion rather than appearing. */
+.rt-status .mark {
+  stroke-dasharray: 22;
+  stroke-dashoffset: 22;
 }
-/* Partially complete group — a ring, not a tick. */
-.rt-check.is-partial {
+.rt-tile.is-done .rt-status .mark {
+  animation: rt-draw 280ms var(--ease) forwards;
+}
+@keyframes rt-draw { to { stroke-dashoffset: 0; } }
+
+/* Partial group: a count instead of a tick. */
+.rt-status.is-part {
   border-color: var(--accent);
   background: var(--accent-tint);
   color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 600;
+  font-size: 9.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
-.rt-row-text { min-width: 0; flex: 1; }
-.rt-row-title {
-  font-size: var(--t-row);
-  font-weight: 500;
-  color: var(--ink);
-  line-height: var(--lh-snug);
-  display: flex;
-  align-items: baseline;
-  gap: var(--sp-2);
-  flex-wrap: wrap;
-}
-.rt-row-meta {
-  font-size: var(--t-meta);
+/* ── Secondary control (timer / link) — deliberately separate so the
+      completion tap is never ambiguous ─────────────────────────────────── */
+.rt-tile-aux {
+  position: absolute;
+  border: none;
+  background: var(--surface-sunken);
   color: var(--ink-3);
-  line-height: var(--lh-snug);
-  margin-top: 2px;
-  display: flex;
-  align-items: baseline;
-  gap: var(--sp-2);
-  /* One line, clipped. Row heights stay uniform and the day reads as a list
-     rather than a ragged stack; the detail is one tap away under the chevron. */
-  flex-wrap: nowrap;
-  overflow: hidden;
-}
-.rt-row-meta > span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.rt-row-meta .at, .rt-row-meta .late { flex: none; }
-.rt-row-meta .at { font-family: var(--font-mono); }
-.rt-row-meta .late { color: var(--alert); font-weight: 600; }
-
-.rt-tag {
-  font-family: var(--font-mono);
-  font-size: var(--t-micro);
-  font-weight: 500;
-  color: var(--ink-3);
-  padding: 2px var(--sp-2);
-  border: 1px solid var(--hairline);
   border-radius: var(--r-pill);
-  white-space: nowrap;
-}
-
-/* Done state: understated. Full opacity kept — a faded row is a row you
-   stop reading, and the day's record should stay legible all day. */
-.rt-row.is-done { background: var(--done-tint); }
-.rt-row.is-done .rt-row-title { color: var(--ink-2); }
-.rt-row.is-done .rt-row-name {
-  text-decoration: line-through;
-  text-decoration-color: var(--ink-4);
-  text-decoration-thickness: 1px;
-}
-.rt-row.is-skipped .rt-row-title { color: var(--ink-3); }
-.rt-row.is-late:not(.is-done) .rt-check { border-color: var(--alert-line); }
-
-.rt-row-aux { display: flex; align-items: center; gap: var(--sp-1); flex: none; }
-.rt-aux-btn {
-  width: 40px; height: var(--tap-min);
   display: grid;
   place-items: center;
-  border: none;
-  background: transparent;
-  border-radius: var(--r-pill);
-  color: var(--ink-3);
+  width: 30px; height: 30px;
+  transition: background var(--dur-1) var(--ease), color var(--dur-1) var(--ease);
 }
-.rt-aux-btn svg { width: 19px; height: 19px; }
-.rt-aux-btn:active { background: var(--surface-press); color: var(--ink); }
-.rt-aux-btn.on { color: var(--accent); }
+.rt-tile-aux svg { width: 15px; height: 15px; }
+.rt-tile-aux::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+}
+.rt-tile-aux:active { background: var(--accent-tint); color: var(--accent); }
+.rt-tile.is-done .rt-tile-aux { background: var(--surface); }
 
-/* Children of a grouped activity */
-.rt-children {
+/* ── Intro stagger: first paint only ──────────────────────────────────── */
+.rt-grid.is-intro .rt-cell {
+  opacity: 0;
+  animation: rt-cell-in 320ms var(--ease) forwards;
+  animation-delay: calc(var(--i) * 20ms);
+}
+@keyframes rt-cell-in {
+  from { opacity: 0; transform: translateY(8px) scale(.99); }
+  to   { opacity: 1; transform: none; }
+}
+
+.rt-cell { min-width: 0; display: flex; position: relative; }
+
+/* ── Week card: fills the landscape grid's leftover cells ─────────────── */
+.rt-weekcard {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-1);
+  min-width: 0;
+}
+.rt-weekcard-title {
+  font-size: var(--t-meta);
+  font-weight: 600;
+  color: var(--ink);
+  flex: none;
+}
+.rt-bars { display: flex; align-items: flex-end; gap: var(--sp-3); flex: 1; }
+.rt-bar-col {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  background: var(--surface-sunken);
-  border-top: 1px solid var(--hairline-faint);
-}
-.rt-child {
-  display: flex;
   align-items: center;
-  gap: var(--sp-4);
-  min-height: var(--tap-comfort);
-  padding: 0 var(--sp-4) 0 calc(var(--sp-3) + 40px);
-  border: none;
-  background: transparent;
-  text-align: left;
-  font-size: var(--t-body);
-  color: var(--ink-2);
-  border-bottom: 1px solid var(--hairline-faint);
-}
-.rt-child:last-child { border-bottom: none; }
-.rt-child:active { background: var(--surface-press); }
-.rt-child-box {
-  flex: none;
-  width: 22px; height: 22px;
-  display: grid;
-  place-items: center;
-  border: 2px solid var(--hairline-strong);
-  border-radius: var(--r-xs);
-  color: transparent;
-}
-.rt-child-box svg { width: 13px; height: 13px; }
-.rt-child.is-done .rt-child-box { background: var(--done); border-color: var(--done); color: var(--on-accent); }
-.rt-child.is-done span { color: var(--ink-3); text-decoration: line-through; text-decoration-color: var(--ink-4); }
-
-/* ── Timer ────────────────────────────────────────────────────────────── */
-.rt-timer {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-4);
-  padding: var(--sp-3) var(--sp-4) var(--sp-3) calc(var(--sp-3) + 40px);
-  background: var(--accent-tint);
-  border-top: 1px solid var(--accent-line);
-}
-.rt-timer-read {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  font-size: var(--t-title);
-  color: var(--ink);
-  min-width: 108px;
-}
-.rt-timer.is-done .rt-timer-read { color: var(--done); }
-.rt-timer-track {
-  flex: 1;
-  height: 6px;
-  border-radius: var(--r-pill);
-  background: var(--surface);
-  overflow: hidden;
-}
-.rt-timer-track > i { display: block; height: 100%; background: var(--accent); border-radius: var(--r-pill); }
-.rt-timer.is-done .rt-timer-track > i { background: var(--done); }
-
-/* ── Variant picker ──────────────────────────────────────────────────── */
-.rt-variants {
-  display: flex;
-  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: var(--sp-2);
-  padding: var(--sp-3) var(--sp-4) var(--sp-3) calc(var(--sp-3) + 40px);
+}
+/* A definite height: the fill is a percentage of this box, and a percentage
+   of an indefinite (flex-sized) parent resolves to nothing. */
+.rt-bar {
+  width: 100%;
+  max-width: 34px;
+  height: 56px;
+  display: flex;
+  align-items: flex-end;
   background: var(--surface-sunken);
-  border-top: 1px solid var(--hairline-faint);
-}
-.rt-variant {
-  min-height: var(--tap-min);
-  padding: 0 var(--sp-5);
-  border: 1px solid var(--hairline-strong);
-  border-radius: var(--r-pill);
-  background: var(--surface);
-  color: var(--ink);
-  font-size: var(--t-body);
-  font-weight: 600;
-}
-.rt-variant.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-
-/* ── Weekly panel ─────────────────────────────────────────────────────── */
-.rt-weekly { margin-top: var(--sp-5); }
-.rt-weekly-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(216px, 1fr));
-  gap: var(--sp-3) var(--sp-6);
-  padding: var(--sp-2) var(--sp-5) var(--sp-5);
-}
-.rt-stat { min-width: 0; }
-.rt-stat-top {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--sp-3);
-  margin-bottom: var(--sp-2);
-}
-.rt-stat-name {
-  font-size: var(--t-meta);
-  color: var(--ink-2);
+  border-radius: var(--r-xs);
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
-.rt-stat-val { font-family: var(--font-mono); font-size: var(--t-meta); color: var(--ink-3); flex: none; }
-.rt-stat .ds-meter { height: 4px; }
-.rt-stat[data-cat="body"] .ds-meter > i        { background: var(--cat-body); }
-.rt-stat[data-cat="mind"] .ds-meter > i        { background: var(--cat-mind); }
-.rt-stat[data-cat="nourishment"] .ds-meter > i { background: var(--cat-nourishment); }
-.rt-stat[data-cat="recovery"] .ds-meter > i    { background: var(--cat-recovery); }
-.rt-stat.is-full .ds-meter > i                 { background: var(--done); }
-
-.rt-weekly-summary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-2) var(--sp-6);
-  padding: 0 var(--sp-5) var(--sp-4);
-  font-family: var(--font-mono);
-  font-size: var(--t-meta);
-  color: var(--ink-3);
+.rt-bar > i {
+  display: block;
+  width: 100%;
+  background: var(--accent-ghost);
+  border-radius: var(--r-xs);
+  transition: height var(--dur-3) var(--ease);
 }
+.rt-bar-col.is-selected .rt-bar > i { background: var(--accent); }
+.rt-bar-label { font-size: var(--t-micro); color: var(--ink-3); }
+.rt-bar-col.is-selected .rt-bar-label { color: var(--ink); font-weight: 600; }
 
-/* ── Landscape: two columns, header on one line ───────────────────────── */
-/* ── Two or three columns, packed by flow ─────────────────────────────── */
-/* Multi-column rather than grid: groups vary a lot in length, and grid
-   tracks would leave a one-row group sitting next to a six-row one with
-   dead space below it. Columns pack, so the day fits the screen. */
-@media (min-width: 700px) {
-  .rt-groups {
-    display: block;
-    columns: 2;
-    column-gap: var(--sp-5);
+/* ═══════════════════════════════════════════════════════════════════════════
+   LANDSCAPE — four columns, vertical tiles
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (orientation: landscape) {
+  .rt { padding-right: max(var(--sp-5), env(safe-area-inset-right)); }
+
+  .rt-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-auto-rows: minmax(118px, 1fr);
   }
-  .rt-group {
-    break-inside: avoid;
-    /* Safari still honours the old property name. */
-    -webkit-column-break-inside: avoid;
-    margin-bottom: var(--sp-5);
+
+  .rt-tile {
+    flex-direction: column;
+    gap: var(--sp-2);
+    padding: var(--sp-4);
+    justify-content: space-between;
   }
-}
+  .rt-tile-icon { width: 38px; height: 38px; }
+  .rt-tile-icon svg { width: 21px; height: 21px; }
+  .rt-status { position: absolute; top: var(--sp-4); right: var(--sp-4); }
+  /* The secondary control tucks beside the icon, well away from the status
+     mark, so the two are never mistaken for one another. */
+  .rt-tile-aux { top: var(--sp-4); left: calc(var(--sp-4) + 46px); }
+  .rt-tile-text { flex: none; min-height: 0; }
+  .rt-tile-title { align-items: flex-start; }
 
-@media (min-width: 1000px) and (orientation: landscape) {
-  .rt { padding: var(--sp-8) var(--sp-8) var(--sp-12); }
-}
+  .rt-weekcard { grid-column: span 3; }
 
-@media (min-width: 1440px) {
-  .rt-groups { columns: 3; }
-}
-
-/* ── No rail: stack the header so the day reads top to bottom ─────────── */
-@media not all and (min-width: 1000px) and (orientation: landscape) {
-  .rt-head { grid-template-columns: 1fr; gap: var(--sp-4); }
-  .rt-score { justify-content: space-between; align-items: flex-end; }
-  .rt-score-fig { text-align: left; }
-}
-
-/* ── Narrow: stack the header, keep the score readable ────────────────── */
-@media (max-width: 760px) {
-  .rt { padding: var(--sp-5) var(--sp-4) var(--sp-10); }
-  .rt-head { grid-template-columns: 1fr; gap: var(--sp-5); }
-  .rt-date { font-size: 30px; }
-  .rt-score { justify-content: space-between; align-items: flex-end; }
-  .rt-score-fig { text-align: left; }
-  .rt-pct { font-size: 42px; }
-  .rt-score .ds-meter { width: 100%; max-width: 200px; }
-  .rt-week-day { width: 30px; }
-}
-
-@media (max-width: 420px) {
-  .rt-score { flex-direction: column; align-items: stretch; gap: var(--sp-4); }
-  .rt-week { justify-content: space-between; }
-  .rt-week-day { width: auto; flex: 1; }
+  /* A short landscape window (a phone) cannot hold four readable columns. */
+  @media (max-width: 760px) {
+    .rt-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .rt-weekcard { grid-column: span 2; }
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   ROUTINE SETTINGS
+   PORTRAIT — two columns, compact horizontal tiles
    ═══════════════════════════════════════════════════════════════════════════ */
 
-.rts-modal { width: min(680px, 100%); }
+@media (orientation: portrait) {
+  /* Side by side, the 38px day name and a card carrying a ring, a count,
+     two steppers and seven days do not both fit in 768px. Stacking also
+     suits the orientation: portrait reads top to bottom. */
+  .rt-head { flex-direction: column; align-items: stretch; gap: var(--sp-3); }
+  .rt-progress { justify-content: space-between; }
 
-.rts-list { display: flex; flex-direction: column; }
-.rts-item {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  border-bottom: 1px solid var(--hairline-faint);
-  position: relative;
-  padding-left: var(--sp-3);
-}
-.rts-item::before {
-  content: "";
-  position: absolute;
-  left: 0; top: 8px; bottom: 8px;
-  width: 3px;
-  border-radius: var(--r-pill);
-  background: var(--row-accent, transparent);
-}
-.rts-item[data-cat="nourishment"] { --row-accent: var(--cat-nourishment); }
-.rts-item[data-cat="body"]        { --row-accent: var(--cat-body); }
-.rts-item[data-cat="mind"]        { --row-accent: var(--cat-mind); }
-.rts-item[data-cat="recovery"]    { --row-accent: var(--cat-recovery); }
-.rts-item[data-cat="work"]        { --row-accent: var(--cat-work); }
-.rts-item[data-cat="open"]        { --row-accent: var(--cat-open); }
-.rts-item:last-child { border-bottom: none; }
-.rts-item.is-off { opacity: .6; }
+  .rt-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: minmax(84px, 1fr);
+  }
 
-.rts-item-main {
-  flex: 1;
-  min-width: 0;
+  .rt-tile {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-3) var(--sp-4);
+  }
+  .rt-tile-icon { width: 38px; height: 38px; }
+  .rt-tile-text { padding-right: 0; }
+  /* The aux button is a sibling of the tile (buttons cannot nest), so it is
+     placed over the tile and the tile reserves the room for both marks.
+     The status keeps the outer position — it is the primary control — and
+     the secondary sits inboard of it. */
+  .rt-tile-cell[data-aux="true"] .rt-tile { padding-right: 102px; }
+  .rt-tile-cell[data-aux="true"] .rt-status {
+    position: absolute;
+    right: var(--sp-4);
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .rt-tile-aux {
+    /* Far enough inboard that its expanded hit area cannot reach the
+       status mark sitting at the tile's edge. */
+    right: 60px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  /* An odd tile count leaves a gap; the last tile takes the full width
+     rather than sitting next to an empty cell. */
+  .rt-tile-cell[data-wide="true"] { grid-column: span 2; }
+
+  /* No room for the week chart in portrait without pushing tiles off the
+     screen, and the brief makes it optional. The seven-day dots in the
+     header already carry the week. */
+  .rt-weekcard { display: none; }
+}
+
+/* Very narrow portrait (a phone): one column. */
+@media (orientation: portrait) and (max-width: 520px) {
+  .rt { padding: var(--sp-4); padding-top: max(var(--sp-4), calc(env(safe-area-inset-top) + var(--sp-10))); }
+  .rt-grid { grid-template-columns: minmax(0, 1fr); grid-auto-rows: minmax(76px, auto); }
+  .rt-tile-cell[data-wide="true"] { grid-column: span 1; }
+  .rt-head { flex-direction: column; gap: var(--sp-4); }
+  .rt-progress { width: 100%; justify-content: space-between; padding: var(--sp-3); gap: var(--sp-3); }
+  .rt-date { font-size: 30px; }
+  .rt-week-day { min-width: 36px; }
+}
+
+/* Landscape on a small screen: the header must shrink too. */
+@media (orientation: landscape) and (max-height: 620px) {
+  .rt-date { font-size: 26px; }
+  .rt-ring { width: 46px; height: 46px; }
+  .rt-progress { padding: var(--sp-2) var(--sp-4); gap: var(--sp-4); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EMPTY STATE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.rt-empty {
+  grid-column: 1 / -1;
+  display: grid;
+  place-items: center;
+  padding: var(--sp-12);
+  color: var(--ink-3);
+  font-size: var(--t-meta);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TIMER OVERLAY
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.rt-timer {
+  width: min(380px, 100%);
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  min-height: var(--tap-comfort);
-  padding: var(--sp-2) var(--sp-2);
-  border: none;
-  background: transparent;
-  border-radius: var(--r-sm);
-  text-align: left;
+  gap: var(--sp-5);
+  padding: var(--sp-5);
+  background: var(--surface-raised);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-3);
+  animation: ds-rise var(--dur-3) var(--ease);
 }
-.rts-item-main:active { background: var(--surface-press); }
-.rts-item-title {
-  font-size: var(--t-body);
-  font-weight: 600;
-  color: var(--ink);
+.rt-timer-head {
   display: flex;
-  align-items: baseline;
-  gap: var(--sp-2);
-  flex-wrap: wrap;
-}
-.rts-item-meta {
-  font-family: var(--font-mono);
-  font-size: var(--t-micro);
-  color: var(--ink-3);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.rts-item-aux { display: flex; flex: none; }
-.rts-item-aux button:disabled { opacity: .3; }
-
-.rts-foot-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-3);
-  padding-top: var(--sp-5);
-  margin-top: var(--sp-4);
-  border-top: 1px solid var(--hairline-faint);
-}
-
-/* ── Form ─────────────────────────────────────────────────────────────── */
-.rts-form { display: flex; flex-direction: column; gap: var(--sp-5); }
-.rts-pair {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: center;
+  justify-content: space-between;
   gap: var(--sp-4);
 }
-.rts-set {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-3);
-  margin: 0;
-  padding: 0;
-  border: none;
-}
-.rts-set legend { padding: 0; margin-bottom: var(--sp-1); }
-.rts-set .ds-segment { align-self: flex-start; max-width: 100%; flex-wrap: wrap; }
-.rts-hint { margin: 0; font-size: var(--t-meta); color: var(--ink-3); }
+.rt-timer-name { font-size: var(--t-lead); font-weight: 600; color: var(--ink); }
 
-.rts-days { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
-.rts-day {
-  min-width: var(--tap-min);
-  min-height: var(--tap-min);
-  padding: 0 var(--sp-3);
-  border: 1px solid var(--hairline-strong);
-  border-radius: var(--r-pill);
-  background: var(--surface);
-  color: var(--ink-2);
-  font-family: var(--font-mono);
-  font-size: var(--t-meta);
-  font-weight: 500;
+.rt-timer-dial { position: relative; width: 220px; height: 220px; align-self: center; }
+.rt-timer-dial svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.rt-timer-dial .track { stroke: var(--surface-sunken); }
+.rt-timer-dial .fill {
+  stroke: var(--accent);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s linear;
 }
-.rts-day.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-
-.rts-radios { display: flex; flex-direction: column; gap: var(--sp-2); }
-.rts-radio {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-height: var(--tap-comfort);
-  padding: var(--sp-3) var(--sp-4);
-  border: 1px solid var(--hairline);
-  border-radius: var(--r-sm);
-  background: var(--surface);
-  text-align: left;
+.rt-timer-dial.is-finished .fill { stroke: var(--accent); }
+.rt-timer-read {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 44px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
 }
-.rts-radio .t { font-size: var(--t-body); font-weight: 600; color: var(--ink); }
-.rts-radio .h { font-size: var(--t-meta); color: var(--ink-3); }
-.rts-radio.on { border-color: var(--accent); background: var(--accent-tint); }
+.rt-timer-dial.is-finished .rt-timer-read { color: var(--accent); }
+.rt-timer-dial.is-finished .rt-timer-read svg {
+  width: 64px; height: 64px;
+  animation: rt-pop var(--dur-3) var(--spring);
+}
+@keyframes rt-pop { from { transform: scale(.7); opacity: 0 } to { transform: none; opacity: 1 } }
 
-.rts-form-foot {
+.rt-timer-actions {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: var(--sp-3);
-  padding-top: var(--sp-5);
-  border-top: 1px solid var(--hairline-faint);
 }
+.rt-timer-actions .ds-btn--primary { min-width: 128px; }
 
-@media (max-width: 560px) {
-  .rts-pair { grid-template-columns: 1fr; }
-  .rts-form-foot > div { display: none; }
-  .rts-form-foot { justify-content: stretch; }
-  .rts-form-foot .ds-btn { flex: 1; }
+/* The routine editor sits beside the day name — close to what it edits,
+   and out of the progress card, which has no width to spare at 1024px. */
+.rt-date { display: flex; align-items: center; gap: var(--sp-3); }
+.rt-gear {
+  width: 32px; height: 32px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: transparent;
+  border-radius: var(--r-pill);
+  color: var(--ink-4);
+  transition: background var(--dur-1) var(--ease), color var(--dur-1) var(--ease);
 }
+.rt-gear svg { width: 17px; height: 17px; }
+.rt-gear:active { background: var(--surface-press); color: var(--ink-2); }

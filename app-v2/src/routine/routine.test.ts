@@ -13,6 +13,7 @@ import {
   type CompletionIndex,
 } from './engine';
 import { routineItemsFromActivities, legacyCompletionMap, mergeLegacyCompletions } from './derive';
+import { metaFor, daysLabel } from './format';
 
 const SEED = SEED_ROUTINE_ACTIVITIES;
 const byId = (id: string): RoutineActivity => {
@@ -120,14 +121,14 @@ describe('recurrence — the brief\'s reference days', () => {
     expect(occursOn(byId('ra-cardio'), MON)).toBe(false);
     expect(titlesOn(MON)).toContain('Strength training');
     expect(titlesOn(MON)).not.toContain('Electrolytes');
-    expect(titlesOn(MON)).not.toContain('Cardio');
+    expect(titlesOn(MON)).not.toContain('Cycling or rowing');
   });
 
   it('Wednesday: cardio yes, electrolytes yes, strength no', () => {
     expect(occursOn(byId('ra-cardio'), WED)).toBe(true);
     expect(occursOn(byId('ra-electrolytes'), WED)).toBe(true);
     expect(occursOn(byId('ra-strength'), WED)).toBe(false);
-    expect(titlesOn(WED)).toEqual(expect.arrayContaining(['Cardio', 'Electrolytes']));
+    expect(titlesOn(WED)).toEqual(expect.arrayContaining(['Cycling or rowing', 'Electrolytes']));
     expect(titlesOn(WED)).not.toContain('Strength training');
   });
 
@@ -166,8 +167,8 @@ describe('recurrence — the brief\'s reference days', () => {
   });
 
   it("puts a 'both' activity on the dashboard and the calendar", () => {
-    expect(titlesOn(WED)).toContain('11:00 stack');
-    expect(activitiesForDay(SEED, WED, 'calendar').map(a => a.title)).toContain('11:00 stack');
+    expect(titlesOn(WED)).toContain('Creatine + Vitamin D');
+    expect(activitiesForDay(SEED, WED, 'calendar').map(a => a.title)).toContain('Creatine + Vitamin D');
   });
 });
 
@@ -445,7 +446,7 @@ describe('Plan calendar derivation', () => {
 
   it('emits the legacy item shape the calendar grids read', () => {
     const stack = items.find(i => i.id === 'ra-1100-stack')!;
-    expect(stack).toMatchObject({ title: '11:00 stack', start: '11:00', duration: 10, category: 'supplement' });
+    expect(stack).toMatchObject({ title: 'Creatine + Vitamin D', start: '11:00', duration: 10, category: 'supplement' });
     expect(stack.days).toEqual([0, 1, 2, 3, 4, 5, 6]);
 
     const cardio = items.find(i => i.id === 'ra-cardio')!;
@@ -492,6 +493,101 @@ describe('Plan calendar derivation', () => {
   });
 });
 
+describe('dashboard composition — what is actually on screen', () => {
+  // The brief's stress test: every activity for the day, optional included,
+  // must be a tile on the Routine screen. Nothing is behind a drawer.
+  const tilesOn = (key: string) => {
+    const all = activitiesForDay(SEED, key, 'routine');
+    const required = all.filter(a => a.required !== false);
+    const optional = all.filter(a => a.required === false);
+    return [...required, ...optional];
+  };
+
+  it('shows 13 tiles on Wednesday: 11 scheduled + 2 optional', () => {
+    const tiles = tilesOn(WED);
+    expect(tiles).toHaveLength(13);
+    expect(tiles.filter(a => a.required !== false)).toHaveLength(11);
+    expect(tiles.filter(a => a.required === false)).toHaveLength(2);
+    expect(tiles.map(a => a.title)).toEqual([
+      'Breakfast stack', 'Wall sit', 'Creatine + Vitamin D', 'Electrolytes',
+      'Cycling or rowing', '2-minute plank', '40 air squats',
+      'ChatGPT briefings', 'Industry articles', 'Podcast', 'Magnesium',
+      'Freediving dry training', 'Read a book',
+    ]);
+  });
+
+  it('always places both optional activities last, and never hides them', () => {
+    for (const key of weekKeys(MON)) {
+      const tiles = tilesOn(key);
+      expect(tiles.slice(-2).map(a => a.title))
+        .toEqual(['Freediving dry training', 'Read a book']);
+    }
+  });
+
+  it('Monday has strength training and no electrolytes or cardio', () => {
+    const titles = tilesOn(MON).map(a => a.title);
+    expect(titles).toContain('Strength training');
+    expect(titles).not.toContain('Electrolytes');
+    expect(titles).not.toContain('Cycling or rowing');
+    expect(tilesOn(MON)).toHaveLength(12); // 10 scheduled + 2 optional
+  });
+
+  it('Sunday has neither strength training nor electrolytes nor cardio', () => {
+    const titles = tilesOn(SUN).map(a => a.title);
+    expect(titles).not.toContain('Strength training');
+    expect(titles).not.toContain('Electrolytes');
+    expect(titles).not.toContain('Cycling or rowing');
+    expect(tilesOn(SUN)).toHaveLength(11); // 9 scheduled + 2 optional
+  });
+
+  it('counts the two optional tiles out of every day\'s denominator', () => {
+    for (const key of weekKeys(MON)) {
+      const p = dayProgress(SEED, buildCompletionIndex([]), key);
+      expect(p.total).toBe(tilesOn(key).length - 2);
+    }
+  });
+
+  it('gives every dashboard activity an icon and a metadata line', () => {
+    for (const a of activitiesForDay(SEED, WED, 'routine')) {
+      expect(a.icon, `${a.title} has no icon`).toBeTruthy();
+      // Optional tiles carry the OPTIONAL chip instead of a metadata line.
+      const meta = metaFor(a);
+      expect(meta || a.required === false, `${a.title} has nothing to show on its meta line`).toBeTruthy();
+    }
+  });
+});
+
+describe('tile metadata line', () => {
+  it('prefers a clock time, then an anchor, then a timer or target', () => {
+    expect(metaFor(byId('ra-1100-stack'))).toBe('11:00');
+    expect(metaFor(byId('ra-cardio'))).toBe('12:00');
+    expect(metaFor(byId('ra-breakfast-stack'))).toBe('At breakfast');
+    expect(metaFor(byId('ra-wall-sit'))).toBe('While brushing teeth');
+    expect(metaFor(byId('ra-magnesium'))).toBe('Before bed');
+    expect(metaFor(byId('ra-plank'))).toBe('2 min timer');
+    expect(metaFor(byId('ra-strength'))).toBe('20 min timer');
+    expect(metaFor(byId('ra-air-squats'))).toBe('40 reps');
+    expect(metaFor(byId('ra-podcast'))).toBe('Listen today');
+  });
+
+  it('falls back to the days an activity runs', () => {
+    expect(metaFor(byId('ra-electrolytes'))).toBe('Wed & Sat');
+    expect(daysLabel(byId('ra-strength'))).toBe('Mon & Tue & Thu & Fri');
+    expect(daysLabel(byId('ra-breakfast-stack'))).toBe('');
+  });
+
+  it('states no doses or exercise prescriptions the brief did not give', () => {
+    // Guards against the concept artwork's invented details leaking in:
+    // "5 g creatine + 2,000 IU D3", "3 x 60 seconds", "1 - 2 sets", "200-400 mg".
+    const invented = /\d[\d,.]*\s?(mg|mcg|iu|ml)\b|\d+\s?[x×]\s?\d+|\d+\s?-\s?\d+\s?sets?\b|\d+\s?sets?\b/i;
+    for (const a of SEED.filter(x => x.surface !== 'calendar')) {
+      expect(metaFor(a), a.title).not.toMatch(invented);
+      expect(a.description || '', a.title).not.toMatch(invented);
+      expect(a.title).not.toMatch(invented);
+    }
+  });
+});
+
 describe('seed integrity', () => {
   it('has unique activity ids', () => {
     const ids = SEED.map(a => a.id);
@@ -525,9 +621,9 @@ describe('seed integrity', () => {
   it('implements every activity the brief specifies', () => {
     const titles = SEED.map(a => a.title);
     expect(titles).toEqual(expect.arrayContaining([
-      'Breakfast stack', 'Wall sit', '11:00 stack', 'Electrolytes',
-      'Strength training', 'Cardio', 'Plank', 'Air squats',
-      'ChatGPT scheduled tasks', 'Industry articles', 'Podcast',
+      'Breakfast stack', 'Wall sit', 'Creatine + Vitamin D', 'Electrolytes',
+      'Strength training', 'Cycling or rowing', '2-minute plank', '40 air squats',
+      'ChatGPT briefings', 'Industry articles', 'Podcast',
       'Magnesium', 'Freediving dry training', 'Read a book',
     ]));
     expect(byId('ra-breakfast-stack').children!.map(c => c.title))

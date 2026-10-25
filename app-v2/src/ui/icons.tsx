@@ -97,3 +97,6 @@ export const IconReset = (p: P) => (
 export const IconBell = (p: P) => (
   <svg {...base} {...p}><path d="M18 9a6 6 0 1 0-12 0c0 4.5-1.8 6-1.8 6h15.6S18 13.5 18 9M10.3 19.5a2 2 0 0 0 3.4 0" /></svg>
 );
+export const IconAlert = (p: P) => (
+  <svg {...base} {...p}><path d="M12 3.6 2.6 20h18.8z" /><path d="M12 10v4.2M12 17.3h.01" /></svg>
+);

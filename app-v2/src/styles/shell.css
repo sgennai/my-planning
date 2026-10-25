@@ -1,286 +1,209 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   APP SHELL — the one navigation surface for all six sections.
+   APP SHELL — a floating near-black navigation pill.
    ---------------------------------------------------------------------------
-   Nav adapts on real orientation, not width alone: a side rail in landscape
-   on a large screen, a bottom tab bar everywhere else. An iPad Pro in
-   portrait is 1024px wide, so a width-only rule would hand it a side rail
-   and waste the vertical reading space portrait is good at.
+   Landscape: a slim vertical pill down the left. Portrait: a horizontal pill
+   floating over the foot of the screen. The pill floats above the content
+   rather than occupying a column, so the dashboard grid gets the full width;
+   `.shell-main` insets instead of the pill taking layout space.
+
+   Orientation, not width alone, picks the arrangement: an iPad Pro in
+   portrait is 1024px wide and a width-only rule would give it the landscape
+   layout and waste the vertical reading space portrait is good at.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .shell {
-  display: flex;
-  /* dvh, not vh: Safari's collapsing toolbars change the viewport height and
-     vh would leave the tab bar stranded below the fold. */
-  height: 100dvh;
+  min-height: 100dvh;
   background: var(--canvas);
-  overflow: hidden;
 }
 
-/* ── Side rail (landscape, large) ──────────────────────────────────────── */
-.shell-rail {
-  display: none;
-  width: var(--rail-w);
-  flex: none;
-  flex-direction: column;
-  gap: var(--sp-5);
-  padding: var(--sp-5) var(--sp-3);
-  padding-top: max(var(--sp-5), env(safe-area-inset-top));
-  padding-left: max(var(--sp-3), env(safe-area-inset-left));
-  background: var(--surface);
-  border-right: 1px solid var(--hairline);
-}
-
-.shell-brand {
+.shell-main {
   display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  padding: 0 var(--sp-2);
+  flex-direction: column;
+  min-width: 0;
+  height: 100dvh;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  background: var(--canvas);
 }
-.shell-brand .mark {
-  width: 30px; height: 30px;
-  flex: none;
-  display: grid;
-  place-items: center;
-  border-radius: var(--r-sm);
-  background: var(--ink);
-  color: var(--canvas);
-  font-family: var(--font-display);
-  font-size: 18px;
-  line-height: 1;
-  padding-bottom: 2px;
-}
-.shell-brand .name {
-  font-family: var(--font-display);
-  font-size: var(--t-lead);
-  color: var(--ink);
-  letter-spacing: var(--tr-tight);
+/* A full-height screen (Routine) fills the space the padding leaves; the
+   scrolling screens simply overflow it. */
+.shell-main > * { flex: 1 0 auto; min-height: 0; }
+
+/* ── The pill ─────────────────────────────────────────────────────────── */
+.shell-nav {
+  position: fixed;
+  z-index: 300;
+  display: flex;
+  background: var(--nav-bg);
+  box-shadow: var(--shadow-nav);
+  /* The indicator is positioned against this. */
+  isolation: isolate;
 }
 
-.shell-nav { display: flex; flex-direction: column; gap: 2px; }
 .shell-nav-item {
   position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
-  gap: var(--sp-3);
-  min-height: var(--tap-min);
-  padding: 0 var(--sp-3);
   border: none;
   background: transparent;
-  border-radius: var(--r-sm);
-  color: var(--ink-2);
-  font-size: var(--t-body);
+  color: var(--nav-ink);
+  font-family: var(--font-ui);
   font-weight: 500;
-  text-align: left;
-  transition: background var(--dur-1) var(--ease), color var(--dur-1) var(--ease);
+  transition: color var(--dur-2) var(--ease), transform var(--dur-release) var(--spring);
 }
-.shell-nav-item svg { width: 20px; height: 20px; flex: none; color: var(--ink-3); }
-.shell-nav-item:active { background: var(--surface-press); }
-.shell-nav-item.on {
-  background: var(--accent-tint);
-  color: var(--ink);
-  font-weight: 600;
+.shell-nav-item svg { width: 22px; height: 22px; flex: none; }
+.shell-nav-item.on { color: var(--nav-ink-on); }
+.shell-nav-item:active { transform: scale(.94); transition-duration: var(--dur-press); }
+
+/* The active marker glides between items rather than cutting. */
+.shell-nav-ind {
+  position: absolute;
+  z-index: 0;
+  border-radius: var(--r-md);
+  background: var(--nav-active);
+  transition: transform var(--dur-3) var(--ease), width var(--dur-3) var(--ease),
+              height var(--dur-3) var(--ease);
 }
-.shell-nav-item.on svg { color: var(--accent); }
-.shell-nav-item.on::before {
+.shell-nav-ind::after {
   content: "";
   position: absolute;
-  left: calc(var(--sp-3) * -1 + 2px);
-  top: 10px; bottom: 10px;
-  width: 3px;
   border-radius: var(--r-pill);
   background: var(--accent);
 }
 
-/* North Star — the job-switch anchor, carried over and restyled. */
-.shell-star {
-  padding: var(--sp-3) var(--sp-4);
-  border: 1px solid var(--hairline);
-  border-radius: var(--r-sm);
-  background: var(--surface-sunken);
-}
-.shell-star .role {
-  font-family: var(--font-display);
-  font-size: var(--t-body);
-  color: var(--ink);
-  margin-top: 2px;
-  line-height: var(--lh-snug);
-}
-.shell-star .meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: var(--sp-2);
-  margin: var(--sp-2) 0 var(--sp-2);
-  font-family: var(--font-mono);
-  font-size: var(--t-micro);
-  color: var(--ink-3);
-}
-.shell-star .meta .pct { color: var(--accent); }
+/* ── Landscape: vertical pill, left ───────────────────────────────────── */
+@media (orientation: landscape) {
+  .shell-nav {
+    top: 50%;
+    left: max(var(--sp-4), env(safe-area-inset-left));
+    transform: translateY(-50%);
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-1);
+    padding: var(--sp-3);
+    border-radius: 28px;
+    max-height: calc(100dvh - var(--sp-8));
+  }
+  .shell-nav-item {
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 52px;
+    height: 54px;
+    border-radius: var(--r-md);
+    font-size: 9.5px;
+    letter-spacing: .01em;
+  }
+  .shell-nav-ind { width: 52px; height: 54px; left: var(--sp-3); top: var(--sp-3); }
+  .shell-nav-ind::after {
+    left: -7px; top: 16px; bottom: 16px; width: 3px;
+  }
 
-.shell-foot { margin-top: auto; display: flex; flex-direction: column; gap: var(--sp-1); }
-.shell-foot-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-2);
-  padding: var(--sp-3) var(--sp-3) var(--sp-2);
-  border-top: 1px solid var(--hairline-faint);
-  font-size: var(--t-meta);
-  color: var(--ink-3);
+  /* Content clears the pill: 76px of rail plus breathing room. */
+  .shell-main { padding-left: calc(var(--nav-w) + max(var(--sp-4), env(safe-area-inset-left))); }
 }
-.shell-link {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  min-height: var(--tap-min);
-  padding: 0 var(--sp-3);
-  border: none;
-  background: transparent;
-  border-radius: var(--r-sm);
-  color: var(--ink-3);
-  font-size: var(--t-meta);
-  font-weight: 500;
-  text-align: left;
-}
-.shell-link svg { width: 18px; height: 18px; flex: none; }
-.shell-link:active { background: var(--surface-press); color: var(--ink); }
-.shell-link.danger:active { color: var(--alert); }
 
-/* Theme switch — a real switch, 44px of hit area around a small track. */
-.shell-switch {
+/* ── Portrait: horizontal pill, floating at the foot ──────────────────── */
+@media (orientation: portrait) {
+  .shell-nav {
+    left: 50%;
+    bottom: max(var(--sp-4), calc(env(safe-area-inset-bottom) + var(--sp-2)));
+    transform: translateX(-50%);
+    flex-direction: row;
+    align-items: center;
+    gap: var(--sp-1);
+    padding: var(--sp-2) var(--sp-3);
+    border-radius: var(--r-pill);
+    max-width: calc(100vw - var(--sp-8));
+  }
+  .shell-nav-item {
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    min-width: 58px;
+    height: 54px;
+    padding: 0 var(--sp-2);
+    border-radius: var(--r-md);
+    font-size: 10px;
+  }
+  .shell-nav-ind { height: 54px; top: var(--sp-2); left: var(--sp-3); }
+  .shell-nav-ind::after {
+    left: 50%; transform: translateX(-50%);
+    bottom: 6px; width: 18px; height: 3px;
+  }
+
+  .shell-main { padding-bottom: calc(var(--nav-h) + var(--sp-8) + env(safe-area-inset-bottom)); }
+}
+
+/* A very short viewport (phone landscape) cannot host a vertical pill
+   comfortably; fall back to labels-off icons to keep it inside the screen. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .shell-nav-item { height: 44px; font-size: 0; gap: 0; }
+  .shell-nav-ind { height: 44px; }
+}
+
+/* ── Utilities inside the pill (landscape) ────────────────────────────── */
+.shell-nav-utils { display: none; }
+.shell-nav-util {
   position: relative;
-  width: 46px; height: 28px;
-  flex: none;
-  padding: 0;
-  border: 1px solid var(--hairline-strong);
-  border-radius: var(--r-pill);
-  background: var(--surface-sunken);
-  transition: background var(--dur-2) var(--ease);
-}
-.shell-switch i {
-  position: absolute;
-  top: 2px; left: 2px;
-  width: 22px; height: 22px;
-  border-radius: var(--r-pill);
-  background: var(--surface);
-  box-shadow: var(--shadow-1);
-  transition: left var(--dur-2) var(--ease);
-}
-.shell-switch.on { background: var(--accent); border-color: var(--accent); }
-.shell-switch.on i { left: 20px; }
-
-/* ── Content column ───────────────────────────────────────────────────── */
-.shell-main {
-  flex: 1;
-  min-width: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: contain;
-  background: var(--canvas);
-}
-
-/* ── Bottom tab bar (portrait + small screens) ─────────────────────────── */
-.shell-tabs {
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  z-index: 300;
-  display: flex;
-  background: var(--surface);
-  border-top: 1px solid var(--hairline);
-  padding: var(--sp-1) var(--sp-1) 0;
-  padding-bottom: max(var(--sp-1), env(safe-area-inset-bottom));
-}
-.shell-tab {
-  flex: 1;
-  min-width: 0;
-  min-height: 56px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 52px; height: 42px;
   border: none;
   background: transparent;
   border-radius: var(--r-sm);
-  color: var(--ink-3);
-  font-size: var(--t-micro);
-  font-weight: 600;
-  letter-spacing: 0;
-  padding: var(--sp-1) 2px;
+  color: var(--nav-ink);
+  transition: color var(--dur-1) var(--ease), transform var(--dur-release) var(--spring);
 }
-.shell-tab svg { width: 22px; height: 22px; }
-.shell-tab span {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.shell-tab.on { color: var(--accent); }
-.shell-tab:active { background: var(--surface-press); }
+.shell-nav-util svg { width: 18px; height: 18px; }
+.shell-nav-util:active { transform: scale(.92); transition-duration: var(--dur-press); }
+.shell-nav-util.is-alert { color: #F0A373; }
 
-/* Utility cluster — theme / settings / sign-out when there is no rail. */
+@media (orientation: landscape) {
+  .shell-nav-utils {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    margin-top: var(--sp-2);
+    padding-top: var(--sp-2);
+    border-top: 1px solid rgba(255, 255, 255, .10);
+  }
+}
+
+/* ── Utility cluster: theme / settings / sign out (portrait) ──────────── */
 .shell-utils {
   position: fixed;
-  top: max(var(--sp-3), env(safe-area-inset-top));
-  right: max(var(--sp-3), env(safe-area-inset-right));
+  top: max(var(--sp-4), calc(env(safe-area-inset-top) + var(--sp-2)));
+  right: max(var(--sp-4), env(safe-area-inset-right));
   z-index: 310;
   display: flex;
   gap: var(--sp-2);
 }
-.shell-utils .ds-icon-btn { box-shadow: var(--shadow-1); }
-
-.shell-sync {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--sp-2);
-  padding: var(--sp-2) var(--sp-3);
-  border: 1px solid var(--alert-line);
-  border-radius: var(--r-sm);
-  background: var(--alert-tint);
-  color: var(--alert);
-  font-size: var(--t-micro);
-  line-height: var(--lh-snug);
-}
-.shell-sync button {
-  border: none;
-  background: transparent;
-  padding: 0;
-  color: var(--alert);
-  font-size: var(--t-micro);
-  font-weight: 700;
-  text-decoration: underline;
-  min-height: 0;
-}
-.shell-sync--float {
-  position: fixed;
-  left: var(--sp-3);
-  right: var(--sp-3);
-  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + var(--sp-2));
-  z-index: 290;
-  box-shadow: var(--shadow-2);
+.shell-utils .ds-icon-btn {
+  width: 38px; height: 38px;
   background: var(--surface);
+  border-color: var(--hairline);
+  box-shadow: var(--shadow-1);
+  color: var(--ink-3);
+}
+.shell-utils .ds-icon-btn svg { width: 17px; height: 17px; }
+/* Small mark, full-size target. */
+.shell-utils .ds-icon-btn { position: relative; }
+.shell-utils .ds-icon-btn::after { content: ""; position: absolute; inset: -3px; }
+.shell-sync-btn {
+  color: var(--alert);
+  border-color: var(--alert-line);
+  background: var(--alert-tint);
 }
 
-/* ── Layout switch ────────────────────────────────────────────────────── */
-@media (min-width: 1000px) and (orientation: landscape) {
-  .shell-rail { display: flex; }
-  .shell-tabs, .shell-utils, .shell-sync--float { display: none; }
-}
-
-/* No rail: reserve the strip the floating utility cluster sits in, and the
-   tab bar at the foot. Done on the shell rather than per screen so every
-   section clears them the same way. */
-@media not all and (min-width: 1000px) and (orientation: landscape) {
-  .shell-main {
-    padding-top: calc(env(safe-area-inset-top) + 52px);
-    padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
-  }
-}
-
-/* Six labels get tight on a phone; keep the icons and shrink the words. */
-@media (max-width: 420px) {
-  .shell-tab { font-size: 10px; gap: 2px; }
-  .shell-tab svg { width: 20px; height: 20px; }
+/* Declared last so it outranks the base `.shell-utils { display: flex }`
+   above: in landscape the pill carries the utilities and the floating
+   cluster would only sit on top of the dashboard's week strip. */
+@media (orientation: landscape) {
+  .shell-utils { display: none; }
 }

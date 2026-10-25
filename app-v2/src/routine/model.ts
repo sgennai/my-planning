@@ -79,6 +79,8 @@ export interface RoutineActivity {
   link?: RoutineLink;
   /** Mutually exclusive ways to do it; the completed one is recorded. */
   variants?: string[];
+  /** Key into the activity icon registry (src/routine/activity-icons.tsx). */
+  icon?: string;
   /** Opaque passthrough for the legacy top-of-hour micro-strength recurrence. */
   recurrence?: unknown;
   /**
@@ -141,15 +143,15 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
   {
     id: 'ra-breakfast-stack',
     title: 'Breakfast stack',
-    description: 'Established habit — kept compact on purpose.',
     group: 'morning',
     category: 'nourishment',
     schedule: DAILY,
-    timing: anchored('with breakfast'),
+    timing: anchored('At breakfast'),
     surface: 'routine',
     required: true,
     status: 'active',
     order: 10,
+    icon: 'bowl',
     children: [
       { id: 'probiotics', title: 'Probiotics' },
       { id: 'omega3', title: 'Omega 3' },
@@ -160,21 +162,21 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
   {
     id: 'ra-wall-sit',
     title: 'Wall sit',
-    description: 'Quadriceps.',
     group: 'morning',
     category: 'body',
     schedule: DAILY,
-    timing: anchored('while brushing teeth'),
+    timing: anchored('While brushing teeth'),
     surface: 'routine',
     required: true,
     status: 'active',
     order: 20,
+    icon: 'wallsit',
   },
 
   // ── Mid-morning ──────────────────────────────────────────────────────
   {
     id: 'ra-1100-stack',
-    title: '11:00 stack',
+    title: 'Creatine + Vitamin D',
     group: 'midmorning',
     category: 'nourishment',
     schedule: DAILY,
@@ -183,6 +185,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     required: true,
     status: 'active',
     order: 30,
+    icon: 'capsule',
     calendarCategory: 'supplement',
     children: [
       { id: 'creatine', title: 'Creatine' },
@@ -200,13 +203,13 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     required: true,
     status: 'active',
     order: 40,
+    icon: 'droplet',
   },
 
   // ── Training ─────────────────────────────────────────────────────────
   {
     id: 'ra-strength',
     title: 'Strength training',
-    description: '20 minutes.',
     group: 'training',
     category: 'body',
     schedule: on(1, 2, 4, 5), // Mon, Tue, Thu, Fri
@@ -215,13 +218,13 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     required: true,
     status: 'active',
     order: 50,
+    icon: 'barbell',
     timerSec: 20 * 60,
     target: { kind: 'minutes', value: 20 },
   },
   {
     id: 'ra-cardio',
-    title: 'Cardio',
-    description: 'Cycling or rowing — record which.',
+    title: 'Cycling or rowing',
     group: 'training',
     category: 'body',
     schedule: on(3), // Wednesday
@@ -230,6 +233,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     required: true,
     status: 'active',
     order: 60,
+    icon: 'bike',
     calendarCategory: 'gym',
     variants: ['Cycling', 'Rowing'],
   },
@@ -237,7 +241,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
   // ── Movement (flexible, every day) ───────────────────────────────────
   {
     id: 'ra-plank',
-    title: 'Plank',
+    title: '2-minute plank',
     group: 'movement',
     category: 'body',
     schedule: DAILY,
@@ -246,12 +250,13 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     required: true,
     status: 'active',
     order: 70,
+    icon: 'stopwatch',
     timerSec: 2 * 60,
     target: { kind: 'minutes', value: 2 },
   },
   {
     id: 'ra-air-squats',
-    title: 'Air squats',
+    title: '40 air squats',
     group: 'movement',
     category: 'body',
     schedule: DAILY,
@@ -260,14 +265,15 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     required: true,
     status: 'active',
     order: 80,
+    icon: 'dumbbell',
     target: { kind: 'reps', value: 40 },
   },
 
   // ── Learning (flexible, every day) ───────────────────────────────────
   {
     id: 'ra-chatgpt-tasks',
-    title: 'ChatGPT scheduled tasks',
-    description: 'Read the overnight task output.',
+    title: 'ChatGPT briefings',
+    description: "Today's outputs",
     group: 'learning',
     category: 'mind',
     schedule: DAILY,
@@ -276,12 +282,13 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     required: true,
     status: 'active',
     order: 90,
+    icon: 'sparkle',
     link: { label: 'Open ChatGPT', url: 'https://chatgpt.com/' },
   },
   {
     id: 'ra-industry-reading',
     title: 'Industry articles',
-    description: 'Enterprise AI · customer engagement.',
+    description: 'AI & customer engagement',
     group: 'learning',
     category: 'mind',
     schedule: DAILY,
@@ -290,11 +297,13 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     required: true,
     status: 'active',
     order: 100,
+    icon: 'document',
     link: { label: 'Open reader', url: 'https://www.inoreader.com/' },
   },
   {
     id: 'ra-podcast',
     title: 'Podcast',
+    description: 'Listen today',
     group: 'learning',
     category: 'mind',
     schedule: DAILY,
@@ -303,6 +312,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     required: true,
     status: 'active',
     order: 110,
+    icon: 'headphones',
     link: { label: 'Open podcasts', url: 'https://podcasts.apple.com/' },
   },
 
@@ -310,15 +320,15 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
   {
     id: 'ra-magnesium',
     title: 'Magnesium',
-    description: 'Shortly before bed.',
     group: 'evening',
     category: 'recovery',
     schedule: DAILY,
-    timing: anchored('before bed'),
+    timing: anchored('Before bed'),
     surface: 'routine',
     required: true,
     status: 'active',
     order: 120,
+    icon: 'moon',
   },
 
   // ── Optional — present, never counted ────────────────────────────────
@@ -333,6 +343,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     required: false,
     status: 'active',
     order: 130,
+    icon: 'waves',
   },
   {
     id: 'ra-read-book',
@@ -345,6 +356,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     required: false,
     status: 'active',
     order: 140,
+    icon: 'book',
   },
 
   // ── Calendar scaffolding ─────────────────────────────────────────────
@@ -363,6 +375,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     required: false,
     status: 'active',
     order: 200,
+    icon: 'target',
     calendarCategory: 'focus',
   },
   {
@@ -377,6 +390,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     required: false,
     status: 'active',
     order: 210,
+    icon: 'car',
     calendarCategory: 'commute',
   },
   {
@@ -390,6 +404,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     required: false,
     status: 'active',
     order: 220,
+    icon: 'building',
     calendarCategory: 'elsewhere',
   },
   {
@@ -403,6 +418,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     required: false,
     status: 'active',
     order: 230,
+    icon: 'building',
     calendarCategory: 'elsewhere',
   },
   {
@@ -417,6 +433,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     required: false,
     status: 'active',
     order: 240,
+    icon: 'car',
     calendarCategory: 'commute',
   },
   {
@@ -431,6 +448,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     required: false,
     status: 'active',
     order: 250,
+    icon: 'chart',
     calendarCategory: 'review',
   },
   {
@@ -444,6 +462,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     required: false,
     status: 'active',
     order: 260,
+    icon: 'calendar',
     calendarCategory: 'planning',
   },
   {
@@ -458,6 +477,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     required: false,
     status: 'active',
     order: 270,
+    icon: 'bag',
     calendarCategory: 'prep',
   },
   {
@@ -472,6 +492,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     required: false,
     status: 'active',
     order: 280,
+    icon: 'bag',
     calendarCategory: 'prep',
   },
   {
@@ -486,6 +507,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     required: false,
     status: 'active',
     order: 290,
+    icon: 'target',
     calendarCategory: 'planning',
   },
   {
@@ -499,6 +521,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     required: false,
     status: 'active',
     order: 300,
+    icon: 'bolt',
     calendarCategory: 'micro-strength',
     homeOnly: true,
     recurrence: { kind: 'top-of-hour', startHour: 9, endHour: 18 },
