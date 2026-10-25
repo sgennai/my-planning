@@ -1,0 +1,492 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   MY PLANNING — DESIGN SYSTEM
+   ---------------------------------------------------------------------------
+   One token set for all six sections. Loaded after index.css so its :root
+   wins the cascade; the legacy token names below are aliased onto the new
+   palette so screens that have not been relaid out still resolve cleanly and
+   change colour with the rest of the app.
+
+   The language: warm stone neutrals, a single slate-indigo for anything
+   interactive, sage reserved for done, and five desaturated category accents.
+   Instrument Serif carries the date and section titles; Instrument Sans does
+   all the UI work; IBM Plex Mono holds times and counts so digits line up.
+
+   Designed for an iPad on a desk stand: nothing depends on hover, tap targets
+   never fall below 44px, and the type is sized to read at arm's length.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root, :root[data-theme="light"] {
+  color-scheme: light;
+
+  /* ── Surfaces ─────────────────────────────────────────────────────────── */
+  --canvas:         #F7F6F3;  /* the page ground */
+  --surface:        #FFFFFF;  /* cards, panels, rails */
+  --surface-sunken: #F1EFEA;  /* wells, inset tracks, inactive segments */
+  --surface-raised: #FFFFFF;  /* modals, popovers */
+  --surface-hover:  #F1EFEA;
+  --surface-press:  #E9E6DF;
+
+  /* ── Lines ────────────────────────────────────────────────────────────── */
+  --hairline:        #E4E1DA;  /* default border — carries most structure */
+  --hairline-strong: #D3CFC6;  /* emphasis, focused inputs */
+  --hairline-faint:  #EFEDE7;  /* internal dividers inside a card */
+
+  /* ── Ink ──────────────────────────────────────────────────────────────── */
+  --ink:   #1B1A17;  /* titles, primary text */
+  --ink-2: #57544D;  /* body, secondary */
+  --ink-3: #8B877E;  /* meta, labels, placeholders */
+  --ink-4: #B3AEA4;  /* disabled, faint rules, empty states */
+  --on-accent: #FFFFFF;
+
+  /* ── Accent: everything interactive ───────────────────────────────────── */
+  --accent:        #3D4F7C;
+  --accent-hover:  #334264;
+  --accent-press:  #2A3754;
+  --accent-tint:   #EDF0F6;  /* selected rows, active segment */
+  --accent-line:   #C3CCDF;
+
+  /* ── Done: the only green in the system ───────────────────────────────── */
+  --done:       #5E8A6B;
+  --done-tint:  #EDF3EE;
+  --done-line:  #C4D8CA;
+
+  /* ── Attention: late, overdue, destructive ────────────────────────────── */
+  --alert:      #A8604E;
+  --alert-tint: #F6EDEA;
+  --alert-line: #E0C7BF;
+
+  /* ── Category accents — desaturated, meaning-led ──────────────────────── */
+  --cat-nourishment: #8A7544;
+  --cat-body:        #A8604E;
+  --cat-mind:        #4A6B8A;
+  --cat-recovery:    #6B5A7A;
+  --cat-work:        #5A6B74;
+  --cat-open:        #8B877E;
+
+  /* ── Shadows — soft and warm-tinted, never grey ───────────────────────── */
+  --shadow-1: 0 1px 2px rgba(27, 26, 23, .04), 0 1px 3px rgba(27, 26, 23, .04);
+  --shadow-2: 0 2px 4px rgba(27, 26, 23, .04), 0 8px 24px rgba(27, 26, 23, .06);
+  --shadow-3: 0 8px 16px rgba(27, 26, 23, .08), 0 24px 56px rgba(27, 26, 23, .12);
+  --scrim: rgba(27, 26, 23, .32);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --canvas:         #141311;
+  --surface:        #1C1B19;
+  --surface-sunken: #232120;
+  --surface-raised: #242221;
+  --surface-hover:  #262423;
+  --surface-press:  #2E2B29;
+
+  --hairline:        #302D2A;
+  --hairline-strong: #433F3B;
+  --hairline-faint:  #262423;
+
+  --ink:   #F5F3EF;
+  --ink-2: #C3BEB5;
+  --ink-3: #8E8A82;
+  --ink-4: #615D57;
+  --on-accent: #0F0E0D;
+
+  --accent:       #8FA2D8;
+  --accent-hover: #A3B3E1;
+  --accent-press: #7C90CB;
+  --accent-tint:  #22262F;
+  --accent-line:  #3A4255;
+
+  --done:      #7FB38F;
+  --done-tint: #1C241E;
+  --done-line: #35463A;
+
+  --alert:      #D18872;
+  --alert-tint: #2A1E1A;
+  --alert-line: #4A332B;
+
+  --cat-nourishment: #C2A96C;
+  --cat-body:        #D18872;
+  --cat-mind:        #7FA3C6;
+  --cat-recovery:    #A592B5;
+  --cat-work:        #8FA3AD;
+  --cat-open:        #8E8A82;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, .4);
+  --shadow-2: 0 2px 4px rgba(0, 0, 0, .35), 0 8px 24px rgba(0, 0, 0, .4);
+  --shadow-3: 0 8px 16px rgba(0, 0, 0, .45), 0 24px 56px rgba(0, 0, 0, .55);
+  --scrim: rgba(0, 0, 0, .6);
+}
+
+/* ── Structural tokens: identical in both themes ─────────────────────────
+   Selector note: index.css declares most of these same names inside
+   `:root[data-theme="light"]` blocks, which outrank a bare `:root` no matter
+   how late they load. Matching that specificity here — and relying on source
+   order to break the tie — is what actually lets the new palette through.
+   `:root:not([data-theme])` covers the first paint, before the theme
+   attribute is set. */
+:root[data-theme="light"], :root[data-theme="dark"], :root:not([data-theme]) {
+  --font-display: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  --font-ui: 'Instrument Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Type scale. Sized for a tablet at desk distance, not a laptop at 50cm. */
+  --t-micro: 11px;   /* eyebrows, mono tags */
+  --t-meta:  13px;   /* meta lines, helper text */
+  --t-body:  15px;   /* default body */
+  --t-row:   17px;   /* an activity title — the most-read text in the app */
+  --t-lead:  20px;   /* card titles, group headings */
+  --t-title: 26px;   /* section titles */
+  --t-anchor:38px;   /* the date */
+  --t-hero:  54px;   /* the day's percentage */
+
+  --lh-tight: 1.15;
+  --lh-snug:  1.35;
+  --lh-body:  1.55;
+  --tr-tight: -0.02em;
+  --tr-wide:  0.04em;
+  --tr-eyebrow: 0.14em;
+
+  /* 4px grid */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px;
+  --sp-12: 48px; --sp-16: 64px;
+
+  --r-xs: 6px; --r-sm: 10px; --r-md: 14px; --r-lg: 20px; --r-pill: 999px;
+
+  /* Touch. Nothing interactive is allowed below --tap-min. */
+  --tap-min: 44px;
+  --tap-comfort: 52px;
+  --tap-row: 64px;
+
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-1: 120ms;
+  --dur-2: 200ms;
+  --dur-3: 320ms;
+
+  --rail-w: 236px;
+  --tabbar-h: 64px;
+
+  /* ── Legacy aliases: keep not-yet-relaid-out screens coherent ────────── */
+  --ink-soft: var(--ink-2);
+  --paper: var(--canvas);
+  --line: var(--hairline);
+  --line-soft: var(--hairline-faint);
+  --muted: var(--ink-3);
+  --muted-soft: var(--ink-4);
+  --gold: var(--accent);
+  --gold-tint: var(--accent-tint);
+  --gold-line: var(--accent-line);
+  --gold-dim: var(--accent-press);
+  --green: var(--done);
+  --green-tint: var(--done-tint);
+  --now: var(--alert);
+  --side-bg: var(--surface);
+  --bg: var(--canvas);
+  --bg-card: var(--surface);
+  --bg-card-deep: var(--surface-sunken);
+  --bg-hover: var(--surface-hover);
+  --bg-calendar: var(--surface);
+  --bg-sidebar: var(--surface);
+  --bg-error: var(--alert-tint);
+  --text: var(--ink);
+  --muted-1: var(--ink-2);
+  --muted-2: var(--ink-3);
+  --muted-3: var(--ink-3);
+  --muted-4: var(--ink-4);
+  --border: var(--hairline);
+  --rule: var(--hairline);
+  --rule-faint: var(--hairline-faint);
+  --col-divider: var(--hairline);
+  --primary: var(--accent);
+  --primary-hover: var(--accent-hover);
+  --primary-soft: var(--accent-tint);
+  --primary-text: var(--on-accent);
+  --teal: var(--done);
+  --violet: var(--cat-recovery);
+  --coral: var(--alert);
+  --serif: var(--font-ui);
+  --mono: var(--font-mono);
+  --display: var(--font-display);
+  --f-disp: var(--font-display);
+  --f-ui: var(--font-ui);
+  --f-mono: var(--font-mono);
+  --r-sm-legacy: var(--r-sm);
+  --r-md-legacy: var(--r-md);
+  --radius-sm: var(--r-xs);
+  --radius-base: var(--r-sm);
+  --radius-lg: var(--r-md);
+  --radius-xl: var(--r-lg);
+  --radius-pill: var(--r-pill);
+  --sh-sm: var(--shadow-1);
+  --sh-md: var(--shadow-2);
+  --shadow-card: var(--shadow-1);
+  --shadow-sm: var(--shadow-1);
+  --shadow-md: var(--shadow-2);
+  --shadow-lg: var(--shadow-3);
+  --shadow-primary: var(--shadow-1);
+  --modal-backdrop: var(--scrim);
+  --weekend-tint: rgba(27, 26, 23, .02);
+  --s1: var(--sp-1); --s2: var(--sp-2); --s3: var(--sp-3);
+  --s4: var(--sp-4); --s5: var(--sp-6); --s6: var(--sp-8); --s8: var(--sp-12);
+  --ease-out: var(--ease);
+  --ease-in: var(--ease);
+  --ease-in-out: var(--ease);
+  --duration-fast: var(--dur-1);
+  --duration-base: var(--dur-2);
+  --duration-slow: var(--dur-3);
+}
+
+:root[data-theme="dark"], :root[data-theme="dark"]:root { --weekend-tint: rgba(255, 255, 255, .02); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BASE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root, :root[data-theme="light"], :root[data-theme="dark"] {
+  /* index.css paints gradient blobs on :root; the new language is flat. */
+  background: var(--canvas);
+}
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink-2);
+  font-family: var(--font-ui);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Stop iPadOS rubber-banding the whole page behind a fixed shell. */
+  overscroll-behavior-y: none;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--ink);
+  letter-spacing: var(--tr-tight);
+  line-height: var(--lh-tight);
+  margin: 0;
+}
+
+/* Every control is a touch target first. */
+button, [role="button"], a.btn, summary, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  touch-action: manipulation;
+}
+button { cursor: pointer; }
+
+/* A visible focus ring for keyboard users on the desktop, never on tap. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--r-xs);
+}
+
+::selection { background: var(--accent-tint); color: var(--ink); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PRIMITIVES — shared by all six sections
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.ds-eyebrow {
+  font-family: var(--font-ui);
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.ds-card {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-1);
+}
+
+.ds-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────── */
+.ds-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  min-height: var(--tap-min);
+  padding: 0 var(--sp-5);
+  border-radius: var(--r-pill);
+  border: 1px solid var(--hairline-strong);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--t-body);
+  font-weight: 600;
+  transition: background var(--dur-1) var(--ease), border-color var(--dur-1) var(--ease);
+}
+.ds-btn:active { background: var(--surface-press); }
+.ds-btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.ds-btn--primary:active { background: var(--accent-press); border-color: var(--accent-press); }
+.ds-btn--quiet { border-color: transparent; background: transparent; color: var(--ink-2); }
+.ds-btn--quiet:active { background: var(--surface-press); }
+.ds-btn--danger { color: var(--alert); border-color: var(--alert-line); }
+.ds-btn:disabled { opacity: .45; cursor: default; }
+
+.ds-icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  border-radius: var(--r-pill);
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  color: var(--ink-2);
+  transition: background var(--dur-1) var(--ease);
+}
+.ds-icon-btn:active { background: var(--surface-press); }
+.ds-icon-btn svg { width: 20px; height: 20px; }
+
+/* ── Segmented control ────────────────────────────────────────────────── */
+.ds-segment {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-pill);
+}
+.ds-segment button {
+  min-height: 38px;
+  padding: 0 var(--sp-4);
+  border: none;
+  background: transparent;
+  border-radius: var(--r-pill);
+  color: var(--ink-3);
+  font-size: var(--t-meta);
+  font-weight: 600;
+  transition: background var(--dur-1) var(--ease), color var(--dur-1) var(--ease);
+}
+.ds-segment button[aria-selected="true"], .ds-segment button.on {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-1);
+}
+
+/* ── Progress ─────────────────────────────────────────────────────────── */
+.ds-meter {
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: var(--surface-sunken);
+  overflow: hidden;
+}
+.ds-meter > i {
+  display: block;
+  height: 100%;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  transition: width var(--dur-3) var(--ease);
+}
+.ds-meter--done > i { background: var(--done); }
+
+/* ── Fields ───────────────────────────────────────────────────────────── */
+.ds-field { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
+.ds-label {
+  font-size: var(--t-meta);
+  font-weight: 600;
+  color: var(--ink-3);
+}
+.ds-input, .ds-select, .ds-textarea {
+  min-height: var(--tap-min);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--surface);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--r-sm);
+  color: var(--ink);
+  font-size: var(--t-body);
+  /* 16px minimum stops iPadOS/iOS zooming the viewport on focus. */
+  font-size: max(var(--t-body), 16px);
+}
+.ds-textarea { min-height: 96px; resize: vertical; line-height: var(--lh-body); }
+.ds-input:focus, .ds-select:focus, .ds-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-tint);
+}
+.ds-input::placeholder, .ds-textarea::placeholder { color: var(--ink-4); }
+
+/* ── Modal ────────────────────────────────────────────────────────────── */
+.ds-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  background: var(--scrim);
+  display: grid;
+  place-items: center;
+  padding: var(--sp-4);
+  padding-bottom: max(var(--sp-4), env(safe-area-inset-bottom));
+}
+.ds-modal {
+  width: min(560px, 100%);
+  max-height: min(86dvh, 860px);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-raised);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-3);
+  overflow: hidden;
+}
+.ds-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-5) var(--sp-6);
+  border-bottom: 1px solid var(--hairline-faint);
+}
+.ds-modal-head h2 { font-size: var(--t-lead); }
+.ds-modal-body { padding: var(--sp-6); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.ds-modal-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-6);
+  border-top: 1px solid var(--hairline-faint);
+  background: var(--surface);
+}
+
+/* ── Page header: one pattern, all six sections ───────────────────────── */
+.ds-page { padding: var(--sp-8) var(--sp-8) var(--sp-12); max-width: 1180px; }
+.ds-page-head { margin-bottom: var(--sp-8); }
+.ds-page-head h1 { font-size: var(--t-title); margin-top: var(--sp-1); }
+.ds-page-head p { margin: var(--sp-2) 0 0; color: var(--ink-3); font-size: var(--t-meta); max-width: 60ch; }
+
+@media (max-width: 880px) {
+  .ds-page { padding: var(--sp-6) var(--sp-4) var(--sp-10); }
+}
+
+.ds-empty {
+  padding: var(--sp-10) var(--sp-6);
+  text-align: center;
+  color: var(--ink-3);
+  font-size: var(--t-meta);
+}

@@ -1,0 +1,161 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   EXISTING SCREENS — design-system conformance pass
+   ---------------------------------------------------------------------------
+   Plan, Practice, Intake, Create and Setup keep their layouts and behaviour;
+   what changes here is everything the design system has an opinion about:
+   touch target size, form field sizing, and the shapes of buttons and pills.
+   Measured against a 390px and an 810px viewport — every control listed was
+   under 44px, or under the 16px font size that makes iOS zoom the page on
+   focus (which on a desk-stand iPad leaves the layout stranded mid-zoom).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Forms: 16px minimum stops the focus-zoom ──────────────────────────── */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+select,
+textarea {
+  font-size: max(1em, 16px);
+}
+
+.intk-sel,
+.intk-add input,
+.ip-search,
+.kcard-edit,
+.setup-screen input,
+.setup-screen textarea,
+.prac-screen input[type="text"],
+.prac-screen textarea {
+  font-size: 16px;
+}
+
+/* Inline card editors stay visually flush while meeting the size floor. */
+.kc-h.kcard-edit { font-size: 16px; font-weight: 600; }
+.kcard-body.kcard-edit { font-size: 16px; }
+
+/* ── Touch targets ─────────────────────────────────────────────────────── */
+
+/* Shell: the sync retry link. */
+.shell-sync button { min-height: var(--tap-min); padding: 0 var(--sp-1); }
+
+/* Plan */
+.plan-iconbtn { min-width: var(--tap-min); min-height: var(--tap-min); }
+.plan-textbtn { min-height: var(--tap-min); padding-inline: var(--sp-4); }
+.plan-seg button { min-height: 40px; padding-inline: var(--sp-4); }
+.mini-month-nav-btn { min-width: 36px; min-height: 36px; }
+.mini-month-day { min-height: 36px; }
+.ag-dot { width: 22px; height: 22px; }
+
+/* Practice */
+.prac-pill { min-height: var(--tap-min); padding-inline: var(--sp-4); }
+.prac-util-btn { min-height: 40px; padding-inline: var(--sp-4); }
+.ip-start-rehearsal-btn { min-height: var(--tap-min); }
+.ip-add-q-btn,
+.ip-left-add-btn { min-width: 40px; min-height: 40px; }
+/* The per-category reorder/rename/delete controls were 17x15 — unusable by
+   touch. They sit in a tight row, so they grow to a 36px square and the row
+   gets the headroom to hold them. */
+.ip-cat-action-btn { min-width: 36px; min-height: 36px; display: inline-grid; place-items: center; }
+.ip-cat-row, .ip-category-row { min-height: var(--tap-comfort); }
+.ip-search { min-height: var(--tap-min); }
+
+/* Intake */
+.intk-sel { min-height: var(--tap-min); }
+.intk-save-btn { min-height: var(--tap-min); }
+.intk-add input { min-height: var(--tap-min); }
+.ib { min-height: 40px; padding-inline: var(--sp-4); }
+.icard .ttl { line-height: 1.45; padding-block: var(--sp-1); display: inline-block; }
+
+/* Create */
+.addbtn { min-height: var(--tap-min); }
+/* Per-card text actions were 14px tall; the padding gives the hit area
+   without changing how the link reads. */
+.kcard-act { min-height: 40px; display: inline-flex; align-items: center; padding-inline: var(--sp-1); }
+
+/* Setup */
+.mod-btn { min-height: 40px; padding-inline: var(--sp-4); }
+.modrow { min-height: var(--tap-comfort); }
+
+/* ── Shape: pills and cards follow the system's radii ──────────────────── */
+.prac-pill, .prac-util-btn, .ib, .mod-btn, .plan-textbtn, .addbtn, .intk-save-btn {
+  border-radius: var(--r-pill);
+}
+.intk-sel, .ip-search, .intk-add input { border-radius: var(--r-sm); }
+
+/* ── Practice category dots: the old rainbow set reads as noise next to a
+   six-colour system. Desaturate them so they still distinguish categories
+   without competing with the accent. ────────────────────────────────────── */
+.ip-cat-dot, .ip-category-dot {
+  filter: saturate(0.55) brightness(0.95);
+}
+
+/* ── No screen may scroll the page sideways ────────────────────────────── */
+.plan-screen, .prac-screen, .intk-screen, .crt-screen, .setup-screen {
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* Wide content scrolls inside its own container rather than pushing the page. */
+.kanban, .prac-tracks, .plan-seg, .prac-pills {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.kanban::-webkit-scrollbar, .prac-tracks::-webkit-scrollbar,
+.prac-pills::-webkit-scrollbar { display: none; }
+
+/* ── Tablet portrait: the five screens get the room the rail used to take ── */
+@media not all and (min-width: 1000px) and (orientation: landscape) {
+  .plan-screen, .prac-screen, .intk-screen, .crt-screen, .setup-screen {
+    padding-left: var(--sp-4);
+    padding-right: var(--sp-4);
+  }
+}
+
+/* ── Second pass: what the first measurement missed ────────────────────── */
+
+/* Practice status filter chips were 20px tall. */
+.prac-screen .ip-filter-btn,
+.ip-filter-btn {
+  min-height: 36px;
+  padding-inline: var(--sp-3);
+  border-radius: var(--r-pill);
+}
+
+/* Setup's own field rule sets 14px explicitly, which wins on specificity. */
+.setup-screen .field input,
+.setup-screen .field textarea { font-size: 16px; padding: 11px 12px; }
+.setup-screen .field input { min-height: var(--tap-min); }
+
+/* Create's inline card title editor. */
+.crt-screen .kc-h.kcard-edit { min-height: 36px; }
+
+/* Intake card titles double as links; give them a real hit area. */
+.icard .ttl { padding-block: var(--sp-2); }
+
+/* The mini-month cells are fixed at 26px inside a grid that already gives
+   them a full seventh of the width. Letting them fill it turns a cramped
+   date picker into one that can be tapped. */
+.mini-month-grid { grid-auto-rows: 38px; }
+.mini-month-day {
+  width: 100%;
+  max-width: 38px;
+  height: 36px;
+  border-radius: var(--r-pill);
+  font-size: var(--t-meta);
+}
+
+/* The agenda completion dot reads better small, but a 22px tap target does
+   not. A transparent pseudo-element extends the hit area to ~46px without
+   touching the layout or the dot's appearance. */
+.ag-dot { position: relative; }
+.ag-dot::after {
+  content: "";
+  position: absolute;
+  inset: -12px;
+}
+
+.plan-screen .tt-add-mini {
+  min-width: 36px;
+  min-height: 36px;
+  justify-content: center;
+}

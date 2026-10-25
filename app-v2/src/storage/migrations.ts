@@ -1,4 +1,5 @@
 import { SCHEMA_VERSION, SEED_ROUTINE, SEED_PROJECTS, SEED_REFERENCE_LIBRARY, SEED_PRACTICE_CONTENT } from './data';
+import { SEED_ROUTINE_ACTIVITIES } from '../routine/model';
 import { DEFAULT_MODULES } from '../modules/seed-modules';
 import type { PracticeItem } from './types';
 
@@ -152,6 +153,27 @@ export function migrate(data: any): { data: any, migrated: boolean } {
     changed = true;
   }
   
+  // ── v27: the routine model ──────────────────────────────────────────────
+  // Seeded only when absent or empty, so a user's own edits are never
+  // overwritten and re-running the migration cannot duplicate activities.
+  if (!Array.isArray(next.routineActivities) || next.routineActivities.length === 0) {
+    next.routineActivities = SEED_ROUTINE_ACTIVITIES;
+    changed = true;
+  }
+  // Keep the pre-v27 timed routine verbatim. The Plan calendar now derives its
+  // events from routineActivities, so `routine` stops being read — but it is
+  // copied aside rather than dropped, and `routine` itself is left in place.
+  // Taken once: if routineArchive already exists we never touch it again.
+  if (!Array.isArray(next.routineArchive) && Array.isArray(next.routine)) {
+    next.routineArchive = next.routine;
+    changed = true;
+  }
+  // Routine completions moved from the whole-map `routineCompletions`
+  // singleton into per-record entries in `progressLog`. The old map is left
+  // untouched — the Plan hero banner still writes its hourly micro-strength
+  // slot keys there, and the historical habit keys stay readable.
+  if (!Array.isArray(next.progressLog)) { next.progressLog = []; changed = true; }
+
   // v25: PracticeItem migration from InterviewPrep + Daily Practice Hub
   if (prevVersion < 25) {
     if (!Array.isArray(next.practiceItems)) {

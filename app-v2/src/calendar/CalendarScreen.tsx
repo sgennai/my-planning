@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo, Fragment } from 'react';
 import { parseColorVal, categoryStylesWith, CATEGORY_STYLES, SEED_PRACTICE_CONTENT } from '../storage/data';
 import { pad, hexToRgba, colorValToBackground, ViewSwitcher } from '../ui/helpers';
-import { startOfDay, startOfWeek, addDays, isSameDay, toMinutes, formatDateShort, formatRange, blocksForDate, makeOverrideKey, makeCompletionKey, resolvedRoutineForDate, applyElsewhereFilter } from '../helpers/calendar-utils';
+import { startOfDay, startOfWeek, addDays, isSameDay, toMinutes, formatDateShort, formatRange, blocksForDate, makeOverrideKey, resolvedRoutineForDate, applyElsewhereFilter } from '../helpers/calendar-utils';
 import { expandEventsForWindow, fetchICS } from '../helpers/ics-parser';
 import { fetchWeather, wmoIcon } from '../helpers/weather';
 import { useMediaQuery, useTickingClock } from '../main-app';
@@ -12,6 +12,9 @@ import { ProjectsRailPanel, WeekGrid } from './week/WeekScreen';
 import { BlockPopover } from './week/BlockPopover';
 import { AgendaView, ReferenceLibraryModal } from '../routine/Routine';
 import { RoutineItemPopover } from '../routine/RoutineItemPopover';
+import { routineItemsFromActivities, legacyCompletionMap, mergeLegacyCompletions, applyLegacyItemChanges, activityFromLegacyItem } from '../routine/derive';
+import { buildCompletionIndex, setCompletion, clearCompletion, stateOf } from '../routine/engine';
+import { dayKeyFromLocalDate } from '../routine/dates';
 import { WeatherStrip, InboxModal, SettingsModal, WeeklyResetOverlay } from '../ui/widgets';
 import { scheduleModuleBlocks } from '../modules/generator';
 
@@ -75,6 +78,24 @@ export function MicroTracker({ tracker, onToggle, viewDate }) {
 export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, onSignOut, onPersist, onOpenPractice, onOpenModules, onOpenIntake, onOpenCreate, pendingCalAction, onClearPendingAction }) {
   const isMobile = useMediaQuery('(max-width: 759px)');
   const now = useTickingClock(60000);
+
+  // ─── Routine source ───────────────────────────────
+  // Timed routine events are derived from the routine model
+  // (src/routine/model.ts) and projected into the legacy item shape these
+  // grids read. `data.routine` is retained in storage but no longer read:
+  // the Routine section is the single source for both surfaces.
+  const routine = useMemo(
+    () => routineItemsFromActivities(data.routineActivities),
+    [data.routineActivities]);
+
+  // Completion state comes from the per-record routine log in `progressLog`,
+  // merged with the hourly micro-strength slot keys still kept in the legacy
+  // `routineCompletions` map.
+  const completionIndex = useMemo(
+    () => buildCompletionIndex(data.progressLog), [data.progressLog]);
+  const routineCompletions = useMemo(
+    () => mergeLegacyCompletions(legacyCompletionMap(completionIndex), data.routineCompletions),
+    [completionIndex, data.routineCompletions]);
   // View routing: 'today' = daily compass (default landing), 'plan' = full week canvas
   const [mainView, setMainView] = useState('today');
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
@@ -221,10 +242,10 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
 
   const usedCategories = useMemo(() => {
     const s = new Set();
-    (data.routine || []).forEach(r => r.category && s.add(r.category));
+    routine.forEach(r => r.category && s.add(r.category));
     (data.scheduledBlocks || []).forEach(b => b.category && s.add(b.category));
     return s;
-  }, [data.routine, data.scheduledBlocks]);
+  }, [routine, data.scheduledBlocks]);
 
   const nowLineColor = (data.prefs && data.prefs.nowLineColor) || '';
   const setNowLineColor = useCallback((color) => {
@@ -340,31 +361,34 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
 
   // ─── Routine handlers ───────────────────────────
   // "From now on" = mutate the underlying routine item
+  // These edit the activity behind the event, not a parallel routine list —
+  // the Routine section is the single source for both surfaces.
   const updateRoutineItem = useCallback((itemId, changes) => {
     persistData(d => ({
       ...d,
-      routine: (d.routine || []).map(r =>
-        r.id === itemId ? { ...r, ...changes } : r
+      routineActivities: (d.routineActivities || []).map(a =>
+        a.id === itemId ? applyLegacyItemChanges(a, changes) : a
       ),
     }));
   }, [persistData]);
 
   const addRoutineItem = useCallback((newItem) => {
-    const item = {
-      id: `routine-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      ...newItem,
-    };
-    persistData(d => ({
-      ...d,
-      routine: [...(d.routine || []), item],
-    }));
+    persistData(d => {
+      const list = d.routineActivities || [];
+      const maxOrder = list.reduce((m, a) => Math.max(m, a.order || 0), 0);
+      return { ...d, routineActivities: [...list, activityFromLegacyItem(newItem, maxOrder + 10)] };
+    });
   }, [persistData]);
 
+  // Archive rather than delete: completion history is keyed by activity id,
+  // so removing the definition would orphan every past record.
   const deleteRoutineItem = useCallback((itemId) => {
     persistData(d => ({
       ...d,
-      routine: (d.routine || []).filter(r => r.id !== itemId),
-      // Also clean up any overrides for this item
+      routineActivities: (d.routineActivities || []).map(a =>
+        a.id === itemId ? { ...a, status: 'archived', updatedAt: new Date().toISOString() } : a
+      ),
+      // Occurrence overrides for a retired activity can never resolve again.
       overrides: Object.fromEntries(
         Object.entries(d.overrides || {}).filter(([k]) => !k.startsWith(`${itemId}:`))
       ),
@@ -469,12 +493,19 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
 
   // ─── Routine completion handlers ───────────────
   // Per-occurrence done state. Key shape: `${itemId}:${dateISO}`.
+  // Writes the same per-record routine log the Routine dashboard uses, so a
+  // tick made here and one made there are the same record.
   const toggleRoutineCompletion = useCallback((itemId, date) => {
-    const key = makeCompletionKey(itemId, date);
+    const dayKey = dayKeyFromLocalDate(date);
     persistData(d => {
-      const next = { ...(d.routineCompletions || {}) };
-      if (next[key]) { delete next[key]; } else { next[key] = true; }
-      return { ...d, routineCompletions: next };
+      const index = buildCompletionIndex(d.progressLog);
+      const done = stateOf(index, itemId, dayKey) === 'done';
+      return {
+        ...d,
+        progressLog: done
+          ? clearCompletion(d.progressLog, itemId, dayKey)
+          : setCompletion(d.progressLog, itemId, dayKey, 'done'),
+      };
     });
   }, [persistData]);
 
@@ -850,13 +881,13 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
   const isToday = viewDayOffset === 0;
 
   const tdOverrides = data.overrides || _EMPTY_OBJ;
-  const tdCompletions = data.routineCompletions || _EMPTY_OBJ;
+  const tdCompletions = routineCompletions;
   const CATS = categoryStyles || CATEGORY_STYLES;
 
   const todayItems = useMemo(() => {
     const items = [];
     const routineToday = applyElsewhereFilter(
-      resolvedRoutineForDate(data.routine || [], tdOverrides, viewDate, tdCompletions),
+      resolvedRoutineForDate(routine, tdOverrides, viewDate, tdCompletions),
       viewDate, elsewhere, now
     );
     routineToday.forEach(it => {
@@ -890,7 +921,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
       }
       return true;
     });
-  }, [data.routine, tdOverrides, tdCompletions, elsewhere, now, viewDate, blocks, projects, icsOccurrences, calendarToggles]);
+  }, [routine, tdOverrides, tdCompletions, elsewhere, now, viewDate, blocks, projects, icsOccurrences, calendarToggles]);
 
   const nowMin = now.getHours() * 60 + now.getMinutes();
   const tdCurrentItems = todayItems.filter(it => !it.allDay && it.startMin <= nowMin && (it.startMin + it.duration) > nowMin && !it.completed && it.category !== 'elsewhere' && it.category !== 'supplement');
@@ -900,7 +931,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
   const tdThen = tdUpcoming[1];
   const fmtHeroTime = (m) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
 
-  const microItem = (data.routine || []).find(r => r.recurrence && r.recurrence.kind === 'top-of-hour');
+  const microItem = routine.find(r => r.recurrence && r.recurrence.kind === 'top-of-hour');
   let microTracker = null;
   if (microItem) {
     const sh = microItem.recurrence.startHour ?? 9;
@@ -908,7 +939,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
     const days = microItem.days || [];
     if (days.includes(viewDate.getDay())) {
       const dateKey = startOfDay(viewDate).toISOString();
-      const comps = data.routineCompletions || {};
+      const comps = routineCompletions;
       const nowH = isToday ? now.getHours() : (viewDayOffset > 0 ? -1 : 24);
       const slots = [];
       for (let h = sh; h <= eh; h++) {
@@ -1140,7 +1171,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
   const planAllDay = planAgendaItems.filter(it => it.kind === 'ics' && it.allDay);
   const planTimed = planAgendaItems.filter(it => !(it.kind === 'ics' && it.allDay));
   const planWeekStreak = (() => {
-    const comps = data.routineCompletions || {};
+    const comps = routineCompletions;
     const keys = Object.keys(comps).filter(k => comps[k]);
     return Array.from({ length: 7 }, (_, i) => {
       const key = startOfDay(addDays(weekStart, i)).toISOString();
@@ -1238,7 +1269,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
         {planView === 'day' ? (
           <div className="plan-day-grid day-view">
             <WeekGrid
-              routine={(data.routine || []).filter(it => it.category !== 'supplement')}
+              routine={routine.filter(it => it.category !== 'supplement')}
               overrides={data.overrides || {}}
               scheduledBlocks={blocks}
               projects={projects}
@@ -1252,7 +1283,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
               onUpdateBlock={updateBlock}
               elsewhereToggles={elsewhere}
               icsOccurrences={icsOccurrences}
-              completions={data.routineCompletions || {}}
+              completions={routineCompletions}
               onToggleComplete={toggleRoutineCompletion}
               categoryStyles={categoryStyles}
               calendarToggles={calendarToggles}
@@ -1491,7 +1522,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
         </div>
         <div className="calendar-panel">
           <WeekGrid
-            routine={(data.routine || []).filter(it => it.category !== 'supplement')}
+            routine={routine.filter(it => it.category !== 'supplement')}
             overrides={data.overrides || {}}
             scheduledBlocks={blocks}
             projects={projects}
@@ -1505,7 +1536,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
             onUpdateBlock={updateBlock}
             elsewhereToggles={elsewhere}
             icsOccurrences={icsOccurrences}
-            completions={data.routineCompletions || {}}
+            completions={routineCompletions}
             onToggleComplete={toggleRoutineCompletion}
             categoryStyles={categoryStyles}
             calendarToggles={calendarToggles}
@@ -1574,7 +1605,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
     {openRoutineEdit && (
       <RoutineItemPopover
         context={openRoutineEdit}
-        routine={data.routine || []}
+        routine={routine}
         overrides={data.overrides || {}}
         onClose={() => setOpenRoutineEdit(null)}
         onUpdateItem={updateRoutineItem}
@@ -1638,7 +1669,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
         lunchSlot={lunchSlot}
         onSetLunchSlot={setLunchSlot}
         onClose={() => setSettingsOpen(false)}
-        routine={data.routine || []}
+        routine={routine}
         onUpdateRoutineItem={updateRoutineItem}
         onAddRoutineItem={addRoutineItem}
         onDeleteRoutineItem={deleteRoutineItem}

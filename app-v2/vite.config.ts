@@ -9,23 +9,25 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.svg', 'icon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'My Planning 2.0',
+        name: 'My Planning',
         short_name: 'My Planning',
-        description: 'Calendar-anchored personal operating system',
-        theme_color: '#ffffff',
+        description: 'Daily routine and portfolio dashboard',
+        // Opens as a standalone app from the iPad Home Screen.
+        display: 'standalone',
+        // The dashboard reads in both orientations, so neither is locked.
+        orientation: 'any',
+        start_url: '/',
+        scope: '/',
+        background_color: '#F7F6F3',
+        theme_color: '#F7F6F3',
         icons: [
-          {
-            src: 'pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png'
-          }
+          { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+          // Android adaptive icons crop to a circle; the artwork has enough
+          // padding inside its rounded square to survive the mask.
+          { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
         ]
       }
     })

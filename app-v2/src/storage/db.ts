@@ -65,7 +65,7 @@ export async function loadData() {
   const [
     schemaVersionRec, createdAtRec, lastModifiedRec,
     prefsRec, featureFlagsRec, userProfileRec,
-    routineRec, overridesRec, routineCompletionsRec, calendarsRec,
+    routineRec, routineActivitiesRec, routineArchiveRec, overridesRec, routineCompletionsRec, calendarsRec,
     elsewhereTogglesRec, weatherRec,
     inboxRec, referenceLibraryRec, practiceContentRec, interviewPrepRec,
     completedActionsRec, todoistRec, todoistSlotsRec, todoistPendingRec
@@ -77,6 +77,8 @@ export async function loadData() {
     tx.objectStore(STORES.SINGLETONS).get('featureFlags'),
     tx.objectStore(STORES.SINGLETONS).get('userProfile'),
     tx.objectStore(STORES.SINGLETONS).get('routine'),
+    tx.objectStore(STORES.SINGLETONS).get('routineActivities'),
+    tx.objectStore(STORES.SINGLETONS).get('routineArchive'),
     tx.objectStore(STORES.SINGLETONS).get('overrides'),
     tx.objectStore(STORES.SINGLETONS).get('routineCompletions'),
     tx.objectStore(STORES.SINGLETONS).get('calendars'),
@@ -126,6 +128,8 @@ export async function loadData() {
     userProfile: userProfileRec ? userProfileRec.value : undefined,
     
     routine: routineRec ? routineRec.value : [],
+    routineActivities: routineActivitiesRec ? routineActivitiesRec.value : [],
+    routineArchive: routineArchiveRec ? routineArchiveRec.value : undefined,
     overrides: overridesRec ? overridesRec.value : {},
     routineCompletions: routineCompletionsRec ? routineCompletionsRec.value : {},
     calendars: calendarsRec ? calendarsRec.value : {},
@@ -203,6 +207,8 @@ export async function saveData(nextData: any) {
   syncSingleton('featureFlags', nextData.featureFlags, currentSnapshot.featureFlags);
   syncSingleton('userProfile', nextData.userProfile, currentSnapshot.userProfile);
   syncSingleton('routine', nextData.routine, currentSnapshot.routine);
+  syncSingleton('routineActivities', nextData.routineActivities, currentSnapshot.routineActivities);
+  syncSingleton('routineArchive', nextData.routineArchive, currentSnapshot.routineArchive);
   syncSingleton('overrides', nextData.overrides, currentSnapshot.overrides);
   syncSingleton('routineCompletions', nextData.routineCompletions, currentSnapshot.routineCompletions);
   syncSingleton('calendars', nextData.calendars, currentSnapshot.calendars);

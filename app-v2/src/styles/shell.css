@@ -1,0 +1,286 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   APP SHELL — the one navigation surface for all six sections.
+   ---------------------------------------------------------------------------
+   Nav adapts on real orientation, not width alone: a side rail in landscape
+   on a large screen, a bottom tab bar everywhere else. An iPad Pro in
+   portrait is 1024px wide, so a width-only rule would hand it a side rail
+   and waste the vertical reading space portrait is good at.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.shell {
+  display: flex;
+  /* dvh, not vh: Safari's collapsing toolbars change the viewport height and
+     vh would leave the tab bar stranded below the fold. */
+  height: 100dvh;
+  background: var(--canvas);
+  overflow: hidden;
+}
+
+/* ── Side rail (landscape, large) ──────────────────────────────────────── */
+.shell-rail {
+  display: none;
+  width: var(--rail-w);
+  flex: none;
+  flex-direction: column;
+  gap: var(--sp-5);
+  padding: var(--sp-5) var(--sp-3);
+  padding-top: max(var(--sp-5), env(safe-area-inset-top));
+  padding-left: max(var(--sp-3), env(safe-area-inset-left));
+  background: var(--surface);
+  border-right: 1px solid var(--hairline);
+}
+
+.shell-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 0 var(--sp-2);
+}
+.shell-brand .mark {
+  width: 30px; height: 30px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-sm);
+  background: var(--ink);
+  color: var(--canvas);
+  font-family: var(--font-display);
+  font-size: 18px;
+  line-height: 1;
+  padding-bottom: 2px;
+}
+.shell-brand .name {
+  font-family: var(--font-display);
+  font-size: var(--t-lead);
+  color: var(--ink);
+  letter-spacing: var(--tr-tight);
+}
+
+.shell-nav { display: flex; flex-direction: column; gap: 2px; }
+.shell-nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: var(--tap-min);
+  padding: 0 var(--sp-3);
+  border: none;
+  background: transparent;
+  border-radius: var(--r-sm);
+  color: var(--ink-2);
+  font-size: var(--t-body);
+  font-weight: 500;
+  text-align: left;
+  transition: background var(--dur-1) var(--ease), color var(--dur-1) var(--ease);
+}
+.shell-nav-item svg { width: 20px; height: 20px; flex: none; color: var(--ink-3); }
+.shell-nav-item:active { background: var(--surface-press); }
+.shell-nav-item.on {
+  background: var(--accent-tint);
+  color: var(--ink);
+  font-weight: 600;
+}
+.shell-nav-item.on svg { color: var(--accent); }
+.shell-nav-item.on::before {
+  content: "";
+  position: absolute;
+  left: calc(var(--sp-3) * -1 + 2px);
+  top: 10px; bottom: 10px;
+  width: 3px;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+}
+
+/* North Star — the job-switch anchor, carried over and restyled. */
+.shell-star {
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  background: var(--surface-sunken);
+}
+.shell-star .role {
+  font-family: var(--font-display);
+  font-size: var(--t-body);
+  color: var(--ink);
+  margin-top: 2px;
+  line-height: var(--lh-snug);
+}
+.shell-star .meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--sp-2);
+  margin: var(--sp-2) 0 var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--ink-3);
+}
+.shell-star .meta .pct { color: var(--accent); }
+
+.shell-foot { margin-top: auto; display: flex; flex-direction: column; gap: var(--sp-1); }
+.shell-foot-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-3) var(--sp-2);
+  border-top: 1px solid var(--hairline-faint);
+  font-size: var(--t-meta);
+  color: var(--ink-3);
+}
+.shell-link {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: var(--tap-min);
+  padding: 0 var(--sp-3);
+  border: none;
+  background: transparent;
+  border-radius: var(--r-sm);
+  color: var(--ink-3);
+  font-size: var(--t-meta);
+  font-weight: 500;
+  text-align: left;
+}
+.shell-link svg { width: 18px; height: 18px; flex: none; }
+.shell-link:active { background: var(--surface-press); color: var(--ink); }
+.shell-link.danger:active { color: var(--alert); }
+
+/* Theme switch — a real switch, 44px of hit area around a small track. */
+.shell-switch {
+  position: relative;
+  width: 46px; height: 28px;
+  flex: none;
+  padding: 0;
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--r-pill);
+  background: var(--surface-sunken);
+  transition: background var(--dur-2) var(--ease);
+}
+.shell-switch i {
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 22px; height: 22px;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+  transition: left var(--dur-2) var(--ease);
+}
+.shell-switch.on { background: var(--accent); border-color: var(--accent); }
+.shell-switch.on i { left: 20px; }
+
+/* ── Content column ───────────────────────────────────────────────────── */
+.shell-main {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  background: var(--canvas);
+}
+
+/* ── Bottom tab bar (portrait + small screens) ─────────────────────────── */
+.shell-tabs {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 300;
+  display: flex;
+  background: var(--surface);
+  border-top: 1px solid var(--hairline);
+  padding: var(--sp-1) var(--sp-1) 0;
+  padding-bottom: max(var(--sp-1), env(safe-area-inset-bottom));
+}
+.shell-tab {
+  flex: 1;
+  min-width: 0;
+  min-height: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: none;
+  background: transparent;
+  border-radius: var(--r-sm);
+  color: var(--ink-3);
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0;
+  padding: var(--sp-1) 2px;
+}
+.shell-tab svg { width: 22px; height: 22px; }
+.shell-tab span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.shell-tab.on { color: var(--accent); }
+.shell-tab:active { background: var(--surface-press); }
+
+/* Utility cluster — theme / settings / sign-out when there is no rail. */
+.shell-utils {
+  position: fixed;
+  top: max(var(--sp-3), env(safe-area-inset-top));
+  right: max(var(--sp-3), env(safe-area-inset-right));
+  z-index: 310;
+  display: flex;
+  gap: var(--sp-2);
+}
+.shell-utils .ds-icon-btn { box-shadow: var(--shadow-1); }
+
+.shell-sync {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--alert-line);
+  border-radius: var(--r-sm);
+  background: var(--alert-tint);
+  color: var(--alert);
+  font-size: var(--t-micro);
+  line-height: var(--lh-snug);
+}
+.shell-sync button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: var(--alert);
+  font-size: var(--t-micro);
+  font-weight: 700;
+  text-decoration: underline;
+  min-height: 0;
+}
+.shell-sync--float {
+  position: fixed;
+  left: var(--sp-3);
+  right: var(--sp-3);
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + var(--sp-2));
+  z-index: 290;
+  box-shadow: var(--shadow-2);
+  background: var(--surface);
+}
+
+/* ── Layout switch ────────────────────────────────────────────────────── */
+@media (min-width: 1000px) and (orientation: landscape) {
+  .shell-rail { display: flex; }
+  .shell-tabs, .shell-utils, .shell-sync--float { display: none; }
+}
+
+/* No rail: reserve the strip the floating utility cluster sits in, and the
+   tab bar at the foot. Done on the shell rather than per screen so every
+   section clears them the same way. */
+@media not all and (min-width: 1000px) and (orientation: landscape) {
+  .shell-main {
+    padding-top: calc(env(safe-area-inset-top) + 52px);
+    padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  }
+}
+
+/* Six labels get tight on a phone; keep the icons and shrink the words. */
+@media (max-width: 420px) {
+  .shell-tab { font-size: 10px; gap: 2px; }
+  .shell-tab svg { width: 20px; height: 20px; }
+}

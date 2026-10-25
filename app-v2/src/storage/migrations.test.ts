@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { migrate } from './migrations';
 import { DEFAULT_MODULES } from '../modules/seed-modules';
+import { SCHEMA_VERSION } from './data';
 
 describe('Migrations', () => {
   it('migrates v24 interviewPrep to v25 practiceItems while preserving progress', () => {
@@ -36,7 +37,7 @@ describe('Migrations', () => {
     const { data, migrated } = migrate(oldData);
 
     expect(migrated).toBe(true);
-    expect(data.schemaVersion).toBe(26);
+    expect(data.schemaVersion).toBe(SCHEMA_VERSION);
     expect(data.interviewPrep).toBeUndefined();
     expect(data.create).toBeDefined();
     

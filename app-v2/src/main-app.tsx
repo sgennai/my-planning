@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo, Fragment } from 'react';
 import { SCHEMA_VERSION, SEED_ROUTINE, SEED_PROJECTS, SEED_REFERENCE_LIBRARY, SEED_PRACTICE_CONTENT } from './storage/data';
 import { migrate } from './storage/migrations';
+import { SEED_ROUTINE_ACTIVITIES } from './routine/model';
 import { PracticeScreen } from './practice/PracticeScreen';
 import { CalendarScreen } from './calendar/CalendarScreen';
 import { ModuleDashboard } from './modules/ModuleDashboard';
@@ -10,6 +11,7 @@ import { CreateScreen } from './create/CreateScreen';
 import { loadData, saveData, syncData, pullAndReplaceFromWorker, NEEDS_INITIAL_PULL_KEY } from './storage/db';
 import { DEFAULT_MODULES } from './modules/seed-modules';
 import { AppShell } from './ui/AppShell';
+import { RoutineScreen } from './routine/RoutineScreen';
 
 // DEFAULT DATA + MIGRATION
 // ═════════════════════════════════════════════════════════════
@@ -20,6 +22,8 @@ export function makeDefaultData() {
     createdAt: now,
     lastModified: now,
     routine: SEED_ROUTINE,
+    routineActivities: SEED_ROUTINE_ACTIVITIES,
+    routineArchive: SEED_ROUTINE,
     overrides: {},
     calendars: { workIcs: '', householdIcs: '', proxyUrl: '', syncUrl: '', syncSecret: '', workColor: '#8C8C96', householdColor: '#7896AF' },
     weeklyResets: [],
@@ -102,7 +106,8 @@ export function App() {
   const [saving, setSaving] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState(null);
   const [syncError, setSyncError] = useState(null);
-  const [appPage, setAppPage] = useState('calendar');
+  // Routine is the default landing page.
+  const [appPage, setAppPage] = useState('routine');
   const [pendingCalAction, setPendingCalAction] = useState(null);
   const [remoteConflicts, setRemoteConflicts] = useState([]);
 
@@ -326,7 +331,9 @@ export function App() {
   const openSettings = () => { setPendingCalAction('settings'); setAppPage('calendar'); };
 
   let pageContent;
-  if (appPage === 'modules') {
+  if (appPage === 'routine') {
+    pageContent = <RoutineScreen data={data} onPersist={persist} />;
+  } else if (appPage === 'modules') {
     pageContent = <ModuleDashboard data={data} onPersist={persist} />;
   } else if (appPage === 'intake') {
     pageContent = (

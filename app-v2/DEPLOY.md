@@ -244,3 +244,51 @@ tracking that does not exist here.
 If you ever need to implement per-field merge, the entry point is the
 `NEEDS_INITIAL_PULL_KEY` flag path in `syncData()` and the
 `pullAndReplaceFromWorker()` function — both in `src/storage/db.ts`.
+
+---
+
+## Notifications and reminders
+
+The Routine dashboard ships **in-app reminders only**, and that is a deliberate
+limit rather than an unfinished feature.
+
+### What works today
+
+While the app is open — which is the actual use case, an iPad on a desk stand
+for most of the working day — the Routine screen shows a reminder strip for any
+activity with a clock time that has come due in the last 30 minutes and is not
+yet done. Each strip offers "Mark done" and a dismiss. This covers the four
+priority reminders: the 11:00 stack, strength training, Wednesday cardio, and
+evening magnesium once a time is set on it in Routine settings.
+
+The reminder check runs on the same one-minute clock subscription the rest of
+the screen uses. There is no polling and no background work.
+
+### What does not work, and why
+
+Notifications that fire **when the app is closed** are not implemented, and
+cannot be with the current architecture. On iPadOS:
+
+1. The Notification API is only available to a web app **installed to the Home
+   Screen** (Add to Home Screen from the Safari share sheet). It does nothing in
+   a normal Safari tab.
+2. Even installed, iOS/iPadOS has **no local scheduled-notification API** for
+   web apps. `setTimeout` plus `new Notification()` only fires while a page is
+   running; iOS suspends the app shortly after it goes to the background.
+3. Delivering a notification to a closed app requires **Web Push** (iOS 16.4+),
+   which needs: a push subscription per device, VAPID keys, a server holding
+   those subscriptions, and a scheduler that wakes up at the right local time
+   and pushes. That is a new always-on backend component — the existing D1 sync
+   Worker is request-driven and has no scheduler.
+
+Implementing it would mean adding a Cron Trigger to a Worker, a `push_subs`
+table, VAPID key management, and per-user reminder times — a self-contained
+later phase. It was kept out of this one on purpose: it must not be the thing
+holding up a working dashboard, and a reminder that silently fails to fire is
+worse than no reminder at all.
+
+### If you want to try it anyway
+
+Install to the Home Screen (the manifest and icons are in place) and grant
+notification permission; you will get reminders while the app is open or very
+recently backgrounded. Do not rely on it for anything time-critical.

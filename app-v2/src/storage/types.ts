@@ -1,3 +1,5 @@
+import type { RoutineActivity } from '../routine/model';
+
 export interface BaseRecord {
   id: string;
   createdAt?: string;
@@ -224,8 +226,24 @@ export interface AppDataV26 {
   prefs: Omit<Settings, 'id' | 'updatedAt'>;
   featureFlags?: Record<string, boolean>;
   
+  /**
+   * v27: the routine model — single source for the Routine dashboard and the
+   * timed events the Plan calendar renders. See src/routine/model.ts.
+   */
+  routineActivities: RoutineActivity[];
+  /**
+   * v27: the pre-v27 timed routine, kept verbatim. No longer read by any
+   * screen; retained so no historical configuration is ever destroyed.
+   */
+  routineArchive?: RoutineItem[];
+  /** Superseded by routineActivities. Still stored, no longer read. */
   routine: RoutineItem[];
   overrides: Record<string, any>;
+  /**
+   * Superseded by routine-completion records in `progressLog`, which sync
+   * per record instead of as one whole-map blob. Still stored and still read
+   * for the hourly micro-strength slot keys the Plan hero banner writes.
+   */
   routineCompletions: Record<string, any>;
   
   calendars: Record<string, string>;
