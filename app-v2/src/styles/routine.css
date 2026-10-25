@@ -229,7 +229,6 @@
   background: var(--surface);
   border: 1px solid var(--hairline);
   border-radius: var(--r-md);
-  box-shadow: var(--shadow-1);
   color: var(--ink);
   overflow: hidden;
   /* Compression on the way down is quick; the release is springy and longer,
@@ -305,6 +304,15 @@
   white-space: nowrap;
 }
 .rt-tile-meta .late { color: var(--alert); font-weight: 600; }
+.rt-tile-meta .late::before { content: " · "; color: var(--ink-4); }
+
+/* Only one of the two meta facts is ever shown; which one depends on
+   whether the tile got its double cell. */
+.rt-parts { display: none; }
+@media (orientation: landscape) {
+  .rt-tile-cell[data-span="2"] .rt-parts { display: inline; }
+  .rt-tile-cell[data-span="2"] .rt-meta-alt { display: none; }
+}
 
 /* Optional is discreet neutral metadata — never a colour-coded card. */
 .rt-chip {
@@ -394,62 +402,18 @@
 
 .rt-cell { min-width: 0; display: flex; position: relative; }
 
-/* ── Week card: fills the landscape grid's leftover cells ─────────────── */
-.rt-weekcard {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-5);
-  padding: var(--sp-4) var(--sp-5);
-  background: var(--surface);
-  border: 1px solid var(--hairline);
-  border-radius: var(--r-md);
-  box-shadow: var(--shadow-1);
-  min-width: 0;
-}
-.rt-weekcard-title {
-  font-size: var(--t-meta);
-  font-weight: 600;
-  color: var(--ink);
-  flex: none;
-}
-.rt-bars { display: flex; align-items: flex-end; gap: var(--sp-3); flex: 1; }
-.rt-bar-col {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--sp-2);
-}
-/* A definite height: the fill is a percentage of this box, and a percentage
-   of an indefinite (flex-sized) parent resolves to nothing. */
-.rt-bar {
-  width: 100%;
-  max-width: 34px;
-  height: 56px;
-  display: flex;
-  align-items: flex-end;
-  background: var(--surface-sunken);
-  border-radius: var(--r-xs);
-  overflow: hidden;
-}
-.rt-bar > i {
-  display: block;
-  width: 100%;
-  background: var(--accent-ghost);
-  border-radius: var(--r-xs);
-  transition: height var(--dur-3) var(--ease);
-}
-.rt-bar-col.is-selected .rt-bar > i { background: var(--accent); }
-.rt-bar-label { font-size: var(--t-micro); color: var(--ink-3); }
-.rt-bar-col.is-selected .rt-bar-label { color: var(--ink); font-weight: 600; }
-
 /* ═══════════════════════════════════════════════════════════════════════════
    LANDSCAPE — four columns, vertical tiles
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @media (orientation: landscape) {
   .rt { padding-right: max(var(--sp-5), env(safe-area-inset-right)); }
+
+  /* One memorable element, and everything around it stays quiet: the day's
+     standing is the only thing on this screen that is not an activity. */
+  .rt-ring { width: 76px; height: 76px; }
+  .rt-ring-count { font-size: 19px; }
+  .rt-progress { padding: var(--sp-3) var(--sp-5); }
 
   .rt-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -471,12 +435,25 @@
   .rt-tile-text { flex: none; min-height: 0; }
   .rt-tile-title { align-items: flex-start; }
 
-  .rt-weekcard { grid-column: span 3; }
+  /* Set in the component for a stack of three or more parts, which has
+     content its title cannot carry. The width is used, not decorative. */
+  .rt-tile-cell[data-span="2"] { grid-column: span 2; }
+  .rt-tile-cell[data-span="2"] .rt-tile-meta { font-size: var(--t-body); }
+
+  /* The optional pair closes the grid as a band of its own. The card itself
+     stays a full, legible surface — the brief wants these picked up on a
+     whim, not faded out. Only the icon drops the accent tint, which is what
+     marks the rest of the grid as today's plan. */
+  .rt-tile-cell[data-optional="true"] { grid-column: span 2; }
+  .rt-tile-cell[data-optional="true"] .rt-tile-icon {
+    background: var(--surface-sunken);
+    color: var(--ink-3);
+  }
 
   /* A short landscape window (a phone) cannot hold four readable columns. */
   @media (max-width: 760px) {
     .rt-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .rt-weekcard { grid-column: span 2; }
+    .rt-tile-cell[data-span="2"] { grid-column: span 2; }
   }
 }
 
@@ -530,7 +507,6 @@
   /* No room for the week chart in portrait without pushing tiles off the
      screen, and the brief makes it optional. The seven-day dots in the
      header already carry the week. */
-  .rt-weekcard { display: none; }
 }
 
 /* Very narrow portrait (a phone): one column. */

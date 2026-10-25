@@ -50,9 +50,19 @@ function Tile({ row, index, wide, date, today, now, onToggle, onOpenTimer }: Til
   const a = row.activity;
   const late = isOverdue(row, date, today, now);
   const partial = row.children.length > 0 && row.childrenDone > 0 && !row.done;
-  const meta = metaFor(a);
   const optional = a.required === false;
   const hasAux = !!a.timerSec || !!a.link?.url;
+  // A stack of three or more parts has content the title cannot carry; it
+  // takes a double cell in landscape and spends it listing them. Two-part
+  // groups are already named in full by their title ("Creatine + Vitamin D")
+  // and would only be using the width as decoration.
+  const listsParts = row.children.length >= 3;
+  const meta = metaFor(a);
+  // The parts list is only rendered where the tile has the double cell to
+  // hold it; in portrait the tile is single-width and would just ellipsis
+  // it, so the timing line is the better fact to show. Both are emitted and
+  // CSS picks — no media query in JS to drift out of sync with the layout.
+  const parts = listsParts ? row.children.map(c => c.title).join(', ') : null;
 
   const cls = [
     'rt-tile',
@@ -64,6 +74,8 @@ function Tile({ row, index, wide, date, today, now, onToggle, onOpenTimer }: Til
     <div
       className="rt-cell rt-tile-cell"
       data-wide={wide ? 'true' : undefined}
+      data-span={listsParts ? '2' : undefined}
+      data-optional={optional ? 'true' : undefined}
       data-aux={hasAux ? 'true' : undefined}
       style={{ '--i': index } as React.CSSProperties}
     >
@@ -82,8 +94,13 @@ function Tile({ row, index, wide, date, today, now, onToggle, onOpenTimer }: Til
           </span>
           {(meta || late || row.skipped) && (
             <span className="rt-tile-meta">
-              {row.skipped ? 'Set aside' : meta}
-              {late && <span className="late"> · overdue</span>}
+              {row.skipped ? 'Set aside' : (
+                <>
+                  {parts && <span className="rt-parts">{parts}</span>}
+                  <span className={parts ? 'rt-meta-alt' : undefined}>{meta}</span>
+                </>
+              )}
+              {late && <span className="late">overdue</span>}
             </span>
           )}
         </span>
@@ -279,40 +296,19 @@ export function RoutineScreen({ data, onPersist }: Props) {
             Nothing scheduled for this day. Open routine settings to add an activity.
           </div>
         ) : (
-          <>
-            {rows.map((row, i) => (
-              <Tile
-                key={row.activity.id}
-                row={row}
-                index={i}
-                wide={rows.length % 2 === 1 && i === rows.length - 1}
-                date={viewDate}
-                today={today}
-                now={now}
-                onToggle={handleToggle}
-                onOpenTimer={setTimerFor}
-              />
-            ))}
-
-            {/* Fills the leftover cells of the landscape grid; hidden in
-                portrait, where the header's day dots already carry the week. */}
-            <div className="rt-cell rt-weekcard" style={{ '--i': rows.length } as React.CSSProperties}>
-              <span className="rt-weekcard-title">This week</span>
-              <div className="rt-bars">
-                {week.days.map(d => (
-                  <div
-                    key={d.key}
-                    className={`rt-bar-col${d.key === viewDate ? ' is-selected' : ''}`}
-                  >
-                    <span className="rt-bar">
-                      <i style={{ height: `${Math.max(d.pct, d.pct > 0 ? 6 : 0)}%` }} />
-                    </span>
-                    <span className="rt-bar-label">{dayNameShort(d.key)}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
+          rows.map((row, i) => (
+            <Tile
+              key={row.activity.id}
+              row={row}
+              index={i}
+              wide={rows.length % 2 === 1 && i === rows.length - 1}
+              date={viewDate}
+              today={today}
+              now={now}
+              onToggle={handleToggle}
+              onOpenTimer={setTimerFor}
+            />
+          ))
         )}
       </div>
 
