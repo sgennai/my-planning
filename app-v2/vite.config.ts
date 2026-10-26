@@ -9,6 +9,24 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        // The photographs are deliberately *not* precached — 4.4 MB on an
+        // iPad 7th gen would make the first install crawl, and a tile whose
+        // image fails simply draws its plate instead. They are cached the
+        // first time they are shown, so the dashboard keeps its photography
+        // when the wifi drops.
+        runtimeCaching: [
+          {
+            urlPattern: /\/routine\/[^/]+\.webp$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'routine-photos',
+              expiration: { maxEntries: 140, maxAgeSeconds: 60 * 60 * 24 * 120 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
+      },
       includeAssets: ['favicon.svg', 'icon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'My Planning',
