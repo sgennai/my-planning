@@ -22,7 +22,9 @@ shows as a broken image.
 | `podcast`     | Podcast panel          | cinematic night sky over mountains |
 | `summit`      | Daily progress hero    | dramatic dark mountain / evening sky |
 
-## Adding assets
+All fourteen are present — see CREDITS.md for provenance and sizes.
+
+## Adding or replacing assets
 
 1. Drop `<key>.webp` in this directory. Target ~1200px on the long edge,
    quality ~72; the largest tile renders at roughly 300×150 CSS px, and the

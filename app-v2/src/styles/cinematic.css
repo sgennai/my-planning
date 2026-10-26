@@ -187,12 +187,16 @@
   height: 62%;
   overflow: hidden;
 }
-.cin-hero-plate img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 42%; }
+.cin-hero-plate img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: 50% 42%;
+}
 .cin-hero-plate::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, #112039 0%, rgba(17,32,57,.62) 22%, rgba(12,25,48,.30) 58%, rgba(10,20,36,.72) 100%);
+  background: linear-gradient(180deg, #112039 0%, rgba(17,32,57,.62) 22%, rgba(12,25,48,.28) 58%, rgba(9,18,33,.80) 100%);
 }
 
 .cin-ring-wrap {
@@ -248,7 +252,8 @@
   font-size: 12.5px;
   font-style: italic;
   line-height: 1.45;
-  color: rgba(205, 222, 245, .82);
+  color: rgba(214, 229, 250, .88);
+  text-shadow: 0 1px 6px rgba(5, 12, 24, .85);
   flex: none;
 }
 
@@ -340,13 +345,17 @@
 }
 .cin-pod:active { transform: scale(.975); transition-duration: var(--dur-press); }
 .cin-pod-plate { position: absolute; inset: 0; }
-.cin-pod-plate img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 45%; }
+.cin-pod-plate img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: 50% 45%;
+}
 .cin-pod-plate::after {
   content: "";
   position: absolute; inset: 0;
   background: linear-gradient(105deg, rgba(8,16,30,.90) 0%, rgba(8,16,30,.62) 46%, rgba(8,16,30,.34) 100%);
 }
-.cin-pod > * { position: relative; }
+.cin-pod > *:not(.cin-pod-plate):not(.cin-sweep) { position: relative; }
 .cin-pod-eyebrow {
   font-size: 9px;
   font-weight: 700;
@@ -443,12 +452,16 @@
 
 /* The photographic strip occupies the upper part and fades into the copy. */
 .cin-photo { position: absolute; left: 0; right: 0; top: 0; height: 62%; overflow: hidden; }
-.cin-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cin-photo img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
 .cin-photo::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(10,20,36,.12) 0%, rgba(13,24,42,.30) 42%, rgba(16,26,44,.86) 80%, var(--panel) 100%);
+  background: linear-gradient(180deg, rgba(10,20,36,.10) 0%, rgba(13,24,42,.26) 44%, rgba(16,26,44,.84) 80%, var(--panel) 100%);
 }
 
 .cin-tile-body { position: relative; padding: 0 11px 11px; }

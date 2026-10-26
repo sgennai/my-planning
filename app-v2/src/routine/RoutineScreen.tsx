@@ -19,6 +19,7 @@ import { dayKeyOf, dayNameShort, type DayKey } from './dates';
 import { dayParts, metaFor } from './format';
 import { ActivityIcon } from './activity-icons';
 import { ActivityPhoto } from './ActivityPhoto';
+import { photoFor } from './photo-manifest';
 import { RoutineSettings } from './RoutineSettings';
 import { RoutineTimer } from './RoutineTimer';
 import { useClock } from '../ui/useClock';
@@ -87,7 +88,7 @@ function Tile({ row, index, span, date, today, now, onToggle, onSecondary }: Til
         aria-pressed={row.done}
         aria-label={`${a.title}${meta ? `, ${meta}` : ''}${optional ? ', optional' : ''}. ${row.done ? 'Completed' : 'Not completed'}.`}
       >
-        <ActivityPhoto className="cin-photo" name={a.photo} icon={a.icon} />
+        <ActivityPhoto className="cin-photo" name={photoFor(a)} icon={a.icon} />
         {row.done && <span className="cin-sweep" aria-hidden />}
 
         <span className="cin-tile-body">
@@ -216,7 +217,7 @@ function PodcastPanel({ row, onToggle }: { row: ResolvedActivity; onToggle: (a: 
         aria-pressed={row.done}
         aria-label={`${a.title}. ${row.done ? 'Completed' : 'Not completed'}.`}
       >
-        <ActivityPhoto className="cin-pod-plate" name="podcast" icon="headphones" />
+        <ActivityPhoto className="cin-pod-plate" name={photoFor(a)} icon={a.icon} />
         {row.done && <span className="cin-sweep" aria-hidden />}
 
         <div>

@@ -50,7 +50,10 @@ export function ActivityPhoto({ name, icon, alt, className }: Props) {
         <img
           src={`/routine/${name}.webp`}
           alt={alt || ''}
-          loading="lazy"
+          /* Every tile for the day is above the fold, so deferring these
+             only buys pop-in. ~1 MB across fourteen files, decoded off the
+             main thread. */
+          loading="eager"
           decoding="async"
           onError={() => setFailed(true)}
         />
