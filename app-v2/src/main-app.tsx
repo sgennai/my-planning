@@ -110,6 +110,11 @@ export function App() {
   const [appPage, setAppPage] = useState('routine');
   const [pendingCalAction, setPendingCalAction] = useState(null);
   const [remoteConflicts, setRemoteConflicts] = useState([]);
+  // The authoritative copy between renders. `persist` updates it
+  // synchronously so two interactions in the same frame both build on the
+  // newer state — reading `data` from a render closure meant the second tap
+  // started from the first tap's "before", silently discarding it.
+  const dataRef = useRef(null);
 
   // Apply theme to <html data-theme="..."> whenever data.prefs.theme changes.
   // Default to 'light' before data loads so the boot/sign-in screens use the right palette.
@@ -181,6 +186,7 @@ export function App() {
       }
 
       if (needsSave) await saveData(resolvedData);
+      dataRef.current = resolvedData;
       setData(resolvedData);
       setPhase('ready');
     } catch (e) {
@@ -227,6 +233,7 @@ export function App() {
             freshData.lastModified = new Date().toISOString();
             await saveData(freshData);
           }
+          dataRef.current = freshData;
           setData(freshData);
 
           // Only show notice if the user is actively editing a text field right now
@@ -266,7 +273,16 @@ export function App() {
     };
   }, [phase, data, runBackgroundSync]);
 
-  const persist = useCallback(async (nextData) => {
+  /**
+   * Accepts either the next state or a function of the current state.
+   * Prefer the function form for anything a user can trigger twice quickly:
+   * it resolves against `dataRef`, which is current the instant the previous
+   * call returns, rather than against whatever the render closure captured.
+   */
+  const persist = useCallback(async (mutator) => {
+    const base = dataRef.current;
+    const nextData = typeof mutator === 'function' ? mutator(base) : mutator;
+    dataRef.current = nextData;
     setData(nextData); // optimistic — render reflects change immediately
     setSaving(true);
     setError('');

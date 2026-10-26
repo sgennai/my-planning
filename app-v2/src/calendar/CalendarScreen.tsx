@@ -141,11 +141,15 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
   const weekEnd = addDays(weekStart, 6);
   const isCurrentWeek = isSameDay(weekStart, startOfWeek(now));
 
+  // Forward the mutator rather than resolving it here: `data` is this
+  // render's copy, so resolving against it means two interactions in one
+  // frame both start from the same "before" and the first one is lost.
+  // `persist` in main-app resolves against the current state instead.
   const persistData = useCallback((mutator) => {
-    const nextData = typeof mutator === 'function' ? mutator(data) : mutator;
-    const withTimestamp = { ...nextData, lastModified: new Date().toISOString() };
-    onPersist(withTimestamp);
-  }, [data, onPersist]);
+    onPersist(typeof mutator === 'function'
+      ? (current) => ({ ...mutator(current), lastModified: new Date().toISOString() })
+      : { ...mutator, lastModified: new Date().toISOString() });
+  }, [onPersist]);
 
   // Theme toggle — flips between light and dark, persists to data file
   const setTheme = useCallback((theme) => {

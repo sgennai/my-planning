@@ -260,9 +260,13 @@ export interface RoutineScreenData {
   [key: string]: unknown;
 }
 
+type Persist = (
+  next: RoutineScreenData | ((current: RoutineScreenData) => RoutineScreenData),
+) => void;
+
 interface Props {
   data: RoutineScreenData;
-  onPersist: (next: RoutineScreenData) => void;
+  onPersist: Persist;
 }
 
 export function RoutineScreen({ data, onPersist }: Props) {
@@ -321,13 +325,22 @@ export function RoutineScreen({ data, onPersist }: Props) {
     });
   }, [tiles]);
 
-  const persistLog = useCallback((nextLog: unknown[]) => {
-    onPersist({ ...data, progressLog: nextLog, lastModified: new Date().toISOString() });
-  }, [data, onPersist]);
-
+  /**
+   * Completion writes go through the updater form so each tap builds on the
+   * state the previous tap produced. Computing the next log from this
+   * render's `log` loses a completion whenever two tiles are tapped inside
+   * one frame — and the lost record is tombstoned, so the loss syncs.
+   */
   const handleToggle = useCallback((a: RoutineActivity) => {
-    persistLog(toggleActivity(log, a, viewDate, index));
-  }, [log, viewDate, index, persistLog]);
+    onPersist((current: RoutineScreenData) => {
+      const currentLog = current.progressLog || EMPTY;
+      return {
+        ...current,
+        progressLog: toggleActivity(currentLog, a, viewDate, buildCompletionIndex(currentLog)),
+        lastModified: new Date().toISOString(),
+      };
+    });
+  }, [viewDate, onPersist]);
 
   const handleSecondary = useCallback((a: RoutineActivity) => {
     if (a.timerSec) { setTimerFor(a); return; }
@@ -335,8 +348,10 @@ export function RoutineScreen({ data, onPersist }: Props) {
   }, []);
 
   const saveActivities = useCallback((next: RoutineActivity[]) => {
-    onPersist({ ...data, routineActivities: next, lastModified: new Date().toISOString() });
-  }, [data, onPersist]);
+    onPersist((current: RoutineScreenData) => ({
+      ...current, routineActivities: next, lastModified: new Date().toISOString(),
+    }));
+  }, [onPersist]);
 
   const parts = dayParts(viewDate);
 
