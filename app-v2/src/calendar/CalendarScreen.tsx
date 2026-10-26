@@ -867,7 +867,12 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
   }, []);
 
   const blocks = data.scheduledBlocks || _EMPTY_ARRAY;
-  const projects = data.projects || _EMPTY_ARRAY;
+  // IndexedDB returns projects in id order; restore tier order (stable sort,
+  // so same-tier projects keep a fixed order; untiered ones go last).
+  const projects = useMemo(
+    () => [...(data.projects || _EMPTY_ARRAY)].sort((a, b) => (a.tier ?? Infinity) - (b.tier ?? Infinity)),
+    [data.projects]
+  );
   const openBlock = openBlockId ? blocks.find(b => b.id === openBlockId) : null;
   const refLibrary = data.referenceLibrary || [];
 
