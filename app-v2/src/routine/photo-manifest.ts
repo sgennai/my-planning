@@ -118,3 +118,64 @@ export const ICON_BY_ACTIVITY: Record<string, string> = {
 export function iconFor(activity: { id: string }): string | undefined {
   return ICON_BY_ACTIVITY[activity.id];
 }
+
+/**
+ * Plate tones, keyed by photo name *or* icon name.
+ *
+ * An activity you create has no photograph until you pick one, so its plate
+ * is what you actually see. Keying on the icon too means a new activity
+ * takes a tone that suits the mark you chose rather than everything
+ * defaulting to the same blue.
+ */
+export const PLATE_TONES: Record<string, [string, string, string]> = {
+  breakfast:   ['#2A3A52', '#141F33', 'rgba(150,130,90,.34)'],
+  wallsit:     ['#1E3350', '#101D33', 'rgba(70,120,200,.34)'],
+  capsule:     ['#2B3350', '#141B30', 'rgba(190,160,90,.30)'],
+  electrolyte: ['#1B3A55', '#0F2236', 'rgba(80,160,210,.36)'],
+  cycling:     ['#243348', '#121D30', 'rgba(90,130,190,.30)'],
+  plank:       ['#2A3148', '#15192C', 'rgba(120,140,200,.28)'],
+  squats:      ['#222E44', '#11182A', 'rgba(100,125,175,.28)'],
+  briefings:   ['#13304F', '#0B1B30', 'rgba(50,140,230,.42)'],
+  articles:    ['#2C3447', '#161B2A', 'rgba(170,175,195,.26)'],
+  magnesium:   ['#332A3F', '#1A1626', 'rgba(210,150,90,.30)'],
+  freediving:  ['#12405E', '#09243C', 'rgba(60,170,220,.44)'],
+  book:        ['#3A2F3C', '#1D1724', 'rgba(220,160,80,.32)'],
+  podcast:     ['#1C3350', '#0C1B30', 'rgba(70,140,220,.38)'],
+  summit:      ['#1A2E52', '#0C1A31', 'rgba(80,130,210,.40)'],
+
+  // By icon, for activities that have no picture yet. Keys that already
+  // name a photograph above (wallsit, capsule, book) serve both.
+  bowl:        ['#2A3A52', '#141F33', 'rgba(150,130,90,.34)'],
+  droplet:     ['#1B3A55', '#0F2236', 'rgba(80,160,210,.36)'],
+  dumbbell:    ['#222E44', '#11182A', 'rgba(100,125,175,.28)'],
+  barbell:     ['#243348', '#121D30', 'rgba(90,130,190,.30)'],
+  bike:        ['#243348', '#121D30', 'rgba(90,130,190,.30)'],
+  stopwatch:   ['#2A3148', '#15192C', 'rgba(120,140,200,.28)'],
+  sparkle:     ['#13304F', '#0B1B30', 'rgba(50,140,230,.42)'],
+  document:    ['#2C3447', '#161B2A', 'rgba(170,175,195,.26)'],
+  headphones:  ['#1C3350', '#0C1B30', 'rgba(70,140,220,.38)'],
+  moon:        ['#332A3F', '#1A1626', 'rgba(210,150,90,.30)'],
+  waves:       ['#12405E', '#09243C', 'rgba(60,170,220,.44)'],
+  target:      ['#1F2F4C', '#0F1A2E', 'rgba(90,140,215,.34)'],
+  car:         ['#26303F', '#131A26', 'rgba(130,150,185,.26)'],
+  building:    ['#232E42', '#121A28', 'rgba(110,140,190,.28)'],
+  chart:       ['#1C3148', '#0E1C2C', 'rgba(70,150,210,.34)'],
+  calendar:    ['#252F49', '#13192B', 'rgba(120,140,205,.30)'],
+  bag:         ['#2E3040', '#171926', 'rgba(150,150,185,.26)'],
+  bolt:        ['#2B3250', '#141A30', 'rgba(130,145,230,.34)'],
+};
+
+/**
+ * Deterministic tone for a key with no entry above — a user-created
+ * activity still gets its own colour rather than everyone sharing one.
+ * Hue only; the saturation and lightness stay inside the dark palette.
+ */
+export function derivedTone(key: string): [string, string, string] {
+  let h = 0;
+  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) % 360;
+  return [
+    `hsl(${h} 32% 22%)`,
+    `hsl(${h} 38% 11%)`,
+    `hsla(${h} 55% 55% / .32)`,
+  ];
+}

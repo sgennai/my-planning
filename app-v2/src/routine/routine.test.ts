@@ -14,7 +14,9 @@ import {
 } from './engine';
 import { routineItemsFromActivities, legacyCompletionMap, mergeLegacyCompletions } from './derive';
 import { metaFor, daysLabel } from './format';
-import { photoFor, iconFor } from './photo-manifest';
+import { photoFor, iconFor, PLATE_TONES, derivedTone } from './photo-manifest';
+import { ACTIVITY_ICON_KEYS } from './activity-icons';
+
 
 const SEED = SEED_ROUTINE_ACTIVITIES;
 const byId = (id: string): RoutineActivity => {
@@ -672,5 +674,27 @@ describe('seed integrity', () => {
   it('states no supplement dosages', () => {
     const text = JSON.stringify(SEED);
     expect(text).not.toMatch(/\b\d+\s?(mg|mcg|g|iu|ml)\b/i);
+  });
+});
+
+describe('activities without a photograph', () => {
+  // A user-created activity has no picture until one is chosen, so the
+  // plate behind its icon is what is actually on screen.
+  it('gives every icon the picker offers its own deliberate tone', () => {
+    const offered = new Set(ACTIVITY_ICON_KEYS);
+    const toned = new Set(Object.keys(PLATE_TONES));
+    const missing = [...offered].filter(k => !toned.has(k));
+    expect(missing, 'icons falling back to a derived tone').toEqual([]);
+  });
+
+  it('derives a distinct tone for a key it has never seen', () => {
+    const a = derivedTone('cold shower');
+    const b = derivedTone('sauna');
+    expect(a).not.toEqual(b);
+    expect(a[0]).toMatch(/^hsl\(/);
+  });
+
+  it('is deterministic, so a tile does not change colour between loads', () => {
+    expect(derivedTone('cold shower')).toEqual(derivedTone('cold shower'));
   });
 });
