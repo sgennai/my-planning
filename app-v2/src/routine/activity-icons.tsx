@@ -107,55 +107,17 @@ const ACTIVITY_ICONS: Record<string, (p: P) => React.ReactElement> = {
   bolt: Bolt,
 };
 
-/** Falls back to a neutral mark so a user-created activity still renders. */
-export function ActivityIcon({ name, ...rest }: { name?: string } & P) {
-  const Icon = (name && ACTIVITY_ICONS[name]) || Dot;
+/**
+ * Resolution order: the requested mark, then the fallback, then a neutral
+ * dot. The fallback matters because a stored icon key can name a mark that
+ * has since been renamed or dropped — and the neutral dot beside the tile's
+ * status circle reads as a second control, not as an icon.
+ */
+export function ActivityIcon(
+  { name, fallback, ...rest }: { name?: string; fallback?: string } & P,
+) {
+  const Icon = (name && ACTIVITY_ICONS[name])
+    || (fallback && ACTIVITY_ICONS[fallback])
+    || Dot;
   return <Icon {...rest} />;
-}
-
-/**
- * Icon by activity id.
- *
- * Which mark illustrates an activity is presentation, not user data, so it
- * is resolved here rather than read back from storage — an activity seeded
- * before the icon field existed still gets its mark, and changing the art
- * direction never needs a migration. Same reasoning as PHOTO_BY_ACTIVITY.
- */
-const ICON_BY_ACTIVITY: Record<string, string> = {
-  'ra-breakfast-stack':  'bowl',
-  'ra-wall-sit':         'wallsit',
-  'ra-1100-stack':       'capsule',
-  'ra-electrolytes':     'droplet',
-  'ra-strength':         'barbell',
-  'ra-cardio':           'bike',
-  'ra-plank':            'stopwatch',
-  'ra-air-squats':       'dumbbell',
-  'ra-chatgpt-tasks':    'sparkle',
-  'ra-industry-reading': 'document',
-  'ra-podcast':          'headphones',
-  'ra-magnesium':        'moon',
-  'ra-freediving':       'waves',
-  'ra-read-book':        'book',
-  'ra-focus-session':    'target',
-  'ra-drive-cowork-am':  'car',
-  'ra-cowork-am':        'building',
-  'ra-cowork-pm':        'building',
-  'ra-drive-home':       'car',
-  'ra-weekly-review':    'chart',
-  'ra-plan-tomorrow':    'calendar',
-  'ra-prep-work-bag':    'bag',
-  'ra-prep-gym-bag':     'bag',
-  'ra-define-winning':   'target',
-  'ra-micro-strength':   'bolt',
-};
-
-/**
- * The activity's own key wins — but only if it still resolves. A stored key
- * can name an icon that has since been renamed or dropped (`kettlebell` became
- * `dumbbell`), and falling through to the neutral dot would put a second
- * circle on the tile beside its status mark. Validate, then fall back.
- */
-export function iconFor(activity: { id: string; icon?: string }): string | undefined {
-  if (activity.icon && ACTIVITY_ICONS[activity.icon]) return activity.icon;
-  return ICON_BY_ACTIVITY[activity.id];
 }

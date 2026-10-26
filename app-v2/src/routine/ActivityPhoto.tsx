@@ -35,12 +35,14 @@ interface Props {
   name?: string;
   /** Icon to show on the plate when no photograph is present. */
   icon?: string;
+  /** Used when `icon` names a mark that no longer exists. */
+  iconFallback?: string;
   /** Alt text. Decorative plates are hidden from assistive tech instead. */
   alt?: string;
   className?: string;
 }
 
-export function ActivityPhoto({ name, icon, alt, className }: Props) {
+export function ActivityPhoto({ name, icon, iconFallback, alt, className }: Props) {
   const [failed, setFailed] = useState(false);
   const has = !!name && AVAILABLE_PHOTOS.has(name) && !failed;
 
@@ -69,7 +71,7 @@ export function ActivityPhoto({ name, icon, alt, className }: Props) {
         aria-hidden
         style={{ '--plate-a': a, '--plate-b': b, '--plate-lit': lit } as React.CSSProperties}
       >
-        <ActivityIcon name={icon} />
+        <ActivityIcon name={icon} fallback={iconFallback} />
       </div>
     </div>
   );

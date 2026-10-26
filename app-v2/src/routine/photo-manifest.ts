@@ -62,3 +62,52 @@ export function photoFor(activity: { id: string; photo?: string }): string | und
  * is baked into the files instead (see CREDITS.md for the `bri` values), and
  * the app renders plain images.
  */
+
+/**
+ * Icon by activity id.
+ *
+ * Which mark illustrates an activity is presentation, not user data, so it
+ * is resolved here rather than read back from storage — an activity seeded
+ * before the icon field existed still gets its mark, and changing the art
+ * direction never needs a migration. Same reasoning as
+ * PHOTO_BY_ACTIVITY above.
+ */
+export const ICON_BY_ACTIVITY: Record<string, string> = {
+  'ra-breakfast-stack':  'bowl',
+  'ra-wall-sit':         'wallsit',
+  'ra-1100-stack':       'capsule',
+  'ra-electrolytes':     'droplet',
+  'ra-strength':         'barbell',
+  'ra-cardio':           'bike',
+  'ra-plank':            'stopwatch',
+  'ra-air-squats':       'dumbbell',
+  'ra-chatgpt-tasks':    'sparkle',
+  'ra-industry-reading': 'document',
+  'ra-podcast':          'headphones',
+  'ra-magnesium':        'moon',
+  'ra-freediving':       'waves',
+  'ra-read-book':        'book',
+  'ra-focus-session':    'target',
+  'ra-drive-cowork-am':  'car',
+  'ra-cowork-am':        'building',
+  'ra-cowork-pm':        'building',
+  'ra-drive-home':       'car',
+  'ra-weekly-review':    'chart',
+  'ra-plan-tomorrow':    'calendar',
+  'ra-prep-work-bag':    'bag',
+  'ra-prep-gym-bag':     'bag',
+  'ra-define-winning':   'target',
+  'ra-micro-strength':   'bolt',
+};
+
+/**
+ * The mark for an activity, derived from its id alone.
+ *
+ * Passed to `ActivityIcon` as the fallback behind whatever key storage
+ * holds: a stored key can name a mark that has since been renamed or
+ * dropped (`kettlebell` became `dumbbell`), and falling through to the
+ * neutral dot puts a second circle on the tile beside its status mark.
+ */
+export function iconFor(activity: { id: string }): string | undefined {
+  return ICON_BY_ACTIVITY[activity.id];
+}

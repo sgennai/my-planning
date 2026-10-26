@@ -14,8 +14,7 @@ import {
 } from './engine';
 import { routineItemsFromActivities, legacyCompletionMap, mergeLegacyCompletions } from './derive';
 import { metaFor, daysLabel } from './format';
-import { iconFor } from './activity-icons';
-import { photoFor } from './photo-manifest';
+import { photoFor, iconFor } from './photo-manifest';
 
 const SEED = SEED_ROUTINE_ACTIVITIES;
 const byId = (id: string): RoutineActivity => {
@@ -596,8 +595,7 @@ describe('presentation resolves without stored data', () => {
   // its status circle, which reads as two controls.
   it('gives every dashboard activity an icon from its id alone', () => {
     for (const a of SEED.filter(x => x.surface !== 'calendar')) {
-      const stripped = { id: a.id };
-      expect(iconFor(stripped), a.title).toBeTruthy();
+      expect(iconFor({ id: a.id }), a.title).toBeTruthy();
     }
   });
 
@@ -607,9 +605,10 @@ describe('presentation resolves without stored data', () => {
     }
   });
 
-  it('ignores a stored icon key that no longer exists', () => {
-    expect(iconFor({ id: 'ra-air-squats', icon: 'kettlebell' })).toBe('dumbbell');
-    expect(iconFor({ id: 'ra-air-squats', icon: 'bowl' })).toBe('bowl');
+  it('derives the mark from the id regardless of what storage holds', () => {
+    // `kettlebell` was renamed to `dumbbell`; a record written before that
+    // must not fall through to the neutral dot beside its status circle.
+    expect(iconFor({ id: 'ra-air-squats' })).toBe('dumbbell');
   });
 });
 

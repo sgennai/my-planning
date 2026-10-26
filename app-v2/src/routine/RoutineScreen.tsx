@@ -17,9 +17,9 @@ import {
 } from './engine';
 import { dayKeyOf, dayNameShort, type DayKey } from './dates';
 import { dayParts, metaFor } from './format';
-import { ActivityIcon, iconFor } from './activity-icons';
+import { ActivityIcon } from './activity-icons';
 import { ActivityPhoto } from './ActivityPhoto';
-import { photoFor } from './photo-manifest';
+import { photoFor, iconFor } from './photo-manifest';
 import { RoutineSettings } from './RoutineSettings';
 import { RoutineTimer } from './RoutineTimer';
 import { useClock } from '../ui/useClock';
@@ -88,12 +88,12 @@ function Tile({ row, index, span, date, today, now, onToggle, onSecondary }: Til
         aria-pressed={row.done}
         aria-label={`${a.title}${meta ? `, ${meta}` : ''}${optional ? ', optional' : ''}. ${row.done ? 'Completed' : 'Not completed'}.`}
       >
-        <ActivityPhoto className="cin-photo" name={photoFor(a)} icon={iconFor(a)} />
+        <ActivityPhoto className="cin-photo" name={photoFor(a)} icon={a.icon} iconFallback={iconFor(a)} />
         {row.done && <span className="cin-sweep" aria-hidden />}
 
         <span className="cin-tile-body">
           <span className="cin-tile-row">
-            <span className="cin-tile-icon" aria-hidden><ActivityIcon name={iconFor(a)} /></span>
+            <span className="cin-tile-icon" aria-hidden><ActivityIcon name={a.icon} fallback={iconFor(a)} /></span>
             <Status row={row} />
           </span>
           <span className="cin-tile-title">{a.title}</span>
@@ -217,7 +217,7 @@ function PodcastPanel({ row, onToggle }: { row: ResolvedActivity; onToggle: (a: 
         aria-pressed={row.done}
         aria-label={`${a.title}. ${row.done ? 'Completed' : 'Not completed'}.`}
       >
-        <ActivityPhoto className="cin-pod-plate" name={photoFor(a)} icon={iconFor(a)} />
+        <ActivityPhoto className="cin-pod-plate" name={photoFor(a)} icon={a.icon} iconFallback={iconFor(a)} />
         {row.done && <span className="cin-sweep" aria-hidden />}
 
         <div>
