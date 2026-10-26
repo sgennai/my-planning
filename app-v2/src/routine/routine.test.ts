@@ -14,6 +14,8 @@ import {
 } from './engine';
 import { routineItemsFromActivities, legacyCompletionMap, mergeLegacyCompletions } from './derive';
 import { metaFor, daysLabel } from './format';
+import { iconFor } from './activity-icons';
+import { photoFor } from './photo-manifest';
 
 const SEED = SEED_ROUTINE_ACTIVITIES;
 const byId = (id: string): RoutineActivity => {
@@ -585,6 +587,29 @@ describe('tile metadata line', () => {
       expect(a.description || '', a.title).not.toMatch(invented);
       expect(a.title).not.toMatch(invented);
     }
+  });
+});
+
+describe('presentation resolves without stored data', () => {
+  // An activity seeded before the icon or photo key existed must still get
+  // its mark and its picture — otherwise the tile shows a neutral dot beside
+  // its status circle, which reads as two controls.
+  it('gives every dashboard activity an icon from its id alone', () => {
+    for (const a of SEED.filter(x => x.surface !== 'calendar')) {
+      const stripped = { id: a.id };
+      expect(iconFor(stripped), a.title).toBeTruthy();
+    }
+  });
+
+  it('gives every dashboard activity a photograph from its id alone', () => {
+    for (const a of SEED.filter(x => x.surface !== 'calendar')) {
+      expect(photoFor({ id: a.id }), a.title).toBeTruthy();
+    }
+  });
+
+  it('ignores a stored icon key that no longer exists', () => {
+    expect(iconFor({ id: 'ra-air-squats', icon: 'kettlebell' })).toBe('dumbbell');
+    expect(iconFor({ id: 'ra-air-squats', icon: 'bowl' })).toBe('bowl');
   });
 });
 

@@ -1,5 +1,6 @@
 import { SCHEMA_VERSION, SEED_ROUTINE, SEED_PROJECTS, SEED_REFERENCE_LIBRARY, SEED_PRACTICE_CONTENT } from './data';
 import { SEED_ROUTINE_ACTIVITIES } from '../routine/model';
+import { relabelRoutine } from '../routine/relabel';
 import { DEFAULT_MODULES } from '../modules/seed-modules';
 import type { PracticeItem } from './types';
 
@@ -168,6 +169,14 @@ export function migrate(data: any): { data: any, migrated: boolean } {
     next.routineArchive = next.routine;
     changed = true;
   }
+  // v28: devices that seeded before the labels were aligned with the brief
+  // still carry the old wording. Only values still matching the old seed are
+  // rewritten, so a label the user edited is never clobbered.
+  {
+    const { activities: relabelled, changed: didRelabel } = relabelRoutine(next.routineActivities);
+    if (didRelabel) { next.routineActivities = relabelled; changed = true; }
+  }
+
   // Routine completions moved from the whole-map `routineCompletions`
   // singleton into per-record entries in `progressLog`. The old map is left
   // untouched — the Plan hero banner still writes its hourly micro-strength

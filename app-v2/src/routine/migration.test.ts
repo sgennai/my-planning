@@ -98,3 +98,57 @@ describe('v27 routine migration', () => {
     }
   });
 });
+
+describe('v28 relabelling', () => {
+  const stored = (over: Partial<Record<string, unknown>> = {}) => ({
+    id: 'ra-1100-stack',
+    title: '11:00 stack',
+    group: 'midmorning',
+    category: 'nourishment',
+    schedule: { type: 'daily' },
+    timing: { type: 'fixed', start: '11:00', durationMin: 10 },
+    surface: 'both',
+    required: true,
+    status: 'active',
+    order: 30,
+    ...over,
+  });
+
+  it('brings pre-rename labels up to the current wording', () => {
+    const { data } = migrate({ schemaVersion: 27, routineActivities: [stored()] });
+    expect(data.routineActivities[0].title).toBe('Creatine + Vitamin D');
+  });
+
+  it('never clobbers a label the user has edited', () => {
+    const mine = stored({ title: 'Morning supplements' });
+    const { data } = migrate({ schemaVersion: 27, routineActivities: [mine] });
+    expect(data.routineActivities[0].title).toBe('Morning supplements');
+  });
+
+  it('relabels anchors and descriptions only on an exact old-seed match', () => {
+    const before = [
+      { ...stored(), id: 'ra-wall-sit', title: 'Wall sit',
+        timing: { type: 'anchored', anchor: 'while brushing teeth' }, description: 'Quadriceps.' },
+      { ...stored(), id: 'ra-magnesium', title: 'Magnesium',
+        timing: { type: 'anchored', anchor: 'any time I like' } },
+    ];
+    const { data } = migrate({ schemaVersion: 27, routineActivities: before });
+    expect(data.routineActivities[0].timing.anchor).toBe('While brushing teeth');
+    expect(data.routineActivities[0].description).toBeUndefined();
+    // Edited anchor is left exactly as the user set it.
+    expect(data.routineActivities[1].timing.anchor).toBe('any time I like');
+  });
+
+  it('changes no activity id, so completion history still resolves', () => {
+    const before = [stored(), { ...stored(), id: 'ra-plank', title: 'Plank' }];
+    const idsBefore = before.map(a => a.id);
+    const { data } = migrate({ schemaVersion: 27, routineActivities: before });
+    expect(data.routineActivities.map((a: { id: string }) => a.id)).toEqual(idsBefore);
+  });
+
+  it('is idempotent', () => {
+    const once = migrate({ schemaVersion: 27, routineActivities: [stored()] }).data;
+    const twice = migrate(once).data;
+    expect(twice.routineActivities).toEqual(once.routineActivities);
+  });
+});

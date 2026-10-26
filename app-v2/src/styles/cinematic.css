@@ -524,7 +524,7 @@
 .cin-status svg { width: 15px; height: 15px; }
 .cin-status .mark { stroke-dasharray: 24; stroke-dashoffset: 24; }
 
-.cin-tile.done { border-color: var(--edge-lit); }
+.cin-tile.done { border-color: rgba(75, 126, 208, .20); }
 .cin-tile.done .cin-status,
 .cin-pod.done .cin-status {
   background: var(--blue);
@@ -570,10 +570,22 @@
   to   { transform: translateX(62%); opacity: 0; }
 }
 
-/* A completed tile keeps its photo but settles back a touch. */
-.cin-tile.done .cin-photo img,
-.cin-pod.done .cin-pod-plate img { opacity: .82; transition: opacity 300ms var(--ease); }
-.cin-tile.done .cin-tile-title { color: var(--ink-1); }
+/* A completed tile recedes. Done work should stop competing for the eye —
+   the photograph drops back to a hint, the copy quietens, and the cobalt
+   check is the only thing left at full strength, so what is *still to do*
+   is what reads across the room. Opacity, not a filter: it composites. */
+.cin-tile.done .cin-photo,
+.cin-pod.done .cin-pod-plate { opacity: .22; transition: opacity 320ms var(--ease); }
+.cin-tile.done { background: #0C1522; }
+.cin-tile.done .cin-tile-title { color: var(--ink-2); }
+.cin-tile.done .cin-tile-meta { color: var(--ink-3); }
+.cin-tile.done .cin-tile-icon { opacity: .42; }
+.cin-tile.done .cin-time { color: var(--ink-3); }
+.cin-tile.done .cin-more { opacity: .5; }
+
+.cin-pod.done .cin-pod-title,
+.cin-pod.done .cin-pod-eyebrow { color: var(--ink-2); }
+.cin-pod.done .cin-wave { opacity: .4; }
 
 .cin-tile.skipped { opacity: .62; border-style: dashed; }
 
