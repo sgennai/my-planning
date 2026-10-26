@@ -47,8 +47,15 @@ export const PHOTO_BY_ACTIVITY: Record<string, string> = {
   'ra-read-book':        'book',
 };
 
-/** The activity's own key wins; otherwise fall back to the table above. */
+/**
+ * The activity's own key wins; otherwise fall back to the table above.
+ *
+ * An empty string is an explicit "no picture" — the settings editor sets it
+ * when you choose None, and it has to survive the fallback or the tile would
+ * silently get its seeded photograph back.
+ */
 export function photoFor(activity: { id: string; photo?: string }): string | undefined {
+  if (activity.photo === '') return undefined;
   return activity.photo || PHOTO_BY_ACTIVITY[activity.id];
 }
 

@@ -108,6 +108,16 @@ const ACTIVITY_ICONS: Record<string, (p: P) => React.ReactElement> = {
 };
 
 /**
+ * The marks a user can choose from, in picker order.
+ *
+ * This is a leaf icon module — there is no component state for fast refresh
+ * to preserve, and splitting the list from the registry it describes would
+ * only let the two drift apart.
+ */
+// eslint-disable-next-line react-refresh/only-export-components
+export const ACTIVITY_ICON_KEYS: string[] = Object.keys(ACTIVITY_ICONS);
+
+/**
  * Resolution order: the requested mark, then the fallback, then a neutral
  * dot. The fallback matters because a stored icon key can name a mark that
  * has since been renamed or dropped — and the neutral dot beside the tile's

@@ -748,3 +748,317 @@
   .cin-head { flex-direction: column; gap: 10px; }
   .cin-week { align-self: flex-start; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ROUTINE SETTINGS
+   ---------------------------------------------------------------------------
+   Rendered inside `.cin`, so it inherits the dark tokens rather than the
+   app's light ones. The editor is organised around what an activity *is* —
+   what it's called, what it looks like, when it runs, whether it counts —
+   so every characteristic on a tile has one obvious place to be set.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.cin .ds-scrim { background: rgba(4, 9, 18, .72); }
+
+.cs {
+  width: min(680px, 100%);
+  max-height: min(88dvh, 900px);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-1);
+  border: 1px solid var(--edge);
+  border-radius: var(--r-card);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, .6);
+  overflow: hidden;
+  color: var(--ink-1);
+}
+
+.cs-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex: none;
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(120, 160, 220, .14);
+}
+.cs-head h2 { font-size: 17px; font-weight: 650; color: var(--ink-0); letter-spacing: -.01em; }
+.cs-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 12px 0 6px;
+  border: none;
+  background: transparent;
+  border-radius: 9px;
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 600;
+}
+.cs-back svg { width: 17px; height: 17px; }
+.cs-back:active { background: rgba(255,255,255,.06); color: var(--ink-0); }
+.cs-close {
+  width: 38px; height: 38px;
+  flex: none;
+  display: grid; place-items: center;
+  border: 1px solid var(--edge-soft);
+  background: transparent;
+  border-radius: 999px;
+  color: var(--ink-2);
+}
+.cs-close svg { width: 17px; height: 17px; }
+.cs-close:active { background: rgba(255,255,255,.07); }
+
+.cs-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 18px 20px;
+}
+
+/* ── List ─────────────────────────────────────────────────────────────── */
+
+.cs-list { display: flex; flex-direction: column; gap: 6px; }
+
+.cs-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 6px 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: var(--panel);
+}
+.cs-row.off { opacity: .55; }
+
+.cs-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 52px;
+  padding: 4px;
+  border: none;
+  background: transparent;
+  border-radius: 9px;
+  text-align: left;
+  color: inherit;
+}
+.cs-row-main:active { background: rgba(255,255,255,.05); }
+
+/* The row shows the activity as it will read on the dashboard: its picture
+   behind its mark. Choosing either one becomes a visual decision. */
+.cs-thumb {
+  position: relative;
+  width: 54px; height: 40px;
+  flex: none;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--panel-2);
+  display: grid;
+  place-items: center;
+}
+.cs-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .72; }
+.cs-thumb .cin-plate { border-radius: 8px; }
+.cs-thumb svg { position: relative; width: 17px; height: 17px; color: var(--ink-0); filter: drop-shadow(0 1px 3px rgba(0,0,0,.8)); }
+
+.cs-row-text { min-width: 0; flex: 1; }
+.cs-row-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-0);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  line-height: 1.3;
+}
+.cs-row-meta {
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cs-badge {
+  flex: none;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: rgba(150, 175, 210, .16);
+  color: var(--ink-2);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.cs-move { display: flex; flex: none; }
+.cs-move button {
+  position: relative;
+  width: 34px; height: 40px;
+  display: grid; place-items: center;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  color: var(--ink-3);
+}
+.cs-move button::after { content: ""; position: absolute; inset: -2px; }
+.cs-move button svg { width: 16px; height: 16px; }
+.cs-move button:active { background: rgba(255,255,255,.07); color: var(--ink-0); }
+.cs-move button:disabled { opacity: .25; }
+
+.cs-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(120, 160, 220, .14);
+}
+
+/* ── Form ─────────────────────────────────────────────────────────────── */
+
+.cs-form { display: flex; flex-direction: column; gap: 20px; }
+
+.cs-sec { display: flex; flex-direction: column; gap: 10px; border: none; margin: 0; padding: 0; }
+.cs-sec > legend,
+.cs-sec-title {
+  padding: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .17em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.cs-hint { margin: 0; font-size: 11.5px; color: var(--ink-3); line-height: 1.45; }
+
+.cs-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.cs-field > label { font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.cs-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+
+.cs-input, .cs-select {
+  min-height: 44px;
+  padding: 8px 11px;
+  background: var(--panel);
+  border: 1px solid var(--edge-soft);
+  border-radius: 9px;
+  color: var(--ink-0);
+  /* 16px minimum stops iPadOS zooming the viewport on focus. */
+  font-size: 16px;
+  font-family: inherit;
+}
+.cs-input::placeholder { color: var(--ink-3); }
+.cs-input:focus, .cs-select:focus {
+  outline: none;
+  border-color: var(--blue-lit);
+  box-shadow: 0 0 0 3px rgba(44, 140, 255, .18);
+}
+.cs-select { appearance: none; background-image: none; }
+
+/* Segmented choices */
+.cs-seg { display: inline-flex; flex-wrap: wrap; gap: 3px; padding: 3px; background: var(--panel); border: 1px solid var(--edge-soft); border-radius: 999px; }
+.cs-seg button {
+  min-height: 38px;
+  padding: 0 14px;
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  color: var(--ink-2);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.cs-seg button[aria-pressed="true"] { background: var(--blue); color: #fff; }
+
+/* Day chips */
+.cs-days { display: flex; flex-wrap: wrap; gap: 6px; }
+.cs-day {
+  min-width: 46px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--edge-soft);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--ink-2);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.cs-day[aria-pressed="true"] { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+/* Icon and picture pickers */
+.cs-grid { display: grid; gap: 7px; }
+.cs-grid--icon { grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); }
+.cs-grid--photo { grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); }
+
+.cs-pick {
+  position: relative;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--edge-soft);
+  border-radius: 9px;
+  background: var(--panel);
+  color: var(--ink-2);
+  overflow: hidden;
+  padding: 0;
+}
+.cs-pick svg { width: 20px; height: 20px; }
+.cs-pick[aria-pressed="true"] { border-color: var(--blue-lit); background: rgba(37, 107, 255, .18); color: var(--ink-0); }
+.cs-pick[aria-pressed="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px var(--blue-lit);
+}
+
+.cs-grid--photo .cs-pick { aspect-ratio: 16 / 10; }
+.cs-pick img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cs-pick .none { position: relative; font-size: 10.5px; font-weight: 600; color: var(--ink-3); }
+
+/* Live preview — the tile exactly as the dashboard will draw it. */
+.cs-preview { display: flex; flex-direction: column; gap: 8px; }
+.cs-preview-frame { width: 212px; height: 150px; display: flex; }
+.cs-preview-frame .cin-tile { pointer-events: none; }
+
+.cs-form-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(120, 160, 220, .14);
+}
+.cs-form-foot .spacer { flex: 1; }
+
+.cs-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid var(--edge-soft);
+  background: var(--panel);
+  color: var(--ink-0);
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: inherit;
+}
+.cs-btn svg { width: 17px; height: 17px; }
+.cs-btn:active { background: var(--panel-2); }
+.cs-btn--primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+.cs-btn--primary:active { background: var(--blue-lit); }
+.cs-btn--quiet { background: transparent; border-color: transparent; color: var(--ink-2); }
+.cs-btn--danger { color: #E98A6C; border-color: rgba(233, 138, 108, .35); background: transparent; }
+.cs-btn:disabled { opacity: .4; }
+
+@media (max-width: 560px) {
+  .cs-pair { grid-template-columns: 1fr; }
+  .cs-preview-frame { width: 100%; }
+}

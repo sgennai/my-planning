@@ -605,6 +605,12 @@ describe('presentation resolves without stored data', () => {
     }
   });
 
+  it('treats an empty photo key as an explicit "no picture"', () => {
+    expect(photoFor({ id: 'ra-plank' })).toBe('plank');
+    expect(photoFor({ id: 'ra-plank', photo: '' })).toBeUndefined();
+    expect(photoFor({ id: 'ra-plank', photo: 'book' })).toBe('book');
+  });
+
   it('derives the mark from the id regardless of what storage holds', () => {
     // `kettlebell` was renamed to `dumbbell`; a record written before that
     // must not fall through to the neutral dot beside its status circle.
