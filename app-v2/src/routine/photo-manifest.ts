@@ -4,22 +4,73 @@
 // tile falls back to a composed plate, so a missing file never shows as a
 // broken image. See public/routine/ASSETS.md and CREDITS.md.
 
-/** Add a key here when you add `public/routine/<key>.webp`. */
+/**
+ * Add a key here when you add `public/routine/<key>.webp` — and its
+ * matching `<key>-thumb.webp`, which is what the settings picker loads.
+ */
 export const AVAILABLE_PHOTOS = new Set<string>([
-  'breakfast',
-  'wallsit',
-  'capsule',
-  'electrolyte',
-  'cycling',
-  'plank',
+  // Training
+  'strength',
+  'squat',
+  'asiansquat',
   'squats',
+  'kettlebell',
+  'pullups',
+  'core',
+  'boxing',
+  'jumprope',
+  'plank',
+  // Cardio
+  'spin',
+  'cycling',
+  'rowing',
+  'running',
+  'swimming',
+  'walking',
+  'hiking',
+  // Mobility & recovery
+  'stretch',
+  'wallsit',
+  'foamroller',
+  'sauna',
+  'coldplunge',
+  'freediving',
+  // Food & drink
+  'breakfast',
+  'mealprep',
+  'fruit',
+  'proteinshake',
+  'tea',
+  'coffee',
+  'electrolyte',
+  'collagen',
+  'capsule',
+  // Mind & focus
+  'meditation',
+  'breathwork',
+  'reflect',
+  'planning',
+  'writing',
+  'flashcards',
   'briefings',
   'articles',
+  'deskwork',
+  'finance',
+  'detox',
+  // Rest & care
+  'sleep',
   'magnesium',
-  'freediving',
-  'book',
+  'skincare',
+  'dental',
+  'sunrise',
+  // Listening & reading
   'podcast',
+  'book',
+  'music',
+  // Places
   'summit',
+  'plants',
+  'phonecall',
 ]);
 
 /**
@@ -179,3 +230,18 @@ export function derivedTone(key: string): [string, string, string] {
     `hsla(${h} 55% 55% / .32)`,
   ];
 }
+
+/**
+ * The picker's shape. Fifty-four options is a library, not a row — grouping
+ * them by what they depict is the difference between choosing and scanning.
+ */
+export const PHOTO_GROUPS: { name: string; keys: string[] }[] = [
+  { name: 'Training', keys: ['strength', 'squat', 'asiansquat', 'squats', 'kettlebell', 'pullups', 'core', 'boxing', 'jumprope', 'plank'] },
+  { name: 'Cardio', keys: ['spin', 'cycling', 'rowing', 'running', 'swimming', 'walking', 'hiking'] },
+  { name: 'Mobility & recovery', keys: ['stretch', 'wallsit', 'foamroller', 'sauna', 'coldplunge', 'freediving'] },
+  { name: 'Food & drink', keys: ['breakfast', 'mealprep', 'fruit', 'proteinshake', 'tea', 'coffee', 'electrolyte', 'collagen', 'capsule'] },
+  { name: 'Mind & focus', keys: ['meditation', 'breathwork', 'reflect', 'planning', 'writing', 'flashcards', 'briefings', 'articles', 'deskwork', 'finance', 'detox'] },
+  { name: 'Rest & care', keys: ['sleep', 'magnesium', 'skincare', 'dental', 'sunrise'] },
+  { name: 'Listening & reading', keys: ['podcast', 'book', 'music'] },
+  { name: 'Places', keys: ['summit', 'plants', 'phonecall'] },
+];

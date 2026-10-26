@@ -21,10 +21,12 @@ interface Props {
   iconFallback?: string;
   /** Alt text. Decorative plates are hidden from assistive tech instead. */
   alt?: string;
+  /** Load the small variant — for grids of many images at thumbnail size. */
+  thumb?: boolean;
   className?: string;
 }
 
-export function ActivityPhoto({ name, icon, iconFallback, alt, className }: Props) {
+export function ActivityPhoto({ name, icon, iconFallback, alt, thumb, className }: Props) {
   const [failed, setFailed] = useState(false);
   const has = !!name && AVAILABLE_PHOTOS.has(name) && !failed;
 
@@ -32,7 +34,7 @@ export function ActivityPhoto({ name, icon, iconFallback, alt, className }: Prop
     return (
       <div className={className}>
         <img
-          src={`/routine/${name}.webp`}
+          src={`/routine/${name}${thumb ? '-thumb' : ''}.webp`}
           alt={alt || ''}
           /* Every tile for the day is above the fold, so deferring these
              only buys pop-in. ~1 MB across fourteen files, decoded off the

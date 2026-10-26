@@ -14,7 +14,9 @@ import {
 } from './engine';
 import { routineItemsFromActivities, legacyCompletionMap, mergeLegacyCompletions } from './derive';
 import { metaFor, daysLabel } from './format';
-import { photoFor, iconFor, PLATE_TONES, derivedTone } from './photo-manifest';
+import {
+  photoFor, iconFor, PLATE_TONES, derivedTone, AVAILABLE_PHOTOS, PHOTO_GROUPS,
+} from './photo-manifest';
 import { ACTIVITY_ICON_KEYS } from './activity-icons';
 
 
@@ -696,5 +698,34 @@ describe('activities without a photograph', () => {
 
   it('is deterministic, so a tile does not change colour between loads', () => {
     expect(derivedTone('cold shower')).toEqual(derivedTone('cold shower'));
+  });
+});
+
+describe('the photo library', () => {
+  it('declares every grouped key exactly once', () => {
+    const grouped = PHOTO_GROUPS.flatMap(g => g.keys);
+    expect(new Set(grouped).size, 'a key appears in two groups').toBe(grouped.length);
+  });
+
+  it('groups exactly the keys the app will render', () => {
+    const grouped = new Set(PHOTO_GROUPS.flatMap(g => g.keys));
+    const available = new Set(AVAILABLE_PHOTOS);
+    expect([...available].filter(k => !grouped.has(k)), 'available but ungrouped').toEqual([]);
+    expect([...grouped].filter(k => !available.has(k)), 'grouped but unavailable').toEqual([]);
+  });
+
+  it('has a photograph for every activity that names one', () => {
+    for (const a of SEED) {
+      const key = photoFor(a);
+      if (!key) continue;
+      expect(AVAILABLE_PHOTOS.has(key), `${a.title} -> ${key}`).toBe(true);
+    }
+  });
+
+  it('covers the themes the routine needs', () => {
+    for (const theme of ['strength', 'meditation', 'collagen', 'asiansquat', 'squat',
+      'rowing', 'spin', 'reflect', 'planning', 'walking']) {
+      expect(AVAILABLE_PHOTOS.has(theme), `missing theme: ${theme}`).toBe(true);
+    }
   });
 });

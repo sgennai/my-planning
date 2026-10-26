@@ -14,7 +14,7 @@ import type {
 } from './model';
 import { ROUTINE_GROUPS, CATEGORY_LABELS, GROUP_TITLES } from './model';
 import { ActivityIcon, ACTIVITY_ICON_KEYS } from './activity-icons';
-import { AVAILABLE_PHOTOS, photoFor, iconFor } from './photo-manifest';
+import { AVAILABLE_PHOTOS, PHOTO_GROUPS, photoFor, iconFor } from './photo-manifest';
 import { metaFor } from './format';
 import {
   IconPlus, IconArrowUp, IconArrowDown, IconX, IconChevronLeft, IconTrash, IconCheck,
@@ -27,7 +27,6 @@ const DAYS: { day: Weekday; label: string }[] = [
 ];
 
 const CATEGORIES = Object.keys(CATEGORY_LABELS) as RoutineCategory[];
-const PHOTO_KEYS = [...AVAILABLE_PHOTOS].sort();
 
 const SURFACES: { value: RoutineSurface; label: string }[] = [
   { value: 'routine',  label: 'Routine' },
@@ -180,17 +179,27 @@ function Editor({
             aria-label="No background picture"
             onClick={() => set({ photo: '' })}
           ><span className="none">None</span></button>
-          {PHOTO_KEYS.map(key => (
-            <button
-              key={key}
-              type="button"
-              className="cs-pick"
-              aria-pressed={photoFor(draft) === key}
-              aria-label={`Background: ${key}`}
-              onClick={() => set({ photo: key })}
-            ><img src={`/routine/${key}.webp`} alt="" loading="lazy" /></button>
-          ))}
         </div>
+        {PHOTO_GROUPS.map(group => (
+          <div className="cs-photo-group" key={group.name}>
+            <span className="cs-group-name">{group.name}</span>
+            <div className="cs-grid cs-grid--photo">
+              {group.keys.map(key => (
+                <button
+                  key={key}
+                  type="button"
+                  className="cs-pick"
+                  aria-pressed={photoFor(draft) === key}
+                  aria-label={`Background: ${key}`}
+                  onClick={() => set({ photo: key })}
+                >
+                  {/* The small variant: a 78px cell must not pull a 900px file. */}
+                  <img src={`/routine/${key}-thumb.webp`} alt="" loading="lazy" />
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
         <p className="cs-hint">
           With no picture the tile draws a tinted plate carrying its icon.
           Add your own to <code>public/routine/</code> — see ASSETS.md.
@@ -515,7 +524,7 @@ export function RoutineSettings({ activities, onSave, onClose }: Props) {
                     <div key={a.id} className={`cs-row${a.status !== 'active' ? ' off' : ''}`}>
                       <button className="cs-row-main" onClick={() => { setDraft(a); setIsNew(false); }}>
                         <span className="cs-thumb">
-                          {photo && AVAILABLE_PHOTOS.has(photo) && <img src={`/routine/${photo}.webp`} alt="" loading="lazy" />}
+                          {photo && AVAILABLE_PHOTOS.has(photo) && <img src={`/routine/${photo}-thumb.webp`} alt="" loading="lazy" />}
                           <ActivityIcon name={a.icon} fallback={iconFor(a)} />
                         </span>
                         <span className="cs-row-text">

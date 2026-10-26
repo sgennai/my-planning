@@ -1062,3 +1062,12 @@
   .cs-pair { grid-template-columns: 1fr; }
   .cs-preview-frame { width: 100%; }
 }
+
+/* Picker groups — fifty-four options need headings to be choosable. */
+.cs-photo-group { display: flex; flex-direction: column; gap: 6px; }
+.cs-group-name {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--ink-3);
+  letter-spacing: .04em;
+}
