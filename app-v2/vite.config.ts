@@ -27,7 +27,7 @@ export default defineConfig({
           },
         ],
       },
-      includeAssets: ['favicon.svg', 'icon.svg', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.svg', 'favicon-64.png', 'icon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'My Planning',
         short_name: 'My Planning',

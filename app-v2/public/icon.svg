@@ -1,5 +1,33 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#1B1A17"/>
-  <circle cx="256" cy="256" r="132" fill="none" stroke="#F7F6F3" stroke-width="26"/>
-  <path d="M196 258l44 44 86-94" fill="none" stroke="#5E8A6B" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="s-sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#060D1C"/>
+      <stop offset=".5" stop-color="#11244A"/>
+      <stop offset=".72" stop-color="#2C3A6C"/>
+      <stop offset=".86" stop-color="#7A5A86"/>
+    </linearGradient>
+    <radialGradient id="s-halo" cx="50%" cy="43%" r="40%">
+      <stop offset="0" stop-color="#2C8CFF" stop-opacity=".30"/>
+      <stop offset="1" stop-color="#2C8CFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="s-arc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#62B6FF"/>
+      <stop offset="1" stop-color="#256BFF"/>
+    </linearGradient>
+    <linearGradient id="s-back" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#34437A"/>
+      <stop offset="1" stop-color="#18213F"/>
+    </linearGradient>
+    <filter id="s-glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="22"/></filter>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#s-sky)"/>
+  <rect width="1024" height="1024" fill="url(#s-halo)"/>
+  <circle cx="512" cy="430" r="236" fill="none" stroke="#1E3560" stroke-width="54"/>
+  <g transform="rotate(-90 512 430)" fill="none" stroke-linecap="round" stroke-width="54">
+    <circle cx="512" cy="430" r="236" stroke="#2C8CFF" stroke-dasharray="1050 2000" opacity=".55" filter="url(#s-glow)"/>
+    <circle cx="512" cy="430" r="236" stroke="url(#s-arc)" stroke-dasharray="1050 2000"/>
+  </g>
+  <path d="M0 1024 V770 L130 712 L240 752 L372 652 L462 708 L560 640 L680 724 L800 668 L920 728 L1024 700 V1024 Z" fill="url(#s-back)"/>
+  <path d="M0 1024 V888 L160 812 L282 858 L566 604 L706 736 L790 702 L1024 868 V1024 Z" fill="#081220"/>
+  <path d="M566 604 L470 690 L512 696 L452 760 L556 680 Z" fill="#C8D6EC" fill-opacity=".22"/>
 </svg>
