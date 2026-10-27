@@ -272,7 +272,10 @@ button, [role="button"], a.btn, summary, input, select, textarea {
   font-size: inherit;
   touch-action: manipulation;
 }
-button { cursor: pointer; }
+/* Safari before 26 gives buttons a built-in `align-items: flex-start`, which
+   shrinks the children of a flex-column button (the routine tiles, the podcast
+   panel) to their text width. `normal` is what Chrome and current Safari use. */
+button { cursor: pointer; align-items: normal; }
 
 /* Suppress the grey flash iPadOS paints over a tapped element — the tiles
    have their own press feedback and the two together read as a glitch. */
