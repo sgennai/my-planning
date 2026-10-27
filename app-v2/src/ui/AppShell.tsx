@@ -3,8 +3,8 @@
 // A floating near-black pill: vertical at the left in landscape, horizontal at
 // the foot in portrait. It floats over the content rather than taking a
 // column, so the Routine grid gets the full width of the iPad.
-import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
-import { IconSun, IconMoon, IconCog, IconExit, IconAlert } from './icons';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { IconSun, IconMoon, IconCog, IconExit, IconAlert, IconEllipsis } from './icons';
 import { NAV, type AppPage } from './nav';
 import type { UserProfile } from '../storage/types';
 
@@ -74,11 +74,23 @@ export function AppShell({
 }: Props) {
   const isDark = theme === 'dark';
   const { navRef, box } = useNavIndicator(appPage);
+  const [moreOpen, setMoreOpen] = useState(false);
+
+  useEffect(() => {
+    if (!moreOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMoreOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [moreOpen]);
+
+  const closingMore = (action: () => void) => () => { setMoreOpen(false); action(); };
 
   return (
     <div className="shell">
       <main className="shell-main">{children}</main>
 
+      {/* Takes the tap that closes the menu, so it doesn't also tick a tile. */}
+      {moreOpen && <div className="shell-more-scrim" onClick={() => setMoreOpen(false)} />}
 
       <nav className="shell-nav" aria-label="Sections" ref={navRef}>
         {box && (
@@ -92,17 +104,16 @@ export function AppShell({
           <button
             key={page}
             className={`shell-nav-item${appPage === page ? ' on' : ''}`}
-            onClick={() => onNavigate(page)}
+            onClick={closingMore(() => onNavigate(page))}
             aria-current={appPage === page ? 'page' : undefined}
           >
             <Icon /><span>{label}</span>
           </button>
         ))}
 
-        {/* In landscape the utilities ride at the foot of the pill, which
-            keeps them off the dashboard header. In portrait the pill is a
-            horizontal bar with no room for them, so the floating cluster
-            above takes over — only one of the two is ever visible. */}
+        {/* The utilities ride in the pill, which keeps them off the
+            dashboard header: at the foot of the rail in landscape, at the
+            end of the bar in portrait. */}
         <div className="shell-nav-utils">
           <button
             className="shell-nav-util"
@@ -121,6 +132,38 @@ export function AppShell({
             ><IconAlert /></button>
           )}
         </div>
+
+        {/* On a phone the six sections and three utilities do not fit in one
+            pill, either way up, so the utilities fold behind "More". A sync
+            failure shows as a dot on it, so it is still seen with the menu
+            closed. Only one of the utilities and "More" is ever visible. */}
+        <button
+          className={`shell-nav-item shell-nav-more${syncError ? ' is-alert' : ''}`}
+          onClick={() => setMoreOpen(open => !open)}
+          aria-haspopup="menu"
+          aria-expanded={moreOpen}
+          aria-label={syncError ? 'More, sync unavailable' : 'More'}
+        >
+          <IconEllipsis /><span>More</span>
+        </button>
+        {moreOpen && (
+          <div className="shell-more-menu" role="menu" aria-label="More">
+            <button role="menuitemcheckbox" aria-checked={isDark} onClick={closingMore(onToggleTheme)}>
+              {isDark ? <IconMoon /> : <IconSun />}<span>Dark theme</span>
+            </button>
+            <button role="menuitem" onClick={closingMore(onOpenSettings)}>
+              <IconCog /><span>Settings</span>
+            </button>
+            <button role="menuitem" onClick={closingMore(onSignOut)}>
+              <IconExit /><span>Sign out</span>
+            </button>
+            {syncError && (
+              <button role="menuitem" className="is-alert" onClick={closingMore(onRetrySync)}>
+                <IconAlert /><span>Retry sync<small>Last synced {formatLastSynced(lastSyncedAt)}</small></span>
+              </button>
+            )}
+          </div>
+        )}
       </nav>
     </div>
   );

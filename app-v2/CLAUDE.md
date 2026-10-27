@@ -83,8 +83,10 @@ colour; everything else is neutral.
   left in landscape, horizontal at the foot in portrait. It **floats over** the content
   rather than taking a column; `.shell-main` insets to clear it. Orientation, not width,
   picks the arrangement: an iPad Pro in portrait is 1024px wide and a width-only rule would
-  give it the landscape layout. In landscape the pill also carries theme / settings /
-  sign-out at its foot; in portrait those live in a floating cluster at the top right.
+  give it the landscape layout. The pill also carries theme / settings / sign-out (and the
+  sync alert): at its foot in landscape, at the end of the bar in portrait. On a phone
+  (portrait ≤600px wide, landscape ≤520px tall) nine buttons do not fit, so those fold
+  behind a "More" menu, which shows the sync alert as a dot.
 
 ## Current code structure
 
@@ -159,6 +161,14 @@ stress test — 11 scheduled + 2 optional = **13 tiles** — and `routine.test.t
 - The whole tile is the completion button. The timer/link control is a **sibling** of that
   button, not a child (buttons cannot nest) — which is why `.rt-cell` must stay
   `position: relative` and why tiles with one reserve right-hand padding via `data-aux`.
+- **Phone portrait (≤560px wide) is the one exception to the no-scroll frame**, in the
+  `PHONE` block of `cinematic.css`. A phone cannot show the day at once, so `.cin` stops
+  being a fixed frame and the shell scrolls the whole page. Only the week strip and gear stay:
+  `.cin-head` is sticky with a negative `top` that hides the date, which is why the date and
+  motto have fixed line heights there. It takes a backing (`.stuck`, set by an
+  IntersectionObserver on the date) once the date has gone. Tiles are 64px rows, and the
+  settings preview follows. No iPad can match (narrowest portrait is 744px). Changes here
+  should leave iPad and desktop layouts identical; compare element boxes before and after.
 
 ### The model
 

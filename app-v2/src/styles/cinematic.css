@@ -674,6 +674,13 @@
 
 @media (orientation: portrait) {
   .cin { padding-top: max(14px, calc(env(safe-area-inset-top) + 10px)); }
+  /* The shell clears the floating pill with its own bottom padding, which
+     shows the light canvas behind the pill. Here the dark field takes that
+     padding over, so the pill floats on it. Same content box as before. */
+  .shell-main:has(> .cin) { padding-bottom: 0; }
+  .shell-main:has(> .cin) > .cin {
+    padding-bottom: calc(var(--gap) + 4px + var(--nav-h) + var(--sp-8) + env(safe-area-inset-bottom));
+  }
   .cin-play { left: auto; right: 14px; bottom: 50%; transform: translateY(50%); }
   .cin-pod-foot { padding-left: 0; padding-right: 51px; }
 
@@ -741,12 +748,116 @@
   .cin-chip { margin-top: 3px; }
 }
 
-/* Portrait on a phone: one column, and the grid scrolls. */
+/* ═══════════════════════════════════════════════════════════════════════════
+   PHONE — portrait, up to 560px wide
+   ---------------------------------------------------------------------------
+   An iPad shows the whole day in one frame; a phone cannot, so here the
+   screen reads as one page. Everything scrolls together under a slim strip,
+   the seven days and the gear, which stays at the top while the date
+   scrolls away like an iOS large title. Tiles become rows, the photograph
+   behind the copy as on the podcast panel. An iPad never matches: its
+   narrowest portrait is 744px.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 @media (orientation: portrait) and (max-width: 560px) {
+  /* The shell scrolls the page. `clip`, unlike `hidden`, does not become
+     the scroller the header would then stick to. */
+  .cin { height: auto; overflow: clip; }
+  /* The wash stays put while the page moves over it. */
+  .cin::before { position: fixed; }
+
+  .cin-head {
+    position: sticky;
+    /* The date block (48) and the gap (10) go; 8px of air stays above the
+       days. Hence the fixed line heights below. */
+    top: -50px;
+    z-index: 3;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0 calc(-1 * (var(--gap) + 4px));
+    padding: 0 calc(var(--gap) + 8px) 8px;
+  }
+  .cin-date { line-height: 28px; }
+  .cin-sub { margin-top: 4px; line-height: 16px; }
+  .cin-head > :last-child { align-self: stretch; }
+  .cin-week { flex: 1; justify-content: space-between; }
+
+  /* Once the date has gone the strip takes a backing, so rows pass under
+     it rather than through it. */
+  .cin-head::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-bottom: 1px solid rgba(120, 160, 220, .14);
+    background: rgba(8, 18, 32, .9);
+    -webkit-backdrop-filter: blur(18px) saturate(1.3);
+    backdrop-filter: blur(18px) saturate(1.3);
+    opacity: 0;
+    transition: opacity var(--dur-2) var(--ease);
+  }
+  .cin-head.stuck::before { opacity: 1; }
+
+  /* `.cin > *` above leaves the settings sheet and the timer in the page's
+     flow; on a page that scrolls they opened below the last row, out of
+     sight. Here they float over the screen, as a modal should. */
+  .cin > .ds-scrim { position: fixed; z-index: 400; }
+
+  /* Rows fade out under the floating pill instead of cutting across it. */
+  .cin::after {
+    content: "";
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 2;
+    height: calc(var(--nav-h) + var(--sp-8) + env(safe-area-inset-bottom));
+    background: linear-gradient(180deg, rgba(8, 18, 32, 0) 0%, rgba(8, 18, 32, .86) 62%);
+    pointer-events: none;
+  }
+
+  .cin-body { flex: none; grid-template-rows: auto; }
   .cin-left { grid-template-columns: minmax(0, 1fr); }
-  .cin-matrix { grid-template-columns: minmax(0, 1fr); grid-auto-rows: minmax(96px, auto); }
-  .cin-head { flex-direction: column; gap: 10px; }
-  .cin-week { align-self: flex-start; }
+
+  .cin-ring-wrap { padding: 8px 4px; }
+  .cin-ring { width: min(100%, 100px); }
+  .cin-count { font-size: 24px; }
+  .cin-chart { height: 52px; }
+  .cin-pod { padding: 10px 14px; }
+
+  .cin-matrix {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: minmax(64px, auto);
+    overflow: visible;
+  }
+
+  /* A row: mark, copy, status. */
+  .cin-tile { justify-content: center; }
+  .cin-photo { inset: 0; height: auto; }
+  .cin-photo::after {
+    background: linear-gradient(100deg, rgba(10, 18, 32, .92) 0%, rgba(10, 18, 32, .74) 45%, rgba(10, 18, 32, .40) 100%);
+  }
+  /* The row already carries the mark at its left. */
+  .cin-photo .cin-plate svg { display: none; }
+  /* Two rows only: WebKit pads an empty third row when the mark and the
+     status span it, which cost every tile 9px. So OPTIONAL rides beside
+     the title rather than under the meta. */
+  .cin-tile-body {
+    display: grid;
+    grid-template-columns: auto minmax(0, max-content) auto 1fr auto;
+    grid-template-areas: "icon title chip . status" "icon meta meta meta status";
+    align-items: center;
+    padding: 11px 14px;
+  }
+  .cin-tile-row { display: contents; }
+  .cin-tile-icon { grid-area: icon; margin-right: 12px; }
+  .cin-tile-icon svg { width: 20px; height: 20px; }
+  .cin-status { grid-area: status; width: 26px; height: 26px; margin-left: 12px; }
+  .cin-tile-title { grid-area: title; font-size: 15px; }
+  .cin-tile-meta { grid-area: meta; font-size: 12.5px; }
+  .cin-chip { grid-area: chip; margin: 0 0 0 8px; }
+
+  /* The timer or link control sits just inside the status mark. */
+  .cin-more { top: 50%; right: 48px; transform: translateY(-50%); }
+  .cin-cell:has(> .cin-more) .cin-status { margin-left: 48px; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -1061,6 +1172,13 @@
 @media (max-width: 560px) {
   .cs-pair { grid-template-columns: 1fr; }
   .cs-preview-frame { width: 100%; }
+}
+@media (orientation: portrait) and (max-width: 560px) {
+  /* A phone's dashboard draws the tile as a row; so does its preview. */
+  .cs-preview-frame { height: auto; }
+  /* An inline span ignores its ellipsis, so a long schedule ran under the
+     reorder arrows. */
+  .cs-row-meta { display: block; }
 }
 
 /* Picker groups — fifty-four options need headings to be choosable. */

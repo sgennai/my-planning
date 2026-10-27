@@ -131,7 +131,10 @@
   .shell-nav-item.on { color: #F5F8FF; }
   .shell-nav-item.on svg { color: #2C8CFF; }
 
-  .shell-main { padding-left: var(--nav-w); }
+  /* index.css still pads the foot by 76px up to 880px wide, for a bottom tab
+     bar the shell no longer has; on a phone held sideways that showed as a
+     pale strip. */
+  .shell-main { padding-left: var(--nav-w); padding-bottom: 0; }
 }
 
 /* ── Portrait: horizontal pill, floating at the foot ──────────────────── */
@@ -221,4 +224,83 @@
   }
   .shell-nav-util { width: 42px; height: 46px; }
   .shell-nav-util svg { width: 17px; height: 17px; }
+}
+
+/* ── Phones: the utilities fold behind "More" ─────────────────────────── */
+/* Six sections plus three utilities need about 530px across, more than any
+   phone has in portrait, and more height than one has held sideways. There
+   the utilities move into a small menu, and every remaining control keeps a
+   full 44px. Declared last so it outranks the portrait utilities above. */
+.shell-nav-item.shell-nav-more,
+.shell-more-menu,
+.shell-more-scrim { display: none; }
+
+@media (orientation: portrait) and (max-width: 600px),
+       (orientation: landscape) and (max-height: 520px) {
+  .shell-nav-utils { display: none; }
+  .shell-nav-item.shell-nav-more { display: flex; }
+
+  .shell-more-scrim { display: block; position: fixed; inset: 0; z-index: 299; }
+  .shell-more-menu {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    z-index: 2;
+    min-width: 208px;
+    padding: 6px;
+    border-radius: var(--r-md);
+    background: var(--nav-bg);
+    box-shadow: var(--shadow-nav);
+  }
+  .shell-more-menu button {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    min-height: 44px;
+    padding: 6px var(--sp-3);
+    border: none;
+    border-radius: var(--r-sm);
+    background: transparent;
+    color: var(--nav-ink-on);
+    font-family: var(--font-ui);
+    font-size: 15px;
+    font-weight: 500;
+    text-align: left;
+  }
+  .shell-more-menu button:active { background: var(--nav-active); }
+  .shell-more-menu svg { width: 19px; height: 19px; flex: none; color: var(--nav-ink); }
+  .shell-more-menu small { display: block; font-size: 12px; font-weight: 400; color: var(--nav-ink); }
+  .shell-more-menu .is-alert,
+  .shell-more-menu .is-alert svg { color: #F0A373; }
+
+  .shell-nav-more.is-alert::after {
+    content: "";
+    position: absolute;
+    top: 9px;
+    left: calc(50% + 7px);
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #F0A373;
+  }
+}
+
+@media (orientation: portrait) and (max-width: 600px) {
+  /* Full width less a gutter, seven equal slots. */
+  .shell-nav {
+    left: var(--sp-3);
+    right: var(--sp-3);
+    transform: none;
+    max-width: none;
+    gap: 2px;
+    padding: var(--sp-2) 6px;
+  }
+  .shell-nav-item { flex: 1 1 0; min-width: 0; padding: 0; }
+  .shell-more-menu { right: 0; bottom: calc(100% + var(--sp-2)); }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  /* The product mark gives way to the sections. */
+  .shell-nav::before { display: none; }
+  .shell-more-menu { left: calc(100% + var(--sp-2)); bottom: var(--sp-2); }
 }

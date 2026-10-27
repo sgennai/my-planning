@@ -282,6 +282,19 @@ export function RoutineScreen({ data, onPersist }: Props) {
     return () => window.clearTimeout(id);
   }, []);
 
+  // On a phone the header sticks with only its week strip in view, and
+  // takes a backing once the date above it has scrolled away. Elsewhere the
+  // date never leaves the screen, so this stays false.
+  const titleRef = useRef<HTMLDivElement>(null);
+  const [headStuck, setHeadStuck] = useState(false);
+  useEffect(() => {
+    const el = titleRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => setHeadStuck(!e.isIntersecting));
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   const prevToday = useRef(today);
   useEffect(() => {
     if (prevToday.current !== today) {
@@ -357,8 +370,8 @@ export function RoutineScreen({ data, onPersist }: Props) {
 
   return (
     <div className="cin">
-      <header className="cin-head">
-        <div>
+      <header className={`cin-head${headStuck ? ' stuck' : ''}`}>
+        <div ref={titleRef}>
           <h1 className="cin-date">{parts.name}, {parts.rest.replace(/ \d{4}$/, '')}</h1>
           <div className="cin-sub">make today count</div>
         </div>

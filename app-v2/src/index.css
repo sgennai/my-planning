@@ -217,7 +217,11 @@
       background: transparent;
       color: var(--text);
       font-family: var(--serif);
-      min-height: 100vh;
+      /* dvh, like the shell: in an app added to the iOS Home Screen, 100vh
+         counts the status bar, so the page came out 20px taller than the
+         screen and scrolled by that much. The top slid under the clock and
+         the bare page showed as a pale strip at the bottom. */
+      min-height: 100dvh;
       -webkit-font-smoothing: antialiased;
       -webkit-tap-highlight-color: transparent;
     }
