@@ -159,3 +159,38 @@ textarea {
   min-height: 36px;
   justify-content: center;
 }
+
+/* ── Practice: the start buttons ───────────────────────────────────────── */
+/* A later rule in index.css paints every start button ink, the secondary
+   ones included, whose label is also ink, so only the emoji showed. They
+   get back the outlined look their own rule asks for. */
+.prac-screen .ip-start-rehearsal-btn.ip-start-rehearsal-btn--alt {
+  background: var(--paper);
+  color: var(--ink);
+}
+/* In the dark theme ink turns near-white, and the main buttons (start
+   rehearsal, start mock interview, submit the review) kept a white label
+   on it. */
+[data-theme="dark"] .prac-screen .ip-start-rehearsal-btn:not(.ip-start-rehearsal-btn--alt) {
+  color: var(--paper);
+}
+
+/* On a phone held upright the dashboard, one row that does not wrap, pushed
+   the buttons past the right edge. There the counts share a row and the
+   buttons take a two-column block under them; the main rehearsal button,
+   when there is one, spans both. Every iPad fits the row as it is. */
+@media (orientation: portrait) and (max-width: 600px) {
+  .prac-screen .ip-dashboard { flex-wrap: wrap; padding-inline: var(--sp-4); }
+  .prac-screen .ip-dash-card { flex: 1 1 140px; }
+  .prac-screen .ip-dash-cta { flex: 1 1 100%; margin-left: 0; }
+  .prac-screen .ip-dash-alt-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .prac-screen .ip-dash-alt-actions > :not(.ip-start-rehearsal-btn--alt) { grid-column: 1 / -1; }
+  /* A label wraps rather than overflow on the narrowest phones. */
+  .prac-screen .ip-dash-alt-actions .ip-start-rehearsal-btn {
+    padding-inline: var(--sp-3);
+    white-space: normal;
+  }
+}
