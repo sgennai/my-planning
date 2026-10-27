@@ -119,6 +119,10 @@ and returns a 401 with `WWW-Authenticate: Basic realm="My Planning"` if the
 header is missing or the credentials don't match. The browser's native auth
 dialog handles the prompt.
 
+The icons and `manifest.webmanifest` are the exception (`PUBLIC_PATHS` in the
+middleware): iOS fetches them without the page's credentials when adding the
+app to the Home Screen, and would otherwise fall back to a generic icon.
+
 ### Environment variables (runtime — not build-time)
 
 | Variable | Purpose |

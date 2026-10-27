@@ -22,9 +22,23 @@ function timingSafeEqual(a: string, b: string): boolean {
 
 const REALM = 'Basic realm="My Planning"';
 
+// iOS fetches the Home Screen icon and the manifest without the page's Basic
+// Auth credentials when adding the app to the Home Screen, so behind the gate
+// it never sees them. They hold nothing private: icons, the app's name.
+const PUBLIC_PATHS = new Set([
+  '/apple-touch-icon.png',
+  '/favicon.svg',
+  '/favicon-64.png',
+  '/pwa-192x192.png',
+  '/pwa-512x512.png',
+  '/manifest.webmanifest',
+]);
+
 export const onRequest = async (context: EventContext): Promise<Response> => {
   // Pass OPTIONS preflights through (unlikely for a same-origin SPA but correct).
   if (context.request.method === 'OPTIONS') return context.next();
+
+  if (PUBLIC_PATHS.has(new URL(context.request.url).pathname)) return context.next();
 
   const { BASIC_AUTH_USER, BASIC_AUTH_PASS } = context.env;
 
