@@ -570,21 +570,32 @@
   to   { transform: translateX(62%); opacity: 0; }
 }
 
-/* A completed tile recedes. Done work should stop competing for the eye —
-   the photograph drops back to a hint, the copy quietens, and the cobalt
-   check is the only thing left at full strength, so what is *still to do*
-   is what reads across the room. Opacity, not a filter: it composites. */
-.cin-tile.done .cin-photo,
-.cin-pod.done .cin-pod-plate { opacity: .22; transition: opacity 320ms var(--ease); }
+/* A completed tile goes out of focus. Done work should stop competing for
+   the eye: the photograph blurs and darkens behind copy that stays sharp but
+   quieter, and the cobalt check is the only thing left at full strength, so
+   what is *still to do* is what reads across the room. The earlier fade to
+   22% opacity left the two states too close (this was picked from ten
+   options). The blur is painted once per tap rather than every frame, so
+   the iPad 7th gen can afford it; the scale keeps its soft edge from
+   showing a light rim. */
+.cin-photo > *,
+.cin-pod-plate > * { transition: filter 320ms var(--ease), transform 320ms var(--ease); }
+.cin-tile.done .cin-photo > *,
+.cin-pod.done .cin-pod-plate > * {
+  filter: blur(7px) brightness(.5) saturate(.7);
+  transform: scale(1.1);
+}
 .cin-tile.done { background: #0C1522; }
-.cin-tile.done .cin-tile-title { color: var(--ink-2); }
-.cin-tile.done .cin-tile-meta { color: var(--ink-3); }
-.cin-tile.done .cin-tile-icon { opacity: .42; }
-.cin-tile.done .cin-time { color: var(--ink-3); }
-.cin-tile.done .cin-more { opacity: .5; }
-
+/* The name sits halfway between ink-2 and ink-3; the detail a step below
+   ink-3. */
+.cin-tile.done .cin-tile-title,
 .cin-pod.done .cin-pod-title,
-.cin-pod.done .cin-pod-eyebrow { color: var(--ink-2); }
+.cin-pod.done .cin-pod-eyebrow { color: color-mix(in srgb, var(--ink-2), var(--ink-3)); }
+.cin-tile.done .cin-tile-meta,
+.cin-tile.done .cin-time,
+.cin-pod.done .cin-pod-sub { color: color-mix(in srgb, var(--ink-3) 80%, var(--bg-0)); }
+.cin-tile.done .cin-tile-icon { opacity: .5; }
+.cin-tile.done .cin-more { opacity: .5; }
 .cin-pod.done .cin-wave { opacity: .4; }
 
 .cin-tile.skipped { opacity: .62; border-style: dashed; }
@@ -656,7 +667,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cin-tile, .cin-pod, .cin-play, .cin-ring .arc, .cin-bar > i { transition: none; }
+  .cin-tile, .cin-pod, .cin-play, .cin-ring .arc, .cin-bar > i,
+  .cin-photo > *, .cin-pod-plate > * { transition: none; }
   .cin-tile.done .cin-sweep, .cin-tile.done .cin-status::after,
   .cin-pod.done .cin-sweep { animation: none; display: none; }
   .cin-matrix.intro .cin-cell, .cin-body.intro .cin-left > * { opacity: 1; animation: none; }
