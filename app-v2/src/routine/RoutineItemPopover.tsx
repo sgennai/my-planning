@@ -69,6 +69,7 @@ export function RoutineItemPopover({ context, routine, overrides, onClose, onUpd
   };
 
   const handleClearOverride = () => {
+    if (!confirm(`Restore "${item.title}" on ${dayName}, ${dateStr} to the routine default?\n\nWhat you changed for this day is removed.`)) return;
     onSetOverride(item.id, date, null);
     onClose();
   };
@@ -100,6 +101,7 @@ export function RoutineItemPopover({ context, routine, overrides, onClose, onUpd
   };
 
   const handleDeleteOccurrence = () => {
+    if (!confirm(`Delete "${item.title}" on ${dayName}, ${dateStr}?\n\nOnly this occurrence; the routine is unchanged.`)) return;
     onSetOverride(item.id, date, { type: 'skip' });
     onClose();
   };

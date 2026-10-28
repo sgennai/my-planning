@@ -259,7 +259,7 @@ export function ProjectsRailPanel({ projects, scheduledBlocks, onCompleteAction,
           className="today-action-btn today-action-btn-delete"
           draggable={false}
           onMouseDown={e => e.stopPropagation()}
-          onClick={e => { e.stopPropagation(); onDeleteAction(p.id, moduleId || null, a.id); }}
+          onClick={e => { e.stopPropagation(); if (window.confirm(`Delete the action "${a.text}"?`)) onDeleteAction(p.id, moduleId || null, a.id); }}
           title="Delete action"
         >×</button>
       )}

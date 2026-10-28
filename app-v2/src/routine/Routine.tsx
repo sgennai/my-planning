@@ -481,7 +481,7 @@ export function RoutineManagerModal({ routine, onClose, onUpdateItem, onAddItem,
                   className={`cat-row-action delete${inUse ? ' disabled' : ''}`}
                   style={{ visibility: isUserCreated ? 'visible' : 'hidden' }}
                   title={inUse ? 'Remove from all routine items first' : 'Delete category'}
-                  onClick={!inUse ? () => onDeleteUserCategory && onDeleteUserCategory(cat) : undefined}
+                  onClick={!inUse ? () => { if (confirm(`Delete the category "${style.label}"?`)) onDeleteUserCategory?.(cat); } : undefined}
                 >🗑</button>
               </div>
             );

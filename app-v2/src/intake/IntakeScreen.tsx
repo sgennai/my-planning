@@ -216,7 +216,7 @@ export function IntakeScreen({ data, onPersist, onScheduleBlock }: IntakeScreenP
                 <button className="ib go" onClick={() => handleCreateIdea(item)}>Post idea</button>
                 <button className="ib" onClick={() => handleAddBlock(item)}>Block</button>
                 <button className="ib" onClick={() => handleToggleComplete(item)}>Done</button>
-                <button className="ib del" onClick={() => handleDelete(item.id)}>Delete</button>
+                <button className="ib del" onClick={() => { if (window.confirm(`Delete "${item.title || item.url}"?`)) handleDelete(item.id); }}>Delete</button>
               </div>
             </div>
           );

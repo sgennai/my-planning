@@ -922,8 +922,14 @@
 
   /* `.cin > *` above leaves the settings sheet and the timer in the
      screen's flow, below the list and out of sight. Here they float over
-     the screen, as a modal should. */
-  .cin > .ds-scrim { position: fixed; z-index: 400; }
+     the screen, as a modal should, between the status bar and the pill:
+     nothing in them may sit under either. */
+  .cin > .ds-scrim {
+    position: fixed;
+    z-index: 400;
+    padding-top: max(var(--sp-4), calc(env(safe-area-inset-top) + var(--sp-2)));
+    padding-bottom: calc(var(--nav-h) + var(--sp-8) + env(safe-area-inset-bottom));
+  }
 
   /* Rows fade out under the floating pill instead of cutting across it. */
   .cin::after {
@@ -1000,6 +1006,18 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .cin .ds-scrim { background: rgba(4, 9, 18, .72); }
+/* The sheet and the timer stay inside their frame: on an iPad the room left
+   under the header, which in portrait already stops short of the pill; on a
+   phone the band above the pill (see PHONE). A sheet taller than that
+   shrinks and its body scrolls, so Save and Remove are never covered. */
+.cin > .ds-scrim {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.cin > .ds-scrim > .cs { flex: 0 1 auto; min-height: 0; }
 
 .cs {
   width: min(680px, 100%);

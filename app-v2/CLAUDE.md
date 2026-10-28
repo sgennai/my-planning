@@ -87,6 +87,15 @@ colour; everything else is neutral.
   sync alert): at its foot in landscape, at the end of the bar in portrait. On a phone
   (portrait ≤600px wide, landscape ≤520px tall) nine buttons do not fit, so those fold
   behind a "More" menu, which shows the sync alert as a dot.
+- **Nothing under the pill.** Every control must stay clear of the floating pill, sheets
+  included: the Routine settings sheet and timer (`.cin > .ds-scrim`) shrink to the frame
+  `.cin` leaves them and scroll inside, and on a phone they sit between the status bar and
+  the pill. A Remove tapped instead of a hidden Save once archived the Podcast.
+- **Destructive actions ask first** (`window.confirm`, naming what goes): deleting or
+  removing anything saved, unscheduling a block, discarding a mock interview, restoring an
+  edited occurrence. Leaving the Routine editor with unsaved edits (back, close, a tap
+  outside) asks too; only Cancel discards without asking. Removing a row inside a form that
+  still has Cancel, ticking something done, and resetting a colour do not ask.
 
 ## Current code structure
 

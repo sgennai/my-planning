@@ -249,7 +249,7 @@ export function InboxModal({ inbox, onClose, onDelete, onAdd }) {
                 />
                 <div className="inbox-item-text">{item.text}</div>
                 <div className="inbox-item-time">{formatTimestamp(item.createdAt)}</div>
-                <button className="inbox-item-del" onClick={() => onDelete(item.id)} title="Delete">×</button>
+                <button className="inbox-item-del" onClick={() => { if (confirm(`Delete "${item.text}" from the inbox?`)) onDelete(item.id); }} title="Delete">×</button>
               </div>
             ))}
           </div>

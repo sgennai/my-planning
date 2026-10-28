@@ -47,6 +47,9 @@ export function BlockPopover({ block, projects, onClose, onUpdate, onDelete }: a
   const handleSkip = () => {
     // Treat skip as deletion (action returns to open). For past blocks this also removes
     // them from the calendar — which matches "didn't happen".
+    if (!window.confirm(isPast
+      ? `Remove "${block.title}" from the calendar? It didn't happen.`
+      : `Unschedule "${block.title}"? It goes back to your portfolio.`)) return;
     onDelete();
   };
   const handleSaveEdit = () => {

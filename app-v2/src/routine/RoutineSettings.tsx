@@ -573,8 +573,29 @@ interface Props {
 
 export function RoutineSettings({ activities, onSave, onClose }: Props) {
   const [draft, setDraft] = useState<RoutineActivity | null>(null);
+  // The activity as it was when the editor opened, to tell whether leaving
+  // would throw edits away.
+  const [opened, setOpened] = useState<RoutineActivity | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
+
+  const openEditor = (a: RoutineActivity, fresh: boolean) => {
+    setDraft(a);
+    setOpened(a);
+    setIsNew(fresh);
+  };
+  const closeEditor = () => {
+    setDraft(null);
+    setOpened(null);
+    setIsNew(false);
+  };
+  // Back, close and a tap outside the sheet all leave the editor; with
+  // unsaved edits they ask first. Cancel is the one deliberate discard.
+  const leaveEditor = (then: () => void) => {
+    if (draft && JSON.stringify(draft) !== JSON.stringify(opened)
+      && !window.confirm(`Discard your changes to "${draft.title.trim() || 'this activity'}"?`)) return;
+    then();
+  };
 
   const visible = useMemo(
     () => [...activities]
@@ -587,17 +608,16 @@ export function RoutineSettings({ activities, onSave, onClose }: Props) {
     onSave(activities.some(a => a.id === next.id)
       ? activities.map(a => (a.id === next.id ? stamped : a))
       : [...activities, stamped]);
-    setDraft(null);
-    setIsNew(false);
+    closeEditor();
   };
 
   // Removing archives rather than deletes: completion history is keyed by
   // activity id, so dropping the definition would orphan every past record.
   const archive = (a: RoutineActivity) => {
+    if (!window.confirm(`Remove "${a.title}" from your routine?\n\nIt stops appearing from today, and unsaved changes in this form are lost. What you have ticked is kept, and "Show removed" at the foot of the list brings it back.`)) return;
     onSave(activities.map(x => (x.id === a.id
       ? { ...x, status: 'archived' as const, updatedAt: new Date().toISOString() } : x)));
-    setDraft(null);
-    setIsNew(false);
+    closeEditor();
   };
 
   const move = (a: RoutineActivity, dir: -1 | 1) => {
@@ -619,18 +639,18 @@ export function RoutineSettings({ activities, onSave, onClose }: Props) {
       role="dialog"
       aria-modal="true"
       aria-label="Routine settings"
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+      onClick={e => { if (e.target === e.currentTarget) leaveEditor(onClose); }}
     >
       <div className="cs">
         <div className="cs-head">
           {draft ? (
-            <button className="cs-back" onClick={() => { setDraft(null); setIsNew(false); }}>
+            <button className="cs-back" onClick={() => leaveEditor(closeEditor)}>
               <IconChevronLeft />All activities
             </button>
           ) : (
             <h2>Routine settings</h2>
           )}
-          <button className="cs-close" onClick={onClose} aria-label="Close"><IconX /></button>
+          <button className="cs-close" onClick={() => leaveEditor(onClose)} aria-label="Close"><IconX /></button>
         </div>
 
         <div className="cs-body">
@@ -639,7 +659,7 @@ export function RoutineSettings({ activities, onSave, onClose }: Props) {
               draft={draft}
               isNew={isNew}
               onChange={setDraft}
-              onCancel={() => { setDraft(null); setIsNew(false); }}
+              onCancel={closeEditor}
               onSave={() => commit(draft)}
               onArchive={() => archive(draft)}
             />
@@ -650,7 +670,7 @@ export function RoutineSettings({ activities, onSave, onClose }: Props) {
                   const photo = photoFor(a);
                   return (
                     <div key={a.id} className={`cs-row${a.status !== 'active' ? ' off' : ''}`}>
-                      <button className="cs-row-main" onClick={() => { setDraft(a); setIsNew(false); }}>
+                      <button className="cs-row-main" onClick={() => openEditor(a, false)}>
                         <span className="cs-thumb">
                           {photo && AVAILABLE_PHOTOS.has(photo) && <img src={`/routine/${photo}-thumb.webp`} alt="" loading="lazy" />}
                           <ActivityIcon name={a.icon} fallback={iconFor(a)} />
@@ -678,7 +698,7 @@ export function RoutineSettings({ activities, onSave, onClose }: Props) {
 
               <div className="cs-foot">
                 <button className="cs-btn cs-btn--primary"
-                  onClick={() => { setDraft(blankActivity(maxOrder + 10)); setIsNew(true); }}>
+                  onClick={() => openEditor(blankActivity(maxOrder + 10), true)}>
                   <IconPlus />Add activity
                 </button>
                 <button className="cs-btn cs-btn--quiet" onClick={() => setShowArchived(v => !v)}>

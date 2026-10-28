@@ -1167,7 +1167,7 @@ export function IPMockInterview({ questions, ip, onComplete, onExit }) {
           <button className="ip-start-rehearsal-btn" onClick={submitReview}>
             Save ratings &amp; finish
           </button>
-          <button className="ip-block-cancel-btn" style={{ marginLeft: 10 }} onClick={onExit}>Discard &amp; exit</button>
+          <button className="ip-block-cancel-btn" style={{ marginLeft: 10 }} onClick={() => { if (window.confirm('Discard this mock interview? Your ratings will not be saved.')) onExit(); }}>Discard &amp; exit</button>
         </div>
       </div>
     );
