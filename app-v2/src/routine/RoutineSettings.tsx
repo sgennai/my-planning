@@ -10,7 +10,7 @@
 // history survives every edit here — including archiving.
 import { useMemo, useState } from 'react';
 import type {
-  RoutineActivity, RoutineCategory, RoutineLink, RoutineStatus, RoutineSurface, Weekday,
+  RoutineActivity, RoutineCategory, RoutineChild, RoutineLink, RoutineStatus, RoutineSurface, Weekday,
 } from './model';
 import { ROUTINE_GROUPS, CATEGORY_LABELS, GROUP_TITLES } from './model';
 import { ActivityIcon, ACTIVITY_ICON_KEYS } from './activity-icons';
@@ -110,6 +110,27 @@ const MAX_LINKS = 4;
 const DEFAULT_TIMER_MIN = 10;
 const MAX_TIMER_MIN = 180;
 
+// Enough for a supplement stack; the tile line ends in an ellipsis past three or four.
+const MAX_PARTS = 8;
+
+function descriptionHint(a: RoutineActivity): string {
+  if ((a.children?.length ?? 0) >= 3) return 'Not shown on the tile while it has three or more parts: their names take the line under the name.';
+  return 'Shown only when the activity has no clock time, anchor, timer or target — those take the line first.';
+}
+
+function partsHint(a: RoutineActivity): string {
+  if ((a.children?.length ?? 0) >= 3) return 'Their names, in this order, are the line under the tile’s name. One tap on the tile ticks them all.';
+  const sets = (a.sets ?? 0) > 1 ? ' Parts take the place of sets.' : '';
+  return `One tap on the tile ticks every part. With three or more, their names become the line under the tile’s name.${sets}`;
+}
+
+// A part left without a name is dropped on save: the tile would list it as a blank.
+function withNamedParts(a: RoutineActivity): RoutineActivity {
+  if (!a.children) return a;
+  const children = a.children.map(c => ({ ...c, title: c.title.trim() })).filter(c => c.title);
+  return { ...a, children: children.length ? children : undefined };
+}
+
 const minutesOf = (sec: number | undefined) => (sec ? String(Math.round(sec / 60)) : '');
 
 function timerHint(a: RoutineActivity): string {
@@ -146,6 +167,8 @@ function Editor({
   // The list as typed, half-filled rows included; the tile reads it through linksOf.
   const links: RoutineLink[] = draft.links ?? (draft.link ? [draft.link] : []);
   const setLinks = (next: RoutineLink[]) => set({ links: next, link: undefined });
+  const parts: RoutineChild[] = draft.children ?? [];
+  const setParts = (next: RoutineChild[]) => set({ children: next.length ? next : undefined });
   // The minutes as typed, so the field can be cleared and retyped; the draft
   // only takes a whole number of at least one.
   const [timerText, setTimerText] = useState(minutesOf(draft.timerSec));
@@ -166,7 +189,7 @@ function Editor({
     <div className="cs-form">
       {/* ── 1. What it is ─────────────────────────────────────────────── */}
       <fieldset className="cs-sec">
-        <legend>Name and description</legend>
+        <legend>Name, description and parts</legend>
         <div className="cs-field">
           <label htmlFor="cs-title">Name</label>
           <input
@@ -185,12 +208,33 @@ function Editor({
             className="cs-input"
             value={draft.description || ''}
             onChange={e => set({ description: e.target.value || undefined })}
-            placeholder="The line under the name — e.g. Probiotics, Omega 3"
+            placeholder="A short line under the name"
           />
-          <p className="cs-hint">
-            Shown only when the activity has no clock time, anchor, timer or target —
-            those take the line first.
-          </p>
+          <p className="cs-hint">{descriptionHint(draft)}</p>
+        </div>
+        <div className="cs-field" role="group" aria-labelledby="cs-parts-label">
+          <span id="cs-parts-label" className="cs-label">Parts</span>
+          {parts.length > 0 && (
+            <div className="cs-parts">
+              {parts.map((c, i) => (
+                <div className="cs-part" key={c.id}>
+                  <input className="cs-input" aria-label={`Part ${i + 1}`} value={c.title}
+                    onChange={e => setParts(parts.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)))}
+                    placeholder="Magnesium" />
+                  <button type="button" className="cs-link-x" aria-label={`Remove ${c.title.trim() || `part ${i + 1}`}`}
+                    onClick={() => setParts(parts.filter((_, j) => j !== i))}><IconX /></button>
+                </div>
+              ))}
+            </div>
+          )}
+          {parts.length < MAX_PARTS && (
+            <button type="button" className="cs-btn cs-btn--quiet" style={{ alignSelf: 'flex-start' }}
+              onClick={() => setParts([...parts, {
+                id: `p-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+                title: '',
+              }])}><IconPlus />Add a part</button>
+          )}
+          <p className="cs-hint">{partsHint(draft)}</p>
         </div>
       </fieldset>
 
@@ -539,7 +583,7 @@ export function RoutineSettings({ activities, onSave, onClose }: Props) {
     [activities, showArchived]);
 
   const commit = (next: RoutineActivity) => {
-    const stamped = { ...next, updatedAt: new Date().toISOString() };
+    const stamped = { ...withNamedParts(next), updatedAt: new Date().toISOString() };
     onSave(activities.some(a => a.id === next.id)
       ? activities.map(a => (a.id === next.id ? stamped : a))
       : [...activities, stamped]);

@@ -1201,7 +1201,8 @@
 
 .cs-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .cs-field > label, .cs-field > .cs-label { font-size: 12px; font-weight: 600; color: var(--ink-2); }
-.cs-links { display: flex; flex-direction: column; gap: 10px; }
+.cs-links, .cs-parts { display: flex; flex-direction: column; gap: 10px; }
+.cs-part { display: grid; grid-template-columns: minmax(0, 1fr) 40px; gap: 8px; align-items: center; }
 .cs-link { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) 40px; gap: 8px; align-items: center; }
 .cs-link-x {
   width: 40px; height: 44px;
@@ -1380,7 +1381,7 @@
   /* Name above address, the remove button beside both. */
   .cs-link { grid-template-columns: minmax(0, 1fr) 40px; gap: 6px 8px; }
   .cs-link > .cs-input { grid-column: 1; }
-  .cs-link-x { grid-column: 2; grid-row: 1 / span 2; }
+  .cs-link > .cs-link-x { grid-column: 2; grid-row: 1 / span 2; }
   .cs-preview-frame { width: 100%; }
 }
 @media (orientation: portrait) and (max-width: 560px) {

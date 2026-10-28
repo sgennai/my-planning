@@ -235,6 +235,25 @@ describe('completion records', () => {
     expect(resolved.children.find(c => c.id === 'multivitamins')!.done).toBe(false);
   });
 
+  it('keeps a day ticked when a part is renamed, and asks again for a part added', () => {
+    const stack = byId('ra-breakfast-stack');
+    const log = toggleActivity([], stack, MON, index([]));
+    const renamed = { ...stack, children: stack.children!.map(c => (c.id === 'protein' ? { ...c, title: 'Whey' } : c)) };
+    expect(resolveActivity(renamed, index(log), MON).done).toBe(true);
+    const added = { ...stack, children: [...stack.children!, { id: 'p-new', title: 'Creatine' }] };
+    expect(resolveActivity(added, index(log), MON).childrenDone).toBe(4);
+    expect(resolveActivity(added, index(log), MON).done).toBe(false);
+    const again = toggleActivity(log, added, MON, index(log));
+    expect(resolveActivity(added, index(again), MON).done).toBe(true);
+  });
+
+  it('becomes a single tick once its last part is removed', () => {
+    const stack = { ...byId('ra-breakfast-stack'), children: undefined };
+    const log = toggleActivity([], stack, MON, index([]));
+    expect(resolveActivity(stack, index(log), MON).done).toBe(true);
+    expect(log).toHaveLength(1);
+  });
+
   it('records which variant was performed', () => {
     const cardio = byId('ra-cardio');
     const log = toggleActivity([], cardio, WED, index([]), { variant: 'Rowing' });

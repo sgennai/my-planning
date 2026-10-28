@@ -206,6 +206,11 @@ conversations (`BRIEFING_LINKS`) are set once by `relabel.ts` on an activity wit
 yet; a list the user has, even an empty one, is never replaced. On a short matrix tile
 (`@container`, under 115px) the button sits beside the tick circle instead of the corner.
 
+`children` (parts, up to 8) are edited in the editor's Parts list: rename keeps a part's id and
+so its ticks; a new part gets a fresh id, so a day already ticked asks again for it; a part left
+blank is dropped on save, and removing the last makes a single tick again. Three or more parts
+are the tile's line under the name, ahead of the description.
+
 `timerOff` is the editor's countdown switch: off hides the timer from the tile but keeps
 `timerSec`, so switching it back on restores the same minutes. Read the countdown through
 `timerOf`, which is 0 while it is off.
