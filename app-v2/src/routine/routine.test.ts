@@ -10,7 +10,7 @@ import {
   occursOn, activitiesForDay, buildCompletionIndex, resolveActivity, resolveDay,
   dayProgress, weekProgress, toggleActivity, toggleChild, toggleSkip,
   setCompletion, clearCompletion, completionId, stateOf, nextUp, isOverdue,
-  setSetCount, setsOf,
+  setSetCount, setsOf, linksOf,
   type CompletionIndex,
 } from './engine';
 import { routineItemsFromActivities, legacyCompletionMap, mergeLegacyCompletions } from './derive';
@@ -670,7 +670,7 @@ describe('seed integrity', () => {
     expect(byId('ra-air-squats').target).toEqual({ kind: 'reps', value: 40 });
     expect(byId('ra-cardio').variants).toEqual(['Cycling', 'Rowing']);
     for (const id of ['ra-chatgpt-tasks', 'ra-industry-reading', 'ra-podcast']) {
-      expect(byId(id).link?.url).toMatch(/^https:\/\//);
+      expect(linksOf(byId(id))[0]?.url).toMatch(/^https:\/\//);
     }
   });
 
@@ -807,5 +807,36 @@ describe('activities done in sets', () => {
     expect(metaFor({ ...squats, target: { kind: 'reps', value: 45 } })).toBe('4 sets · 45 reps');
     expect(metaFor({ ...squats, target: undefined, sets: 3 })).toBe('3 times a day');
     expect(metaFor({ ...byId('ra-plank'), sets: 3 })).toBe('3 × 2 min timer');
+  });
+});
+
+describe('activity links', () => {
+  const plain: RoutineActivity = { ...byId('ra-industry-reading'), links: undefined, link: undefined };
+
+  it('reads the single link of older data as a list of one', () => {
+    expect(linksOf({ ...plain, link: { label: 'Open reader', url: 'https://www.inoreader.com/' } }))
+      .toEqual([{ label: 'Open reader', url: 'https://www.inoreader.com/' }]);
+  });
+
+  it('prefers the list, in order, over an old single link', () => {
+    const a = { ...plain, link: { label: 'Old', url: 'https://old.example/' },
+      links: [{ label: 'One', url: 'https://one.example/' }, { label: 'Two', url: 'https://two.example/' }] };
+    expect(linksOf(a).map(l => l.label)).toEqual(['One', 'Two']);
+  });
+
+  it('keeps an emptied list empty rather than falling back to the old link', () => {
+    expect(linksOf({ ...plain, links: [], link: { label: 'Old', url: 'https://old.example/' } })).toEqual([]);
+  });
+
+  it('drops a half-filled row and names an unnamed link by its site', () => {
+    const a = { ...plain, links: [
+      { label: 'No address', url: '  ' },
+      { label: '  ', url: ' https://www.inoreader.com/all ' },
+    ] };
+    expect(linksOf(a)).toEqual([{ label: 'inoreader.com', url: 'https://www.inoreader.com/all' }]);
+  });
+
+  it('has none for an activity without links', () => {
+    expect(linksOf(plain)).toEqual([]);
   });
 });

@@ -8,11 +8,11 @@
 //
 // The whole tile completes an activity in one tap. Secondary controls are
 // separate real buttons, kept clear of the status mark.
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { RoutineActivity } from './model';
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import type { RoutineActivity, RoutineLink } from './model';
 import {
   buildCompletionIndex, resolveActivity, activitiesForDay, dayProgressFromRows,
-  weekProgress, toggleActivity, setSetCount, isOverdue,
+  weekProgress, toggleActivity, setSetCount, isOverdue, linksOf,
   type ResolvedActivity,
 } from './engine';
 import { dayKeyOf, dayNameShort, type DayKey } from './dates';
@@ -24,7 +24,7 @@ import { RoutineSettings } from './RoutineSettings';
 import { RoutineTimer } from './RoutineTimer';
 import { SetRing } from './SetRing';
 import { useClock } from '../ui/useClock';
-import { IconCog, IconClock, IconEllipsis, IconPlay } from '../ui/icons';
+import { IconCog, IconClock, IconEllipsis, IconLink, IconPlay, IconX } from '../ui/icons';
 
 const EMPTY: never[] = [];
 const PODCAST_ID = 'ra-podcast';
@@ -84,7 +84,14 @@ function Tile({ row, index, span, date, today, now, onToggle, onSecondary }: Til
   const meta = parts || metaFor(a);
   // A timer or a link is a genuinely available secondary action; nothing
   // else earns the control, so the tile shows none.
-  const secondary = !!a.timerSec || !!a.link?.url;
+  const links = linksOf(a);
+  const [launching, setLaunching] = useState(false);
+  const launcherId = useId();
+  const openerRef = useRef<HTMLButtonElement>(null);
+  const closeLauncher = useCallback((refocus: boolean) => {
+    setLaunching(false);
+    if (refocus) openerRef.current?.focus();
+  }, []);
 
   return (
     <div
@@ -118,13 +125,86 @@ function Tile({ row, index, span, date, today, now, onToggle, onSecondary }: Til
         </span>
       </button>
 
-      {secondary && (
-        <button
-          className="cin-more"
-          onClick={() => onSecondary(a)}
-          aria-label={a.timerSec ? `Start the timer for ${a.title}` : (a.link?.label || `Open the link for ${a.title}`)}
-        ><IconEllipsis /></button>
+      {a.timerSec ? (
+        <button className="cin-more" onClick={() => onSecondary(a)} aria-label={`Start the timer for ${a.title}`}>
+          <IconEllipsis />
+        </button>
+      ) : links.length === 1 ? (
+        <a className="cin-more" href={links[0].url} target="_blank" rel="noopener noreferrer" aria-label={links[0].label}>
+          <IconLink />
+        </a>
+      ) : links.length > 1 && (
+        <>
+          <button
+            ref={openerRef}
+            className="cin-more"
+            onClick={() => setLaunching(true)}
+            aria-expanded={launching}
+            aria-controls={launching ? launcherId : undefined}
+            aria-label={`Links for ${a.title}`}
+          ><IconLink /></button>
+          {launching && <LinkLauncher id={launcherId} title={a.title} links={links} onClose={closeLauncher} />}
+        </>
       )}
+    </div>
+  );
+}
+
+// Several links open as a launcher over their tile: one large named button
+// each, and a close button. A pick opens its link and closes the launcher;
+// so do Escape and a tap anywhere else.
+function LinkLauncher({ id, title, links, onClose }: {
+  id: string;
+  title: string;
+  links: RoutineLink[];
+  onClose: (refocus: boolean) => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  // Stacked under a caption on a tile tall enough for every button; side by
+  // side on a short one (an iPad in portrait, an iPhone row).
+  const [stacked, setStacked] = useState(false);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const fit = () => setStacked(el.clientHeight >= 42 + links.length * 40);
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+    el.focus({ preventScroll: true });
+    return () => ro.disconnect();
+  }, [links.length]);
+
+  useEffect(() => {
+    const away = (e: PointerEvent) => {
+      if (!ref.current?.parentElement?.contains(e.target as Node)) onClose(false);
+    };
+    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(true); };
+    document.addEventListener('pointerdown', away);
+    document.addEventListener('keydown', key);
+    return () => {
+      document.removeEventListener('pointerdown', away);
+      document.removeEventListener('keydown', key);
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      ref={ref}
+      id={id}
+      className={`cin-launch${stacked ? ' stacked' : ''}`}
+      role="group"
+      aria-label={`${title} links`}
+      tabIndex={-1}
+      style={{ '--n': links.length } as React.CSSProperties}
+    >
+      <span className="cin-launch-cap" aria-hidden>{title}</span>
+      <button type="button" className="cin-launch-x" onClick={() => onClose(true)} aria-label="Close links">
+        <IconX />
+      </button>
+      {links.map((l, i) => (
+        <a key={i} href={l.url} target="_blank" rel="noopener noreferrer" onClick={() => onClose(false)}>{l.label}</a>
+      ))}
     </div>
   );
 }
@@ -217,7 +297,7 @@ const WAVE = [28, 52, 38, 70, 46, 88, 60, 96, 54, 76, 40, 64, 34, 80, 48, 92, 58
 
 function PodcastPanel({ row, onToggle }: { row: ResolvedActivity; onToggle: (a: RoutineActivity) => void }) {
   const a = row.activity;
-  const link = a.link?.url;
+  const link = linksOf(a)[0];
   return (
     <section className="cin-cell" style={{ '--i': 1 } as React.CSSProperties}>
       <button
@@ -248,10 +328,10 @@ function PodcastPanel({ row, onToggle }: { row: ResolvedActivity; onToggle: (a: 
       {link && (
         <a
           className="cin-play"
-          href={link}
+          href={link.url}
           target="_blank"
           rel="noreferrer noopener"
-          aria-label={a.link?.label || 'Open podcasts'}
+          aria-label={link.label}
           onClick={e => e.stopPropagation()}
         ><IconPlay /></a>
       )}
@@ -408,8 +488,7 @@ export function RoutineScreen({ data, onPersist }: Props) {
   }, [setNote, onPersist]);
 
   const handleSecondary = useCallback((a: RoutineActivity) => {
-    if (a.timerSec) { setTimerFor(a); return; }
-    if (a.link?.url) window.open(a.link.url, '_blank', 'noopener,noreferrer');
+    if (a.timerSec) setTimerFor(a);
   }, []);
 
   const saveActivities = useCallback((next: RoutineActivity[]) => {

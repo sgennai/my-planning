@@ -181,7 +181,7 @@ RoutineActivity
            | { type:'flexible' }                     // any time today
   surface  : 'routine' | 'calendar' | 'both'
   required : boolean            // false = optional: shown, never in the denominator
-  children · timerSec · target · sets · link · variants · icon
+  children · timerSec · target · sets · links · variants · icon     // `link`: the old single link
   calendarCategory · homeOnly · recurrence
 ```
 
@@ -196,6 +196,15 @@ the status mark light up (`SetRing.tsx`), and the last set checks it. A part-don
 counts zero toward the day, like a part-done group. A tap after the last starts the day
 again; a note with Undo (`setSetCount`) follows every tap. The seed sets none: the user
 chooses it in the editor.
+
+`links` (up to 4, named) replaced the single `link`; always read them through `linksOf`, which
+turns an old `link` into a list of one. One link opens straight from the tile's button. Two
+or more open a launcher over the tile (`LinkLauncher`): the names stacked under the title on
+a tall tile, side by side on a short one, closing on a pick, its close button, Escape or a
+tap elsewhere. A timer takes the button first. The briefings tile's three ChatGPT
+conversations (`BRIEFING_LINKS`) are set once by `relabel.ts` on an activity with no `links`
+yet; a list the user has, even an empty one, is never replaced. On a short matrix tile
+(`@container`, under 115px) the button sits beside the tick circle instead of the corner.
 
 `surface` is what lets one model feed two very different screens without either filling up
 with rows that do not belong to it. `calendarCategory` keeps the Plan grids' established

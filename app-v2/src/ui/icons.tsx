@@ -62,7 +62,7 @@ export const IconTimer = (p: P) => (
   <svg {...base} {...p}><circle cx="12" cy="13.5" r="7.5" /><path d="M12 10v3.5l2.3 1.6M9.5 2.5h5" /></svg>
 );
 export const IconLink = (p: P) => (
-  <svg {...base} {...p}><path d="M14 11.5a4.2 4.2 0 0 0 0-5.9l-.6-.6a4.2 4.2 0 0 0-5.9 5.9l.6.6" /><path d="M10 12.5a4.2 4.2 0 0 0 0 5.9l.6.6a4.2 4.2 0 0 0 5.9-5.9l-.6-.6" /></svg>
+  <svg {...base} {...p}><path d="M10 13.5a3.6 3.6 0 0 0 5.1 0l3-3a3.6 3.6 0 0 0-5.1-5.1l-1.2 1.2" /><path d="M14 10.5a3.6 3.6 0 0 0-5.1 0l-3 3a3.6 3.6 0 0 0 5.1 5.1l1.2-1.2" /></svg>
 );
 export const IconSkip = (p: P) => (
   <svg {...base} {...p}><path d="M5.5 5.5v13M18.5 5.5v13M8 12h8" /></svg>

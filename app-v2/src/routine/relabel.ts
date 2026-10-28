@@ -6,13 +6,19 @@
 // value was edited, it no longer matches and is left alone. Nothing else on
 // the activity is touched, and no completion record is affected: history is
 // keyed by activity id, which never changes here.
+//
+// Links follow a different rule: a list is set once, on an activity that has
+// no list of its own yet. After that the activity carries one, so the user's
+// list, even an emptied one, is never replaced.
 
-import type { RoutineActivity } from './model';
+import type { RoutineActivity, RoutineLink } from './model';
+import { BRIEFING_LINKS } from './model';
 
 interface Relabel {
   title?: [from: string, to: string];
   description?: [from: string | undefined, to: string | undefined];
   anchor?: [from: string, to: string];
+  links?: RoutineLink[];
 }
 
 const RELABELS: Record<string, Relabel> = {
@@ -22,7 +28,8 @@ const RELABELS: Record<string, Relabel> = {
   'ra-plank':            { title: ['Plank', '2-minute plank'] },
   'ra-air-squats':       { title: ['Air squats', '40 air squats'] },
   'ra-chatgpt-tasks':    { title: ['ChatGPT scheduled tasks', 'ChatGPT briefings'],
-                           description: ['Read the overnight task output.', "Today's outputs"] },
+                           description: ['Read the overnight task output.', "Today's outputs"],
+                           links: BRIEFING_LINKS },
   'ra-industry-reading': { description: ['Enterprise AI · customer engagement.', 'AI & customer engagement'] },
   'ra-podcast':          { description: [undefined, 'Listen today'] },
   'ra-breakfast-stack':  { anchor: ['with breakfast', 'At breakfast'],
@@ -57,6 +64,10 @@ export function relabelRoutine(
     }
     if (rule.anchor && a.timing?.type === 'anchored' && a.timing.anchor === rule.anchor[0]) {
       edit('timing', { type: 'anchored', anchor: rule.anchor[1] });
+    }
+    if (rule.links && a.links === undefined) {
+      edit('links', rule.links.map(l => ({ ...l })));
+      edit('link', undefined);
     }
     return patched;
   });

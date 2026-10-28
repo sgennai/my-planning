@@ -676,6 +676,88 @@
 .cin-more svg { width: 15px; height: 15px; }
 .cin-more:active { background: rgba(37, 107, 255, .55); }
 
+/* A short tile has its tick circle up by the corner, so the button moves
+   beside the circle rather than on top of it. */
+.cin-matrix > .cin-cell { container-type: size; }
+@container (max-height: 115px) {
+  .cin-more { top: auto; bottom: 46px; right: 48px; }
+}
+
+/* ── Link launcher: several links, over their tile ───────────────────── */
+.cin-launch {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: repeat(var(--n), minmax(0, 1fr)) 34px;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 6px;
+  padding: 7px;
+  border: 1px solid var(--edge);
+  border-radius: var(--r-tile);
+  background: #0B1526;
+  box-shadow: var(--lift-1);
+  animation: cin-launch-in 180ms var(--ease);
+}
+.cin-launch:focus { outline: none; }
+.cin-launch.stacked {
+  grid-template-columns: minmax(0, 1fr) 34px;
+  grid-template-rows: 30px repeat(var(--n), minmax(0, 1fr));
+  padding: 8px;
+}
+.cin-launch-cap { display: none; }
+.cin-launch.stacked .cin-launch-cap {
+  display: block;
+  align-self: center;
+  min-width: 0;
+  padding-left: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.cin-launch-x {
+  position: relative;
+  grid-column: -2;
+  grid-row: 1;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ink-2);
+}
+/* Above the names it reaches into the launcher's edge for a fingertip. */
+.cin-launch.stacked .cin-launch-x::after { content: ""; position: absolute; inset: -8px -8px -2px -4px; }
+.cin-launch-x svg { width: 17px; height: 17px; }
+.cin-launch-x:active { background: rgba(255, 255, 255, .07); color: var(--ink-0); }
+.cin-launch a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  padding: 0 8px;
+  border: 1px solid rgba(160, 190, 230, .2);
+  border-radius: 9px;
+  background: rgba(37, 107, 255, .14);
+  color: var(--ink-0);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  transition: background var(--dur-1) var(--ease);
+}
+.cin-launch a:active { background: rgba(37, 107, 255, .42); }
+.cin-launch.stacked a { grid-column: 1 / -1; justify-content: flex-start; padding: 0 12px; text-align: left; }
+@keyframes cin-launch-in { from { opacity: 0; } to { opacity: 1; } }
+
 /* ── Entry stagger: first open only ──────────────────────────────────── */
 .cin-matrix.intro .cin-cell,
 .cin-body.intro .cin-left > * {
@@ -717,7 +799,8 @@
 @media (prefers-reduced-motion: reduce) {
   .cin-tile, .cin-pod, .cin-play, .cin-ring .arc, .cin-bar > i,
   .cin-photo > *, .cin-pod-plate > *, .cin-sets circle { transition: none; }
-  .cin > .cin-note { animation: none; }
+  .cin > .cin-note, .cin-launch { animation: none; }
+  .cin-launch a { transition: none; }
   .cin-tile.done .cin-sweep, .cin-tile.done .cin-status::after,
   .cin-pod.done .cin-sweep { animation: none; display: none; }
   .cin-matrix.intro .cin-cell, .cin-body.intro .cin-left > * { opacity: 1; animation: none; }
@@ -923,6 +1006,8 @@
 
   /* The timer or link control sits just inside the status mark. */
   .cin-more { top: 50%; right: 48px; transform: translateY(-50%); }
+  .cin-matrix > .cin-cell { container-type: normal; }
+  .cin-launch a { padding: 0 6px; font-size: 12.5px; }
   .cin-cell:has(> .cin-more) .cin-status { margin-left: 48px; }
 }
 
@@ -1115,7 +1200,19 @@
 .cs-hint { margin: 0; font-size: 11.5px; color: var(--ink-3); line-height: 1.45; }
 
 .cs-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.cs-field > label { font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.cs-field > label, .cs-field > .cs-label { font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.cs-links { display: flex; flex-direction: column; gap: 10px; }
+.cs-link { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) 40px; gap: 8px; align-items: center; }
+.cs-link-x {
+  width: 40px; height: 44px;
+  display: grid; place-items: center;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-3);
+}
+.cs-link-x svg { width: 16px; height: 16px; }
+.cs-link-x:active { background: rgba(255,255,255,.07); color: var(--ink-0); }
 .cs-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 
 .cs-input, .cs-select {
@@ -1237,6 +1334,10 @@
 
 @media (max-width: 560px) {
   .cs-pair { grid-template-columns: 1fr; }
+  /* Name above address, the remove button beside both. */
+  .cs-link { grid-template-columns: minmax(0, 1fr) 40px; gap: 6px 8px; }
+  .cs-link > .cs-input { grid-column: 1; }
+  .cs-link-x { grid-column: 2; grid-row: 1 / span 2; }
   .cs-preview-frame { width: 100%; }
 }
 @media (orientation: portrait) and (max-width: 560px) {

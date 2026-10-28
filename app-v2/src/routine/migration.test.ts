@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { migrate } from '../storage/migrations';
-import { SEED_ROUTINE_ACTIVITIES } from './model';
+import { SEED_ROUTINE_ACTIVITIES, BRIEFING_LINKS } from './model';
 import { routineItemsFromActivities } from './derive';
 
 describe('v27 routine migration', () => {
@@ -150,5 +150,58 @@ describe('v28 relabelling', () => {
     const once = migrate({ schemaVersion: 27, routineActivities: [stored()] }).data;
     const twice = migrate(once).data;
     expect(twice.routineActivities).toEqual(once.routineActivities);
+  });
+});
+
+describe('briefing links', () => {
+  const briefings = (over: Partial<Record<string, unknown>> = {}) => ({
+    id: 'ra-chatgpt-tasks',
+    title: 'ChatGPT briefings',
+    description: "Today's outputs",
+    group: 'learning',
+    category: 'mind',
+    schedule: { type: 'daily' },
+    timing: { type: 'flexible' },
+    surface: 'routine',
+    required: true,
+    status: 'active',
+    order: 90,
+    link: { label: 'Open ChatGPT', url: 'https://chatgpt.com/' },
+    ...over,
+  });
+
+  it('gives the briefings tile its three conversations in place of the single link', () => {
+    const { data, migrated } = migrate({ schemaVersion: 28, routineActivities: [briefings()] });
+    expect(migrated).toBe(true);
+    expect(data.routineActivities[0].links).toEqual(BRIEFING_LINKS);
+    expect(data.routineActivities[0].link).toBeUndefined();
+  });
+
+  it('replaces a single link the user had already pointed elsewhere', () => {
+    const mine = briefings({ link: { label: 'Open', url: 'https://chatgpt.com/c/something-else' } });
+    const { data } = migrate({ schemaVersion: 28, routineActivities: [mine] });
+    expect(data.routineActivities[0].links).toEqual(BRIEFING_LINKS);
+  });
+
+  it('never replaces a list the user already has, even an emptied one', () => {
+    const own = [{ label: 'Mine', url: 'https://chatgpt.com/c/mine' }];
+    const kept = migrate({ schemaVersion: 28, routineActivities: [briefings({ links: own })] }).data;
+    expect(kept.routineActivities[0].links).toEqual(own);
+    const emptied = migrate({ schemaVersion: 28, routineActivities: [briefings({ links: [] })] }).data;
+    expect(emptied.routineActivities[0].links).toEqual([]);
+  });
+
+  it('leaves the links of every other activity alone, and settles after one pass', () => {
+    const reader = { ...briefings(), id: 'ra-industry-reading', link: { label: 'Open reader', url: 'https://www.inoreader.com/' } };
+    const once = migrate({ schemaVersion: 28, routineActivities: [briefings(), reader] });
+    expect(once.data.routineActivities[1]).toEqual(reader);
+    const twice = migrate(once.data);
+    expect(twice.data.routineActivities).toEqual(once.data.routineActivities);
+  });
+
+  it('is already in place on a fresh seed', () => {
+    const seeded = migrate({ schemaVersion: 26 }).data;
+    const tile = seeded.routineActivities.find((a: { id: string }) => a.id === 'ra-chatgpt-tasks');
+    expect(tile.links.map((l: { label: string }) => l.label)).toEqual(['AI Challenges', 'CEP Brief', 'AI Sales Debrief']);
   });
 });

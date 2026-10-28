@@ -80,7 +80,13 @@ export interface RoutineActivity {
    * 1 is a single tick. Ignored on an activity with children.
    */
   sets?: number;
-  /** One-tap launch link — ChatGPT, a reader, a podcast app. */
+  /**
+   * Launch links — ChatGPT conversations, a reader, a podcast app. One opens
+   * straight from the tile; two or more open a launcher over it, one named
+   * button each. Once set, even to an empty list, the user's list stands.
+   */
+  links?: RoutineLink[];
+  /** The single launch link activities had before `links`. Read through linksOf. */
   link?: RoutineLink;
   /** Mutually exclusive ways to do it; the completed one is recorded. */
   variants?: string[];
@@ -139,6 +145,13 @@ const MON_FRI = on(1, 2, 3, 4, 5);
 const flexible: RoutineTiming = { type: 'flexible' };
 const anchored = (anchor: string): RoutineTiming => ({ type: 'anchored', anchor });
 const at = (start: string, durationMin: number): RoutineTiming => ({ type: 'fixed', start, durationMin });
+
+/** The three ChatGPT conversations the briefings tile opens. */
+export const BRIEFING_LINKS: RoutineLink[] = [
+  { label: 'AI Challenges', url: 'https://chatgpt.com/c/6a9c071e-ce3c-83eb-b5c2-7cd4a1470e7f' },
+  { label: 'CEP Brief', url: 'https://chatgpt.com/c/6aafc644-4e54-83eb-8c04-9b588a32d620' },
+  { label: 'AI Sales Debrief', url: 'https://chatgpt.com/c/6a86db3d-e5e4-83eb-b47f-8117219050a0' },
+];
 
 // ═════════════════════════════════════════════════════════════════════════
 // SEED — the routine as specified. Seeded once; thereafter the user's own
@@ -299,7 +312,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     order: 90,
     icon: 'sparkle',
     photo: 'briefings',
-    link: { label: 'Open ChatGPT', url: 'https://chatgpt.com/' },
+    links: BRIEFING_LINKS,
   },
   {
     id: 'ra-industry-reading',
@@ -315,7 +328,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     order: 100,
     icon: 'document',
     photo: 'articles',
-    link: { label: 'Open reader', url: 'https://www.inoreader.com/' },
+    links: [{ label: 'Open reader', url: 'https://www.inoreader.com/' }],
   },
   {
     id: 'ra-podcast',
@@ -331,7 +344,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     order: 110,
     icon: 'headphones',
     photo: 'podcast',
-    link: { label: 'Open podcasts', url: 'https://podcasts.apple.com/' },
+    links: [{ label: 'Open podcasts', url: 'https://podcasts.apple.com/' }],
   },
 
   // ── Evening ──────────────────────────────────────────────────────────

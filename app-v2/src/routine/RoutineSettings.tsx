@@ -10,7 +10,7 @@
 // history survives every edit here — including archiving.
 import { useMemo, useState } from 'react';
 import type {
-  RoutineActivity, RoutineCategory, RoutineStatus, RoutineSurface, Weekday,
+  RoutineActivity, RoutineCategory, RoutineLink, RoutineStatus, RoutineSurface, Weekday,
 } from './model';
 import { ROUTINE_GROUPS, CATEGORY_LABELS, GROUP_TITLES } from './model';
 import { ActivityIcon, ACTIVITY_ICON_KEYS } from './activity-icons';
@@ -103,6 +103,15 @@ function Preview({ a }: { a: RoutineActivity }) {
 
 const SET_CHOICES = [1, 2, 3, 4, 5, 6];
 
+// Four named buttons are as many as an iPhone row's launcher holds legibly.
+const MAX_LINKS = 4;
+
+function linksHint(a: RoutineActivity, count: number): string {
+  if (count > 0 && a.timerSec) return 'The countdown takes the button on the tile, so these links stay hidden while it is set.';
+  if (count > 1) return 'The link button on the tile opens a launcher with one button per name.';
+  return 'One link opens straight from the button on the tile. Add more and that button opens a launcher with one button per name.';
+}
+
 function setsHint(a: RoutineActivity): string {
   const sets = setsOf(a);
   if (!sets) return 'One tap on the tile checks it.';
@@ -121,8 +130,11 @@ function Editor({
   onArchive: () => void;
 }) {
   const set = (p: Partial<RoutineActivity>) => onChange({ ...draft, ...p });
+  // The list as typed, half-filled rows included; the tile reads it through linksOf.
+  const links: RoutineLink[] = draft.links ?? (draft.link ? [draft.link] : []);
+  const setLinks = (next: RoutineLink[]) => set({ links: next, link: undefined });
   const [showExtras, setShowExtras] = useState(
-    !!(draft.timerSec || draft.target || draft.link || draft.variants?.length));
+    !!(draft.timerSec || draft.target || links.length || draft.variants?.length));
 
   const schedType = draft.schedule?.type || 'daily';
   const days: Weekday[] = draft.schedule.type === 'weekdays' ? (draft.schedule.days || []) : [];
@@ -353,7 +365,7 @@ function Editor({
         <legend>Extras</legend>
         {!showExtras ? (
           <button type="button" className="cs-btn cs-btn--quiet" style={{ alignSelf: 'flex-start' }}
-            onClick={() => setShowExtras(true)}>Timer, target, link, variants…</button>
+            onClick={() => setShowExtras(true)}>Timer, target, links, variants…</button>
         ) : (
           <>
             <div className="cs-pair">
@@ -385,21 +397,29 @@ function Editor({
               </div>
             </div>
 
-            <div className="cs-pair">
-              <div className="cs-field">
-                <label htmlFor="cs-link-label">Link label</label>
-                <input id="cs-link-label" className="cs-input" value={draft.link?.label || ''}
-                  onChange={e => set({ link: (e.target.value || draft.link?.url)
-                    ? { label: e.target.value, url: draft.link?.url || '' } : undefined })}
-                  placeholder="Open reader" />
-              </div>
-              <div className="cs-field">
-                <label htmlFor="cs-link-url">Link address</label>
-                <input id="cs-link-url" className="cs-input" type="url" inputMode="url" value={draft.link?.url || ''}
-                  onChange={e => set({ link: (e.target.value || draft.link?.label)
-                    ? { label: draft.link?.label || 'Open', url: e.target.value } : undefined })}
-                  placeholder="https://" />
-              </div>
+            <div className="cs-field" role="group" aria-labelledby="cs-links-label">
+              <span id="cs-links-label" className="cs-label">Links</span>
+              {links.length > 0 && (
+                <div className="cs-links">
+                  {links.map((l, i) => (
+                    <div className="cs-link" key={i}>
+                      <input className="cs-input" aria-label={`Link ${i + 1} name`} value={l.label}
+                        onChange={e => setLinks(links.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))}
+                        placeholder="AI Challenges" />
+                      <input className="cs-input" type="url" inputMode="url" aria-label={`Link ${i + 1} address`} value={l.url}
+                        onChange={e => setLinks(links.map((x, j) => (j === i ? { ...x, url: e.target.value } : x)))}
+                        placeholder="https://" />
+                      <button type="button" className="cs-link-x" aria-label={`Remove ${l.label.trim() || `link ${i + 1}`}`}
+                        onClick={() => setLinks(links.filter((_, j) => j !== i))}><IconX /></button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {links.length < MAX_LINKS && (
+                <button type="button" className="cs-btn cs-btn--quiet" style={{ alignSelf: 'flex-start' }}
+                  onClick={() => setLinks([...links, { label: '', url: '' }])}><IconPlus />Add a link</button>
+              )}
+              <p className="cs-hint">{linksHint(draft, links.length)}</p>
             </div>
 
             <div className="cs-pair">

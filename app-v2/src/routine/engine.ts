@@ -12,7 +12,7 @@
 // rewritten by a new day starting.
 
 import type {
-  RoutineActivity, RoutineChild, RoutineCategory, RoutineSurface, Weekday,
+  RoutineActivity, RoutineChild, RoutineCategory, RoutineLink, RoutineSurface, Weekday,
 } from './model';
 import { ROUTINE_GROUPS } from './model';
 import type { DayKey } from './dates';
@@ -157,6 +157,22 @@ function hasChildren(a: RoutineActivity): boolean {
 export function setsOf(a: RoutineActivity): number {
   const n = a.sets;
   return !hasChildren(a) && typeof n === 'number' && Number.isInteger(n) && n >= 2 ? n : 0;
+}
+
+/**
+ * The links a tile opens, in order. Data from before `links` carries a single
+ * `link`, read as a list of one. A link without an address is left out, and
+ * one without a name is called by its site.
+ */
+export function linksOf(a: RoutineActivity): RoutineLink[] {
+  const list = Array.isArray(a.links) ? a.links : a.link ? [a.link] : [];
+  return list
+    .filter(l => typeof l?.url === 'string' && l.url.trim() !== '')
+    .map(l => ({ label: l.label?.trim() || siteOf(l.url), url: l.url.trim() }));
+}
+
+function siteOf(url: string): string {
+  try { return new URL(url.trim()).hostname.replace(/^www\./, ''); } catch { return url.trim(); }
 }
 
 // Each set is a record of its own, `activityId/set-<k>`, exactly like a child.
