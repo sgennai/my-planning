@@ -266,6 +266,12 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 - **Host:** Cloudflare Pages. Base path `/` (`vite.config.ts`). PWA via `vite-plugin-pwa`.
 - **Auth:** HTTP Basic Auth via `functions/_middleware.ts` (Pages Function). Runtime env vars
   `BASIC_AUTH_USER` / `BASIC_AUTH_PASS` set in the Cloudflare dashboard — never in source.
+  Accepting the password also sets a year-long HttpOnly `mp_session` cookie (an HMAC of the
+  user keyed by the password, renewed on each `/sw.js` fetch). Without it, a Home Screen app
+  never received updates: it opens from its service worker's copy, iOS forgets the password
+  after a swipe-away, and the update check was refused. Changing either credential signs every
+  device out. `src/auth-gate.test.ts` covers the gate. Never make the JS bundle public: it
+  carries `VITE_SYNC_SECRET`.
 - **Build-time env vars** baked into the JS bundle by Vite (fill empty fields on first boot):
   `VITE_SYNC_URL`, `VITE_SYNC_SECRET`, `VITE_PROXY_URL`. Set in Pages → Settings → Env vars.
   Local dev: copy to `app-v2/.env.local` (gitignored). See `DEPLOY.md` for full rotation steps.
