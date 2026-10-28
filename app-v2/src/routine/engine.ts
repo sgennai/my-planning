@@ -159,6 +159,12 @@ export function setsOf(a: RoutineActivity): number {
   return !hasChildren(a) && typeof n === 'number' && Number.isInteger(n) && n >= 2 ? n : 0;
 }
 
+/** The countdown's length in seconds, or 0 when it has none or it is switched off. */
+export function timerOf(a: RoutineActivity): number {
+  const s = a.timerSec;
+  return !a.timerOff && typeof s === 'number' && s > 0 ? s : 0;
+}
+
 /**
  * The links a tile opens, in order. Data from before `links` carries a single
  * `link`, read as a list of one. A link without an address is left out, and

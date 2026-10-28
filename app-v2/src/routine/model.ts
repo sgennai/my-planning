@@ -71,8 +71,10 @@ export interface RoutineActivity {
   order: number;
   /** Expandable sub-items. The parent counts once however many children exist. */
   children?: RoutineChild[];
-  /** Seconds for an integrated countdown (plank 120, strength 1200). */
+  /** Seconds for an integrated countdown (plank 120, strength 1200). Read through timerOf. */
   timerSec?: number;
+  /** The countdown is switched off. `timerSec` keeps its length for when it is switched back on. */
+  timerOff?: boolean;
   /** A measurable target shown next to the title (40 reps, 20 minutes). */
   target?: RoutineTarget;
   /**

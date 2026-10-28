@@ -12,7 +12,7 @@ import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useSta
 import type { RoutineActivity, RoutineLink } from './model';
 import {
   buildCompletionIndex, resolveActivity, activitiesForDay, dayProgressFromRows,
-  weekProgress, toggleActivity, setSetCount, isOverdue, linksOf,
+  weekProgress, toggleActivity, setSetCount, isOverdue, linksOf, timerOf,
   type ResolvedActivity,
 } from './engine';
 import { dayKeyOf, dayNameShort, type DayKey } from './dates';
@@ -125,7 +125,7 @@ function Tile({ row, index, span, date, today, now, onToggle, onSecondary }: Til
         </span>
       </button>
 
-      {a.timerSec ? (
+      {timerOf(a) ? (
         <button className="cin-more" onClick={() => onSecondary(a)} aria-label={`Start the timer for ${a.title}`}>
           <IconEllipsis />
         </button>
@@ -488,7 +488,7 @@ export function RoutineScreen({ data, onPersist }: Props) {
   }, [setNote, onPersist]);
 
   const handleSecondary = useCallback((a: RoutineActivity) => {
-    if (a.timerSec) setTimerFor(a);
+    if (timerOf(a)) setTimerFor(a);
   }, []);
 
   const saveActivities = useCallback((next: RoutineActivity[]) => {

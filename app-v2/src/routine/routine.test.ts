@@ -10,7 +10,7 @@ import {
   occursOn, activitiesForDay, buildCompletionIndex, resolveActivity, resolveDay,
   dayProgress, weekProgress, toggleActivity, toggleChild, toggleSkip,
   setCompletion, clearCompletion, completionId, stateOf, nextUp, isOverdue,
-  setSetCount, setsOf, linksOf,
+  setSetCount, setsOf, linksOf, timerOf,
   type CompletionIndex,
 } from './engine';
 import { routineItemsFromActivities, legacyCompletionMap, mergeLegacyCompletions } from './derive';
@@ -838,5 +838,31 @@ describe('activity links', () => {
 
   it('has none for an activity without links', () => {
     expect(linksOf(plain)).toEqual([]);
+  });
+});
+
+describe('countdown switch', () => {
+  const plank = byId('ra-plank');
+
+  it('runs the countdown it has', () => {
+    expect(timerOf(plank)).toBe(120);
+  });
+
+  it('has none while switched off, and keeps the minutes', () => {
+    const off = { ...plank, timerOff: true };
+    expect(timerOf(off)).toBe(0);
+    expect(off.timerSec).toBe(120);
+    expect(timerOf({ ...off, timerOff: undefined })).toBe(120);
+  });
+
+  it('shows the target on the tile while switched off', () => {
+    const meta = metaFor({ ...plank, timerOff: true });
+    expect(meta).not.toMatch(/timer/);
+    expect(meta).toMatch(/^2 /);
+  });
+
+  it('has none without minutes, switched on or not', () => {
+    expect(timerOf({ ...plank, timerSec: undefined })).toBe(0);
+    expect(timerOf({ ...plank, timerSec: 0, timerOff: false })).toBe(0);
   });
 });

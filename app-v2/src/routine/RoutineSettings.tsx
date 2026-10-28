@@ -16,7 +16,7 @@ import { ROUTINE_GROUPS, CATEGORY_LABELS, GROUP_TITLES } from './model';
 import { ActivityIcon, ACTIVITY_ICON_KEYS } from './activity-icons';
 import { AVAILABLE_PHOTOS, PHOTO_GROUPS, photoFor, iconFor } from './photo-manifest';
 import { metaFor, targetLabel } from './format';
-import { setsOf } from './engine';
+import { setsOf, timerOf } from './engine';
 import { SetRing } from './SetRing';
 import {
   IconPlus, IconArrowUp, IconArrowDown, IconX, IconChevronLeft, IconTrash, IconCheck,
@@ -106,8 +106,21 @@ const SET_CHOICES = [1, 2, 3, 4, 5, 6];
 // Four named buttons are as many as an iPhone row's launcher holds legibly.
 const MAX_LINKS = 4;
 
+// What a countdown switched on for the first time starts at.
+const DEFAULT_TIMER_MIN = 10;
+const MAX_TIMER_MIN = 180;
+
+const minutesOf = (sec: number | undefined) => (sec ? String(Math.round(sec / 60)) : '');
+
+function timerHint(a: RoutineActivity): string {
+  const m = minutesOf(a.timerSec);
+  if (timerOf(a)) return `The ••• button on the tile starts a ${m}-minute countdown.`;
+  if (m) return `Off. The ${m} minutes are kept for when you switch it back on.`;
+  return 'Switch it on to start a countdown from a button on the tile.';
+}
+
 function linksHint(a: RoutineActivity, count: number): string {
-  if (count > 0 && a.timerSec) return 'The countdown takes the button on the tile, so these links stay hidden while it is set.';
+  if (count > 0 && timerOf(a)) return 'The countdown takes the button on the tile, so these links stay hidden while it is on.';
   if (count > 1) return 'The link button on the tile opens a launcher with one button per name.';
   return 'One link opens straight from the button on the tile. Add more and that button opens a launcher with one button per name.';
 }
@@ -133,6 +146,10 @@ function Editor({
   // The list as typed, half-filled rows included; the tile reads it through linksOf.
   const links: RoutineLink[] = draft.links ?? (draft.link ? [draft.link] : []);
   const setLinks = (next: RoutineLink[]) => set({ links: next, link: undefined });
+  // The minutes as typed, so the field can be cleared and retyped; the draft
+  // only takes a whole number of at least one.
+  const [timerText, setTimerText] = useState(minutesOf(draft.timerSec));
+  const timerOn = timerOf(draft) > 0;
   const [showExtras, setShowExtras] = useState(
     !!(draft.timerSec || draft.target || links.length || draft.variants?.length));
 
@@ -370,13 +387,28 @@ function Editor({
           <>
             <div className="cs-pair">
               <div className="cs-field">
-                <label htmlFor="cs-timer">Countdown (minutes, 0 = none)</label>
-                <input id="cs-timer" className="cs-input" type="number" min={0} max={180}
-                  value={draft.timerSec ? Math.round(draft.timerSec / 60) : 0}
-                  onChange={e => {
-                    const m = Math.max(0, Number(e.target.value) || 0);
-                    set({ timerSec: m > 0 ? m * 60 : undefined });
-                  }} />
+                <span className="cs-label" id="cs-timer-label">Countdown</span>
+                <div className="cs-timer">
+                  <button type="button" className="cs-switch" role="switch" aria-checked={timerOn}
+                    aria-labelledby="cs-timer-label"
+                    onClick={() => {
+                      if (timerOn) { set({ timerOff: true }); return; }
+                      const sec = draft.timerSec || DEFAULT_TIMER_MIN * 60;
+                      set({ timerOff: undefined, timerSec: sec });
+                      setTimerText(minutesOf(sec));
+                    }} />
+                  <input className="cs-input" type="number" inputMode="numeric" min={1} max={MAX_TIMER_MIN}
+                    aria-label="Countdown minutes" placeholder={String(DEFAULT_TIMER_MIN)}
+                    disabled={!timerOn} value={timerText}
+                    onChange={e => {
+                      setTimerText(e.target.value);
+                      const m = Math.round(Number(e.target.value));
+                      if (m >= 1) set({ timerSec: Math.min(MAX_TIMER_MIN, m) * 60 });
+                    }}
+                    onBlur={() => setTimerText(minutesOf(draft.timerSec))} />
+                  <span className="cs-unit" aria-hidden="true">min</span>
+                </div>
+                <p className="cs-hint">{timerHint(draft)}</p>
               </div>
               <div className="cs-field">
                 <label htmlFor="cs-target">Target</label>

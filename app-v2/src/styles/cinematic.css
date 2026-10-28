@@ -1233,6 +1233,49 @@
   box-shadow: 0 0 0 3px rgba(44, 140, 255, .18);
 }
 .cs-select { appearance: none; background-image: none; }
+/* A field that is switched off still shows what it keeps. */
+.cs-input:disabled { opacity: 1; color: var(--ink-3); -webkit-text-fill-color: var(--ink-3); }
+
+/* Countdown: the switch, the minutes it keeps, the unit. */
+.cs-timer { display: flex; align-items: center; gap: 10px; }
+.cs-timer .cs-input { flex: 1; min-width: 0; }
+.cs-unit { font-size: 13px; color: var(--ink-2); }
+
+/* On/off switch: the iOS 51 x 31 track in a 44px-tall hit area. */
+.cs-switch {
+  position: relative;
+  flex: none;
+  width: 51px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+.cs-switch::before,
+.cs-switch::after { content: ''; position: absolute; }
+.cs-switch::before {
+  left: 0; top: 6.5px;
+  width: 51px; height: 31px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  box-shadow: inset 0 0 0 1px var(--edge-soft);
+  transition: background var(--dur-2) var(--ease), box-shadow var(--dur-2) var(--ease);
+}
+.cs-switch::after {
+  left: 2px; top: 8.5px;
+  width: 27px; height: 27px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, .35);
+  transition: transform var(--dur-2) var(--ease);
+}
+.cs-switch[aria-checked="true"]::before { background: var(--blue); box-shadow: none; }
+.cs-switch[aria-checked="true"]::after { transform: translateX(20px); }
+.cs-switch:focus-visible { outline: none; }
+.cs-switch:focus-visible::before { box-shadow: 0 0 0 3px rgba(44, 140, 255, .45); }
+@media (prefers-reduced-motion: reduce) {
+  .cs-switch::before, .cs-switch::after { transition: none; }
+}
 
 /* Segmented choices */
 .cs-seg { display: inline-flex; flex-wrap: wrap; gap: 3px; padding: 3px; background: var(--panel); border: 1px solid var(--edge-soft); border-radius: 999px; }

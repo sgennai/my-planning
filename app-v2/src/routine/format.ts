@@ -2,7 +2,7 @@
 // so the metadata line can be asserted directly in tests.
 import type { RoutineActivity } from './model';
 import type { DayKey } from './dates';
-import { setsOf } from './engine';
+import { setsOf, timerOf } from './engine';
 
 const DOW_LONG = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const DOW_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -35,7 +35,8 @@ export function metaFor(a: RoutineActivity): string {
   if (a.timing.type === 'fixed') return a.timing.start;
   if (a.timing.type === 'anchored') return a.timing.anchor;
   const sets = setsOf(a);
-  if (a.timerSec) return `${sets ? `${sets} × ` : ''}${Math.round(a.timerSec / 60)} min timer`;
+  const timer = timerOf(a);
+  if (timer) return `${sets ? `${sets} × ` : ''}${Math.round(timer / 60)} min timer`;
   if (a.target) return targetLabel(a.target.kind, a.target.value, sets);
   if (sets) return `${sets} times a day`;
   if (a.description) return a.description;
