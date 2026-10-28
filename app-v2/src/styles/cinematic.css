@@ -421,6 +421,8 @@
 /* ───────────────────────────── TILE ─────────────────────────────────── */
 
 .cin-cell { position: relative; min-width: 0; min-height: 0; display: flex; }
+/* The podcast's place in the list, shown on a phone only (see PHONE). */
+.cin-pod-in-list { display: none; }
 
 .cin-tile {
   position: relative;
@@ -900,56 +902,27 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    PHONE — portrait, up to 560px wide
    ---------------------------------------------------------------------------
-   An iPad shows the whole day in one frame; a phone cannot, so here the
-   screen reads as one page. Everything scrolls together under a slim strip,
-   the seven days and the gear, which stays at the top while the date
-   scrolls away like an iOS large title. Tiles become rows, the photograph
-   behind the copy as on the podcast panel. An iPad never matches: its
-   narrowest portrait is 744px.
+   An iPad shows the whole day in one frame; a phone cannot. Here the date,
+   the seven days with the gear, and the day's counters stay put, and only
+   the list scrolls, under the floating pill. The podcast leaves the
+   counters' column for its place in the list. Tiles become rows, the
+   photograph behind the copy as on the podcast panel. An iPad never
+   matches: its narrowest portrait is 744px.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @media (orientation: portrait) and (max-width: 560px) {
-  /* The shell scrolls the page. `clip`, unlike `hidden`, does not become
-     the scroller the header would then stick to. */
-  .cin { height: auto; overflow: clip; }
-  /* The wash stays put while the page moves over it. */
-  .cin::before { position: fixed; }
+  /* The list runs on under the pill, where the fade below takes it. */
+  .shell-main:has(> .cin) > .cin { padding-bottom: 0; }
 
-  .cin-head {
-    position: sticky;
-    /* The date block (48) and the gap (10) go; 8px of air stays above the
-       days. Hence the fixed line heights below. */
-    top: -50px;
-    z-index: 3;
-    flex-direction: column;
-    gap: 10px;
-    margin: 0 calc(-1 * (var(--gap) + 4px));
-    padding: 0 calc(var(--gap) + 8px) 8px;
-  }
+  .cin-head { flex-direction: column; gap: 10px; }
   .cin-date { line-height: 28px; }
   .cin-sub { margin-top: 4px; line-height: 16px; }
   .cin-head > :last-child { align-self: stretch; }
   .cin-week { flex: 1; justify-content: space-between; }
 
-  /* Once the date has gone the strip takes a backing, so rows pass under
-     it rather than through it. */
-  .cin-head::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border-bottom: 1px solid rgba(120, 160, 220, .14);
-    background: rgba(8, 18, 32, .9);
-    -webkit-backdrop-filter: blur(18px) saturate(1.3);
-    backdrop-filter: blur(18px) saturate(1.3);
-    opacity: 0;
-    transition: opacity var(--dur-2) var(--ease);
-  }
-  .cin-head.stuck::before { opacity: 1; }
-
-  /* `.cin > *` above leaves the settings sheet and the timer in the page's
-     flow; on a page that scrolls they opened below the last row, out of
-     sight. Here they float over the screen, as a modal should. */
+  /* `.cin > *` above leaves the settings sheet and the timer in the
+     screen's flow, below the list and out of sight. Here they float over
+     the screen, as a modal should. */
   .cin > .ds-scrim { position: fixed; z-index: 400; }
 
   /* Rows fade out under the floating pill instead of cutting across it. */
@@ -963,8 +936,11 @@
     pointer-events: none;
   }
 
-  .cin-body { flex: none; grid-template-rows: auto; }
+  .cin-body { grid-template-rows: auto minmax(0, 1fr); }
   .cin-left { grid-template-columns: minmax(0, 1fr); }
+  /* The counters stay; the podcast (or its absence) moves to the list. */
+  .cin-left > :not(.cin-hero) { display: none; }
+  .cin-pod-in-list { display: flex; }
 
   .cin-ring-wrap { padding: 8px 4px; }
   .cin-ring { width: min(100%, 100px); }
@@ -975,7 +951,10 @@
   .cin-matrix {
     grid-template-columns: minmax(0, 1fr);
     grid-auto-rows: minmax(64px, auto);
-    overflow: visible;
+    align-content: start;
+    overscroll-behavior: contain;
+    /* The last row clears the pill. */
+    padding-bottom: calc(var(--gap) + 4px + var(--nav-h) + var(--sp-8) + env(safe-area-inset-bottom));
   }
 
   /* A row: mark, copy, status. */

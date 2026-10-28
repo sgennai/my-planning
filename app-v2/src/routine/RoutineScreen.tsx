@@ -8,7 +8,7 @@
 //
 // The whole tile completes an activity in one tap. Secondary controls are
 // separate real buttons, kept clear of the status mark.
-import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { RoutineActivity, RoutineLink } from './model';
 import {
   buildCompletionIndex, resolveActivity, activitiesForDay, dayProgressFromRows,
@@ -295,11 +295,19 @@ function Hero({ done, total, week, viewDate }: {
 // must never imply a position in an episode.
 const WAVE = [28, 52, 38, 70, 46, 88, 60, 96, 54, 76, 40, 64, 34, 80, 48, 92, 58, 72, 42, 60, 30, 50, 36, 66, 44, 84, 52, 38, 28, 46];
 
-function PodcastPanel({ row, onToggle }: { row: ResolvedActivity; onToggle: (a: RoutineActivity) => void }) {
+function PodcastPanel({ row, onToggle, listAt }: {
+  row: ResolvedActivity;
+  onToggle: (a: RoutineActivity) => void;
+  /** Its place among the tiles, for the copy a phone shows in the list. */
+  listAt?: number;
+}) {
   const a = row.activity;
   const link = linksOf(a)[0];
   return (
-    <section className="cin-cell" style={{ '--i': 1 } as React.CSSProperties}>
+    <section
+      className={`cin-cell${listAt === undefined ? '' : ' cin-pod-in-list'}`}
+      style={{ '--i': listAt === undefined ? 1 : listAt + 2 } as React.CSSProperties}
+    >
       <button
         className={`cin-pod${row.done ? ' done' : ''}`}
         onClick={() => onToggle(a)}
@@ -371,19 +379,6 @@ export function RoutineScreen({ data, onPersist }: Props) {
     return () => window.clearTimeout(id);
   }, []);
 
-  // On a phone the header sticks with only its week strip in view, and
-  // takes a backing once the date above it has scrolled away. Elsewhere the
-  // date never leaves the screen, so this stays false.
-  const titleRef = useRef<HTMLDivElement>(null);
-  const [headStuck, setHeadStuck] = useState(false);
-  useEffect(() => {
-    const el = titleRef.current;
-    if (!el) return;
-    const io = new IntersectionObserver(([e]) => setHeadStuck(!e.isIntersecting));
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-
   const prevToday = useRef(today);
   useEffect(() => {
     if (prevToday.current !== today) {
@@ -413,6 +408,8 @@ export function RoutineScreen({ data, onPersist }: Props) {
 
   const podcastRow = rows.find(r => r.activity.id === PODCAST_ID) || null;
   const tiles = useMemo(() => rows.filter(r => r.activity.id !== PODCAST_ID), [rows]);
+  // Rows before the podcast are all tiles, so this is also its place among them.
+  const podcastAt = rows.findIndex(r => r.activity.id === PODCAST_ID);
 
   // Short days leave gaps in a three-column matrix; the last tiles widen so
   // the composition closes instead of trailing off into empty cells.
@@ -501,8 +498,8 @@ export function RoutineScreen({ data, onPersist }: Props) {
 
   return (
     <div className="cin">
-      <header className={`cin-head${headStuck ? ' stuck' : ''}`}>
-        <div ref={titleRef}>
+      <header className="cin-head">
+        <div>
           <h1 className="cin-date">{parts.name}, {parts.rest.replace(/ \d{4}$/, '')}</h1>
           <div className="cin-sub">make today count</div>
         </div>
@@ -536,18 +533,27 @@ export function RoutineScreen({ data, onPersist }: Props) {
 
         <div className={`cin-matrix${intro ? ' intro' : ''}`}>
           {tiles.map((row, i) => (
-            <Tile
-              key={row.activity.id}
-              row={row}
-              index={i + 2}
-              span={spans[i]}
-              date={viewDate}
-              today={today}
-              now={now}
-              onToggle={handleTap}
-              onSecondary={handleSecondary}
-            />
+            <Fragment key={row.activity.id}>
+              {/* A phone lists the podcast at its place in the order; elsewhere
+                  this copy is hidden and the panel above stands. */}
+              {podcastRow && i === podcastAt && (
+                <PodcastPanel row={podcastRow} onToggle={handleToggle} listAt={podcastAt} />
+              )}
+              <Tile
+                row={row}
+                index={i + 2}
+                span={spans[i]}
+                date={viewDate}
+                today={today}
+                now={now}
+                onToggle={handleTap}
+                onSecondary={handleSecondary}
+              />
+            </Fragment>
           ))}
+          {podcastRow && podcastAt === tiles.length && (
+            <PodcastPanel row={podcastRow} onToggle={handleToggle} listAt={podcastAt} />
+          )}
         </div>
       </div>
 
