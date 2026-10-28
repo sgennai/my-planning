@@ -181,7 +181,7 @@ RoutineActivity
            | { type:'flexible' }                     // any time today
   surface  : 'routine' | 'calendar' | 'both'
   required : boolean            // false = optional: shown, never in the denominator
-  children · timerSec · target · link · variants · icon
+  children · timerSec · target · sets · link · variants · icon
   calendarCategory · homeOnly · recurrence
 ```
 
@@ -189,6 +189,13 @@ The seed is the routine as specified, and nothing more: **no invented doses, rep
 durations or exercise prescriptions**. `routine.test.ts` guards this with a regex over every
 title, description and metadata line — the concept artwork's "5 g creatine + 2,000 IU D3"
 and "3 x 60 seconds" must never creep in.
+
+`sets` (2-6) splits an activity into taps through the day: each tap logs the next set as its
+own record (`<id>/set-<k>`, like a child, so two devices' sets merge in sync), arcs round
+the status mark light up (`SetRing.tsx`), and the last set checks it. A part-done activity
+counts zero toward the day, like a part-done group. A tap after the last starts the day
+again; a note with Undo (`setSetCount`) follows every tap. The seed sets none: the user
+chooses it in the editor.
 
 `surface` is what lets one model feed two very different screens without either filling up
 with rows that do not belong to it. `calendarCategory` keeps the Plan grids' established

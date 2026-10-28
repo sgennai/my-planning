@@ -10,6 +10,7 @@ import {
   occursOn, activitiesForDay, buildCompletionIndex, resolveActivity, resolveDay,
   dayProgress, weekProgress, toggleActivity, toggleChild, toggleSkip,
   setCompletion, clearCompletion, completionId, stateOf, nextUp, isOverdue,
+  setSetCount, setsOf,
   type CompletionIndex,
 } from './engine';
 import { routineItemsFromActivities, legacyCompletionMap, mergeLegacyCompletions } from './derive';
@@ -727,5 +728,84 @@ describe('the photo library', () => {
       'rowing', 'spin', 'reflect', 'planning', 'walking']) {
       expect(AVAILABLE_PHOTOS.has(theme), `missing theme: ${theme}`).toBe(true);
     }
+  });
+});
+
+describe('activities done in sets', () => {
+  // The user's own case: 40 air squats as four sets of ten through the day.
+  const squats: RoutineActivity = { ...byId('ra-air-squats'), sets: 4 };
+  const tap = (log: unknown[], a = squats, date = WED) => toggleActivity(log, a, date, buildCompletionIndex(log));
+  const row = (log: unknown[], a = squats, date = WED) => resolveActivity(a, buildCompletionIndex(log), date);
+
+  it('logs one set per tap and checks the tile on the last', () => {
+    let log: unknown[] = [];
+    for (let n = 1; n <= 3; n++) {
+      log = tap(log);
+      expect(row(log)).toMatchObject({ setsDone: n, sets: 4, done: false });
+    }
+    log = tap(log);
+    expect(row(log)).toMatchObject({ setsDone: 4, done: true });
+    expect(row(log).completedAt).toBeTruthy();
+  });
+
+  it('keeps each set as its own record, so sync merges sets from two devices', () => {
+    const ids = (tap(tap([])) as { id: string }[]).map(r => r.id).sort();
+    expect(ids).toEqual([`rc:ra-air-squats/set-1:${WED}`, `rc:ra-air-squats/set-2:${WED}`]);
+    const ipad = setCompletion([], 'ra-air-squats/set-1', WED, 'done');
+    const iphone = setCompletion([], 'ra-air-squats/set-3', WED, 'done');
+    expect(row([...ipad, ...iphone]).setsDone).toBe(2);
+  });
+
+  it('counts toward the day only once every set is done', () => {
+    const others = activitiesForDay(SEED, WED, 'routine').filter(a => a.id !== squats.id);
+    const all = [...others, squats];
+    const before = dayProgress(all, buildCompletionIndex([]), WED).completed;
+    const three = tap(tap(tap([])));
+    expect(dayProgress(all, buildCompletionIndex(three), WED).completed).toBe(before);
+    expect(dayProgress(all, buildCompletionIndex(tap(three)), WED).completed).toBe(before + 1);
+  });
+
+  it('starts the day again on a tap after the last set', () => {
+    const done = tap(tap(tap(tap([]))));
+    const again = tap(done);
+    expect(row(again)).toMatchObject({ setsDone: 0, done: false });
+    expect(again).toHaveLength(0);
+  });
+
+  it('undoes a set, or a restart, by restoring the count from before the tap', () => {
+    const two = tap(tap([]));
+    const three = tap(two);
+    expect(row(setSetCount(three, squats, WED, 2, buildCompletionIndex(three))).setsDone).toBe(2);
+
+    const done = tap(three);
+    const restarted = tap(done);
+    const restored = setSetCount(restarted, squats, WED, 4, buildCompletionIndex(restarted));
+    expect(row(restored)).toMatchObject({ setsDone: 4, done: true });
+  });
+
+  it('keeps each day separate', () => {
+    const log = tap(tap([], squats, TUE), squats, TUE);
+    expect(row(log, squats, TUE).setsDone).toBe(2);
+    expect(row(log, squats, WED).setsDone).toBe(0);
+  });
+
+  it('clears logged sets when the day is set aside', () => {
+    const two = tap(tap([]));
+    const skipped = toggleSkip(two, squats, WED, buildCompletionIndex(two));
+    expect(row(skipped)).toMatchObject({ setsDone: 0, skipped: true });
+  });
+
+  it('treats one set, a fraction, or an activity with parts as a single tick', () => {
+    expect(setsOf({ ...squats, sets: 1 })).toBe(0);
+    expect(setsOf({ ...squats, sets: 2.5 })).toBe(0);
+    expect(setsOf({ ...byId('ra-breakfast-stack'), sets: 3 })).toBe(0);
+    expect(row(tap([], byId('ra-air-squats')), byId('ra-air-squats')).done).toBe(true);
+  });
+
+  it('says how the target splits on the tile', () => {
+    expect(metaFor(squats)).toBe('4 × 10 reps');
+    expect(metaFor({ ...squats, target: { kind: 'reps', value: 45 } })).toBe('4 sets · 45 reps');
+    expect(metaFor({ ...squats, target: undefined, sets: 3 })).toBe('3 times a day');
+    expect(metaFor({ ...byId('ra-plank'), sets: 3 })).toBe('3 × 2 min timer');
   });
 });

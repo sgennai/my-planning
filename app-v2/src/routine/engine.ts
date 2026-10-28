@@ -139,6 +139,10 @@ export interface ResolvedActivity {
   children: ResolvedChild[];
   /** Children done / children total, for the group's progress hint. */
   childrenDone: number;
+  /** Sets a day for an activity done in sets, else 0. */
+  sets: number;
+  /** Sets logged so far today; done once it reaches `sets`. */
+  setsDone: number;
   /** Counts toward the day's score: required, and not skipped. */
   counts: boolean;
   variant?: string;
@@ -149,16 +153,41 @@ function hasChildren(a: RoutineActivity): boolean {
   return Array.isArray(a.children) && a.children.length > 0;
 }
 
+/** Sets a day, or 0 for an activity ticked once. */
+export function setsOf(a: RoutineActivity): number {
+  const n = a.sets;
+  return !hasChildren(a) && typeof n === 'number' && Number.isInteger(n) && n >= 2 ? n : 0;
+}
+
+// Each set is a record of its own, `activityId/set-<k>`, exactly like a child.
+// So two devices that each log a set write different records, and sync keeps
+// both rather than one overwriting the other's count.
+function setRef(activityId: string, k: number): string {
+  return refIdFor(activityId, `set-${k}`);
+}
+
 export function resolveActivity(
   activity: RoutineActivity, index: CompletionIndex, date: DayKey,
 ): ResolvedActivity {
   const own = completionFor(index, activity.id, date);
   const skipped = own?.value.state === 'skipped';
+  const sets = setsOf(activity);
 
   let children: ResolvedChild[] = [];
   let done: boolean;
+  let setsDone = 0;
+  let completedAt = own?.at;
 
-  if (hasChildren(activity)) {
+  if (sets) {
+    // Like a group, a part-done activity counts as zero toward the day.
+    for (let k = 1; k <= sets; k++) {
+      const rec = index.get(indexKey(setRef(activity.id, k), date));
+      if (rec?.value.state !== 'done') continue;
+      setsDone++;
+      if (!completedAt || rec.at > completedAt) completedAt = rec.at;
+    }
+    done = setsDone >= sets;
+  } else if (hasChildren(activity)) {
     children = activity.children!.map(c => ({
       ...c,
       done: stateOf(index, activity.id, date, c.id) === 'done',
@@ -176,9 +205,11 @@ export function resolveActivity(
     skipped,
     children,
     childrenDone: children.filter(c => c.done).length,
+    sets,
+    setsDone,
     counts: activity.required !== false && !skipped,
     variant: own?.value.variant,
-    completedAt: own?.at,
+    completedAt: sets && !done ? undefined : completedAt,
   };
 }
 
@@ -397,6 +428,11 @@ export function toggleActivity(
   const resolved = resolveActivity(activity, index, date);
   let next = log || [];
 
+  // Each tap logs the next set; the tap after the last starts the day again.
+  if (resolved.sets) {
+    return setSetCount(next, activity, date, resolved.done ? 0 : resolved.setsDone + 1, index);
+  }
+
   if (hasChildren(activity)) {
     const makeDone = !resolved.done;
     for (const child of activity.children!) {
@@ -417,6 +453,29 @@ export function toggleActivity(
   return resolved.done
     ? clearCompletion(next, activity.id, date)
     : setCompletion(next, activity.id, date, 'done', extra);
+}
+
+/**
+ * Leave exactly `count` sets logged for the day: the tap path, and the undo
+ * that puts back the count from before a tap. Records already there keep
+ * their time; only the difference is written or removed.
+ */
+export function setSetCount(
+  log: unknown[] | undefined,
+  activity: RoutineActivity,
+  date: DayKey,
+  count: number,
+  index: CompletionIndex,
+): unknown[] {
+  const sets = setsOf(activity);
+  let next = log || [];
+  for (let k = 1; k <= sets; k++) {
+    const refId = setRef(activity.id, k);
+    const has = index.get(indexKey(refId, date))?.value.state === 'done';
+    if (k <= count && !has) next = setCompletion(next, refId, date, 'done');
+    if (k > count && has) next = clearCompletion(next, refId, date);
+  }
+  return next;
 }
 
 export function toggleChild(
@@ -449,6 +508,7 @@ export function toggleSkip(
       next = clearCompletion(next, refIdFor(activity.id, child.id), date);
     }
   }
+  next = setSetCount(next, activity, date, 0, index);
   return setCompletion(next, activity.id, date, 'skipped');
 }
 

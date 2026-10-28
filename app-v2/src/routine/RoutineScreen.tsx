@@ -12,7 +12,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { RoutineActivity } from './model';
 import {
   buildCompletionIndex, resolveActivity, activitiesForDay, dayProgressFromRows,
-  weekProgress, toggleActivity, isOverdue,
+  weekProgress, toggleActivity, setSetCount, isOverdue,
   type ResolvedActivity,
 } from './engine';
 import { dayKeyOf, dayNameShort, type DayKey } from './dates';
@@ -22,6 +22,7 @@ import { ActivityPhoto } from './ActivityPhoto';
 import { photoFor, iconFor } from './photo-manifest';
 import { RoutineSettings } from './RoutineSettings';
 import { RoutineTimer } from './RoutineTimer';
+import { SetRing } from './SetRing';
 import { useClock } from '../ui/useClock';
 import { IconCog, IconClock, IconEllipsis, IconPlay } from '../ui/icons';
 
@@ -45,10 +46,18 @@ function Check() {
 function Status({ row }: { row: ResolvedActivity }) {
   const partial = row.children.length > 0 && row.childrenDone > 0 && !row.done;
   return (
-    <span className={`cin-status${partial ? ' part' : ''}`} aria-hidden>
+    <span className={`cin-status${partial ? ' part' : ''}${row.sets ? ' has-sets' : ''}`} aria-hidden>
       {row.done ? <Check /> : partial ? `${row.childrenDone}/${row.children.length}` : null}
+      {row.sets > 0 && <SetRing sets={row.sets} done={row.setsDone} />}
     </span>
   );
+}
+
+/** What a tap on the tile did, said in words, so a stray tap is noticed. */
+function stateLabel(row: ResolvedActivity): string {
+  if (!row.sets) return row.done ? 'Completed.' : 'Not completed.';
+  if (row.done) return `All ${row.sets} sets done. Tap to start again.`;
+  return `${row.setsDone} of ${row.sets} sets done. Tap to log set ${row.setsDone + 1}.`;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -86,7 +95,7 @@ function Tile({ row, index, span, date, today, now, onToggle, onSecondary }: Til
         className={`cin-tile${row.done ? ' done' : ''}${row.skipped ? ' skipped' : ''}`}
         onClick={() => onToggle(a)}
         aria-pressed={row.done}
-        aria-label={`${a.title}${meta ? `, ${meta}` : ''}${optional ? ', optional' : ''}. ${row.done ? 'Completed' : 'Not completed'}.`}
+        aria-label={`${a.title}${meta ? `, ${meta}` : ''}${optional ? ', optional' : ''}. ${stateLabel(row)}`}
       >
         <ActivityPhoto className="cin-photo" name={photoFor(a)} icon={a.icon} iconFallback={iconFor(a)} />
         {row.done && <span className="cin-sweep" aria-hidden />}
@@ -355,6 +364,49 @@ export function RoutineScreen({ data, onPersist }: Props) {
     });
   }, [viewDate, onPersist]);
 
+  // After each tap on an activity done in sets, a short note of where it
+  // stands, with an undo: a stray tap while scrolling, or the tap that starts
+  // a finished day again, would otherwise cost logged sets.
+  const [setNote, setSetNote] = useState<{
+    activity: RoutineActivity; date: DayKey; text: string; undoTo: number; key: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!setNote) return;
+    const id = window.setTimeout(() => setSetNote(null), 5000);
+    return () => window.clearTimeout(id);
+  }, [setNote]);
+
+  const handleTap = useCallback((a: RoutineActivity) => {
+    const row = rows.find(r => r.activity.id === a.id);
+    handleToggle(a);
+    if (!row?.sets) return;
+    const after = row.done ? 0 : row.setsDone + 1;
+    setSetNote({
+      activity: a,
+      date: viewDate,
+      undoTo: row.done ? row.sets : row.setsDone,
+      key: Date.now(),
+      text: after === 0 ? 'Started again'
+        : after === row.sets ? `All ${row.sets} sets done`
+        : `Set ${after} of ${row.sets}`,
+    });
+  }, [rows, handleToggle, viewDate]);
+
+  const undoSet = useCallback(() => {
+    if (!setNote) return;
+    const { activity, date, undoTo } = setNote;
+    onPersist((current: RoutineScreenData) => {
+      const currentLog = current.progressLog || EMPTY;
+      return {
+        ...current,
+        progressLog: setSetCount(currentLog, activity, date, undoTo, buildCompletionIndex(currentLog)),
+        lastModified: new Date().toISOString(),
+      };
+    });
+    setSetNote(null);
+  }, [setNote, onPersist]);
+
   const handleSecondary = useCallback((a: RoutineActivity) => {
     if (a.timerSec) { setTimerFor(a); return; }
     if (a.link?.url) window.open(a.link.url, '_blank', 'noopener,noreferrer');
@@ -413,18 +465,25 @@ export function RoutineScreen({ data, onPersist }: Props) {
               date={viewDate}
               today={today}
               now={now}
-              onToggle={handleToggle}
+              onToggle={handleTap}
               onSecondary={handleSecondary}
             />
           ))}
         </div>
       </div>
 
+      {setNote && setNote.date === viewDate && (
+        <div className="cin-note" role="status" key={setNote.key}>
+          <span>{setNote.text}</span>
+          <button type="button" onClick={undoSet}>Undo</button>
+        </div>
+      )}
+
       {timerFor && (
         <RoutineTimer
           activity={timerFor}
           done={rows.find(r => r.activity.id === timerFor.id)?.done ?? false}
-          onComplete={() => handleToggle(timerFor)}
+          onComplete={() => handleTap(timerFor)}
           onClose={() => setTimerFor(null)}
         />
       )}

@@ -610,6 +610,54 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Sets: an arc per set around the mark, lit as each is logged. The mark's own
+   ring steps back so the arcs read as the progress. Chosen from five options. */
+.cin-status.has-sets { border-color: rgba(160, 190, 230, .35); }
+.cin-sets { position: absolute; inset: -7px; pointer-events: none; }
+.cin-status .cin-sets svg { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
+.cin-sets circle {
+  fill: none;
+  stroke: rgba(160, 190, 230, .26);
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke 220ms var(--ease);
+}
+.cin-sets circle.on { stroke: var(--blue-lit); filter: drop-shadow(0 0 3px rgba(44, 140, 255, .7)); }
+
+/* What the last tap on a sets tile did, with an undo, for five seconds. */
+.cin > .cin-note {
+  position: fixed;
+  z-index: 310;
+  left: calc(50% + var(--nav-w) / 2);
+  bottom: calc(env(safe-area-inset-bottom) + 20px);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 4px 4px 18px;
+  border: 1px solid var(--edge);
+  border-radius: 999px;
+  background: var(--panel-2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .5);
+  color: var(--ink-0);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  animation: cin-note-in 240ms var(--ease);
+}
+.cin-note button {
+  min-height: 44px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--blue-lit);
+  font: inherit;
+  font-weight: 650;
+}
+.cin-note button:active { background: rgba(44, 140, 255, .14); }
+@keyframes cin-note-in { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translateX(-50%); } }
+
 /* ── Secondary action: a real control, kept clear of the status mark ──── */
 .cin-more {
   position: absolute;
@@ -668,7 +716,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .cin-tile, .cin-pod, .cin-play, .cin-ring .arc, .cin-bar > i,
-  .cin-photo > *, .cin-pod-plate > * { transition: none; }
+  .cin-photo > *, .cin-pod-plate > *, .cin-sets circle { transition: none; }
+  .cin > .cin-note { animation: none; }
   .cin-tile.done .cin-sweep, .cin-tile.done .cin-status::after,
   .cin-pod.done .cin-sweep { animation: none; display: none; }
   .cin-matrix.intro .cin-cell, .cin-body.intro .cin-left > * { opacity: 1; animation: none; }
@@ -692,6 +741,11 @@
   .shell-main:has(> .cin) { padding-bottom: 0; }
   .shell-main:has(> .cin) > .cin {
     padding-bottom: calc(var(--gap) + 4px + var(--nav-h) + var(--sp-8) + env(safe-area-inset-bottom));
+  }
+  /* Above the floating pill, centred on the screen. */
+  .cin > .cin-note {
+    left: 50%;
+    bottom: calc(max(var(--sp-4), calc(env(safe-area-inset-bottom) + var(--sp-2))) + var(--nav-h) + 12px);
   }
   .cin-play { left: auto; right: 14px; bottom: 50%; transform: translateY(50%); }
   .cin-pod-foot { padding-left: 0; padding-right: 51px; }

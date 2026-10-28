@@ -2,6 +2,7 @@
 // so the metadata line can be asserted directly in tests.
 import type { RoutineActivity } from './model';
 import type { DayKey } from './dates';
+import { setsOf } from './engine';
 
 const DOW_LONG = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const DOW_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -33,8 +34,17 @@ export function daysLabel(a: RoutineActivity): string {
 export function metaFor(a: RoutineActivity): string {
   if (a.timing.type === 'fixed') return a.timing.start;
   if (a.timing.type === 'anchored') return a.timing.anchor;
-  if (a.timerSec) return `${Math.round(a.timerSec / 60)} min timer`;
-  if (a.target) return a.target.kind === 'reps' ? `${a.target.value} reps` : `${a.target.value} min`;
+  const sets = setsOf(a);
+  if (a.timerSec) return `${sets ? `${sets} × ` : ''}${Math.round(a.timerSec / 60)} min timer`;
+  if (a.target) return targetLabel(a.target.kind, a.target.value, sets);
+  if (sets) return `${sets} times a day`;
   if (a.description) return a.description;
   return daysLabel(a);
+}
+
+/** "40 reps", or split over sets: "4 × 10 reps", and "4 sets · 45 reps" when it doesn't divide. */
+export function targetLabel(kind: 'reps' | 'minutes', value: number, sets: number): string {
+  const unit = kind === 'reps' ? 'reps' : 'min';
+  if (!sets) return `${value} ${unit}`;
+  return value % sets === 0 ? `${sets} × ${value / sets} ${unit}` : `${sets} sets · ${value} ${unit}`;
 }

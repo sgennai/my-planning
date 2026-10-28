@@ -75,6 +75,11 @@ export interface RoutineActivity {
   timerSec?: number;
   /** A measurable target shown next to the title (40 reps, 20 minutes). */
   target?: RoutineTarget;
+  /**
+   * Done in this many sets a day, one tap each (40 squats as 4 x 10). Absent or
+   * 1 is a single tick. Ignored on an activity with children.
+   */
+  sets?: number;
   /** One-tap launch link — ChatGPT, a reader, a podcast app. */
   link?: RoutineLink;
   /** Mutually exclusive ways to do it; the completed one is recorded. */

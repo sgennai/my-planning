@@ -15,7 +15,9 @@ import type {
 import { ROUTINE_GROUPS, CATEGORY_LABELS, GROUP_TITLES } from './model';
 import { ActivityIcon, ACTIVITY_ICON_KEYS } from './activity-icons';
 import { AVAILABLE_PHOTOS, PHOTO_GROUPS, photoFor, iconFor } from './photo-manifest';
-import { metaFor } from './format';
+import { metaFor, targetLabel } from './format';
+import { setsOf } from './engine';
+import { SetRing } from './SetRing';
 import {
   IconPlus, IconArrowUp, IconArrowDown, IconX, IconChevronLeft, IconTrash, IconCheck,
 } from '../ui/icons';
@@ -82,7 +84,9 @@ function Preview({ a }: { a: RoutineActivity }) {
         <span className="cin-tile-body">
           <span className="cin-tile-row">
             <span className="cin-tile-icon"><ActivityIcon name={a.icon} fallback={iconFor(a)} /></span>
-            <span className="cin-status" />
+            <span className={`cin-status${setsOf(a) ? ' has-sets' : ''}`}>
+              {setsOf(a) > 0 && <SetRing sets={setsOf(a)} done={0} />}
+            </span>
           </span>
           <span className="cin-tile-title">{a.title || 'Untitled activity'}</span>
           {meta && <span className="cin-tile-meta">{meta}</span>}
@@ -96,6 +100,15 @@ function Preview({ a }: { a: RoutineActivity }) {
 // ═══════════════════════════════════════════════════════════════════════════
 // EDITOR
 // ═══════════════════════════════════════════════════════════════════════════
+
+const SET_CHOICES = [1, 2, 3, 4, 5, 6];
+
+function setsHint(a: RoutineActivity): string {
+  const sets = setsOf(a);
+  if (!sets) return 'One tap on the tile checks it.';
+  const split = a.target ? ` ${targetLabel(a.target.kind, a.target.value, sets)}.` : '';
+  return `Each tap on the tile logs one set and lights an arc around its circle; the last set checks it.${split} A tap after that starts the day again.`;
+}
 
 function Editor({
   draft, isNew, onChange, onCancel, onSave, onArchive,
@@ -277,6 +290,25 @@ function Editor({
           </div>
         )}
       </fieldset>
+
+      {/* An activity with parts is already ticked part by part. */}
+      {!draft.children?.length && (
+        <fieldset className="cs-sec">
+          <legend>How many times a day</legend>
+          <div className="cs-seg">
+            {SET_CHOICES.map(n => (
+              <button
+                key={n}
+                type="button"
+                aria-pressed={(setsOf(draft) || 1) === n}
+                aria-label={n === 1 ? 'Once' : `${n} sets`}
+                onClick={() => set({ sets: n > 1 ? n : undefined })}
+              >{n === 1 ? 'Once' : n}</button>
+            ))}
+          </div>
+          <p className="cs-hint">{setsHint(draft)}</p>
+        </fieldset>
+      )}
 
       {/* ── 4. Whether it counts ──────────────────────────────────────── */}
       <fieldset className="cs-sec">
