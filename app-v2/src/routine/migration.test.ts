@@ -205,3 +205,29 @@ describe('briefing links', () => {
     expect(tile.links.map((l: { label: string }) => l.label)).toEqual(['AI Challenges', 'CEP Brief', 'AI Sales Debrief']);
   });
 });
+
+describe('replaced tile photos', () => {
+  const seeded = (id: string, photo: string) => ({ ...SEED_ROUTINE_ACTIVITIES.find(a => a.id === id)!, photo });
+  const photoOf = (list: { id: string; photo?: string }[], id: string) => list.find(a => a.id === id)!.photo;
+
+  it('moves the wall sit and air squats from the seeded pictures to the new ones', () => {
+    const { data } = migrate({ schemaVersion: 28, routineActivities: [
+      seeded('ra-wall-sit', 'wallsit'), seeded('ra-air-squats', 'squats'),
+    ] });
+    expect(photoOf(data.routineActivities, 'ra-wall-sit')).toBe('wallsquat');
+    expect(photoOf(data.routineActivities, 'ra-air-squats')).toBe('squatlow');
+  });
+
+  it('leaves a picture the user chose, and strength training keeps the shared one', () => {
+    const { data } = migrate({ schemaVersion: 28, routineActivities: [
+      seeded('ra-wall-sit', 'stretch'), seeded('ra-strength', 'squats'),
+    ] });
+    expect(photoOf(data.routineActivities, 'ra-wall-sit')).toBe('stretch');
+    expect(photoOf(data.routineActivities, 'ra-strength')).toBe('squats');
+  });
+
+  it('settles after one pass', () => {
+    const once = migrate({ schemaVersion: 28, routineActivities: [seeded('ra-air-squats', 'squats')] }).data;
+    expect(migrate(once).data.routineActivities).toEqual(once.routineActivities);
+  });
+});

@@ -14,8 +14,16 @@ export const AVAILABLE_PHOTOS = new Set<string>([
   'squat',
   'asiansquat',
   'squats',
+  'airsquat',
+  'squatgym',
+  'squatlow',
+  'squathome',
+  'squatpark',
+  'squatfield',
   'kettlebell',
   'pullups',
+  'pushups',
+  'lunge',
   'core',
   'boxing',
   'jumprope',
@@ -28,9 +36,12 @@ export const AVAILABLE_PHOTOS = new Set<string>([
   'swimming',
   'walking',
   'hiking',
+  'stairs',
+  'track',
   // Mobility & recovery
   'stretch',
-  'wallsit',
+  'wallsquat',
+  'yoga',
   'foamroller',
   'sauna',
   'coldplunge',
@@ -51,6 +62,7 @@ export const AVAILABLE_PHOTOS = new Set<string>([
   'reflect',
   'planning',
   'writing',
+  'checklist',
   'flashcards',
   'briefings',
   'articles',
@@ -71,6 +83,11 @@ export const AVAILABLE_PHOTOS = new Set<string>([
   'summit',
   'plants',
   'phonecall',
+  // Work & travel
+  'coworking',
+  'driving',
+  'workbag',
+  'gymbag',
 ]);
 
 /**
@@ -83,13 +100,13 @@ export const AVAILABLE_PHOTOS = new Set<string>([
  */
 export const PHOTO_BY_ACTIVITY: Record<string, string> = {
   'ra-breakfast-stack':  'breakfast',
-  'ra-wall-sit':         'wallsit',
+  'ra-wall-sit':         'wallsquat',
   'ra-1100-stack':       'capsule',
   'ra-electrolytes':     'electrolyte',
   'ra-strength':         'squats',
   'ra-cardio':           'cycling',
   'ra-plank':            'plank',
-  'ra-air-squats':       'squats',
+  'ra-air-squats':       'squatlow',
   'ra-chatgpt-tasks':    'briefings',
   'ra-industry-reading': 'articles',
   'ra-podcast':          'podcast',
@@ -236,12 +253,13 @@ export function derivedTone(key: string): [string, string, string] {
  * them by what they depict is the difference between choosing and scanning.
  */
 export const PHOTO_GROUPS: { name: string; keys: string[] }[] = [
-  { name: 'Training', keys: ['strength', 'squat', 'asiansquat', 'squats', 'kettlebell', 'pullups', 'core', 'boxing', 'jumprope', 'plank'] },
-  { name: 'Cardio', keys: ['spin', 'cycling', 'rowing', 'running', 'swimming', 'walking', 'hiking'] },
-  { name: 'Mobility & recovery', keys: ['stretch', 'wallsit', 'foamroller', 'sauna', 'coldplunge', 'freediving'] },
+  { name: 'Training', keys: ['strength', 'squat', 'asiansquat', 'squats', 'airsquat', 'squatgym', 'squatlow', 'squathome', 'squatpark', 'squatfield', 'kettlebell', 'pullups', 'pushups', 'lunge', 'core', 'boxing', 'jumprope', 'plank'] },
+  { name: 'Cardio', keys: ['spin', 'cycling', 'rowing', 'running', 'swimming', 'walking', 'hiking', 'stairs', 'track'] },
+  { name: 'Mobility & recovery', keys: ['stretch', 'wallsquat', 'yoga', 'foamroller', 'sauna', 'coldplunge', 'freediving'] },
   { name: 'Food & drink', keys: ['breakfast', 'mealprep', 'fruit', 'proteinshake', 'tea', 'coffee', 'electrolyte', 'collagen', 'capsule'] },
-  { name: 'Mind & focus', keys: ['meditation', 'breathwork', 'reflect', 'planning', 'writing', 'flashcards', 'briefings', 'articles', 'deskwork', 'finance', 'detox'] },
+  { name: 'Mind & focus', keys: ['meditation', 'breathwork', 'reflect', 'planning', 'writing', 'checklist', 'flashcards', 'briefings', 'articles', 'deskwork', 'finance', 'detox'] },
   { name: 'Rest & care', keys: ['sleep', 'magnesium', 'skincare', 'dental', 'sunrise'] },
   { name: 'Listening & reading', keys: ['podcast', 'book', 'music'] },
   { name: 'Places', keys: ['summit', 'plants', 'phonecall'] },
+  { name: 'Work & travel', keys: ['coworking', 'driving', 'workbag', 'gymbag'] },
 ];

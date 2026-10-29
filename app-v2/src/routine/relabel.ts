@@ -7,6 +7,9 @@
 // the activity is touched, and no completion record is affected: history is
 // keyed by activity id, which never changes here.
 //
+// Photos follow the same rule: a tile still showing the seeded picture moves to
+// its replacement; one the user picked themselves is left alone.
+//
 // Links follow a different rule: a list is set once, on an activity that has
 // no list of its own yet. After that the activity carries one, so the user's
 // list, even an emptied one, is never replaced.
@@ -18,6 +21,7 @@ interface Relabel {
   title?: [from: string, to: string];
   description?: [from: string | undefined, to: string | undefined];
   anchor?: [from: string, to: string];
+  photo?: [from: string, to: string];
   links?: RoutineLink[];
 }
 
@@ -26,7 +30,9 @@ const RELABELS: Record<string, Relabel> = {
   'ra-cardio':           { title: ['Cardio', 'Cycling or rowing'],
                            description: ['Cycling or rowing — record which.', undefined] },
   'ra-plank':            { title: ['Plank', '2-minute plank'] },
-  'ra-air-squats':       { title: ['Air squats', '40 air squats'] },
+  'ra-air-squats':       { title: ['Air squats', '40 air squats'],
+                           // The seeded shoes-and-dumbbells still life never showed a squat.
+                           photo: ['squats', 'squatlow'] },
   'ra-chatgpt-tasks':    { title: ['ChatGPT scheduled tasks', 'ChatGPT briefings'],
                            description: ['Read the overnight task output.', "Today's outputs"],
                            links: BRIEFING_LINKS },
@@ -35,7 +41,9 @@ const RELABELS: Record<string, Relabel> = {
   'ra-breakfast-stack':  { anchor: ['with breakfast', 'At breakfast'],
                            description: ['Established habit — kept compact on purpose.', undefined] },
   'ra-wall-sit':         { anchor: ['while brushing teeth', 'While brushing teeth'],
-                           description: ['Quadriceps.', undefined] },
+                           description: ['Quadriceps.', undefined],
+                           // The seeded picture showed someone resting against a wall, not a wall sit.
+                           photo: ['wallsit', 'wallsquat'] },
   'ra-magnesium':        { anchor: ['before bed', 'Before bed'],
                            description: ['Shortly before bed.', undefined] },
   'ra-strength':         { description: ['20 minutes.', undefined] },
@@ -65,6 +73,7 @@ export function relabelRoutine(
     if (rule.anchor && a.timing?.type === 'anchored' && a.timing.anchor === rule.anchor[0]) {
       edit('timing', { type: 'anchored', anchor: rule.anchor[1] });
     }
+    if (rule.photo && a.photo === rule.photo[0]) edit('photo', rule.photo[1]);
     if (rule.links && a.links === undefined) {
       edit('links', rule.links.map(l => ({ ...l })));
       edit('link', undefined);

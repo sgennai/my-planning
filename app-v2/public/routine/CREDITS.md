@@ -1,16 +1,19 @@
 # Photography provenance
 
-All 54 images are from **Unsplash** and used under the
+64 of the 70 images are from **Unsplash** and used under the
 [Unsplash License](https://unsplash.com/license): free to use for commercial
 and non-commercial purposes, no permission needed, attribution not required
-(recorded here anyway so the licence position stays auditable).
+(recorded here anyway so the licence position stays auditable). Six are
+from **Pexels** (see the end of this file): `wallsquat`, because Unsplash has
+no free photograph of an actual wall sit, and five squats by men, which
+Unsplash has only with a barbell.
 
 Fetched from Unsplash's own image CDN as WebP and stored locally — nothing is
 hotlinked at runtime.
 
 Each key ships **two** files: `<key>.webp` at the size below, and
-`<key>-thumb.webp` at 200×112. The settings picker shows 54 options at
-78px, and must not pull 54 full-size files to do it.
+`<key>-thumb.webp` at 200×112. The settings picker shows 70 options at
+78px, and must not pull 70 full-size files to do it.
 
 ## Exposure
 
@@ -26,7 +29,6 @@ texture and the tile's title stays the loudest thing on it.
 | key | photo id | size | bri | subject |
 |---|---|---|---|---|
 | `breakfast` | `photo-1516705051158-795390ef6664` | 900×460 | 8 | dark breakfast bowl |
-| `wallsit` | `photo-1614126588542-28cc7131238d` | 900×460 | -16 | seated against a wall |
 | `capsule` | `photo-1565071783280-719b01b29912` | 900×460 | -42 | softgel macro, low key |
 | `electrolyte` | `photo-1503536882745-fa1ce53c4928` | 900×460 | -4 | glass of water, reflections |
 | `cycling` | `photo-1591741535018-d042766c62eb` | 900×460 | 3 | exercise bike |
@@ -79,7 +81,23 @@ texture and the tile's title stays the loudest thing on it.
 | `finance` | `photo-1626266061368-46a8f578ddd6` | 900×460 | -44 | figures and a laptop |
 | `phonecall` | `photo-1725940887786-325526ac11a7` | 900×460 | 10 | at a window, evening |
 | `dental` | `photo-1646388478486-0996b6dcc2ac` | 900×460 | -60 | bathroom, minimal |
+| `airsquat` | `photo-1780396236294-b658eb9f7f71` | 900×460 | -9 | deep bodyweight squat, arms out |
+| `pushups` | `photo-1731341400836-baaa5535b8d5` | 900×460 | 4 | push-up, dark gym |
+| `lunge` | `photo-1758521959095-ed05f99551c3` | 900×460 | -15 | lunge outdoors, winter |
+| `stairs` | `photo-1448387473223-5c37445527e7` | 900×460 | -35 | climbing blue stairs |
+| `track` | `photo-1534185372994-55f9e64235c4` | 900×460 | -7 | running track lanes |
+| `yoga` | `photo-1544367567-0f2fcb009e0b` | 900×460 | -35 | yoga lunge at sunset |
+| `checklist` | `photo-1768055105012-4c53791b2877` | 900×460 | 4 | ticking a checklist |
+| `coworking` | `photo-1527192491265-7e15c55b1ed2` | 900×460 | -30 | coworking space |
+| `driving` | `photo-1521410843026-323be9ead002` | 900×460 | 0 | night highway from the driver's seat |
+| `workbag` | `photo-1541240290619-3f2fad86473d` | 900×460 | 4 | laptop and backpack on a desk |
+| `gymbag` | `photo-1535879335191-618713ec3e3f` | 900×460 (q 58) | -18 | packing a gym bag |
 
+The original `wallsit` (`photo-1614126588542-28cc7131238d`, someone resting
+against a wall) was retired on 2026-10-29: it never showed the exercise.
+`squats` (shoes and weights) stays for Strength training; 40 air squats moved
+to `squatlow` (the user asked for men on the wall-sit and squat tiles). A replaced picture always takes a new key, because the service
+worker caches `/routine/*.webp` CacheFirst by URL.
 To view an original: `https://unsplash.com/photos/<photo id without the "photo-" prefix>`.
 
 ## Re-fetching or adding
@@ -98,3 +116,26 @@ declares.
 If you swap an asset, re-measure its mean luminance and pick a `bri` that
 lands it near 72 — otherwise one frame will either vanish into the panel or
 shout over its own title.
+
+## Pexels
+
+| key | photo | size | correction | subject |
+|---|---|---|---|---|
+| `wallsquat` | [`6740055`](https://www.pexels.com/photo/woman-leaning-on-the-wall-with-a-ball-6740055/) | 900×460 | `brightness(.43) saturate(.92)` | wall sit with a medicine ball |
+| `squatlow` | [`4164465`](https://www.pexels.com/photo/man-in-gray-tank-top-doing-squats-4164465/) | 900×460 | `brightness(1.6) saturate(.92)` | deep bodyweight squat, dark gym |
+| `squatgym` | [`4164464`](https://www.pexels.com/photo/man-doing-squats-4164464/) | 900×460, window 44% down | `brightness(1.6) saturate(.92)` | air squat, arms forward, dark gym |
+| `squathome` | [`8032893`](https://www.pexels.com/photo/a-man-doing-squats-8032893/) | 900×460 | `brightness(.41) saturate(.92)` | squat in a living room |
+| `squatpark` | [`4908608`](https://www.pexels.com/photo/man-in-gray-tank-top-exercising-4908608/) | 900×460 | `brightness(.78) saturate(.92)` | squat outdoors, side view |
+| `squatfield` | [`7187856`](https://www.pexels.com/photo/man-in-sportswear-warming-up-his-body-for-soccer-7187856/) | 900×460 | `brightness(.74) saturate(.92)` | squat on a football pitch |
+
+The two dark-gym frames stop at `brightness(1.6)` and stay low key (mean 48
+and 65): pushed further they turn grainy, and the library already holds
+frames that dark (`swimming` is 42). `squatgym` is a tall portrait, so the
+whole frame was fetched (`&w=900`, no height) and the 900×460 window placed
+44% of the way down in the canvas, keeping his head and hips both in shot.
+
+Used under the [Pexels License](https://www.pexels.com/license/): free to use,
+no attribution required. Pexels' CDN has no exposure parameters, so the same
+correction (to a mean luminance near 72) was applied in a Chromium canvas and
+encoded to WebP there (quality .70, thumbnail .62), from
+`https://images.pexels.com/photos/6740055/pexels-photo-6740055.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=900&h=460`.

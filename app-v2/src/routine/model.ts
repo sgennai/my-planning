@@ -194,7 +194,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     status: 'active',
     order: 20,
     icon: 'wallsit',
-    photo: 'wallsit',
+    photo: 'wallsquat',
   },
 
   // ── Mid-morning ──────────────────────────────────────────────────────
@@ -295,7 +295,7 @@ export const SEED_ROUTINE_ACTIVITIES: RoutineActivity[] = [
     status: 'active',
     order: 80,
     icon: 'dumbbell',
-    photo: 'squats',
+    photo: 'squatlow',
     target: { kind: 'reps', value: 40 },
   },
 
