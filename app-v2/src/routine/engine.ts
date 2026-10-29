@@ -168,13 +168,32 @@ export function timerOf(a: RoutineActivity): number {
 /**
  * The links a tile opens, in order. Data from before `links` carries a single
  * `link`, read as a list of one. A link without an address is left out, and
- * one without a name is called by its site.
+ * one without a name is called by its site. Each address is the one that
+ * opens (see openableUrl); the editor keeps what was pasted.
  */
 export function linksOf(a: RoutineActivity): RoutineLink[] {
   const list = Array.isArray(a.links) ? a.links : a.link ? [a.link] : [];
   return list
     .filter(l => typeof l?.url === 'string' && l.url.trim() !== '')
-    .map(l => ({ label: l.label?.trim() || siteOf(l.url), url: l.url.trim() }));
+    .map(l => ({ label: l.label?.trim() || siteOf(l.url), url: openableUrl(l.url.trim()) }));
+}
+
+/**
+ * A Word, Excel or PowerPoint file kept in Drive is shared from the Drive app
+ * as `docs.google.com/document/d/<id>/edit?…&rtpof=true`. On an iPhone that
+ * opens the Google Docs app, which fails with "Impossible d'ouvrir le fichier
+ * pour le moment"; Drive's own viewer opens the same file. So such a link
+ * opens in Drive. A native Google Doc (no `rtpof`) opens in Docs as before.
+ */
+export function openableUrl(url: string): string {
+  let u: URL;
+  try { u = new URL(url); } catch { return url; }
+  if (u.hostname !== 'docs.google.com' || u.searchParams.get('rtpof') !== 'true') return url;
+  const id = u.pathname.match(/^\/(?:document|spreadsheets|presentation)(?:\/u\/\d+)?\/d\/([\w-]+)/)?.[1];
+  if (!id) return url;
+  // Older shared files need their resource key to open for anyone but the owner.
+  const key = u.searchParams.get('resourcekey');
+  return `https://drive.google.com/file/d/${id}/view${key ? `?resourcekey=${encodeURIComponent(key)}` : ''}`;
 }
 
 function siteOf(url: string): string {

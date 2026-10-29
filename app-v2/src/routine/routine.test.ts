@@ -10,7 +10,7 @@ import {
   occursOn, activitiesForDay, buildCompletionIndex, resolveActivity, resolveDay,
   dayProgress, weekProgress, toggleActivity, toggleChild, toggleSkip,
   setCompletion, clearCompletion, completionId, stateOf, nextUp, isOverdue,
-  setSetCount, setsOf, linksOf, timerOf,
+  setSetCount, setsOf, linksOf, timerOf, openableUrl,
   type CompletionIndex,
 } from './engine';
 import { routineItemsFromActivities, legacyCompletionMap, mergeLegacyCompletions } from './derive';
@@ -857,6 +857,29 @@ describe('activity links', () => {
 
   it('has none for an activity without links', () => {
     expect(linksOf(plain)).toEqual([]);
+  });
+
+  it('opens a Word file kept in Drive through Drive, and keeps the pasted address', () => {
+    const pasted = 'https://docs.google.com/document/d/1NlbRKPSAPEzxJKYNVXQWZjabHWNoQ8dp/edit?usp=drivesdk&ouid=117309320328104793715&rtpof=true&sd=true';
+    const a = { ...plain, links: [{ label: 'Gym', url: pasted }] };
+    expect(linksOf(a)).toEqual([{ label: 'Gym', url: 'https://drive.google.com/file/d/1NlbRKPSAPEzxJKYNVXQWZjabHWNoQ8dp/view' }]);
+    expect(a.links[0].url).toBe(pasted);
+  });
+});
+
+describe('openable addresses', () => {
+  it('sends Excel and PowerPoint files in Drive to Drive as well, with any resource key', () => {
+    expect(openableUrl('https://docs.google.com/spreadsheets/u/0/d/abc_DEF-123/edit?rtpof=true'))
+      .toBe('https://drive.google.com/file/d/abc_DEF-123/view');
+    expect(openableUrl('https://docs.google.com/presentation/d/xyz/edit?rtpof=true&resourcekey=0-k_1'))
+      .toBe('https://drive.google.com/file/d/xyz/view?resourcekey=0-k_1');
+  });
+
+  it('leaves native Google Docs, other sites and odd input alone', () => {
+    const native = 'https://docs.google.com/document/d/1AbCdEfGhIjKlMnOpQrStUvWxYz0123456789abcdefg/edit?usp=sharing';
+    for (const url of [native, 'https://chatgpt.com/c/6a9c071e', 'pktc://open', 'not a url', 'https://docs.google.com/forms/d/x/viewform?rtpof=true']) {
+      expect(openableUrl(url)).toBe(url);
+    }
   });
 });
 

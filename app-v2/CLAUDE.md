@@ -207,7 +207,9 @@ again; a note with Undo (`setSetCount`) follows every tap. The seed sets none: t
 chooses it in the editor.
 
 `links` (up to 4, named) replaced the single `link`; always read them through `linksOf`, which
-turns an old `link` into a list of one. One link opens straight from the tile's button. Two
+turns an old `link` into a list of one and gives each the address that opens (`openableUrl`: a
+Word/Excel/PowerPoint file in Drive, `docs.google.com/...?rtpof=true`, opens in Drive's viewer,
+because the iPhone Docs app cannot open it; the editor keeps the pasted address). One link opens straight from the tile's button. Two
 or more open a launcher over the tile (`LinkLauncher`): the names stacked under the title on
 a tall tile, side by side on a short one, closing on a pick, its close button, Escape or a
 tap elsewhere. A timer that is on takes the button first. The briefings tile's three ChatGPT
