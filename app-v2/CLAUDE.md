@@ -248,6 +248,24 @@ back into a singleton.**
 `routineCompletions` is still stored and still read, for the Plan hero banner's hourly
 micro-strength slot keys (`micro-strength:h14:<iso>`), which have no activity behind them.
 
+### Day plans (for reporting)
+
+Completions say what was done, not what was asked: the dashboard works a past day's X / Y
+out again from today's activities, so editing the routine rewrites history. `day-plan.ts`
+freezes it, one record per Paris day in the same `progressLog`:
+
+```
+id: 'rp:<dayKey>'   type: 'routine-day-plan'   refId: <dayKey>
+value: { date, items: [{ id, title, required, sets?, parts? }], source: 'live'|'backfill' }
+```
+
+`RoutineScreen` calls `withDayPlans` on every change: today's plan follows the routine
+while today lasts; a past day's plan is never rewritten; a past day with ticks but no plan
+gets one from the current routine, marked `backfill` (the days before plans existed, from
+2026-10-26). A day with neither was not used and gets nothing, so a stale device cannot
+overwrite another device's live plan. Reports should take a day's denominator from its plan
+and its numerator from the completions; the dashboard itself does not read plans yet.
+
 ### Counting rules
 
 - Only activities scheduled for that day count. An unscheduled activity is never "missed".

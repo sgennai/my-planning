@@ -23,6 +23,7 @@ import { photoFor, iconFor } from './photo-manifest';
 import { RoutineSettings } from './RoutineSettings';
 import { RoutineTimer } from './RoutineTimer';
 import { SetRing } from './SetRing';
+import { withDayPlans } from './day-plan';
 import { useClock } from '../ui/useClock';
 import { IconCog, IconClock, IconEllipsis, IconLink, IconPlay, IconX } from '../ui/icons';
 
@@ -391,6 +392,18 @@ export function RoutineScreen({ data, onPersist }: Props) {
     () => data?.routineActivities || EMPTY, [data?.routineActivities]);
   const log: unknown[] = useMemo(() => data?.progressLog || EMPTY, [data?.progressLog]);
   const index = useMemo(() => buildCompletionIndex(log), [log]);
+
+  // Keep a record of what today's routine holds, and plan any past ticked day
+  // that has none, for reporting later (see day-plan.ts). Written through the
+  // updater so it builds on whatever the latest tap left.
+  useEffect(() => {
+    if (withDayPlans(log, activities, today) === log) return;
+    onPersist((current: RoutineScreenData) => {
+      const currentLog = current.progressLog || EMPTY;
+      const next = withDayPlans(currentLog, current.routineActivities || EMPTY, today);
+      return next === currentLog ? current : { ...current, progressLog: next, lastModified: new Date().toISOString() };
+    });
+  }, [log, activities, today, onPersist]);
 
   const rows: ResolvedActivity[] = useMemo(() => {
     const all = activitiesForDay(activities, viewDate, 'routine')
