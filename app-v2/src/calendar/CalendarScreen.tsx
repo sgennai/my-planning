@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo, Fragment } fr
 import { parseColorVal, categoryStylesWith, CATEGORY_STYLES, SEED_PRACTICE_CONTENT } from '../storage/data';
 import { pad, hexToRgba, colorValToBackground, ViewSwitcher } from '../ui/helpers';
 import { startOfDay, startOfWeek, addDays, isSameDay, toMinutes, formatDateShort, formatRange, blocksForDate, makeOverrideKey, resolvedRoutineForDate, applyElsewhereFilter } from '../helpers/calendar-utils';
-import { expandEventsForWindow, fetchICS } from '../helpers/ics-parser';
+import { expandEventsForWindow, fetchICS, proxyKeyFor } from '../helpers/ics-parser';
 import { fetchWeather, wmoIcon } from '../helpers/weather';
 import { useMediaQuery, useTickingClock } from '../main-app';
 import { TodayScreen } from './today/TodayScreen';
@@ -700,7 +700,8 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
     const fetchOne = async (key, url) => {
       if (!url) return;
       try {
-        const events = await fetchICS(settings.proxyUrl, url);
+        const events = await fetchICS(settings.proxyUrl, url,
+          proxyKeyFor(settings.proxyUrl, settings.syncUrl, settings.syncSecret));
         next[key] = { events, lastFetched: new Date(), error: '' };
       } catch (e) {
         next[key] = { events: [], lastFetched: new Date(), error: e.message || 'Fetch failed' };

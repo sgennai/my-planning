@@ -223,11 +223,26 @@ export function expandEventsForWindow(events: any[], windowStart: Date, windowEn
 // Fetch an ICS feed through the Cloudflare proxy (`?url=<encoded feed>`) and
 // return the parsed VEVENT list ready for expandEventsForWindow(). The proxy is
 // required because calendar hosts (Google, etc.) don't send CORS headers.
-export async function fetchICS(proxyUrl: string, icsUrl: string) {
+/**
+ * The sync key, but only for a proxy that is the sync Worker itself: that
+ * Worker refuses calendar requests without it, and the key must never travel
+ * to any other host someone types into the proxy field.
+ */
+export function proxyKeyFor(proxyUrl: string, syncUrl?: string, syncSecret?: string): string | undefined {
+  if (!syncSecret || !syncUrl) return undefined;
+  try {
+    return new URL(proxyUrl).origin === new URL(syncUrl).origin ? syncSecret : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export async function fetchICS(proxyUrl: string, icsUrl: string, proxyKey?: string) {
   const base = (proxyUrl || '').replace(/\/+$/, '');
   if (!base) throw new Error('No proxy URL configured');
   if (!icsUrl) return [];
-  const res = await fetch(`${base}/?url=${encodeURIComponent(icsUrl)}`);
+  const res = await fetch(`${base}/?url=${encodeURIComponent(icsUrl)}`,
+    proxyKey ? { headers: { 'X-Sync-Secret': proxyKey } } : undefined);
   if (!res.ok) {
     const body = await res.text().catch(() => '');
     throw new Error(`Proxy returned HTTP ${res.status}${body ? ': ' + body.slice(0, 120) : ''}`);

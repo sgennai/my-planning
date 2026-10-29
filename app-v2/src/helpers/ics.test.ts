@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { parseICS, fetchICS } from './ics-parser';
+import { parseICS, fetchICS, proxyKeyFor } from './ics-parser';
 
 const SAMPLE = `BEGIN:VCALENDAR
 BEGIN:VEVENT
@@ -45,5 +45,34 @@ describe('fetchICS', () => {
   it('throws a useful error on a non-ok proxy response', async () => {
     (globalThis as any).fetch = vi.fn(async () => ({ ok: false, status: 502, text: async () => 'bad gateway' } as Response));
     await expect(fetchICS('https://w.example', 'https://cal.example/f.ics')).rejects.toThrow(/HTTP 502/);
+  });
+});
+
+describe('the calendar proxy key', () => {
+  const SYNC = 'https://my-planning-sync.example.workers.dev';
+  it('goes to the sync Worker, which refuses calendar requests without it', () => {
+    expect(proxyKeyFor(`${SYNC}/`, SYNC, 'k')).toBe('k');
+  });
+  it('never goes to another host, or anywhere when sync is not set up', () => {
+    expect(proxyKeyFor('https://other-proxy.example.workers.dev', SYNC, 'k')).toBeUndefined();
+    expect(proxyKeyFor('http://my-planning-sync.example.workers.dev', SYNC, 'k')).toBeUndefined();
+    expect(proxyKeyFor(SYNC, '', 'k')).toBeUndefined();
+    expect(proxyKeyFor('not a url', SYNC, 'k')).toBeUndefined();
+  });
+  it('travels as a header, never in the address', async () => {
+    const seen: { url: string; init?: RequestInit }[] = [];
+    const real = globalThis.fetch;
+    globalThis.fetch = (async (url: string, init?: RequestInit) => {
+      seen.push({ url, init });
+      return { ok: true, text: async () => 'BEGIN:VCALENDAR\nEND:VCALENDAR' } as Response;
+    }) as typeof fetch;
+    try {
+      await fetchICS(SYNC, 'https://calendar.example/feed.ics', 'k');
+    } finally {
+      globalThis.fetch = real;
+    }
+    expect(seen[0].url).not.toContain('k&');
+    expect(seen[0].url.endsWith('k')).toBe(false);
+    expect((seen[0].init?.headers as Record<string, string>)['X-Sync-Secret']).toBe('k');
   });
 });

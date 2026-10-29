@@ -90,7 +90,9 @@ colour; everything else is neutral.
 - **Nothing under the pill.** Every control must stay clear of the floating pill, sheets
   included: the Routine settings sheet and timer (`.cin > .ds-scrim`) shrink to the frame
   `.cin` leaves them and scroll inside, and on a phone they sit between the status bar and
-  the pill. A Remove tapped instead of a hidden Save once archived the Podcast.
+  the pill. Every overlay (`.ds-scrim`, `.modal-backdrop`, `.reset-overlay`,
+  `.practice-overlay`) is at `z-index: 400`, above the pill's 300, so the pill can neither
+  hide a window's foot nor navigate away from unsaved edits in it. A Remove tapped instead of a hidden Save once archived the Podcast.
 - **Destructive actions ask first** (`window.confirm`, naming what goes): deleting or
   removing anything saved, unscheduling a block, discarding a mock interview, restoring an
   edited occurrence. Leaving the Routine editor with unsaved edits (back, close, a tap
@@ -333,6 +335,23 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
   on a fresh device (empty IndexedDB), so Worker data is never overwritten by local defaults
   via last-write-wins. If the pull fails (offline), `NEEDS_INITIAL_PULL_KEY` in `localStorage`
   gates push until the first successful online sync. See `DEPLOY.md` → "Sync architecture".
+- **Sync order (since 2026-10-29):** `syncData` notes what changed locally, **pulls first**,
+  then pushes. Pushing first let a device that had not caught up (often right after a deploy,
+  when `migrate()` rewrites the activity list on first open) replace the other device's newer
+  settings. When both sides changed the `routineActivities` singleton since the last sync, the
+  lists merge per activity by `activity.updatedAt` (`storage/merge.ts`): every real edit stamps
+  it, migrations never do. Other singletons stay last-write-wins. `sync-merge.test.ts` replays
+  both failures with two devices.
+- **Pull cursor:** the Worker stamps `server_at` on each write and lists pulls by it, returning
+  a `cursor` (its clock, one minute behind) that the device sends as `since` next time
+  (`SYNC_CURSOR_KEY`). Listing by the sender's `updated_at` meant changes uploaded late by an
+  offline device were never pulled by a device that synced meanwhile.
+- **Sync Worker** (`../sync-worker`, deployed by hand with `npx wrangler deploy`): schema
+  changes go in `sync-worker/migrations/` and are applied to D1 (`wrangler d1 execute
+  my-planning-db --remote --file …`) **before** the Worker that uses them, and the app before
+  a Worker that requires something new of it. Its calendar proxy (`/?url=`) needs the sync key
+  (`X-Sync-Secret`); the app sends it only when the proxy URL is the sync Worker's origin
+  (`proxyKeyFor`), never to another host.
 
 ## Workflow
 

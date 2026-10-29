@@ -12,6 +12,24 @@ const VALID_STORES = [
   'create_ideas', 'create_posts', 'singletons'
 ];
 
+// Constant-time comparison, so a wrong key takes as long to refuse whatever it
+// shares with the right one.
+function sameSecret(a, b) {
+  const enc = new TextEncoder();
+  const x = enc.encode(a || ''), y = enc.encode(b || '');
+  let diff = x.length ^ y.length;
+  for (let i = 0; i < Math.max(x.length, y.length); i++) diff |= (x[i] ?? 0) ^ (y[i] ?? 0);
+  return diff === 0;
+}
+
+// Pulls list records by when they reached this Worker (`server_at`), not by
+// the `updated_at` the sending device stamped on them: a device that was
+// offline uploads changes stamped hours ago, and a device that synced in the
+// meantime used to skip them for good. The cursor handed back trails the
+// clock by a minute, so a write landing during a pull is caught by the next
+// one; re-sending a record is harmless under last-write-wins.
+const CURSOR_LAG_MS = 60 * 1000;
+
 // ICS edge cache: revalidate after 20 min; keep a stale copy up to 7 days so a
 // rate-limited/erroring upstream still serves last-known-good. Freshness is
 // tracked via the X-Cached-At header (the programmatic Cache API ignores
@@ -115,7 +133,13 @@ export default {
     }
 
     // ── ICS proxy (?url=<encoded feed>) — cached 20 min, stale-on-error 7 days ──
+    // Behind the sync key: without it this was an open proxy anyone could use
+    // to fetch any address, spending the free plan's daily requests that sync
+    // depends on.
     if (url.searchParams.get('url')) {
+      if (!env.SYNC_SECRET || !sameSecret(request.headers.get('X-Sync-Secret'), env.SYNC_SECRET)) {
+        return new Response('Unauthorized', { status: 401, headers: CORS_HEADERS });
+      }
       return proxyICS(request, url.searchParams.get('url'), ctx);
     }
 
@@ -124,7 +148,7 @@ export default {
     }
 
     const secret = request.headers.get('X-Sync-Secret');
-    if (!env.SYNC_SECRET || secret !== env.SYNC_SECRET) {
+    if (!env.SYNC_SECRET || !sameSecret(secret, env.SYNC_SECRET)) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' }});
     }
 
@@ -140,24 +164,27 @@ export default {
         }
 
         const statements = [];
-        
+        const serverAt = new Date().toISOString();
+
         for (const storeName of Object.keys(batches)) {
           const records = batches[storeName];
           for (const rec of records) {
             statements.push(
               env.DB.prepare(`
-                INSERT INTO ${storeName} (id, payload, updated_at, deleted)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO ${storeName} (id, payload, updated_at, deleted, server_at)
+                VALUES (?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                   payload = excluded.payload,
                   updated_at = excluded.updated_at,
-                  deleted = excluded.deleted
+                  deleted = excluded.deleted,
+                  server_at = excluded.server_at
                 WHERE excluded.updated_at > ${storeName}.updated_at
               `).bind(
-                rec.id, 
-                JSON.stringify(rec.payload), 
-                rec.updatedAt, 
-                rec.deleted ? 1 : 0
+                rec.id,
+                JSON.stringify(rec.payload),
+                rec.updatedAt,
+                rec.deleted ? 1 : 0,
+                serverAt
               )
             );
           }
@@ -176,9 +203,11 @@ export default {
     if (request.method === 'GET' && url.pathname === '/sync/pull') {
       try {
         const since = url.searchParams.get('since') || '1970-01-01T00:00:00.000Z';
-        
-        const statements = VALID_STORES.map(storeName => 
-          env.DB.prepare(`SELECT '${storeName}' as storeName, id, payload, updated_at, deleted FROM ${storeName} WHERE updated_at > ?`).bind(since)
+        const cursor = new Date(Date.now() - CURSOR_LAG_MS).toISOString();
+
+        // Rows written before server_at existed have none; their own stamp stands in.
+        const statements = VALID_STORES.map(storeName =>
+          env.DB.prepare(`SELECT '${storeName}' as storeName, id, payload, updated_at, deleted FROM ${storeName} WHERE COALESCE(server_at, updated_at) > ?`).bind(since)
         );
         
         const results = await env.DB.batch(statements);
@@ -196,7 +225,7 @@ export default {
           }
         }
 
-        return new Response(JSON.stringify({ records: allRecords }), { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' }});
+        return new Response(JSON.stringify({ records: allRecords, cursor }), { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' }});
       } catch (e) {
         return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' }});
       }

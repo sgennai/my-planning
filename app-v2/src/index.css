@@ -1481,7 +1481,8 @@
       position: fixed;
       inset: 0;
       background: rgba(0,0,0,0.45);
-      z-index: 300;
+      /* Above the floating nav pill (300), like every sheet: below it, the pill hid the window's foot and stayed tappable, leaving the window and its unsaved edits. */
+      z-index: 400;
       display: flex;
       align-items: flex-start;
       justify-content: center;
@@ -4175,7 +4176,8 @@
       background: rgba(0,0,0,0.22);
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
-      z-index: 100;
+      /* Above the floating nav pill (300), like every sheet: below it, the pill hid the window's foot and stayed tappable, leaving the window and its unsaved edits. */
+      z-index: 400;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -5739,7 +5741,8 @@
       position: fixed;
       inset: 0;
       background: var(--bg);
-      z-index: 200;
+      /* Above the floating nav pill (300), like every sheet: below it, the pill hid the window's foot and stayed tappable, leaving the window and its unsaved edits. */
+      z-index: 400;
       overflow-y: auto;
       animation: fadeIn 0.2s ease-out;
     }

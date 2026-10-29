@@ -1,3 +1,4 @@
+import { mergeActivityLists } from './merge';
 import { openDB } from 'idb';
 import type { IDBPDatabase } from 'idb';
 
@@ -312,7 +313,8 @@ export async function pullAndReplaceFromWorker(
       headers: { 'X-Sync-Secret': secret }
     });
     if (!res.ok) throw new Error(`Pull failed: ${res.statusText}`);
-    const { records = [] } = await res.json();
+    const { records = [], cursor } = await res.json();
+    if (typeof cursor === 'string') localStorage.setItem(SYNC_CURSOR_KEY, cursor);
     if (records.length > 0) {
       const tx = db.transaction(Object.values(STORES), 'readwrite');
       for (const rec of records) {
@@ -336,6 +338,22 @@ export async function pullAndReplaceFromWorker(
   }
 }
 
+// The server's own marker of what this device has already pulled. Records are
+// listed by when they reached the server, not by the time the sending device
+// stamped on them: a device that was offline uploads changes stamped hours
+// ago, and a cursor made of those stamps let a device that synced meanwhile
+// skip them for good. An older Worker sends no marker, and the device falls
+// back to its own last-sync time as before.
+export const SYNC_CURSOR_KEY = 'my-planning-sync-cursor';
+const SYNC_TIME_KEY = 'my-planning-sync-time';
+
+const ACTIVITY_LIST_ID = 'routineActivities';
+
+/** One millisecond later than an ISO time: a merged record has to beat both sides. */
+function after(iso: string): string {
+  return new Date(new Date(iso).getTime() + 1).toISOString();
+}
+
 export async function syncData(syncUrl: string, secret: string): Promise<SyncResult> {
   if (!syncUrl || !secret) return { pulledIds: [], error: null };
 
@@ -347,50 +365,39 @@ export async function syncData(syncUrl: string, secret: string): Promise<SyncRes
     const { ok, error } = await pullAndReplaceFromWorker(syncUrl, secret);
     if (!ok) return { pulledIds: [], error };
     localStorage.removeItem(NEEDS_INITIAL_PULL_KEY);
-    localStorage.setItem('my-planning-sync-time', new Date().toISOString());
+    localStorage.setItem(SYNC_TIME_KEY, new Date().toISOString());
     return { pulledIds: [{ id: 'initial', storeName: STORES.SINGLETONS }], error: null };
   }
 
   const normalizedUrl = syncUrl.replace(/\/+$/, '');
   const db = await initDB();
-  const lastSyncStr = localStorage.getItem('my-planning-sync-time') || '1970-01-01T00:00:00.000Z';
-  const now = new Date().toISOString();
-  let pushPayload = [];
+  const lastSyncStr = localStorage.getItem(SYNC_TIME_KEY) || '1970-01-01T00:00:00.000Z';
+  const since = localStorage.getItem(SYNC_CURSOR_KEY) || lastSyncStr;
+  // Taken before gathering: anything saved after this point stays dirty for
+  // the next sync.
+  const mark = new Date().toISOString();
 
-  // Gather dirty records
+  // What this device changed since it last synced, keyed store:id.
+  const dirty = new Map<string, { storeName: string; id: string; payload: any; updatedAt: string; deleted: boolean }>();
+  const toPush = (storeName: string, r: any) => {
+    const payload = { ...r };
+    delete payload.updatedAt;
+    delete payload._deleted;
+    return { storeName, id: r.id, payload, updatedAt: r.updatedAt, deleted: !!r._deleted };
+  };
   const txGather = db.transaction(Object.values(STORES), 'readonly');
   for (const storeName of Object.values(STORES)) {
-    const all = await txGather.objectStore(storeName).getAll();
-    for (const r of all) {
-      if (r.updatedAt > lastSyncStr) {
-        let payload = { ...r };
-        delete payload.updatedAt;
-        delete payload._deleted;
-        pushPayload.push({
-          storeName,
-          id: r.id,
-          payload,
-          updatedAt: r.updatedAt,
-          deleted: !!r._deleted
-        });
-      }
+    for (const r of await txGather.objectStore(storeName).getAll()) {
+      if (r.updatedAt > lastSyncStr) dirty.set(`${storeName}:${r.id}`, toPush(storeName, r));
     }
   }
   await txGather.done;
 
   try {
-    // Push
-    if (pushPayload.length > 0) {
-      const pushRes = await fetch(`${normalizedUrl}/sync/push`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Sync-Secret': secret },
-        body: JSON.stringify(pushPayload)
-      });
-      if (!pushRes.ok) throw new Error(`Push failed: ${pushRes.statusText}`);
-    }
-
-    // Pull
-    const pullRes = await fetch(`${normalizedUrl}/sync/pull?since=${lastSyncStr}`, {
+    // Pull first, so a change made elsewhere is seen before this device's
+    // copy goes up: pushing first let a device that had not caught up
+    // overwrite the other's newer work.
+    const pullRes = await fetch(`${normalizedUrl}/sync/pull?since=${encodeURIComponent(since)}`, {
       headers: { 'X-Sync-Secret': secret }
     });
     if (!pullRes.ok) throw new Error(`Pull failed: ${pullRes.statusText}`);
@@ -404,7 +411,23 @@ export async function syncData(syncUrl: string, secret: string): Promise<SyncRes
       for (const rec of remoteRecords) {
         if (!Object.values(STORES).includes(rec.storeName)) continue;
         const store = txApply.objectStore(rec.storeName);
+        const key = `${rec.storeName}:${rec.id}`;
         const localRec = await store.get(rec.id);
+        const mine = dirty.get(key);
+
+        // Both sides changed the activity list: keep each activity's newest
+        // edit from either side, and send the result up.
+        if (mine && rec.storeName === STORES.SINGLETONS && rec.id === ACTIVITY_LIST_ID
+          && localRec && !localRec._deleted && !rec.deleted
+          && Array.isArray(localRec.value) && Array.isArray(rec.payload?.value)) {
+          const value = mergeActivityLists(localRec.value, rec.payload.value);
+          const stamp = [mark, after(rec.updatedAt), after(localRec.updatedAt)].sort().pop()!;
+          const merged = { ...localRec, value, updatedAt: stamp };
+          await store.put(merged);
+          dirty.set(key, toPush(rec.storeName, merged));
+          changedEntities.push({ id: rec.id, storeName: rec.storeName });
+          continue;
+        }
 
         if (!localRec || rec.updatedAt > localRec.updatedAt) {
           if (rec.deleted) {
@@ -412,14 +435,27 @@ export async function syncData(syncUrl: string, secret: string): Promise<SyncRes
           } else {
             await store.put({ ...rec.payload, updatedAt: rec.updatedAt });
           }
+          // The newer remote copy replaces whatever this device had pending.
+          dirty.delete(key);
           changedEntities.push({ id: rec.id, storeName: rec.storeName });
         }
       }
       await txApply.done;
     }
 
-    // If push succeeded and pull succeeded, we update our sync time.
-    localStorage.setItem('my-planning-sync-time', now);
+    // Push what is still this device's newest.
+    if (dirty.size > 0) {
+      const pushRes = await fetch(`${normalizedUrl}/sync/push`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Sync-Secret': secret },
+        body: JSON.stringify([...dirty.values()])
+      });
+      if (!pushRes.ok) throw new Error(`Push failed: ${pushRes.statusText}`);
+    }
+
+    // Both directions succeeded: record where this device stands.
+    localStorage.setItem(SYNC_TIME_KEY, mark);
+    if (typeof pullData.cursor === 'string') localStorage.setItem(SYNC_CURSOR_KEY, pullData.cursor);
     return { pulledIds: changedEntities, error: null };
   } catch (e) {
     // Fail silently (offline or server error). Changes remain dirty for next sync.

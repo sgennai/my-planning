@@ -256,12 +256,11 @@ describe('routine state across devices', () => {
     expect(stateOf(index, 'ra-magnesium', TUESDAY)).toBe('done');
   });
 
-  it('documents the limit: concurrent ACTIVITY-LIST edits are last-write-wins', async () => {
-    // The activity list is one synced record, not one per activity, so two
-    // devices editing the list in the same window keep only the later write.
-    // Completions are per record and do not have this problem — the test
-    // above proves that. This is the trade-off, pinned so it cannot regress
-    // into a surprise.
+  it('on one device, a save built on an old copy of the list replaces it', async () => {
+    // The activity list is one synced record. Between two devices that both
+    // changed it, sync merges it per activity (storage/sync-merge.test.ts).
+    // A single device saving twice is not a conflict: its later save is its
+    // list, even one built on a stale copy, as here.
     await saveData(defaults());
     await syncData(SYNC_URL, SECRET);
     await becomeOtherDevice();
