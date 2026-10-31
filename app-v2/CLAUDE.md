@@ -102,10 +102,13 @@ colour; everything else is neutral.
   section (keyed by `appPage`, so switching section clears it; the pill stays usable) and one
   round the whole app in `main.tsx`. The card offers Reload and Try again, and the error
   under Details. It adds no wrapper element, so `.shell-main > .cin` rules still apply.
-- **The weekly review keeps a draft** (`WeeklyResetOverlay`, `ui/widgets.tsx`): answers and
-  phase go to `localStorage` per week (`my-planning-review-draft:<Monday>`) as they are typed,
-  come back on reopening (with Start over, which asks), and are cleared on Save. Nothing in
-  the app opens the review since the Practice menu that did was removed (2026-06-13).
+- **The weekly review keeps a draft** (`WeeklyResetOverlay`, `ui/widgets.tsx`; helpers in
+  `ui/review-draft.ts`): answers and phase go to `localStorage` per week
+  (`my-planning-review-draft:<Monday>`) as they are typed, come back on reopening (with Start
+  over, which asks), and are cleared on Save. It opens from the foot of the Plan screen's
+  This week card (Start / Continue / Review again), always for the current week (`reviewWeek`
+  in `CalendarScreen`), whichever week the screen shows. Its way in had been lost with the
+  Practice menu (2026-06-13) and came back there on 2026-10-31.
 
 ## Current code structure
 

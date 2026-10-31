@@ -5,6 +5,7 @@ import { pad, hexToRgba, ColorPickerExtended } from './helpers';
 import { startOfDay, startOfWeek, addDays, toMinutes, formatDateShort, makeOverrideKey } from '../helpers/calendar-utils';
 import { wmoIcon } from '../helpers/weather';
 import { exportDataBlob, importDataBlob, readData } from '../storage/db';
+import { reviewDraftKey, readReviewDraft, writeReviewDraft } from './review-draft';
 import { App } from '../main-app';
 import { RoutineManagerModal } from '../routine/Routine';
 
@@ -1054,31 +1055,6 @@ export function FridayReviewLauncher({ now, weeklyResets, onLaunch }) {
 // ═════════════════════════════════════════════════════════════
 // WEEKLY RESET OVERLAY — full-screen guided reflection
 // ═════════════════════════════════════════════════════════════
-
-// A review in progress is kept on this device as it is typed, one draft per
-// week, so Exit, or iOS closing the app in the background, no longer loses
-// the answers: they come back when that week's review is opened again, until
-// it is saved.
-const reviewDraftKey = (weekStart) =>
-  `my-planning-review-draft:${weekStart.getFullYear()}-${pad(weekStart.getMonth() + 1)}-${pad(weekStart.getDate())}`;
-
-function readReviewDraft(key) {
-  try {
-    const draft = JSON.parse(localStorage.getItem(key) || 'null');
-    return draft && draft.answers && typeof draft.answers === 'object' ? draft : null;
-  } catch {
-    return null;
-  }
-}
-
-function writeReviewDraft(key, draft) {
-  try {
-    if (draft) localStorage.setItem(key, JSON.stringify(draft));
-    else localStorage.removeItem(key);
-  } catch {
-    // Storage blocked or full: the review works as before, without a draft.
-  }
-}
 
 export function WeeklyResetOverlay({ weekStart, now, onClose, onSave, onGenerateBlocks }) {
   const draftKey = reviewDraftKey(weekStart);

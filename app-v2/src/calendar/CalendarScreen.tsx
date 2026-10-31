@@ -16,6 +16,7 @@ import { routineItemsFromActivities, legacyCompletionMap, mergeLegacyCompletions
 import { buildCompletionIndex, setCompletion, clearCompletion, stateOf } from '../routine/engine';
 import { dayKeyFromLocalDate } from '../routine/dates';
 import { WeatherStrip, InboxModal, SettingsModal, WeeklyResetOverlay } from '../ui/widgets';
+import { hasReviewDraft } from '../ui/review-draft';
 import { scheduleModuleBlocks } from '../modules/generator';
 
 // Stable empty defaults — hoisted so inline `|| []`/`|| {}` don't create
@@ -110,7 +111,9 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
   const [refLibraryOpen, setRefLibraryOpen] = useState(false);
   const [refExpandedId, setRefExpandedId] = useState(null);
   const [inboxOpen, setInboxOpen] = useState(false);
-  const [resetOverlayOpen, setResetOverlayOpen] = useState(false);
+  // Monday of the week under review while the weekly review is open. Always
+  // the current week, whichever week the Plan screen shows.
+  const [reviewWeek, setReviewWeek] = useState(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = React.useRef(null);
@@ -480,7 +483,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
   const openInboxCount = (data.inbox || []).filter(i => !i.done).length;
 
   // ─── Weekly reset save ──────────────────────────
-  const saveWeeklyReset = useCallback((answers) => {
+  const saveWeeklyReset = useCallback((answers, weekStart) => {
     const weekLabel = `Week of ${formatDateShort(weekStart)}, ${weekStart.getFullYear()}`;
     const entry = {
       id: `reset-${Date.now()}`,
@@ -493,7 +496,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
       ...d,
       weeklyResets: [entry, ...(d.weeklyResets || [])].slice(0, 52),
     }));
-  }, [persistData, weekStart]);
+  }, [persistData]);
 
   // ─── Routine completion handlers ───────────────
   // Per-occurrence done state. Key shape: `${itemId}:${dateISO}`.
@@ -1002,7 +1005,7 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
   // Open overlay requested by the IP page menu before navigating back
   React.useEffect(() => {
     if (!pendingCalAction) return;
-    if (pendingCalAction === 'weeklyReview') setResetOverlayOpen(true);
+    if (pendingCalAction === 'weeklyReview') setReviewWeek(startOfWeek(new Date()));
     else if (pendingCalAction === 'refLibrary') setRefLibraryOpen(true);
     else if (pendingCalAction === 'settings') setSettingsOpen(true);
     if (onClearPendingAction) onClearPendingAction();
@@ -1189,6 +1192,12 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
     });
   })();
   const planWeekStreakDone = planWeekStreak.filter(Boolean).length;
+  // This week's review: the latest saved one (they are kept newest first), or
+  // a draft left on this device.
+  const thisWeekStart = startOfWeek(now);
+  const reviewDone = (data.weeklyResets || []).find(r =>
+    r.weekStart && startOfDay(new Date(r.weekStart)).getTime() === thisWeekStart.getTime());
+  const reviewDraft = hasReviewDraft(thisWeekStart);
 
   // ── View toggle (Timeline · Day · Week) navigation ──
   const planDayIndex = (d) => { const x = d.getDay(); return x === 0 ? 6 : x - 1; }; // Mon=0
@@ -1360,6 +1369,16 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
           <div className="mt">This week</div>
           <div className="streak">{planWeekStreak.map((on, i) => <i key={i} className={on ? '' : 'off'} />)}</div>
           <div className="mp">{planWeekStreakDone} of 7 days with activity logged.</div>
+          <div className="review-row">
+            <span className="review-state">
+              {reviewDone
+                ? `✓ Reviewed ${new Date(reviewDone.date).toLocaleDateString(undefined, { weekday: 'long' })}`
+                : reviewDraft ? 'Weekly review in progress' : 'Weekly review not done yet'}
+            </span>
+            <button className="plan-textbtn" onClick={() => setReviewWeek(thisWeekStart)}>
+              {reviewDone ? 'Review again' : reviewDraft ? 'Continue' : 'Start'}
+            </button>
+          </div>
         </div>
         <div className="mini-card">
           <div className="mt">Up next</div>
@@ -1644,15 +1663,15 @@ export function CalendarScreen({ data, saving, lastSyncedAt, error, onReload, on
       />
     )}
 
-    {resetOverlayOpen && (
+    {reviewWeek && (
       <WeeklyResetOverlay
-        weekStart={weekStart}
+        weekStart={reviewWeek}
         now={now}
-        onClose={() => setResetOverlayOpen(false)}
-        onSave={(answers) => { saveWeeklyReset(answers); }}
+        onClose={() => setReviewWeek(null)}
+        onSave={(answers) => { saveWeeklyReset(answers, reviewWeek); }}
         onGenerateBlocks={() => {
           let nextData = data;
-          const weekStartIso = weekStart.toISOString();
+          const weekStartIso = reviewWeek.toISOString();
           (data.modules || []).forEach(m => {
             if (m.type === 'generator' && m.status === 'active') {
               nextData = scheduleModuleBlocks(nextData, m.id, weekStartIso);
