@@ -9,8 +9,10 @@ import { ModuleDashboard } from './modules/ModuleDashboard';
 import { IntakeScreen } from './intake/IntakeScreen';
 import { CreateScreen } from './create/CreateScreen';
 import { loadData, saveData, syncData, pullAndReplaceFromWorker, NEEDS_INITIAL_PULL_KEY } from './storage/db';
+import { createLiveData } from './storage/live';
 import { DEFAULT_MODULES } from './modules/seed-modules';
 import { AppShell } from './ui/AppShell';
+import { CrashBoundary } from './ui/CrashScreen';
 import { RoutineScreen } from './routine/RoutineScreen';
 
 // DEFAULT DATA + MIGRATION
@@ -113,8 +115,14 @@ export function App() {
   // The authoritative copy between renders. `persist` updates it
   // synchronously so two interactions in the same frame both build on the
   // newer state — reading `data` from a render closure meant the second tap
-  // started from the first tap's "before", silently discarding it.
-  const dataRef = useRef(null);
+  // started from the first tap's "before", silently discarding it. It also
+  // decides when a sync's changes replace it (see storage/live.ts).
+  const [live] = useState(() => createLiveData(setData));
+  // One sync at a time; `syncAgain` asks for another once it ends.
+  const syncing = useRef(null);
+  const syncAgain = useRef(false);
+  // The sync an edit asked for, two seconds on.
+  const pendingSync = useRef(null);
 
   // Apply theme to <html data-theme="..."> whenever data.prefs.theme changes.
   // Default to 'light' before data loads so the boot/sign-in screens use the right palette.
@@ -186,14 +194,14 @@ export function App() {
       }
 
       if (needsSave) await saveData(resolvedData);
-      dataRef.current = resolvedData;
+      live.start(resolvedData);
       setData(resolvedData);
       setPhase('ready');
     } catch (e) {
       setError(`Load failed: ${e.message}`);
       setPhase('error');
     }
-  }, []);
+  }, [live]);
 
   useEffect(() => {
     (async () => {
@@ -206,10 +214,11 @@ export function App() {
     })();
   }, [loadOrCreate]);
 
-  const runBackgroundSync = useCallback(async () => {
-    if (!data?.calendars?.syncUrl || !data?.calendars?.syncSecret) return;
+  const syncOnce = useCallback(async () => {
+    const { syncUrl, syncSecret } = live.current()?.calendars || {};
+    if (!syncUrl || !syncSecret) return;
     try {
-      const { pulledIds: changedEntities, error: syncErr } = await syncData(data.calendars.syncUrl, data.calendars.syncSecret);
+      const { pulledIds: changedEntities, error: syncErr } = await syncData(syncUrl, syncSecret);
 
       if (syncErr) {
         setSyncError(syncErr);
@@ -218,84 +227,114 @@ export function App() {
       setSyncError(null);
       setLastSyncedAt(new Date());
 
-      const freshData = await loadData() || data;
-      const { mergePracticeContent } = await import('./practice/content-loader');
-      const { mergeIntakeContent } = await import('./intake/intake-loader');
-      let didContentChange = false;
-      if (freshData) {
-        if (mergePracticeContent(freshData)) didContentChange = true;
-        if (mergeIntakeContent(freshData)) didContentChange = true;
+      if ((changedEntities.length > 0 || live.behind()) && await live.refresh() && changedEntities.length > 0) {
+        // Only show notice if the user is actively editing a text field right now
+        const activeTag = document.activeElement ? document.activeElement.tagName : '';
+        const isActivelyEditing = activeTag === 'INPUT' || activeTag === 'TEXTAREA';
+
+        if (isActivelyEditing) {
+          setRemoteConflicts(prev => {
+            const newConflicts = new Set(prev);
+            for (const ce of changedEntities) newConflicts.add(ce.id);
+            return Array.from(newConflicts);
+          });
+        }
       }
 
-      if (changedEntities.length > 0 || didContentChange) {
-        if (freshData) {
-          if (didContentChange) {
-            freshData.lastModified = new Date().toISOString();
-            await saveData(freshData);
-          }
-          dataRef.current = freshData;
-          setData(freshData);
-
-          // Only show notice if the user is actively editing a text field right now
-          const activeTag = document.activeElement ? document.activeElement.tagName : '';
-          const isActivelyEditing = activeTag === 'INPUT' || activeTag === 'TEXTAREA';
-
-          if (isActivelyEditing) {
-            setRemoteConflicts(prev => {
-              const newConflicts = new Set(prev);
-              for (const ce of changedEntities) newConflicts.add(ce.id);
-              return Array.from(newConflicts);
-            });
-          }
-        }
+      // Practice and intake content ships with the app: add whatever this
+      // device's data lacks, as an edit like any other.
+      const { mergePracticeContent } = await import('./practice/content-loader');
+      const { mergeIntakeContent } = await import('./intake/intake-loader');
+      const base = live.current();
+      if (base) {
+        const next = structuredClone(base);
+        const practice = mergePracticeContent(next);
+        const intake = mergeIntakeContent(next);
+        if (practice || intake) await live.edit({ ...next, lastModified: new Date().toISOString() });
       }
     } catch (e) {
       console.error('Background sync error:', e);
     }
-  }, [data?.calendars?.syncUrl, data?.calendars?.syncSecret]);
+  }, [live]);
 
-  // Boot, Focus, Online triggers
+  /**
+   * Starts a sync, or joins the one already running. `again` is for an edit:
+   * the running sync may have gathered its changes before the edit was saved,
+   * so another follows it.
+   */
+  const runBackgroundSync = useCallback((again = false) => {
+    if (syncing.current) {
+      if (again) syncAgain.current = true;
+      return syncing.current;
+    }
+    syncing.current = (async () => {
+      try {
+        do {
+          syncAgain.current = false;
+          await syncOnce();
+        } while (syncAgain.current);
+      } finally {
+        syncing.current = null;
+      }
+    })();
+    return syncing.current;
+  }, [syncOnce]);
+
+  // Sync once the data is loaded.
   useEffect(() => {
     if (phase === 'ready' && data) {
       runBackgroundSync();
     }
   }, [phase]);
 
+  // Also sync whenever the app comes back on screen: a Home Screen app on the
+  // iPhone or iPad returns from another app without always firing `focus`.
+  // Going off screen sends an edit still waiting for its sync, as iOS may
+  // suspend the app before the two seconds are up, and the other device would
+  // not see it until this one was opened again.
   useEffect(() => {
-    if (phase !== 'ready' || !data) return;
-    const onFocus = () => runBackgroundSync();
-    const onOnline = () => runBackgroundSync();
-    window.addEventListener('focus', onFocus);
-    window.addEventListener('online', onOnline);
-    return () => {
-      window.removeEventListener('focus', onFocus);
-      window.removeEventListener('online', onOnline);
+    if (phase !== 'ready') return;
+    const sync = () => runBackgroundSync();
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') sync();
+      else if (pendingSync.current) {
+        clearTimeout(pendingSync.current);
+        pendingSync.current = null;
+        runBackgroundSync(true);
+      }
     };
-  }, [phase, data, runBackgroundSync]);
+    window.addEventListener('focus', sync);
+    window.addEventListener('online', sync);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('focus', sync);
+      window.removeEventListener('online', sync);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [phase, runBackgroundSync]);
 
   /**
    * Accepts either the next state or a function of the current state.
    * Prefer the function form for anything a user can trigger twice quickly:
-   * it resolves against `dataRef`, which is current the instant the previous
-   * call returns, rather than against whatever the render closure captured.
+   * it resolves against the working copy, which is current the instant the
+   * previous call returns, rather than against whatever the render closure
+   * captured.
    */
   const persist = useCallback(async (mutator) => {
-    const base = dataRef.current;
-    const nextData = typeof mutator === 'function' ? mutator(base) : mutator;
-    dataRef.current = nextData;
-    setData(nextData); // optimistic — render reflects change immediately
+    const nextData = typeof mutator === 'function' ? mutator(live.current()) : mutator;
     setSaving(true);
     setError('');
     // Clear conflicts when we save, as we've presumably reconciled locally
     setRemoteConflicts([]);
     try {
-      await saveData(nextData);
+      await live.edit(nextData); // shown at once, saved in order
       setLastSyncedAt(new Date());
-      
+
       // Debounce push
-      if (window._syncTimeout) clearTimeout(window._syncTimeout);
-      window._syncTimeout = setTimeout(() => {
-        runBackgroundSync();
+      clearTimeout(pendingSync.current);
+      pendingSync.current = setTimeout(() => {
+        pendingSync.current = null;
+        runBackgroundSync(true);
       }, 2000);
 
     } catch (e) {
@@ -303,7 +342,7 @@ export function App() {
     } finally {
       setSaving(false);
     }
-  }, [runBackgroundSync]);
+  }, [live, runBackgroundSync]);
 
   const handleSignIn = async () => {
     setPhase('ready');
@@ -340,7 +379,7 @@ export function App() {
   const theme = (data && data.prefs && data.prefs.theme) || 'light';
   const toggleTheme = () => {
     const next = theme === 'dark' ? 'light' : 'dark';
-    persist({ ...data, prefs: { ...(data.prefs || {}), theme: next }, lastModified: new Date().toISOString() });
+    persist(d => ({ ...d, prefs: { ...(d.prefs || {}), theme: next }, lastModified: new Date().toISOString() }));
   };
   // Settings lives in CalendarScreen (deeply wired to its calendar/routine state);
   // the shell opens it via the existing pendingCalAction channel — behaviour preserved.
@@ -405,9 +444,10 @@ export function App() {
         onSignOut={handleSignOut}
         syncError={syncError}
         lastSyncedAt={lastSyncedAt}
-        onRetrySync={runBackgroundSync}
+        onRetrySync={() => runBackgroundSync()}
       >
-        {pageContent}
+        {/* Keyed by section, so switching section clears a crash. */}
+        <CrashBoundary key={appPage}>{pageContent}</CrashBoundary>
       </AppShell>
       {conflictNotice}
     </>

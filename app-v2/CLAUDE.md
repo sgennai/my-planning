@@ -98,6 +98,14 @@ colour; everything else is neutral.
   edited occurrence. Leaving the Routine editor with unsaved edits (back, close, a tap
   outside) asks too; only Cancel discards without asking. Removing a row inside a form that
   still has Cancel, ticking something done, and resetting a colour do not ask.
+- **A crash is never a blank page.** `ui/CrashScreen.tsx`: a `CrashBoundary` round each
+  section (keyed by `appPage`, so switching section clears it; the pill stays usable) and one
+  round the whole app in `main.tsx`. The card offers Reload and Try again, and the error
+  under Details. It adds no wrapper element, so `.shell-main > .cin` rules still apply.
+- **The weekly review keeps a draft** (`WeeklyResetOverlay`, `ui/widgets.tsx`): answers and
+  phase go to `localStorage` per week (`my-planning-review-draft:<Monday>`) as they are typed,
+  come back on reopening (with Start over, which asks), and are cleared on Save. Nothing in
+  the app opens the review since the Practice menu that did was removed (2026-06-13).
 
 ## Current code structure
 
@@ -346,6 +354,16 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
   a `cursor` (its clock, one minute behind) that the device sends as `since` next time
   (`SYNC_CURSOR_KEY`). Listing by the sender's `updated_at` meant changes uploaded late by an
   offline device were never pulled by a device that synced meanwhile.
+- **Working copy** (`storage/live.ts`): `persist` hands each edit to `createLiveData`, which
+  shows it at once and saves edits in order. After a sync pulls changes, `refresh()` swaps in
+  what IndexedDB holds only once every edit is saved and none arrived during the read, then
+  makes that the save baseline (`adoptSnapshot`) in the same tick. `loadData()` resets the
+  baseline; use `readData()` for anything that only reads (the JSON backup does). Swapping at
+  any other moment let a tick tapped mid-sync vanish, and the next save tombstone it.
+- **When it syncs:** at start-up, on `focus`, `online`, and `visibilitychange` back to
+  visible (a Home Screen app returning from another app does not always fire `focus`), and
+  2 s after an edit. Going hidden sends an edit still waiting for those 2 s. One sync runs at a
+  time: other triggers join it, and an edit made meanwhile queues one more.
 - **Sync Worker** (`../sync-worker`, deployed by hand with `npx wrangler deploy`): schema
   changes go in `sync-worker/migrations/` and are applied to D1 (`wrangler d1 execute
   my-planning-db --remote --file …`) **before** the Worker that uses them, and the app before
@@ -355,7 +373,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (97 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (213 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris

@@ -304,3 +304,37 @@
   .shell-nav::before { display: none; }
   .shell-more-menu { left: calc(100% + var(--sp-2)); bottom: var(--sp-2); }
 }
+
+/* ── A screen that failed to draw (ui/CrashScreen.tsx) ────────────────── */
+.crash {
+  display: grid;
+  place-items: center;
+  padding: var(--sp-8) var(--sp-4);
+}
+/* Round the whole app: no shell, so it pads for the status bar itself. */
+.crash--whole {
+  min-height: 100dvh;
+  box-sizing: border-box;
+  padding-top: calc(var(--sp-8) + env(safe-area-inset-top));
+  padding-bottom: calc(var(--sp-8) + env(safe-area-inset-bottom));
+  background: var(--canvas);
+}
+.crash-card {
+  width: min(100%, 440px);
+  box-sizing: border-box;
+  padding: var(--sp-8) var(--sp-6);
+}
+.crash-title { font-size: var(--t-title); line-height: var(--lh-tight); margin: var(--sp-2) 0 0; }
+.crash-text { margin: var(--sp-3) 0 0; color: var(--ink-2); line-height: var(--lh-body); }
+.crash-actions { display: flex; flex-wrap: wrap; gap: var(--sp-3); margin-top: var(--sp-6); }
+.crash-details { margin-top: var(--sp-6); color: var(--ink-3); font-size: var(--t-meta); }
+.crash-details summary { cursor: pointer; min-height: var(--tap-min); display: flex; align-items: center; }
+.crash-details p { margin: 0 0 var(--sp-2); }
+.crash-details pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  color: var(--ink-2);
+}

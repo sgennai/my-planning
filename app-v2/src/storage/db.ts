@@ -58,7 +58,24 @@ function deepEqual(a: any, b: any) {
   return true;
 }
 
+/** What the database holds now, and the baseline the next save is measured against. */
 export async function loadData() {
+  const data = await readData();
+  if (data) currentSnapshot = JSON.parse(JSON.stringify(data));
+  return data;
+}
+
+/**
+ * Make `data` the baseline the next save is measured against: `saveData`
+ * writes only what differs from it, and marks as deleted what it holds that
+ * `data` lacks. Call it only together with handing `data` to the screen.
+ */
+export function adoptSnapshot(data: any) {
+  currentSnapshot = JSON.parse(JSON.stringify(data));
+}
+
+/** What the database holds now, leaving the save baseline alone. */
+export async function readData() {
   const db = await initDB();
   const tx = db.transaction(Object.values(STORES), 'readonly');
   
@@ -158,7 +175,6 @@ export async function loadData() {
     create: { ideas: createIdeas, posts: createPosts }
   };
 
-  currentSnapshot = JSON.parse(JSON.stringify(data));
   return data;
 }
 

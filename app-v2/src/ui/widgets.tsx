@@ -4,7 +4,7 @@ import { DAY_NAMES_LONG, WEEKLY_RESET_PHASES, WEEKLY_RESET_TOTAL_SECONDS } from 
 import { pad, hexToRgba, ColorPickerExtended } from './helpers';
 import { startOfDay, startOfWeek, addDays, toMinutes, formatDateShort, makeOverrideKey } from '../helpers/calendar-utils';
 import { wmoIcon } from '../helpers/weather';
-import { exportDataBlob, importDataBlob, loadData } from '../storage/db';
+import { exportDataBlob, importDataBlob, readData } from '../storage/db';
 import { App } from '../main-app';
 import { RoutineManagerModal } from '../routine/Routine';
 
@@ -686,7 +686,7 @@ export function SettingsModal({ calendars, icsCache, icsRefreshing, onUpdate, on
   };
 
   const handleExport = async () => {
-    const data = await loadData();
+    const data = await readData();
     exportDataBlob(data);
   };
 
@@ -1054,13 +1054,50 @@ export function FridayReviewLauncher({ now, weeklyResets, onLaunch }) {
 // ═════════════════════════════════════════════════════════════
 // WEEKLY RESET OVERLAY — full-screen guided reflection
 // ═════════════════════════════════════════════════════════════
+
+// A review in progress is kept on this device as it is typed, one draft per
+// week, so Exit, or iOS closing the app in the background, no longer loses
+// the answers: they come back when that week's review is opened again, until
+// it is saved.
+const reviewDraftKey = (weekStart) =>
+  `my-planning-review-draft:${weekStart.getFullYear()}-${pad(weekStart.getMonth() + 1)}-${pad(weekStart.getDate())}`;
+
+function readReviewDraft(key) {
+  try {
+    const draft = JSON.parse(localStorage.getItem(key) || 'null');
+    return draft && draft.answers && typeof draft.answers === 'object' ? draft : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeReviewDraft(key, draft) {
+  try {
+    if (draft) localStorage.setItem(key, JSON.stringify(draft));
+    else localStorage.removeItem(key);
+  } catch {
+    // Storage blocked or full: the review works as before, without a draft.
+  }
+}
+
 export function WeeklyResetOverlay({ weekStart, now, onClose, onSave, onGenerateBlocks }) {
-  const [phaseIdx, setPhaseIdx] = useState(0);
-  const [secondsLeft, setSecondsLeft] = useState(WEEKLY_RESET_PHASES[0].duration);
+  const draftKey = reviewDraftKey(weekStart);
+  const [draft] = useState(() => readReviewDraft(draftKey));
+  const [phaseIdx, setPhaseIdx] = useState(() =>
+    Math.min(Math.max(0, Number(draft?.phaseIdx) || 0), WEEKLY_RESET_PHASES.length - 1));
+  const [secondsLeft, setSecondsLeft] = useState(() => WEEKLY_RESET_PHASES[phaseIdx].duration);
   const [running, setRunning] = useState(false);
-  const [answers, setAnswers] = useState({});
+  const [answers, setAnswers] = useState(() => draft?.answers || {});
   const [saved, setSaved] = useState(false);
+  const [resumed, setResumed] = useState(() => Object.keys(draft?.answers || {}).length > 0);
   const timerRef = useRef(null);
+
+  useEffect(() => {
+    if (saved) return;
+    writeReviewDraft(draftKey, Object.keys(answers).length > 0
+      ? { answers, phaseIdx, keptAt: new Date().toISOString() }
+      : null);
+  }, [draftKey, answers, phaseIdx, saved]);
 
   const currentPhase = WEEKLY_RESET_PHASES[phaseIdx];
   const elapsedInPhase = currentPhase.duration - secondsLeft;
@@ -1102,6 +1139,13 @@ export function WeeklyResetOverlay({ weekStart, now, onClose, onSave, onGenerate
   const handleSave = () => {
     onSave(answers);
     setSaved(true);
+    writeReviewDraft(draftKey, null);
+  };
+  const startOver = () => {
+    if (!window.confirm('Clear your answers and start this review again?')) return;
+    setAnswers({});
+    goPhase(0);
+    setResumed(false);
   };
 
   const fmtTime = (s) => `${pad(Math.floor(s / 60))}:${pad(s % 60)}`;
@@ -1117,6 +1161,13 @@ export function WeeklyResetOverlay({ weekStart, now, onClose, onSave, onGenerate
           </div>
           <button className="reset-exit" onClick={onClose}>✕ Exit</button>
         </div>
+
+        {resumed && !saved && (
+          <div className="reset-resumed">
+            <span>Picked up where you left off.</span>
+            <button className="reset-resumed-clear" onClick={startOver}>Start over</button>
+          </div>
+        )}
 
         <div className="reset-progress-total">
           <div className="reset-progress-total-fill" style={{ width: `${totalProgress * 100}%` }} />
