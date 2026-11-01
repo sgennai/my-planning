@@ -190,7 +190,7 @@ function DevelopmentCard({ dev }: { dev: Development }) {
   return (
     <article className="intel-dev" id={`intel-${dev.id}`}>
       <div className="intel-dev-head">
-        <h3><Markdown inline>{dev.title}</Markdown></h3>
+        <h3><Markdown inline heading>{dev.title}</Markdown></h3>
         <button
           type="button"
           className={`intel-sec-save${saved ? ' on' : ''}`}
@@ -224,6 +224,30 @@ function SectionBody({ p, section }: { p: Presentation; section: Section }) {
       return p.tone === 'question'
         ? <Asked markdown={p.markdown} label={shortTitle(section.title)} section={section} />
         : <div className={`intel-callout is-${p.tone}`}><div className="intel-md"><Markdown>{p.markdown}</Markdown></div></div>;
+    case 'question-list':
+      return (
+        <div className="intel-questions">
+          {p.items.map((q, i) => <Asked key={i} markdown={q} label={shortTitle(section.title)} section={section} />)}
+        </div>
+      );
+    case 'points':
+      return (
+        <ul className="intel-points">
+          {p.items.map((item, i) => (
+            <li key={i}><b><Markdown inline>{item.lead}</Markdown></b><span><Markdown inline>{item.text}</Markdown></span></li>
+          ))}
+        </ul>
+      );
+    case 'watchlist':
+      return (
+        <dl className="intel-watchlist">
+          {p.items.map((item, i) => (
+            <div key={i}><dt><Markdown inline>{item.name}</Markdown></dt><dd><Markdown inline>{item.text}</Markdown></dd></div>
+          ))}
+        </dl>
+      );
+    case 'development':
+      return <Parts parts={p.parts} sectionId={section.id} sectionTitle={section.title} />;
     case 'developments':
       return (
         <>
@@ -509,14 +533,14 @@ function Reader({
         {displayed.map(s => s.role === 'title' ? (
           // The document's own title line, and what it says before its first section.
           <div key={s.id} id={`intel-${s.id}`} className="intel-doc-title">
-            <p className="intel-doc-title-text"><Markdown inline>{s.title}</Markdown></p>
+            <p className="intel-doc-title-text"><Markdown inline heading>{s.title}</Markdown></p>
             {s.markdown && <div className="intel-md"><Markdown>{s.markdown}</Markdown></div>}
           </div>
         ) : (
-          <section key={s.id} id={`intel-${s.id}`} className="intel-sec">
+          <section key={s.id} id={`intel-${s.id}`} className={`intel-sec${presented.get(s.id)?.kind === 'development' ? ' intel-sec--dev' : ''}`}>
             {s.title && (
               <div className="intel-sec-head">
-                <h2><Markdown inline>{s.title}</Markdown></h2>
+                <h2><Markdown inline heading>{s.title}</Markdown></h2>
                 {onToggleSave && <SectionSave section={s} />}
               </div>
             )}

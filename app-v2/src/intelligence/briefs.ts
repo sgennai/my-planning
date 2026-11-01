@@ -1,10 +1,11 @@
-// The Enterprise AI Sales Brief, read as its task writes it. Its
-// developments are made of labelled parts: a
+// The Enterprise AI Sales Brief and the Customer Engagement Brief, read as
+// their tasks write them. Their developments are made of labelled parts: a
 // label on its own line ("**What happened**", "**Executive question**") or at
 // the head of a paragraph ("**Sales implication:** …"). Each part keeps its
 // label and its words; a label the app does not know is still a part, shown
-// plainly. The other sections take a form (a summary, a callout) only when
-// they fit it entirely, and are otherwise shown as the Markdown they are.
+// plainly. The other sections take a form (a summary, a callout, a list of
+// questions or points, a watchlist) only when they fit it entirely, and are
+// otherwise shown as the Markdown they are.
 import { slugOf, type Section } from './parse';
 import { blocksOf, keyOf, SEPARATOR, PLAIN, unlabel } from './blocks';
 
@@ -24,16 +25,23 @@ export interface Development {
 }
 
 export type BriefPresentation =
-  /** What to remember: the edition in brief. */
+  /** What to remember, the executive take: the edition in brief. */
   | { kind: 'summary'; markdown: string }
   /** A section holding developments under deeper headings (the Sales Brief's themes). */
   | { kind: 'developments'; themes: string[] | null; intro: string; items: Development[] }
-  | { kind: 'callout'; tone: 'question' | 'insight' | 'watch'; markdown: string };
+  /** A section that is itself one development (the Engagement Brief's numbered ones). */
+  | { kind: 'development'; parts: Part[] }
+  | { kind: 'callout'; tone: 'question' | 'insight' | 'watch'; markdown: string }
+  /** Questions to ask, each to copy or keep. */
+  | { kind: 'question-list'; items: string[] }
+  | { kind: 'points'; items: { lead: string; text: string }[] }
+  | { kind: 'watchlist'; items: { name: string; text: string }[] };
 
 const LABEL_ONLY = /^\*\*((?:(?!\*\*)[^\n]){1,80}?)\*\*:?$/;
 const LABEL_INLINE = /^\*\*((?:(?!\*\*)[^\n]){1,80}?)(?::\*\*|\*\*:)\s+([\s\S]+)$/;
 const RULE = /^(?:-{3,}|\*{3,}|_{3,})$/;
 const HEADING = /^(#{2,6})[ \t]+(.+?)[ \t]*#*[ \t]*$/;
+const QUOTED = /^["“«]/;
 
 /** What a part is, from its label, for how it is shown. */
 export function toneOf(label: string): PartTone {
@@ -76,6 +84,33 @@ export function partsOf(markdown: string): Part[] {
   return parts.map(p => ({ label: p.label, tone: p.label ? toneOf(p.label) : 'plain', markdown: p.blocks.join('\n\n') }));
 }
 
+/** The items of a section that is one list and nothing else, or null. */
+function listItems(markdown: string): string[] | null {
+  const blocks = blocksOf(markdown);
+  if (blocks.length !== 1) return null;
+  const items: string[] = [];
+  for (const line of blocks[0].split('\n')) {
+    const item = /^[-*+]\s+(.*)$/.exec(line);
+    if (item) items.push(item[1].trim());
+    else if (items.length && /^\s+\S/.test(line)) items[items.length - 1] += ` ${line.trim()}`;
+    else return null;
+  }
+  return items.length ? items : null;
+}
+
+/** "**Name:** text" items: the watchlist, the talking points. */
+function labelledItems(markdown: string): { lead: string; text: string }[] | null {
+  const items = listItems(markdown);
+  if (!items) return null;
+  const out: { lead: string; text: string }[] = [];
+  for (const item of items) {
+    const m = LABEL_INLINE.exec(item);
+    if (!m) return null;
+    out.push({ lead: unlabel(m[1]), text: m[2].trim() });
+  }
+  return out;
+}
+
 /** A section holding its developments under deeper headings, or null. */
 function developments(section: Section): BriefPresentation | null {
   const lines = section.markdown.split('\n');
@@ -102,15 +137,31 @@ function developments(section: Section): BriefPresentation | null {
   return { kind: 'developments', themes, intro: introBlocks.join('\n\n'), items };
 }
 
-/** The form a section of the Sales Brief takes, or null for Markdown as written. */
+/** The form a section of the Sales or Engagement Brief takes, or null for Markdown as written. */
 export function presentBrief(section: Section): BriefPresentation | null {
   const { markdown } = section;
   const key = keyOf(section.title);
   if (!key || section.role === 'title') return null;
-  if (/what i should remember/.test(key)) return { kind: 'summary', markdown };
+  if (/what i should remember|^executive take$/.test(key)) return { kind: 'summary', markdown };
   if (/executive themes/.test(key)) return developments(section);
+  if (/^\d+ /.test(key)) {
+    const parts = partsOf(markdown);
+    return parts.some(p => p.label) ? { kind: 'development', parts } : null;
+  }
   if (/^best executive question/.test(key)) return { kind: 'callout', tone: 'question', markdown };
   if (/contrarian/.test(key)) return { kind: 'callout', tone: 'insight', markdown };
   if (/^development to (watch|monitor)/.test(key)) return { kind: 'callout', tone: 'watch', markdown };
+  if (/questions/.test(key)) {
+    const items = listItems(markdown);
+    return items && items.every(i => QUOTED.test(i)) ? { kind: 'question-list', items } : null;
+  }
+  if (/talking points/.test(key)) {
+    const items = labelledItems(markdown);
+    return items ? { kind: 'points', items } : null;
+  }
+  if (/watchlist/.test(key)) {
+    const items = labelledItems(markdown);
+    return items ? { kind: 'watchlist', items: items.map(i => ({ name: i.lead, text: i.text })) } : null;
+  }
   return null;
 }

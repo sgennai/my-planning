@@ -16,6 +16,11 @@ const BLOCK: Components = {
 };
 const INLINE: Components = { ...BLOCK, p: (p) => <>{p.children}</> };
 
-export function Markdown({ children, inline = false }: { children: string; inline?: boolean }) {
-  return <ReactMarkdown remarkPlugins={PLUGINS} components={inline ? INLINE : BLOCK}>{children}</ReactMarkdown>;
+/**
+ * `heading`: the text is a title, so "1. Vendor news" is a numbered title and
+ * not a one-item list.
+ */
+export function Markdown({ children, inline = false, heading = false }: { children: string; inline?: boolean; heading?: boolean }) {
+  const text = heading ? children.replace(/^(\s*)(\d+)([.)])(\s)/, '$1$2\\$3$4').replace(/^(\s*)([-*+])(\s)/, '$1\\$2$3') : children;
+  return <ReactMarkdown remarkPlugins={PLUGINS} components={inline ? INLINE : BLOCK}>{text}</ReactMarkdown>;
 }

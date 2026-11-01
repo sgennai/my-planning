@@ -1,20 +1,22 @@
 // @vitest-environment jsdom
-// The Enterprise AI Sales Brief: its developments as labelled parts, its
-// other sections in their forms, leading with what to remember, and the
-// promise behind all of it: every word on screen.
+// The Enterprise AI Sales Brief and the Customer Engagement Brief: their
+// developments as labelled parts, their other sections in their forms, the
+// Sales Brief leading with what to remember, and the promise behind all of
+// it: every word on screen.
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
 import { parseEdition, splitSections } from './parse';
 import { presentSection, displayOrder } from './present';
 import { partsOf, toneOf } from './briefs';
 import { EditionReader } from './EditionReader';
-import { SALES_DOC, SALES_FILE, SALES_BODY, wordsOf } from './test-fixtures';
+import { SALES_DOC, SALES_FILE, SALES_BODY, ENGAGEMENT_DOC, ENGAGEMENT_FILE, ENGAGEMENT_BODY, wordsOf } from './test-fixtures';
 
 vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} });
 Element.prototype.scrollTo = function scrollTo() {};
 afterEach(cleanup);
 
 const sales = parseEdition('enterprise-ai-sales-brief', SALES_FILE, SALES_DOC);
+const engagement = parseEdition('customer-engagement-brief', ENGAGEMENT_FILE, ENGAGEMENT_DOC);
 const sectionOf = (body: string, title: string) => splitSections(body).find(s => s.title.startsWith(title))!;
 const show = (e: typeof sales) =>
   render(<EditionReader edition={e} scroller={{ current: document.createElement('div') }} onNote={() => {}} onToggleSave={() => {}} />).container;
@@ -81,5 +83,53 @@ describe('the Sales Brief', () => {
     expect(screen.getByRole('button', { name: 'Copy: How I can respond' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Copy: LinkedIn angle' })).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'Copy: Best executive question today' })).toHaveLength(1);
+  });
+});
+
+describe('the Customer Engagement Brief', () => {
+  it('its numbered sections are developments of labelled parts', () => {
+    const p = presentSection('customer-engagement-brief', sectionOf(ENGAGEMENT_BODY, '1. Vendor A'));
+    expect(p.kind).toBe('development');
+    if (p.kind !== 'development') return;
+    expect(p.parts.map(x => [x.label, x.tone])).toEqual([
+      ['Confirmed — 30 October', 'fact'], ['Interpretation — why it matters', 'interpretation'], ['Sales implication', 'implication'],
+      ['Banking relevance', 'banks'], ['Be ready to discuss', 'prep'], ['Executive discovery question', 'question'],
+    ]);
+  });
+
+  it('talking points, customer questions and the watchlist each take their form', () => {
+    const kind = (t: string) => presentSection('customer-engagement-brief', sectionOf(ENGAGEMENT_BODY, t));
+    expect(kind('Executive take').kind).toBe('summary');
+    expect(kind('Three executive talking points')).toEqual({ kind: 'points', items: [
+      { lead: 'Engagement is going headless', text: 'value shifts to governed data.' },
+      { lead: 'Agents automate the operating model', text: 'approvals need design.' },
+    ] });
+    expect(kind('Three customer questions worth asking')).toEqual({ kind: 'question-list', items: ['“Which workflows could run headless?”', '“Which system keeps the approval record?”'] });
+    expect(kind('Competitive watchlist')).toEqual({ kind: 'watchlist', items: [
+      { name: 'Vendor A', text: 'Production evidence after beta.' },
+      { name: 'Vendor B', text: 'Permission granularity.' },
+      { name: 'Vendor C and Vendor D', text: 'Third-party agent coverage.' },
+    ] });
+    expect(kind('Contrarian insight')).toEqual({ kind: 'callout', tone: 'insight', markdown: 'Headless can deepen lock-in.' });
+    expect(kind('Development to monitor next').kind).toBe('callout');
+  });
+
+  it('a list that is not all questions, or a watchlist without names, stays as written', () => {
+    const odd = { id: 'x', title: 'Three customer questions worth asking', markdown: '- “A question?”\n- A statement.' };
+    expect(presentSection('customer-engagement-brief', odd).kind).toBe('markdown');
+    const loose = { id: 'y', title: 'Competitive watchlist', markdown: '- Vendor A is one to watch.' };
+    expect(presentSection('customer-engagement-brief', loose).kind).toBe('markdown');
+  });
+
+  it('on screen: every word, the coverage line under its title, each development a card', () => {
+    const c = show(engagement);
+    const text = c.textContent!;
+    for (const word of wordsOf(ENGAGEMENT_BODY)) expect(text).toContain(word);
+    expect(c.querySelector('.intel-doc-title')).toHaveTextContent('Enterprise Customer Engagement BriefCoverage: 26 October – 2 November 2026');
+    expect(c.querySelectorAll('.intel-watchlist dt')).toHaveLength(3);
+    expect(screen.getAllByRole('button', { name: /^Copy: Executive discovery question$/ })).toHaveLength(2);
+    expect(screen.getAllByRole('button', { name: /^Copy: Three customer questions worth asking$/ })).toHaveLength(2);
+    const heading = screen.getByRole('heading', { level: 2, name: '1. Vendor A connects agents end to end' });
+    expect(heading.querySelector('ol, li')).toBeNull();
   });
 });
