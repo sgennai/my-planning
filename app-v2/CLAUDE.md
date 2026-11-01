@@ -305,7 +305,10 @@ calendar fields.
 ## Intelligence (`src/intelligence/`)
 
 A reader for three ChatGPT scheduled-task feeds, specified in
-`../intelligence-dashboard-implementation-brief.md`. Each run writes one private Google Doc of
+`../intelligence-dashboard-implementation-brief.md`. **Remaining work lives only in
+`../intelligence-roadmap.md`** (task IDs `INT-xx`, awaiting approval as of 2026-11-01); it
+supersedes the report's and the consolidated backlog's lists. Those files sit in the main
+checkout's root, untracked. Each run writes one private Google Doc of
 literal Markdown (a small YAML header, then the briefing) into its folder in a dedicated Gmail
 account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order).
 
@@ -360,6 +363,59 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
 - **Today** (`TodayView.tsx`): the newest edition of each feed in `FEEDS` order (AI Challenge,
   sales brief, customer engagement) with New / Updated / n % read / Read, a preview taken from
   its own first lines (`previewOf`), and Read / Continue · section / Read again.
+- **Reading state** (`reading.ts`): one synced `progressLog` record per edition,
+  `ir:<driveFileId>`, type `intel-reading`, value `{ feedId, progress (furthest, 0–1), section
+  (last), readAt }`. Written when scrolling rests (1.2 s), on leaving the edition, and when the
+  app is hidden; only a new section, +10 % or the end is worth a write. The end marks it read;
+  Mark as unread starts over. An edition reopens at its last section while unread. "Updated" =
+  Drive's `modifiedTime` after `readAt`.
+- **Takeaways** (the brief's "À retenir"; `saved.ts`, `SavedView.tsx`): synced `content` records `is:<uuid>`, type
+  `intel-saved`, kinds edition / section / labelled (a question or the rehearse line) / term /
+  passage (selected text, via a button at the foot because iOS gives web apps no selection
+  menu). Each keeps the words as written plus the edition's title, date, time and link, so it
+  shows on a device that never fetched the edition. Note, tags (comma-separated), search
+  (every word, any field, accents and case ignored), tag filter, a way back to the section.
+  Every save button toggles; taking something out asks first (`window.confirm`).
+- **Today** (`TodayView.tsx`): the newest edition of each feed in `FEEDS` order (AI Challenge,
+  sales brief, customer engagement) with New / Updated / n % read / Read, a preview taken from
+  its own first lines (`previewOf`), and Read / Continue · section / Read again.
+- **Conformance** (`conformance.ts`, `FeedStatus.tsx`): per edition — header problems
+  (`issues`), duplicate filenames (all kept, labelled), empty bodies ("Incomplete" after a
+  30-min grace from Drive's `createdTime`, "Being written" before; judged on a 1-min clock),
+  `origin` (`"backfill"` → "Imported"; absent → unknown, "Possibly imported" in the sheet only
+  when created > 6 h after `generated_at`). A notice on the edition, a label in lists and on
+  Today, a status line with Details, and the Feed status sheet (editions, newest, last
+  scheduled publication, last check, problems) from that line, each list head and Today.
+  Missing vs late runs is for feed health (INT-30), which needs the schedules.
+- **Reading state** (`reading.ts`): one synced `progressLog` record per edition,
+  `ir:<driveFileId>`, type `intel-reading`, value `{ feedId, progress (furthest, 0–1), section
+  (last), readAt }`. Written when scrolling rests (1.2 s), on leaving the edition, and when the
+  app is hidden; only a new section, +10 % or the end is worth a write. The end marks it read;
+  Mark as unread starts over. An edition reopens at its last section while unread. "Updated" =
+  Drive's `modifiedTime` after `readAt`.
+- **Takeaways** (the brief's "À retenir"; `saved.ts`, `SavedView.tsx`): synced `content` records `is:<uuid>`, type
+  `intel-saved`, kinds edition / section / labelled (a question or the rehearse line) / term /
+  passage (selected text, via a button at the foot because iOS gives web apps no selection
+  menu). Each keeps the words as written plus the edition's title, date, time and link, so it
+  shows on a device that never fetched the edition. Note, tags (comma-separated), search
+  (every word, any field, accents and case ignored), tag filter, a way back to the section.
+  Every save button toggles; taking something out asks first (`window.confirm`).
+- **Today** (`TodayView.tsx`): the newest edition of each feed in `FEEDS` order (AI Challenge,
+  sales brief, customer engagement) with its age (Today / Yesterday / date · n days ago),
+  New / Updated / n % read / Read, a preview taken from its own first lines (`previewOf`), and
+  Read / Continue · section / Read again, plus "k older unread" (opens the feed). Below, "Still
+  unread": every other unread edition across feeds, newest first, folded after five. "n unread"
+  beside the date. "No edition yet" names only feeds Drive has answered for.
+- **Conformance** (`conformance.ts`, `FeedStatus.tsx`): per edition — header problems
+  (`issues`), duplicate filenames (all kept, labelled), empty bodies ("Incomplete" after a
+  30-min grace from Drive's `createdTime`, "Being written" before; judged on a 1-min clock),
+  `origin` (`"backfill"` → "Imported"; absent → unknown, "Possibly imported" in the sheet only
+  when created > 6 h after `generated_at`). A notice on the edition, a label in lists and on
+  Today, a status line with Details, and the Feed status sheet (editions, newest, last
+  scheduled publication, last check, problems) from that line, each list head and Today.
+  Missing vs late runs is for feed health (INT-30), which needs the schedules.
+- **Topic map:** today's topics first under the document's label; "All topics (n)" unfolds the
+  whole map with today's still lit.
 - **Local development** with real documents: `.dev.vars` in `app-v2` holds
   `GOOGLE_SERVICE_ACCOUNT` (gitignored, never read by tools). Run
   `npx wrangler pages dev <any folder> --port 8788 --binding BASIC_AUTH_USER=dev --binding BASIC_AUTH_PASS=dev`
