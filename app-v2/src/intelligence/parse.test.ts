@@ -165,3 +165,19 @@ describe('sections', () => {
     expect(slugOf('🔥')).toBe('');
   });
 });
+
+describe('a document with its own title line', () => {
+  it('keeps the title and what follows it apart, and cuts at the next level', () => {
+    const s = splitSections('# Brief — 1 Nov\n\n**Coverage: last week**\n\n## Themes\n\nText.\n\n### A development\n\nMore.\n\n## Remember\n\n- One.');
+    expect(s.map(x => [x.title, x.role ?? null])).toEqual([['Brief — 1 Nov', 'title'], ['Themes', null], ['Remember', null]]);
+    expect(s[0].markdown).toBe('**Coverage: last week**');
+    expect(s[1].markdown).toBe('Text.\n\n### A development\n\nMore.');
+  });
+
+  it('only when that heading opens the document and is the only one of its level', () => {
+    expect(splitSections('Intro.\n\n# One\n\n## A\n\nx').map(x => x.role ?? null)).toEqual([null, null]);
+    expect(splitSections('# One\n\n## A\n\n# Two\n\nx').map(x => x.title)).toEqual(['One', 'Two']);
+    expect(splitSections('# Only\n\nAll the text.').map(x => [x.title, x.role ?? null])).toEqual([['Only', null]]);
+  });
+});
+

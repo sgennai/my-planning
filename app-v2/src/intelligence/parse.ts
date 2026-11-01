@@ -178,6 +178,8 @@ export interface Section {
   title: string;
   /** Everything under the heading, as written, without the heading line. */
   markdown: string;
+  /** The document's own title line, with any text before the first section. */
+  role?: 'title';
 }
 
 /** Lower-case ASCII words joined by dashes: "À retenir" → "a-retenir". */
@@ -192,7 +194,10 @@ const FENCE = /^[ \t]{0,3}(`{3,}|~{3,})/;
 /**
  * The body cut at its top-level headings: the shallowest level it uses, so a
  * brief written with `##` sections keeps its `###` parts inside them. Text in
- * code fences is never taken for a heading.
+ * code fences is never taken for a heading. A document that opens with the
+ * only heading of its level ("# Enterprise AI Sales Brief — 1 November") has
+ * that line as its title: it is kept, with the text under it, as a section of
+ * its own, and the sections are the next level down.
  */
 export function splitSections(body: string): Section[] {
   const lines = body.split('\n');
@@ -209,20 +214,27 @@ export function splitSections(body: string): Section[] {
     const m = HEADING.exec(line);
     if (m) headings.push({ line: i, level: m[1].length, title: m[2] });
   });
-  const top = Math.min(...headings.map(h => h.level));
+  let top = Math.min(...headings.map(h => h.level));
+  const atTop = headings.filter(h => h.level === top);
+  const deeper = headings.filter(h => h.level > top);
+  const opening = lines.findIndex(l => l.trim());
+  const titleLine = atTop.length === 1 && atTop[0].line === opening && deeper.length ? atTop[0] : null;
+  if (titleLine) top = Math.min(...deeper.map(h => h.level));
   const cuts = headings.filter(h => h.level === top);
 
   const sections: Section[] = [];
   const used = new Map<string, number>();
-  const add = (title: string, from: number, to: number) => {
+  const add = (title: string, from: number, to: number, role?: 'title') => {
     const markdown = lines.slice(from, to).join('\n').replace(/^\n+|\n+$/g, '');
     if (!title && !markdown.trim()) return;
     const base = slugOf(title) || `section-${sections.length + 1}`;
     const n = used.get(base) ?? 0;
     used.set(base, n + 1);
-    sections.push({ id: n ? `${base}-${n + 1}` : base, title, markdown });
+    sections.push({ id: n ? `${base}-${n + 1}` : base, title, markdown, ...(role && { role }) });
   };
-  add('', 0, cuts.length ? cuts[0].line : lines.length);
+  const first = cuts.length ? cuts[0].line : lines.length;
+  if (titleLine) add(titleLine.title, titleLine.line + 1, first, 'title');
+  else add('', 0, first);
   cuts.forEach((c, i) => add(c.title, c.line + 1, i + 1 < cuts.length ? cuts[i + 1].line : lines.length));
   return sections;
 }

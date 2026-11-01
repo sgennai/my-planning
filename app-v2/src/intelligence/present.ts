@@ -151,20 +151,35 @@ export function plainText(markdown: string): string {
 }
 
 const PREVIEW_MAX = 220;
+const LIST_BLOCK = /^\s*(?:[-*+]|\d+[.)])\s/;
 
 /**
- * A few lines to know an edition by, taken from its own words: the first
- * paragraph of "What I should remember today", else of the Challenge, else of
- * the first section that is prose. Cut at a word, with an ellipsis.
+ * A section in a line or two, in its own words: its first paragraph or, when
+ * it opens with a list (or with a line introducing one), the list's points.
+ */
+function gistOf(section: Section): string | null {
+  const blocks = blocksOf(section.markdown);
+  const list = blocks.findIndex(b => LIST_BLOCK.test(b));
+  if (list === 0 || (list === 1 && /:\s*$/.test(plainText(blocks[0])))) {
+    return blocks[list].split('\n').filter(l => LIST_BLOCK.test(l)).map(plainText).join(' ');
+  }
+  const prose = blocks.find(b => !LIST_BLOCK.test(b) && !SEPARATOR.test(b));
+  return prose ? plainText(prose) : null;
+}
+
+/**
+ * A few lines to know an edition by, taken from its own words: "What I
+ * should remember today", else the "Executive take", else the Challenge,
+ * else the first section that says something. Cut at a word, with an ellipsis.
  */
 export function previewOf(sections: Section[]): string | null {
-  const prose = (s: Section) => blocksOf(s.markdown).find(b => !/^\s*(?:[-*+]|\d+[.)])\s/.test(b) && !SEPARATOR.test(b));
-  const pick = sections.find(s => /what i should remember/.test(keyOf(s.title)))
-    ?? sections.find(s => keyOf(s.title) === 'challenge')
-    ?? sections.find(s => s.title && prose(s));
-  const block = pick && prose(pick);
-  if (!block) return null;
-  const text = plainText(block);
+  const body = sections.filter(s => s.role !== 'title' && s.title);
+  const pick = body.find(s => /what i should remember/.test(keyOf(s.title)))
+    ?? body.find(s => keyOf(s.title) === 'executive take')
+    ?? body.find(s => keyOf(s.title) === 'challenge')
+    ?? body.find(s => gistOf(s));
+  const text = pick && gistOf(pick);
+  if (!text) return null;
   if (text.length <= PREVIEW_MAX) return text;
   return `${text.slice(0, text.lastIndexOf(' ', PREVIEW_MAX - 1)).replace(/[,;:.\s]+$/, '')}…`;
 }

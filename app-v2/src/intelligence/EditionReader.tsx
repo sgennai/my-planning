@@ -257,7 +257,7 @@ function Reader({
   edition, scroller, onNote, heroActions = true, reading, saved = [], onToggleRead, onToggleSave, onPosition, startAt, flags = [],
 }: Props) {
   const sections = useMemo(() => splitSections(edition.markdownBody), [edition.markdownBody]);
-  const indexed = useMemo(() => sections.filter(s => s.title), [sections]);
+  const indexed = useMemo(() => sections.filter(s => s.title && s.role !== 'title'), [sections]);
   const feed = feedById(edition.feedId);
   const record = reading?.get(edition.driveFileId);
   const articleRef = useRef<HTMLElement | null>(null);
@@ -423,7 +423,13 @@ function Reader({
           </nav>
         )}
 
-        {sections.map(s => (
+        {sections.map(s => s.role === 'title' ? (
+          // The document's own title line, and what it says before its first section.
+          <div key={s.id} id={`intel-${s.id}`} className="intel-doc-title">
+            <p className="intel-doc-title-text"><Markdown inline>{s.title}</Markdown></p>
+            {s.markdown && <div className="intel-md"><Markdown>{s.markdown}</Markdown></div>}
+          </div>
+        ) : (
           <section key={s.id} id={`intel-${s.id}`} className="intel-sec">
             {s.title && (
               <div className="intel-sec-head">

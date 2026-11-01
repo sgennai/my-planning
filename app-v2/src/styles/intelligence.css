@@ -773,3 +773,8 @@
 .intel-catchup h2 { color: var(--ink-3); }
 .intel-catchup .intel-ed { background: var(--surface); border-color: var(--hairline); }
 .intel-today-actions .intel-linkbtn { align-self: center; }
+
+/* The document's own title line ("# Enterprise AI Sales Brief — 1 November"). */
+.intel-doc-title { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-5) 0 0; }
+.intel-doc-title-text { margin: 0; font-size: var(--t-meta); font-weight: 600; color: var(--ink-3); }
+.intel-doc-title .intel-md { font-size: 15px; color: var(--ink-2); }

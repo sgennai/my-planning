@@ -73,8 +73,8 @@ describe('the AI Challenge sections', () => {
     expect(presentSection('enterprise-ai-challenge', vocab).kind).toBe('markdown');
   });
 
-  it('the other feeds are shown as written, for now', () => {
-    expect(presentSection('enterprise-ai-sales-brief', section('3 approaches')).kind).toBe('markdown');
+  it('a section the other feeds have no form for is shown as written', () => {
+    expect(presentSection('enterprise-ai-sales-brief', section('Business impact')).kind).toBe('markdown');
   });
 });
 
@@ -96,14 +96,17 @@ describe('small things', () => {
     expect(readingMinutes('word '.repeat(660))).toBe(3);
   });
 
-  it("Today's preview is the edition's own first lines: the brief's summary, else the challenge", () => {
+  it("Today's preview is the edition's own words: what to remember, the executive take, else the challenge", () => {
     expect(previewOf(sections)).toBe('Teams are deploying AI agents faster than anyone can list them.');
-    const brief = splitSections('## Market\n\nBanks buy.\n\n## What I should remember today\n\n- one\n\nThe **single** thing: [agents](https://x.y) win.');
-    expect(previewOf(brief)).toBe('The single thing: agents win.');
+    const brief = splitSections('# Brief — 1 Nov\n\n## Themes\n\nBanks buy.\n\n## What I should remember today\n\n- One **thing**.\n- Another, [linked](https://x.y).');
+    expect(previewOf(brief)).toBe('One thing. Another, linked.');
+    const engagement = splitSections('# Engagement Brief\n\n**Coverage: last week**\n\n## Executive take\n\nTwo things cleared the bar:\n\n- First thing.\n- Second thing.\n\n## 1. Vendor news\n\nText.');
+    expect(previewOf(engagement)).toBe('First thing. Second thing.');
     const long = splitSections(`## Note\n\n${'word '.repeat(80)}`);
     expect(previewOf(long)!.length).toBeLessThanOrEqual(221);
     expect(previewOf(long)).toMatch(/word…$/);
-    expect(previewOf(splitSections('## List only\n\n- a\n- b'))).toBeNull();
+    expect(previewOf(splitSections('## List only\n\n- a\n- b'))).toBe('a b');
+    expect(previewOf(splitSections('Just a line, no sections.'))).toBeNull();
     expect(plainText('> **Bold** and [link](https://x.y) `code`')).toBe('Bold and link code');
   });
 
