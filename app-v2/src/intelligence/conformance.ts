@@ -8,6 +8,7 @@
 // checks again. Whether a scheduled run is late or missing is for feed health,
 // which knows the schedules; this only reports what Drive holds.
 import type { Edition } from './parse';
+import { citationsIn } from './citations';
 
 /** How long a new document may take to be written before it is judged. */
 export const WRITING_GRACE_MS = 30 * 60 * 1000;
@@ -23,6 +24,8 @@ export type EditionFlag =
   | { kind: 'format'; issues: string[] }
   /** Another document in the feed has the same name. */
   | { kind: 'duplicate'; copies: number }
+  /** ChatGPT citation markers with no link: sources that cannot be followed. */
+  | { kind: 'citations'; count: number }
   /** `origin: "backfill"`. */
   | { kind: 'imported' }
   /** No `origin`, and created in Drive long after its stated time. Never proof. */
@@ -37,7 +40,7 @@ export interface FeedConformance {
 }
 
 /** Flags that make the feed's status line ask for a look. */
-export const NEEDS_A_LOOK: EditionFlag['kind'][] = ['incomplete', 'format', 'duplicate'];
+export const NEEDS_A_LOOK: EditionFlag['kind'][] = ['incomplete', 'format', 'duplicate', 'citations'];
 
 const age = (e: Edition, now: number) => now - Date.parse(e.createdTime ?? e.modifiedTime);
 
@@ -55,6 +58,8 @@ export function conformanceOf(editions: Edition[], now: number): FeedConformance
       if (empty) list.push({ kind: 'incomplete' });
       if (e.issues.length) list.push({ kind: 'format', issues: e.issues });
     }
+    const markers = citationsIn(e.markdownBody).length;
+    if (markers) list.push({ kind: 'citations', count: markers });
     const copies = byName.get(e.fileName) ?? 1;
     if (copies > 1) list.push({ kind: 'duplicate', copies });
     if (e.origin === 'backfill') list.push({ kind: 'imported' });
@@ -75,6 +80,7 @@ export function noticeOf(flag: EditionFlag): string | null {
     case 'incomplete': return 'This document has no briefing text after its header. It may not have finished publishing.';
     case 'format': return `This document doesn't follow the publication format (${flag.issues.join('; ')}). It is shown as written, with the date and title taken from what is there.`;
     case 'duplicate': return `${flag.copies} documents in this feed have the same name. All of them are kept.`;
+    case 'citations': return `${flag.count === 1 ? 'One source is' : `${flag.count} sources are`} cited with a ChatGPT marker instead of a link, shown as “source not linked”. No link is guessed; the publishing task should write the source's own link.`;
     case 'possibly-imported': return `Its header doesn't say how it was published, and Drive created it ${flag.hours} h after its stated time: it was probably imported by hand.`;
     default: return null;
   }
@@ -86,6 +92,7 @@ export function labelOf(list: EditionFlag[] | undefined): string | null {
   if (kinds.has('writing')) return 'Being written';
   if (kinds.has('incomplete')) return 'Incomplete';
   if (kinds.has('duplicate')) return 'Duplicate';
+  if (kinds.has('citations')) return 'Unlinked sources';
   if (kinds.has('format')) return 'Format issue';
   if (kinds.has('imported')) return 'Imported';
   return null;

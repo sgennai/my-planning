@@ -778,3 +778,18 @@
 .intel-doc-title { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-5) 0 0; }
 .intel-doc-title-text { margin: 0; font-size: var(--t-meta); font-weight: 600; color: var(--ink-3); }
 .intel-doc-title .intel-md { font-size: 15px; color: var(--ink-2); }
+
+/* A ChatGPT citation marker with no link (citations.ts). */
+.intel-cite {
+  display: inline-block;
+  margin: 0 2px;
+  padding: 0 7px;
+  border-radius: var(--r-pill);
+  background: var(--alert-tint);
+  color: var(--alert);
+  font-size: 0.78em;
+  font-style: normal;
+  font-weight: 600;
+  vertical-align: 0.1em;
+  white-space: nowrap;
+}
