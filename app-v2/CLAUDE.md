@@ -376,6 +376,22 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   Missing vs late runs is for feed health (INT-30), which needs the schedules.
 - **Topic map:** today's topics first under the document's label; "All topics (n)" unfolds the
   whole map with today's still lit.
+- **Sales and Engagement Briefs** (`briefs.ts`): a single opening `# Title` is the document's
+  title (`Section.role = 'title'`, shown under the header with its text) and sections cut at the
+  next level. Developments are labelled parts (`partsOf`: a `**Label**` line, or a paragraph
+  opening `**Label:**`), each with a tone from its label (fact, interpretation, question,
+  response, quote, banks, usecase, unica, implication, prep, plain); questions, responses and the
+  LinkedIn angle get Copy and Save. Sales: themes → `developments` (`###` cards with their own
+  index chips, `is-sub`), and the brief leads with "What I should remember today"
+  (`displayOrder`). Engagement: numbered `##` sections → `development` cards; talking points,
+  customer questions and the competitive watchlist take their forms. Developments fold
+  (`FoldsContext`, all open by default; a chip opens before scrolling). Any section that does not
+  fit is Markdown as written; `briefs.test.tsx` checks every word on screen.
+- **Sources** (`citations.ts`): ChatGPT citation markers render as "source not linked" (marker in
+  the tooltip, no link guessed) and are a conformance problem ("Unlinked sources");
+  `sources.test.tsx` checks every link arrives exactly as written. Test fixtures for both briefs
+  (`test-fixtures.ts`) copy the real structure with made-up words: real briefing text stays out of
+  the repo.
 - **Local development** with real documents: `.dev.vars` in `app-v2` holds
   `GOOGLE_SERVICE_ACCOUNT` (gitignored, never read by tools). Run
   `npx wrangler pages dev <any folder> --port 8788 --binding BASIC_AUTH_USER=dev --binding BASIC_AUTH_PASS=dev`
@@ -463,7 +479,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (285 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (333 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris
