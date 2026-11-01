@@ -1,7 +1,7 @@
 // The Intelligence section: the ChatGPT briefings, read from private Google
 // Docs in Drive through /api/intel, newest first, at reading size.
 //
-// Views: Today (the newest of each feed), one per feed, and À retenir. In a
+// Views: Today (the newest of each feed), one per feed, and Takeaways. In a
 // feed, iPad landscape and desktop show the editions on the left and the
 // reader beside them; iPad portrait gives the reader the width and slides the
 // list in from "Editions"; a phone shows one pane at a time.
@@ -39,7 +39,7 @@ const editionKey = (feedId: FeedId) => `my-planning-intel-edition:${feedId}`;
 const POSITION_REST_MS = 1200;
 
 const isFeed = (v: View): v is FeedId => v !== 'today' && v !== 'saved';
-const tabLabel = (v: View) => (v === 'today' ? 'Today' : v === 'saved' ? 'À retenir' : feedById(v)!.label);
+const tabLabel = (v: View) => (v === 'today' ? 'Today' : v === 'saved' ? 'Takeaways' : feedById(v)!.label);
 
 function useMatches(query: string) {
   const subscribe = useCallback((onChange: () => void) => {
@@ -124,7 +124,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   });
   // …and the ones chosen since.
   const [chosen, setChosen] = useState<Partial<Record<FeedId, string>>>({});
-  // Where an edition opened from Today or À retenir should start.
+  // Where an edition opened from Today or Takeaways should start.
   const [jump, setJump] = useState<{ driveFileId: string; sectionId: string | null } | null>(null);
   const [drawer, setDrawer] = useState(false);
   const [pane, setPane] = useState<'list' | 'reader'>('list');
@@ -216,7 +216,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     document.addEventListener('visibilitychange', onHide);
     return () => document.removeEventListener('visibilitychange', onHide);
   }, [flushPosition]);
-  // Today and À retenir open at their top; an edition places itself.
+  // Today and Takeaways open at their top; an edition places itself.
   useEffect(() => { if (!isFeed(view)) readerRef.current?.scrollTo({ top: 0 }); }, [view]);
 
   const toggleRead = (e: Edition) => {
@@ -228,21 +228,21 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   };
 
   const remove = (item: SavedInsight) => {
-    if (!window.confirm(`Remove “${nameOf(item)}” from À retenir?`)) return;
+    if (!window.confirm(`Remove “${nameOf(item)}” from Takeaways?`)) return;
     onPersist(d => ({ ...d, content: removeInsight(d.content, item.id), lastModified: stamp() }));
-    onNote('Removed from À retenir');
+    onNote('Removed from Takeaways');
   };
 
   const toggleSave = useCallback((e: Edition, input: SaveInput) => {
     keep(e);
     const existing = findSaved(saved, e, input);
     if (existing) {
-      if (!window.confirm(`Remove “${nameOf(existing)}” from À retenir?`)) return;
+      if (!window.confirm(`Remove “${nameOf(existing)}” from Takeaways?`)) return;
       onPersist(d => ({ ...d, content: removeInsight(d.content, existing.id), lastModified: stamp() }));
-      onNote('Removed from À retenir');
+      onNote('Removed from Takeaways');
     } else {
       onPersist(d => ({ ...d, content: saveInsight(d.content, e, input), lastModified: stamp() }));
-      onNote('Saved to À retenir');
+      onNote('Saved to Takeaways');
     }
   }, [saved, onPersist, onNote, keep]);
   const toggleSaveHere = useCallback((input: SaveInput) => { if (edition) toggleSave(edition, input); }, [edition, toggleSave]);

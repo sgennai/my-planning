@@ -142,7 +142,7 @@
 .intel-ed-bar i { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
 .intel-ed.is-read .intel-ed-bar i { background: var(--ink-4); }
 
-/* Tabs: a dot on a feed with something new, the count on À retenir. */
+/* Tabs: a dot on a feed with something new, the count on Takeaways. */
 .intel-tabs button { position: relative; display: inline-flex; align-items: center; gap: 6px; }
 .intel-tab-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
 .intel-tab-count { font-size: 11px; font-weight: 600; color: var(--ink-3); font-variant-numeric: tabular-nums; }
@@ -561,7 +561,7 @@
 .intel-today-card.is-read .intel-today-title { color: var(--ink-2); }
 .intel-today-none { margin: 0; font-size: var(--t-meta); color: var(--ink-3); }
 
-/* ── À retenir ────────────────────────────────────────────────────────── */
+/* ── Takeaways ────────────────────────────────────────────────────────── */
 .intel-saved-view { display: flex; flex-direction: column; gap: var(--sp-3); padding-top: var(--sp-2); }
 .intel-search { position: relative; display: block; }
 .intel-search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--ink-3); pointer-events: none; }

@@ -1,4 +1,4 @@
-// À retenir: everything kept from the briefings, newest first, searchable
+// Takeaways: everything kept from the briefings, newest first, searchable
 // and filtered by tag, each with a note and tags of your own and a way back
 // to where it came from. Removing one asks first.
 import { useState } from 'react';
@@ -57,7 +57,7 @@ function SavedCard({ item, onOpen, onUpdate, onRemove, onNote }: { item: SavedIn
         <span className="intel-grow" />
         <button type="button" className="intel-iconbtn" onClick={copy} aria-label={`Copy ${name}`}><IconCopy /></button>
         <button type="button" className="intel-iconbtn" onClick={startEdit} aria-label={`Note and tags for ${name}`} aria-expanded={editing}><IconPencil /></button>
-        <button type="button" className="intel-iconbtn" onClick={() => onRemove(item)} aria-label={`Remove ${name} from À retenir`}><IconTrash /></button>
+        <button type="button" className="intel-iconbtn" onClick={() => onRemove(item)} aria-label={`Remove ${name} from Takeaways`}><IconTrash /></button>
       </div>
 
       {item.kind === 'edition' && <h3 className="intel-saved-title">{item.editionTitle}</h3>}
@@ -126,8 +126,8 @@ export function SavedView({ saved, ...actions }: Props) {
               type="search"
               value={query}
               onChange={e => setQuery(e.target.value)}
-              placeholder="Search À retenir"
-              aria-label="Search À retenir"
+              placeholder="Search Takeaways"
+              aria-label="Search Takeaways"
             />
           </label>
           {tags.length > 0 && (
@@ -150,7 +150,7 @@ export function SavedView({ saved, ...actions }: Props) {
         </div>
       )}
       {saved.length > 0 && !shown.length && (
-        <div className="intel-empty" role="status"><p>Nothing in À retenir matches{query && ` “${query}”`}{tag && ` with the tag ${tag}`}.</p></div>
+        <div className="intel-empty" role="status"><p>Nothing in Takeaways matches{query && ` “${query}”`}{tag && ` with the tag ${tag}`}.</p></div>
       )}
     </div>
   );

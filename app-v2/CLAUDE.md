@@ -326,7 +326,7 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   `generated_at`; never `modifiedTime`.
 - **The section** (`IntelligenceScreen.tsx`, lazy-loaded with its own CSS chunk,
   `styles/intelligence.css`): tabs Today · Enterprise AI · AI Challenge · Customer Engagement ·
-  À retenir (a dot on a feed with something new, the count on À retenir; the row scrolls and
+  Takeaways (a dot on a feed with something new, the count on Takeaways; the row scrolls and
   fades at an edge with more, `useEdgeFade`). A feed, by orientation — landscape: edition rail +
   reader; iPad portrait: reader with an "Editions" drawer; phone (same query as the shell's
   More): list, then the edition with its actions in the top bar. It fills the shell like
@@ -350,7 +350,7 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   app is hidden; only a new section, +10 % or the end is worth a write. The end marks it read;
   Mark as unread starts over. An edition reopens at its last section while unread. "Updated" =
   Drive's `modifiedTime` after `readAt`.
-- **À retenir** (`saved.ts`, `SavedView.tsx`): synced `content` records `is:<uuid>`, type
+- **Takeaways** (the brief's "À retenir"; `saved.ts`, `SavedView.tsx`): synced `content` records `is:<uuid>`, type
   `intel-saved`, kinds edition / section / labelled (a question or the rehearse line) / term /
   passage (selected text, via a button at the foot because iOS gives web apps no selection
   menu). Each keeps the words as written plus the edition's title, date, time and link, so it

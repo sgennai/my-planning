@@ -1,4 +1,4 @@
-// Reading state and À retenir: the records they keep in the synced data, and
+// Reading state and Takeaways: the records they keep in the synced data, and
 // the rules over them.
 import { describe, it, expect } from 'vitest';
 import { parseEdition } from './parse';
@@ -62,7 +62,7 @@ describe('reading state', () => {
   });
 });
 
-describe('À retenir', () => {
+describe('Takeaways', () => {
   const question = { kind: 'labelled' as const, sectionId: 'executive-discovery-questions', sectionTitle: 'Executive discovery questions', label: 'Opening question', text: '"How many AI agents are running?"' };
   const label = (id: string) => feedById(id)!.label;
 

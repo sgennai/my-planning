@@ -3,7 +3,7 @@
 // reader, then every section of the document in its order and its words.
 //
 // What you do with it is yours and syncs: how far you have read (reported
-// as you scroll), Mark as read, and À retenir, where a section, a question,
+// as you scroll), Mark as read, and Takeaways, where a section, a question,
 // a term, the whole edition or text you select can be kept.
 import { Component, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { Markdown } from './Markdown';
@@ -52,8 +52,8 @@ export function EditionTools({ edition, read, saved, onToggleRead, onToggleSave 
           type="button"
           className={`intel-tool intel-tool--save${saved ? ' on' : ''}`}
           aria-pressed={saved}
-          aria-label={saved ? 'Saved to À retenir. Remove' : 'Save edition to À retenir'}
-          title={saved ? 'Saved to À retenir' : 'Save to À retenir'}
+          aria-label={saved ? 'Saved to Takeaways. Remove' : 'Save edition to Takeaways'}
+          title={saved ? 'Saved to Takeaways' : 'Save to Takeaways'}
           onClick={onToggleSave}
         ><IconBookmark /></button>
       )}
@@ -86,7 +86,7 @@ function SaveButton({ input, name }: { input: SaveInput; name: string }) {
       type="button"
       className={`intel-chipbtn intel-chipbtn--save${saved ? ' on' : ''}`}
       aria-pressed={saved}
-      aria-label={saved ? `${name}: saved to À retenir. Remove` : `Save ${name} to À retenir`}
+      aria-label={saved ? `${name}: saved to Takeaways. Remove` : `Save ${name} to Takeaways`}
       onClick={() => toggleSave(input)}
     >
       <IconBookmark /><span>{saved ? 'Saved' : 'Save'}</span>
@@ -192,7 +192,7 @@ function SectionSave({ section }: { section: Section }) {
       type="button"
       className={`intel-sec-save${saved ? ' on' : ''}`}
       aria-pressed={saved}
-      aria-label={saved ? `${name}: saved to À retenir. Remove` : `Save the section ${name} to À retenir`}
+      aria-label={saved ? `${name}: saved to Takeaways. Remove` : `Save the section ${name} to Takeaways`}
       onClick={() => toggleSave(input)}
     ><IconBookmark /></button>
   );
@@ -326,7 +326,7 @@ function Reader({
 
   const savePassage = () => {
     if (!selection) return;
-    if (findSaved(saved, edition, selection)) onNote('Already in À retenir');
+    if (findSaved(saved, edition, selection)) onNote('Already in Takeaways');
     else onToggleSave?.(selection);
     document.getSelection()?.removeAllRanges();
     setSelection(null);
@@ -416,7 +416,7 @@ function Reader({
             // Keeps the selection where a mouse would otherwise clear it.
             onMouseDown={e => e.preventDefault()}
             onClick={savePassage}
-          ><IconBookmark />Save to À retenir</button>
+          ><IconBookmark />Save to Takeaways</button>
         )}
       </article>
     </EditionActionsContext.Provider>

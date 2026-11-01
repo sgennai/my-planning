@@ -1,4 +1,4 @@
-// À retenir: what you keep from the briefings, synced. Each item is one record
+// Takeaways (the brief's "À retenir"): what you keep from the briefings, synced. Each item is one record
 // in `data.content` (`is:<uuid>`, type `intel-saved`), with the words exactly
 // as the document had them and enough of the edition to show where they came
 // from even on a device that has never fetched it. Never written to Drive.
@@ -104,7 +104,7 @@ export function parseTags(input: string): string[] {
   return out;
 }
 
-/** Case and accents ignored: "a retenir" finds "À retenir". */
+/** Case and accents ignored: "resume" finds "Résumé". */
 const fold = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
 
 /** Items matching every word of the query (in any field) and carrying the tag, if one is chosen. */

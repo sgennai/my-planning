@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // The section against a stand-in /api/intel and the app's data: an edition
-// from Drive on the screen, Today, reading state and À retenir kept in the
+// from Drive on the screen, Today, reading state and Takeaways kept in the
 // synced data, and the failures (Drive not connected, a document that
 // breaks the rules) that must not take the section down.
 import 'fake-indexeddb/auto';
@@ -91,38 +91,38 @@ describe('the Intelligence section', () => {
     expect(readingIndex(latest.progressLog).get(CHALLENGE_FILE.id)?.readAt).toBeNull();
   });
 
-  it('saves a question to À retenir with where it came from, and finds it again', async () => {
+  it('saves a question to Takeaways with where it came from, and finds it again', async () => {
     render(<App />);
     await openChallenge();
-    fireEvent.click(screen.getByRole('button', { name: 'Save Opening question to À retenir' }));
-    expect(screen.getByRole('button', { name: 'Opening question: saved to À retenir. Remove' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Save Opening question to Takeaways' }));
+    expect(screen.getByRole('button', { name: 'Opening question: saved to Takeaways. Remove' })).toBeInTheDocument();
     const [item] = savedOf(latest.content);
     expect(item).toMatchObject({ kind: 'labelled', label: 'Opening question', editionTitle: 'Agent Sprawl: Who Owns the Bots?' });
 
-    fireEvent.click(screen.getByRole('tab', { name: /À retenir/ }));
+    fireEvent.click(screen.getByRole('tab', { name: /Takeaways/ }));
     expect(screen.getByText('"How many AI agents are running in your organisation today?"')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Note and tags for Opening question' }));
     fireEvent.change(screen.getByLabelText('Note'), { target: { value: 'Ask the CIO' } });
     fireEvent.change(screen.getByLabelText('Tags, separated by commas'), { target: { value: 'banking, agents' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
     expect(savedOf(latest.content)[0]).toMatchObject({ note: 'Ask the CIO', tags: ['banking', 'agents'] });
-    fireEvent.change(screen.getByRole('searchbox', { name: 'Search À retenir' }), { target: { value: 'cio' } });
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Search Takeaways' }), { target: { value: 'cio' } });
     expect(screen.getByText('Ask the CIO')).toBeInTheDocument();
-    fireEvent.change(screen.getByRole('searchbox', { name: 'Search À retenir' }), { target: { value: 'nothing like it' } });
-    expect(screen.getByText(/Nothing in À retenir matches/)).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Search Takeaways' }), { target: { value: 'nothing like it' } });
+    expect(screen.getByText(/Nothing in Takeaways matches/)).toBeInTheDocument();
   });
 
-  it('removing from À retenir asks first', async () => {
+  it('removing from Takeaways asks first', async () => {
     render(<App />);
     await openChallenge();
-    fireEvent.click(screen.getByRole('button', { name: 'Save edition to À retenir' }));
-    fireEvent.click(screen.getByRole('tab', { name: /À retenir/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save edition to Takeaways' }));
+    fireEvent.click(screen.getByRole('tab', { name: /Takeaways/ }));
     confirmAnswer = false;
-    fireEvent.click(screen.getByRole('button', { name: 'Remove Agent Sprawl: Who Owns the Bots? from À retenir' }));
-    expect(window.confirm).toHaveBeenLastCalledWith('Remove “Agent Sprawl: Who Owns the Bots?” from À retenir?');
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Agent Sprawl: Who Owns the Bots? from Takeaways' }));
+    expect(window.confirm).toHaveBeenLastCalledWith('Remove “Agent Sprawl: Who Owns the Bots?” from Takeaways?');
     expect(savedOf(latest.content)).toHaveLength(1);
     confirmAnswer = true;
-    fireEvent.click(screen.getByRole('button', { name: 'Remove Agent Sprawl: Who Owns the Bots? from À retenir' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Agent Sprawl: Who Owns the Bots? from Takeaways' }));
     expect(savedOf(latest.content)).toHaveLength(0);
     expect(screen.getByText('Nothing kept yet')).toBeInTheDocument();
   });
@@ -130,8 +130,8 @@ describe('the Intelligence section', () => {
   it('a saved item leads back to its edition', async () => {
     render(<App />);
     await openChallenge();
-    fireEvent.click(screen.getByRole('button', { name: 'Save the section Business impact to À retenir' }));
-    fireEvent.click(screen.getByRole('tab', { name: /À retenir/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save the section Business impact to Takeaways' }));
+    fireEvent.click(screen.getByRole('tab', { name: /Takeaways/ }));
     fireEvent.click(screen.getByRole('button', { name: /AI Challenge · Mon 2 Nov · Agent Sprawl/ }));
     expect(screen.getByRole('heading', { level: 1, name: 'Agent Sprawl: Who Owns the Bots?' })).toBeInTheDocument();
   });
@@ -145,7 +145,7 @@ describe('the Intelligence section', () => {
     document.getSelection()!.removeAllRanges();
     document.getSelection()!.addRange(range);
     fireEvent(document, new Event('selectionchange'));
-    fireEvent.click(await screen.findByRole('button', { name: 'Save to À retenir' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Save to Takeaways' }));
     expect(savedOf(latest.content)[0]).toMatchObject({ kind: 'passage', text: 'Duplicated agents multiply licence costs.', sectionTitle: 'Business impact' });
   });
 

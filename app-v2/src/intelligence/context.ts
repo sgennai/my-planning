@@ -1,5 +1,5 @@
 // What the buttons inside an edition can do with it: say whether something is
-// in À retenir, save it there (or take it out, after asking), and say what
+// in Takeaways, save it there (or take it out, after asking), and say what
 // happened. Provided by the reader for the edition it shows.
 import { createContext, useContext } from 'react';
 import type { SaveInput, SavedInsight } from './saved';
