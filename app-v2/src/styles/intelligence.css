@@ -765,3 +765,11 @@
 .intel-health-list li { padding: var(--sp-3); border-radius: var(--r-sm); background: var(--alert-tint); }
 .intel-health-list b, .intel-health-list .intel-linkbtn { font-size: var(--t-meta); text-align: left; }
 .intel-health-list p { margin: 4px 0 0; font-size: var(--t-meta); line-height: var(--lh-snug); color: var(--ink-2); }
+
+/* ── Today: age and catching up ───────────────────────────────────────── */
+.intel-age { color: var(--ink-3); }
+.intel-today-actions { align-items: center; flex-wrap: wrap; }
+.intel-catchup { display: flex; flex-direction: column; gap: var(--sp-2); margin-top: var(--sp-2); }
+.intel-catchup h2 { color: var(--ink-3); }
+.intel-catchup .intel-ed { background: var(--surface); border-color: var(--hairline); }
+.intel-today-actions .intel-linkbtn { align-self: center; }

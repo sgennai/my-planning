@@ -270,3 +270,57 @@ describe('what the app says about the documents (conformance)', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 });
+
+describe('Today when editions pile up over several days', () => {
+  const day = (d: string) => ({
+    id: `1Day${d.replace(/-/g, '')}000000000000`,
+    name: `${d}_0812__enterprise-ai-challenge`,
+    createdTime: `${d}T07:13:00.000Z`,
+    modifiedTime: `${d}T07:13:05.000Z`,
+    webViewLink: `https://docs.google.com/document/d/1Day${d}/edit`,
+  });
+  const doc = (d: string) => `---\nschema_version: 1\ncontent_type: "enterprise-ai-challenge"\norigin: "scheduled"\nedition_date: "${d}"\ngenerated_at: "${d}T08:12:00+01:00"\ntitle: "Challenge of ${d}"\ntopics: ["Risk"]\n---\n\n## Challenge\n\nText of ${d}.`;
+  const DAYS = ['2026-11-04', '2026-11-03', '2026-11-02', '2026-11-01', '2026-10-31', '2026-10-30', '2026-10-29', '2026-10-28'];
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-04T10:00:00Z'));
+    files = DAYS.map(day);
+    texts = Object.fromEntries(DAYS.map(d => [day(d).id, doc(d)]));
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it('says how old each edition is, how many are unread, and lists the older ones newest first', async () => {
+    render(<App />);
+    const card = (await screen.findByRole('heading', { level: 2, name: 'Challenge of 2026-11-04' })).closest('article')!;
+    expect(card).toHaveTextContent('AI Challenge · Today · 08:12');
+    expect(screen.getByText(/Wednesday 4 November/)).toHaveTextContent('Wednesday 4 November · 8 unread');
+    expect(within(card).getByRole('button', { name: '7 older unread' })).toBeInTheDocument();
+
+    const list = screen.getByRole('region', { name: 'Still unread · 7' });
+    const rows = () => within(list).getAllByRole('button', { name: /Challenge of/ }).map(b => b.textContent);
+    expect(rows()).toHaveLength(5);
+    expect(rows()[0]).toContain('AI Challenge · Yesterday · 08:12');
+    expect(rows()[1]).toContain('Mon 2 Nov · 08:12 · 2 days ago');
+    fireEvent.click(within(list).getByRole('button', { name: 'Show all 7' }));
+    expect(rows()).toHaveLength(7);
+    expect(rows()[6]).toContain('Wed 28 Oct · 08:12 · 7 days ago');
+  });
+
+  it('an older edition opens from the list, and once read it leaves it', async () => {
+    render(<App />);
+    const list = await screen.findByRole('region', { name: 'Still unread · 7' });
+    fireEvent.click(within(list).getByRole('button', { name: /Challenge of 2026-11-02/ }));
+    expect(screen.getByRole('heading', { level: 1, name: 'Challenge of 2026-11-02' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Mark as read' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Today' }));
+    expect(screen.getByRole('region', { name: 'Still unread · 6' })).toBeInTheDocument();
+    expect(screen.getByText(/Wednesday 4 November/)).toHaveTextContent('7 unread');
+  });
+
+  it('"older unread" goes to the feed', async () => {
+    render(<App />);
+    fireEvent.click(await screen.findByRole('button', { name: '7 older unread' }));
+    expect(screen.getByRole('tab', { name: /AI Challenge/ })).toHaveAttribute('aria-selected', 'true');
+  });
+});

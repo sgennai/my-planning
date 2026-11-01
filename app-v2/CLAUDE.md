@@ -361,8 +361,11 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   (every word, any field, accents and case ignored), tag filter, a way back to the section.
   Every save button toggles; taking something out asks first (`window.confirm`).
 - **Today** (`TodayView.tsx`): the newest edition of each feed in `FEEDS` order (AI Challenge,
-  sales brief, customer engagement) with New / Updated / n % read / Read, a preview taken from
-  its own first lines (`previewOf`), and Read / Continue · section / Read again.
+  sales brief, customer engagement) with its age (Today / Yesterday / date · n days ago),
+  New / Updated / n % read / Read, a preview taken from its own first lines (`previewOf`), and
+  Read / Continue · section / Read again, plus "k older unread" (opens the feed). Below, "Still
+  unread": every other unread edition across feeds, newest first, folded after five. "n unread"
+  beside the date. "No edition yet" names only feeds Drive has answered for.
 - **Conformance** (`conformance.ts`, `FeedStatus.tsx`): per edition — header problems
   (`issues`), duplicate filenames (all kept, labelled), empty bodies ("Incomplete" after a
   30-min grace from Drive's `createdTime`, "Being written" before; judged on a 1-min clock),

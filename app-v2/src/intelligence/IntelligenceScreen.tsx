@@ -26,7 +26,7 @@ import { readingIndex, readingState, withPosition, withRead } from './reading';
 import {
   savedOf, saveInsight, removeInsight, updateInsight, findSaved, nameOf, type SaveInput, type SavedInsight,
 } from './saved';
-import { dayNameShort, formatDayCompact } from '../routine/dates';
+import { dayNameShort, formatDayCompact, dayKeyOf } from '../routine/dates';
 import { IconRefresh, IconList, IconX, IconChevronLeft, IconBookmark, IconPulse } from '../ui/icons';
 
 type View = 'today' | FeedId | 'saved';
@@ -404,7 +404,10 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
         states={states}
         reading={reading}
         loading={!Object.keys(refreshed).length}
+        checked={id => !!refreshed[id]}
+        today={dayKeyOf(new Date(now))}
         onOpen={e => openEdition(e)}
+        onOpenFeed={switchView}
         labelOf={e => labelOf(conformance[e.feedId]?.flags.get(e.driveFileId))}
         onStatus={() => setStatusSheet(FEEDS.map(f => f.id))}
       />
