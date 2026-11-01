@@ -5,7 +5,7 @@
 // What you do with it is yours and syncs: how far you have read (reported
 // as you scroll), Mark as read, and Takeaways, where a section, a question,
 // a term, the whole edition or text you select can be kept.
-import { Component, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react';
+import { Component, createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { Markdown } from './Markdown';
 import { splitSections, type Edition, type Section } from './parse';
 import { presentSection, displayOrder, shortTitle, copyText, readingMinutes, type Presentation, type Term } from './present';
@@ -17,7 +17,7 @@ import { findSaved, type SaveInput, type SavedInsight } from './saved';
 import type { ReadingIndex } from './reading';
 import { noticeOf, type EditionFlag } from './conformance';
 import { formatDayAnchor } from '../routine/dates';
-import { IconExternal, IconCopy, IconCheck, IconBookmark } from '../ui/icons';
+import { IconExternal, IconCopy, IconCheck, IconBookmark, IconChevronDown } from '../ui/icons';
 
 type Note = (text: string) => void;
 
@@ -159,6 +159,25 @@ function Labelled({ label, text, section, className }: { label: string; text: st
   );
 }
 
+/** Which developments are folded away; all are open until folded. */
+interface Folds { isOpen: (id: string) => boolean; toggle: (id: string) => void }
+const FoldsContext = createContext<Folds>({ isOpen: () => true, toggle: () => {} });
+
+function FoldButton({ id, name }: { id: string; name: string }) {
+  const { isOpen, toggle } = useContext(FoldsContext);
+  const open = isOpen(id);
+  return (
+    <button
+      type="button"
+      className={`intel-fold${open ? '' : ' is-folded'}`}
+      aria-expanded={open}
+      aria-controls={`intel-body-${id}`}
+      aria-label={open ? `Fold ${name}` : `Open ${name}`}
+      onClick={() => toggle(id)}
+    ><IconChevronDown /></button>
+  );
+}
+
 const ASKS: Part['tone'][] = ['question', 'response', 'quote'];
 
 /** A development's labelled parts: what happened, what it means, what to ask. */
@@ -181,8 +200,9 @@ function Parts({ parts, sectionId, sectionTitle }: { parts: Part[]; sectionId: s
   );
 }
 
-/** One of the Sales Brief's developments, as a card. */
+/** One of the Sales Brief's developments, as a card that folds. */
 function DevelopmentCard({ dev }: { dev: Development }) {
+  const { isOpen } = useContext(FoldsContext);
   const { savedItem, toggleSave } = useEditionActions();
   const input: SaveInput = { kind: 'section', sectionId: dev.id, sectionTitle: dev.title, text: dev.markdown };
   const saved = !!savedItem(input);
@@ -198,8 +218,13 @@ function DevelopmentCard({ dev }: { dev: Development }) {
           aria-label={saved ? `${name}: saved to Takeaways. Remove` : `Save the development ${name} to Takeaways`}
           onClick={() => toggleSave(input)}
         ><IconBookmark /></button>
+        <FoldButton id={dev.id} name={name} />
       </div>
-      <Parts parts={dev.parts} sectionId={dev.id} sectionTitle={dev.title} />
+      {isOpen(dev.id) && (
+        <div id={`intel-body-${dev.id}`}>
+          <Parts parts={dev.parts} sectionId={dev.id} sectionTitle={dev.title} />
+        </div>
+      )}
     </article>
   );
 }
@@ -364,6 +389,15 @@ function Reader({
     const p = presented.get(s.id);
     return p?.kind === 'developments' ? [own, ...p.items.map(d => ({ id: d.id, label: shortTitle(d.title), sub: true }))] : [own];
   }), [displayed, presented]);
+  const [folded, setFolded] = useState<Set<string>>(() => new Set());
+  const folds = useMemo<Folds>(() => ({
+    isOpen: id => !folded.has(id),
+    toggle: id => setFolded(prev => {
+      const next = new Set(prev);
+      if (!next.delete(id)) next.add(id);
+      return next;
+    }),
+  }), [folded]);
   const feed = feedById(edition.feedId);
   const record = reading?.get(edition.driveFileId);
   const articleRef = useRef<HTMLElement | null>(null);
@@ -459,13 +493,17 @@ function Reader({
     setSelection(null);
   };
 
+  // Going to a section opens it first if it was folded away.
   const goTo = (id: string) => {
-    const el = scroller.current;
-    const top = offsetOf(id);
-    if (!el || top === null) return;
-    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    el.scrollTo({ top, behavior: smooth ? 'smooth' : 'auto' });
+    if (folded.has(id)) setFolded(prev => { const next = new Set(prev); next.delete(id); return next; });
     setActive(id);
+    requestAnimationFrame(() => {
+      const el = scroller.current;
+      const top = offsetOf(id);
+      if (!el || top === null) return;
+      const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      el.scrollTo({ top, behavior: smooth ? 'smooth' : 'auto' });
+    });
   };
 
   const progress = record && !record.readAt && record.progress > 0 ? Math.round(record.progress * 100) : null;
@@ -530,6 +568,7 @@ function Reader({
           </nav>
         )}
 
+        <FoldsContext.Provider value={folds}>
         {displayed.map(s => s.role === 'title' ? (
           // The document's own title line, and what it says before its first section.
           <div key={s.id} id={`intel-${s.id}`} className="intel-doc-title">
@@ -542,11 +581,17 @@ function Reader({
               <div className="intel-sec-head">
                 <h2><Markdown inline heading>{s.title}</Markdown></h2>
                 {onToggleSave && <SectionSave section={s} />}
+                {presented.get(s.id)?.kind === 'development' && <FoldButton id={s.id} name={shortTitle(s.title)} />}
               </div>
             )}
-            <SectionBody p={presented.get(s.id)!} section={s} />
+            {folds.isOpen(s.id) && (
+              <div id={`intel-body-${s.id}`}>
+                <SectionBody p={presented.get(s.id)!} section={s} />
+              </div>
+            )}
           </section>
         ))}
+        </FoldsContext.Provider>
 
         {selection && onToggleSave && (
           <button

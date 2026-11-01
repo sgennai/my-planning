@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 // The Enterprise AI Sales Brief and the Customer Engagement Brief: their
 // developments as labelled parts, their other sections in their forms, the
-// Sales Brief leading with what to remember, and the promise behind all of
-// it: every word on screen.
+// Sales Brief leading with what to remember, developments that fold and come
+// back when sent to, and the promise behind all of it: every word on screen.
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, within } from '@testing-library/react';
 import { parseEdition, splitSections } from './parse';
 import { presentSection, displayOrder } from './present';
 import { partsOf, toneOf } from './briefs';
@@ -84,6 +84,15 @@ describe('the Sales Brief', () => {
     expect(screen.getByRole('button', { name: 'Copy: LinkedIn angle' })).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'Copy: Best executive question today' })).toHaveLength(1);
   });
+
+  it('a development folds, and its chip opens it again', async () => {
+    const c = show(sales);
+    const dev = c.querySelector('#intel-relevant-executive-themes-today--agent-pricing-moves-to-outcomes')!;
+    fireEvent.click(within(dev as HTMLElement).getByRole('button', { name: 'Fold Agent pricing moves to outcomes' }));
+    expect(dev.textContent).not.toContain('A bank prices its service agent');
+    fireEvent.click(screen.getByRole('button', { name: 'Agent pricing moves to outcomes' }));
+    expect(dev.textContent).toContain('A bank prices its service agent');
+  });
 });
 
 describe('the Customer Engagement Brief', () => {
@@ -121,7 +130,7 @@ describe('the Customer Engagement Brief', () => {
     expect(presentSection('customer-engagement-brief', loose).kind).toBe('markdown');
   });
 
-  it('on screen: every word, the coverage line under its title, each development a card', () => {
+  it('on screen: every word, the coverage line under its title, each development folding', () => {
     const c = show(engagement);
     const text = c.textContent!;
     for (const word of wordsOf(ENGAGEMENT_BODY)) expect(text).toContain(word);
@@ -131,5 +140,7 @@ describe('the Customer Engagement Brief', () => {
     expect(screen.getAllByRole('button', { name: /^Copy: Three customer questions worth asking$/ })).toHaveLength(2);
     const heading = screen.getByRole('heading', { level: 2, name: '1. Vendor A connects agents end to end' });
     expect(heading.querySelector('ol, li')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Fold 1. Vendor A connects agents end to end' }));
+    expect(c.querySelector('#intel-1-vendor-a-connects-agents-end-to-end')!.textContent).not.toContain('Integration beats single agents');
   });
 });

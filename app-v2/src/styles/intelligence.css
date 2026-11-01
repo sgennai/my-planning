@@ -858,6 +858,25 @@
 .intel-part.is-unica { border: 1px solid var(--accent-line); }
 .intel-part.is-prep .intel-md { font-size: 15px; color: var(--ink-2); }
 
+/* Folding a development. */
+.intel-fold {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-3);
+}
+.intel-fold::after { content: ""; position: absolute; inset: -7px; }
+.intel-fold svg { width: 18px; height: 18px; transition: transform var(--dur-2) var(--ease); }
+.intel-fold.is-folded svg { transform: rotate(-90deg); }
+.intel-fold:active { background: var(--surface-press); }
+
 .intel--single .intel-dev { padding: var(--sp-3) var(--sp-4) var(--sp-4); }
 .intel--single .intel-watchlist div { grid-template-columns: 1fr; gap: 2px; }
 /* A section that is one development (the Engagement Brief's numbered ones):
