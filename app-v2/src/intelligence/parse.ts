@@ -5,7 +5,9 @@
 // title, topics), then the briefing, untouched. The header is never shown.
 // When it is missing or wrong, the filename (`YYYY-MM-DD_HHmm__<type>`) and
 // Drive's own dates stand in, and `issues` says so: nothing is invented, and
-// the edition still reads. The body is kept exactly as written.
+// the edition still reads. The body is kept exactly as written. An optional
+// `origin` says whether a scheduled run published it or it was imported by
+// hand; without it, nobody knows, and the edition says nothing either way.
 import { load, CORE_SCHEMA } from 'js-yaml';
 import { TZ, isValidDayKey, dayKeyOf, type DayKey } from '../routine/dates';
 import { feedById, type FeedId } from './feeds';
@@ -37,6 +39,12 @@ export interface Edition {
   modifiedTime: string;
   /** What the header lacked or got wrong. Empty for a valid v1 document. */
   issues: string[];
+  /** From the header's `origin`; null when it does not say. */
+  origin: 'scheduled' | 'backfill' | null;
+  /** The Drive file's name, for telling copies apart; never shown as a title. */
+  fileName: string;
+  /** When Drive created the file: a document still being written is young. */
+  createdTime: string | null;
   /** Newest first sorts by this, descending: date, then time of day. */
   sortKey: string;
 }
@@ -123,6 +131,12 @@ export function parseEdition(feedId: FeedId, file: DriveFile, rawText: string): 
     title = feedById(feedId)?.name ?? feedId;
   }
 
+  let origin: Edition['origin'] = null;
+  if (h.origin !== undefined) {
+    if (h.origin === 'scheduled' || h.origin === 'backfill') origin = h.origin;
+    else issues.push(`origin ${JSON.stringify(h.origin)}, expected "scheduled" or "backfill"`);
+  }
+
   let topics: string[] = [];
   if (Array.isArray(h.topics)) {
     topics = h.topics.filter((t): t is string => typeof t === 'string' && t.trim() !== '').map(t => t.trim());
@@ -143,6 +157,9 @@ export function parseEdition(feedId: FeedId, file: DriveFile, rawText: string): 
     sourceUrl: file.webViewLink || `https://docs.google.com/document/d/${file.id}/edit`,
     modifiedTime: file.modifiedTime,
     issues,
+    origin,
+    fileName: file.name,
+    createdTime: file.createdTime ?? null,
     sortKey: `${editionDate} ${clock ?? ''}`,
   };
 }

@@ -14,6 +14,7 @@ import { EditionActionsContext, useEditionActions, type EditionActions } from '.
 import { useEdgeFade } from './useEdgeFade';
 import { findSaved, type SaveInput, type SavedInsight } from './saved';
 import type { ReadingIndex } from './reading';
+import { noticeOf, type EditionFlag } from './conformance';
 import { formatDayAnchor } from '../routine/dates';
 import { IconExternal, IconCopy, IconCheck, IconBookmark } from '../ui/icons';
 
@@ -230,10 +231,12 @@ interface Props {
   onPosition?: (progress: number, section: string | null) => void;
   /** Open at this section rather than the top. */
   startAt?: string | null;
+  /** What conformance says about this document (`conformance.ts`). */
+  flags?: EditionFlag[];
 }
 
 function Reader({
-  edition, scroller, onNote, heroActions = true, reading, saved = [], onToggleRead, onToggleSave, onPosition, startAt,
+  edition, scroller, onNote, heroActions = true, reading, saved = [], onToggleRead, onToggleSave, onPosition, startAt, flags = [],
 }: Props) {
   const sections = useMemo(() => splitSections(edition.markdownBody), [edition.markdownBody]);
   const indexed = useMemo(() => sections.filter(s => s.title), [sections]);
@@ -344,6 +347,9 @@ function Reader({
   const progress = record && !record.readAt && record.progress > 0 ? Math.round(record.progress * 100) : null;
   const resumeAt = record && !record.readAt ? indexed.find(s => s.id === record.section) : undefined;
   const editionInput: SaveInput = { kind: 'edition', text: edition.title };
+  // A suspected import is for the feed's status only; it is never proof.
+  const notices = flags.filter(f => f.kind !== 'possibly-imported').map(noticeOf).filter((n): n is string => !!n);
+  const imported = flags.some(f => f.kind === 'imported');
 
   return (
     <EditionActionsContext.Provider value={actions}>
@@ -371,6 +377,7 @@ function Reader({
           )}
           <p className="intel-meta">
             {readingMinutes(edition.markdownBody)} min read
+            {imported && <span className="intel-tag" title="Imported by hand, not published by the schedule">Imported</span>}
             {record?.readAt && ' · Read'}
             {progress !== null && ` · ${progress}% read`}
             {resumeAt && resumeAt.id !== active && (
@@ -379,6 +386,7 @@ function Reader({
               </button></>
             )}
           </p>
+          {notices.map(n => <p key={n} className="intel-notice" role="note">{n}</p>)}
         </header>
 
         {indexed.length > 1 && (

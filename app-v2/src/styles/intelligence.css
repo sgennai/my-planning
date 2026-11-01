@@ -724,3 +724,44 @@
 .intel--single .intel-today-card { padding: var(--sp-4) 18px; }
 .intel--single .intel-today-title { font-size: 21px; }
 .intel--single .intel-saved { padding: var(--sp-3) var(--sp-4) var(--sp-2); }
+
+/* ── Conformance: labels, notices, feed status (conformance.ts) ───────── */
+.intel-tag {
+  display: inline-block;
+  margin-left: var(--sp-2);
+  padding: 1px 8px;
+  border-radius: var(--r-pill);
+  background: var(--surface-sunken);
+  color: var(--ink-2);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  vertical-align: 1px;
+  white-space: nowrap;
+}
+.intel-tag.is-alert { background: var(--alert-tint); color: var(--alert); }
+.intel-today-top .intel-tag { flex: none; margin-left: 0; }
+.intel-notice {
+  margin: 0;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  background: var(--alert-tint);
+  color: var(--alert);
+  font-size: var(--t-meta);
+  line-height: var(--lh-snug);
+}
+.intel-today-status { align-self: flex-start; color: var(--ink-3); }
+
+.intel-health-sheet .ds-modal-body { display: flex; flex-direction: column; gap: var(--sp-6); }
+.intel-health h3 { font-size: var(--t-card); margin-bottom: var(--sp-2); }
+.intel-health dl { margin: 0; display: grid; gap: 2px; }
+.intel-health dl div { display: flex; justify-content: space-between; gap: var(--sp-4); padding: 6px 0; border-bottom: 1px solid var(--hairline-faint); font-size: var(--t-meta); }
+.intel-health dt { color: var(--ink-3); }
+.intel-health dd { margin: 0; color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; }
+.intel-health-ok { margin: var(--sp-2) 0 0; font-size: var(--t-meta); color: var(--ink-3); }
+.intel-health-alert { margin: var(--sp-2) 0 0; font-size: var(--t-meta); color: var(--alert); }
+.intel-health-list { list-style: none; margin: var(--sp-3) 0 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-3); }
+.intel-health-list li { padding: var(--sp-3); border-radius: var(--r-sm); background: var(--alert-tint); }
+.intel-health-list b, .intel-health-list .intel-linkbtn { font-size: var(--t-meta); text-align: left; }
+.intel-health-list p { margin: 4px 0 0; font-size: var(--t-meta); line-height: var(--lh-snug); color: var(--ink-2); }

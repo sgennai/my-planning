@@ -363,22 +363,6 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
 - **Today** (`TodayView.tsx`): the newest edition of each feed in `FEEDS` order (AI Challenge,
   sales brief, customer engagement) with New / Updated / n % read / Read, a preview taken from
   its own first lines (`previewOf`), and Read / Continue · section / Read again.
-- **Reading state** (`reading.ts`): one synced `progressLog` record per edition,
-  `ir:<driveFileId>`, type `intel-reading`, value `{ feedId, progress (furthest, 0–1), section
-  (last), readAt }`. Written when scrolling rests (1.2 s), on leaving the edition, and when the
-  app is hidden; only a new section, +10 % or the end is worth a write. The end marks it read;
-  Mark as unread starts over. An edition reopens at its last section while unread. "Updated" =
-  Drive's `modifiedTime` after `readAt`.
-- **Takeaways** (the brief's "À retenir"; `saved.ts`, `SavedView.tsx`): synced `content` records `is:<uuid>`, type
-  `intel-saved`, kinds edition / section / labelled (a question or the rehearse line) / term /
-  passage (selected text, via a button at the foot because iOS gives web apps no selection
-  menu). Each keeps the words as written plus the edition's title, date, time and link, so it
-  shows on a device that never fetched the edition. Note, tags (comma-separated), search
-  (every word, any field, accents and case ignored), tag filter, a way back to the section.
-  Every save button toggles; taking something out asks first (`window.confirm`).
-- **Today** (`TodayView.tsx`): the newest edition of each feed in `FEEDS` order (AI Challenge,
-  sales brief, customer engagement) with New / Updated / n % read / Read, a preview taken from
-  its own first lines (`previewOf`), and Read / Continue · section / Read again.
 - **Conformance** (`conformance.ts`, `FeedStatus.tsx`): per edition — header problems
   (`issues`), duplicate filenames (all kept, labelled), empty bodies ("Incomplete" after a
   30-min grace from Drive's `createdTime`, "Being written" before; judged on a 1-min clock),

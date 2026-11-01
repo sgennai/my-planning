@@ -121,6 +121,9 @@ export const IconBookmark = (p: P) => (
 export const IconSearch = (p: P) => (
   <svg {...base} {...p}><circle cx="10.5" cy="10.5" r="6.5" /><path d="m15.5 15.5 5 5" /></svg>
 );
+export const IconPulse = (p: P) => (
+  <svg {...base} {...p}><path d="M3 12h4l2.5-6.5 5 13L17 12h4" /></svg>
+);
 export const IconRefresh = (p: P) => (
   <svg {...base} {...p}><path d="M20 11.5a8 8 0 1 0-2.3 5.7M20 4.5v7h-7" /></svg>
 );

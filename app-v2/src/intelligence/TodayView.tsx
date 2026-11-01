@@ -16,9 +16,14 @@ interface Props {
   reading: ReadingIndex;
   loading: boolean;
   onOpen: (edition: Edition) => void;
+  /** The short label conformance gives the edition, if any. */
+  labelOf: (edition: Edition) => string | null;
+  onStatus: () => void;
 }
 
-function TodayCard({ edition, reading, onOpen }: { edition: Edition; reading: ReadingIndex; onOpen: (e: Edition) => void }) {
+function TodayCard({ edition, reading, onOpen, label }: {
+  edition: Edition; reading: ReadingIndex; onOpen: (e: Edition) => void; label: string | null;
+}) {
   const sections = useMemo(() => splitSections(edition.markdownBody), [edition.markdownBody]);
   const preview = useMemo(() => previewOf(sections), [sections]);
   const state = readingState(edition, reading);
@@ -38,6 +43,7 @@ function TodayCard({ edition, reading, onOpen }: { edition: Edition; reading: Re
           {feedById(edition.feedId)?.label} · {dayNameShort(edition.editionDate)} {formatDayCompact(edition.editionDate)}
           {edition.time && ` · ${edition.time}`}
         </span>
+        {label && <span className={`intel-tag${label === 'Imported' ? '' : ' is-alert'}`}>{label}</span>}
         <span className={`intel-badge is-${state}`}>{badge}</span>
       </div>
       <h2 className="intel-today-title">{edition.title}</h2>
@@ -56,14 +62,14 @@ function TodayCard({ edition, reading, onOpen }: { edition: Edition; reading: Re
   );
 }
 
-export function TodayView({ states, reading, loading, onOpen }: Props) {
+export function TodayView({ states, reading, loading, onOpen, labelOf, onStatus }: Props) {
   const newest = FEEDS.map(f => states[f.id]?.editions[0]).filter((e): e is Edition => !!e);
   const without = FEEDS.filter(f => !states[f.id]?.editions.length).map(f => f.label);
 
   return (
     <div className="intel-col intel-today">
       <p className="intel-eyebrow intel-today-date">{formatDayAnchor(todayKey())}</p>
-      {newest.map(e => <TodayCard key={e.driveFileId} edition={e} reading={reading} onOpen={onOpen} />)}
+      {newest.map(e => <TodayCard key={e.driveFileId} edition={e} reading={reading} onOpen={onOpen} label={labelOf(e)} />)}
       {!newest.length && (
         <div className="intel-empty" role="status">
           {loading ? <p>Loading editions…</p> : <><h2>Nothing to read yet</h2><p>Each briefing shows here once its scheduled task saves an edition to Google Drive.</p></>}
@@ -72,6 +78,7 @@ export function TodayView({ states, reading, loading, onOpen }: Props) {
       {newest.length > 0 && without.length > 0 && !loading && (
         <p className="intel-today-none">No edition yet: {without.join(', ')}.</p>
       )}
+      <button type="button" className="intel-linkbtn intel-today-status" onClick={onStatus}>Feed status</button>
     </div>
   );
 }

@@ -11,11 +11,14 @@
 // `progressLog` and `content`.
 import '../styles/intelligence.css';
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
-import { feedById, type FeedId } from './feeds';
+import { FEEDS, feedById, type FeedId } from './feeds';
 import { useFeeds } from './useFeeds';
 import { useEdgeFade } from './useEdgeFade';
 import { EditionReader, EditionTools } from './EditionReader';
 import { TodayView } from './TodayView';
+import { FeedStatus } from './FeedStatus';
+import { conformanceOf, labelOf, NEEDS_A_LOOK, type FeedConformance } from './conformance';
+import { useClock } from '../ui/useClock';
 import { SavedView } from './SavedView';
 import type { Edition } from './parse';
 import type { FeedState } from './library';
@@ -24,7 +27,7 @@ import {
   savedOf, saveInsight, removeInsight, updateInsight, findSaved, nameOf, type SaveInput, type SavedInsight,
 } from './saved';
 import { dayNameShort, formatDayCompact } from '../routine/dates';
-import { IconRefresh, IconList, IconX, IconChevronLeft, IconBookmark } from '../ui/icons';
+import { IconRefresh, IconList, IconX, IconChevronLeft, IconBookmark, IconPulse } from '../ui/icons';
 
 type View = 'today' | FeedId | 'saved';
 
@@ -60,16 +63,29 @@ function remember(key: string, value: string) {
 
 const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? '' : 's'}`;
 
-/** A line under the header when the copy shown is not fresh from Drive. */
-function statusOf(state: FeedState | undefined): { text: string; alert: boolean } | null {
+interface Status { text: string; alert: boolean; action: 'retry' | 'details' }
+
+/**
+ * A line under the header: the copy shown is not fresh from Drive, or
+ * something in the feed wants a look (with the details a tap away).
+ */
+function statusOf(state: FeedState | undefined, conformance: FeedConformance | undefined): Status | null {
   if (!state?.editions.length) return null; // the empty reader says it instead
   switch (state.status) {
-    case 'offline': return { text: 'Offline. Showing the copy on this device.', alert: false };
-    case 'not-configured': return { text: "Google Drive isn't connected. Showing the copy on this device.", alert: true };
-    case 'error': return { text: `Couldn't refresh from Google Drive: ${state.message}`, alert: true };
+    case 'offline': return { text: 'Offline. Showing the copy on this device.', alert: false, action: 'retry' };
+    case 'not-configured': return { text: "Google Drive isn't connected. Showing the copy on this device.", alert: true, action: 'retry' };
+    case 'error': return { text: `Couldn't refresh from Google Drive: ${state.message}`, alert: true, action: 'retry' };
   }
   if (state.missing.length) {
-    return { text: `${plural(state.missing.length, 'edition')} in Drive couldn't be loaded.`, alert: true };
+    return { text: `${plural(state.missing.length, 'edition')} in Drive couldn't be loaded.`, alert: true, action: 'details' };
+  }
+  const problems = (conformance?.problems ?? []).filter(p => NEEDS_A_LOOK.includes(p.flag.kind));
+  if (problems.length) {
+    const docs = new Set(problems.map(p => p.edition.driveFileId)).size;
+    return { text: `${plural(docs, 'document')} in this feed ${docs === 1 ? 'needs' : 'need'} a look.`, alert: true, action: 'details' };
+  }
+  if (conformance?.problems.some(p => p.flag.kind === 'writing')) {
+    return { text: 'An edition is still being written. It is checked again on each refresh.', alert: false, action: 'details' };
   }
   return null;
 }
@@ -137,6 +153,15 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   // not change under you as you read.
   const [readingAtOpen] = useState(() => readingIndex(data?.progressLog));
   const saved = useMemo(() => savedOf(data?.content), [data?.content]);
+  // What each feed's documents look like, judged again every minute so that
+  // one still being written gets its grace period and no more.
+  const now = useClock(60_000);
+  const conformance = useMemo(() => {
+    const out: Partial<Record<FeedId, FeedConformance>> = {};
+    for (const f of FEEDS) out[f.id] = conformanceOf(states[f.id]?.editions ?? [], now);
+    return out;
+  }, [states, now]);
+  const [statusSheet, setStatusSheet] = useState<FeedId[] | null>(null);
   const savedFiles = useMemo(() => new Set(saved.map(s => s.driveFileId)), [saved]);
 
   const feedId = isFeed(view) ? view : null;
@@ -159,7 +184,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
 
   const loading = feedId ? !editions.length && !refreshed[feedId] && state?.status !== 'not-configured' : false;
   const drawerOpen = drawer && mode === 'drawer' && !!feedId;
-  const status = feedId ? statusOf(state) : null;
+  const status = feedId ? statusOf(state, conformance[feedId]) : null;
   const record = edition ? reading.get(edition.driveFileId) : undefined;
   const startAt = edition && jump?.driveFileId === edition.driveFileId ? jump.sectionId
     : record && !record.readAt ? record.section : null;
@@ -293,8 +318,19 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   const statusLine = status && (
     <div className={`intel-status${status.alert ? ' is-alert' : ''}`} role="status">
       <span>{status.text}</span>
-      <button type="button" onClick={refresh}>Try again</button>
+      {status.action === 'retry'
+        ? <button type="button" onClick={refresh}>Try again</button>
+        : <button type="button" onClick={() => feedId && setStatusSheet([feedId])}>Details</button>}
     </div>
+  );
+  const statusSheetView = statusSheet && (
+    <FeedStatus
+      feeds={statusSheet}
+      states={states}
+      conformance={conformance}
+      onOpen={e => { setStatusSheet(null); openEdition(e); }}
+      onClose={() => setStatusSheet(null)}
+    />
   );
   const noteLine = note && <div key={note.at} className="intel-note" role="status">{note.text}</div>;
 
@@ -303,6 +339,11 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
       <div className="intel-rail-head">
         <h2>{mode === 'single' && feedId ? feedById(feedId)!.label : 'Editions'}</h2>
         {editions.length > 0 && <span className="intel-count">{editions.length}</span>}
+        {feedId && (
+          <button type="button" className="intel-iconbtn" onClick={() => setStatusSheet([feedId])} aria-label="Feed status">
+            <IconPulse />
+          </button>
+        )}
         {head}
       </div>
       {editions.length > 0 && (
@@ -310,6 +351,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
           {editions.map(e => {
             const s = readingState(e, reading);
             const r = reading.get(e.driveFileId);
+            const label = labelOf(conformance[e.feedId]?.flags.get(e.driveFileId));
             return (
               <li key={e.driveFileId}>
                 <button
@@ -322,6 +364,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
                   <span className="intel-ed-date">
                     {dayNameShort(e.editionDate)} {formatDayCompact(e.editionDate)}{e.time && ` · ${e.time}`}
                     {s === 'updated' && ' · Updated'}
+                    {label && <span className={`intel-tag${label === 'Imported' ? '' : ' is-alert'}`}>{label}</span>}
                   </span>
                   {savedFiles.has(e.driveFileId) && <span className="intel-ed-saved" aria-label="Something saved"><IconBookmark /></span>}
                   <span className="intel-ed-title">{e.title}</span>
@@ -351,11 +394,21 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
       onToggleSave={toggleSaveHere}
       onPosition={onPosition}
       startAt={startAt}
+      flags={conformance[edition.feedId]?.flags.get(edition.driveFileId)}
     />
   );
 
   const page = view === 'today'
-    ? <TodayView states={states} reading={reading} loading={!Object.keys(refreshed).length} onOpen={e => openEdition(e)} />
+    ? (
+      <TodayView
+        states={states}
+        reading={reading}
+        loading={!Object.keys(refreshed).length}
+        onOpen={e => openEdition(e)}
+        labelOf={e => labelOf(conformance[e.feedId]?.flags.get(e.driveFileId))}
+        onStatus={() => setStatusSheet(FEEDS.map(f => f.id))}
+      />
+    )
     : view === 'saved'
       ? (
         <SavedView
@@ -391,6 +444,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
           </div>
           <div className="intel-reader" ref={readerRef}>{reader}</div>
           {noteLine}
+          {statusSheetView}
         </div>
       );
     }
@@ -407,6 +461,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
           )}
         </div>
         {noteLine}
+        {statusSheetView}
       </div>
     );
   }
@@ -442,6 +497,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
         </>
       )}
       {noteLine}
+      {statusSheetView}
     </div>
   );
 }
