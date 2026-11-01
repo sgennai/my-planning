@@ -4,6 +4,10 @@
 // blocks fits that form. Anything else is shown as the Markdown it is.
 import type { FeedId } from './feeds';
 import type { Section } from './parse';
+import { blocksOf, keyOf, SEPARATOR, PLAIN, unlabel } from './blocks';
+import { presentBrief, type BriefPresentation } from './briefs';
+
+export { blocksOf };
 
 export type Presentation =
   | { kind: 'markdown'; markdown: string }
@@ -14,17 +18,25 @@ export type Presentation =
   /** Markdown whose list items are things people say. */
   | { kind: 'quotes'; markdown: string }
   | { kind: 'questions'; items: Labelled[] }
-  | { kind: 'vocabulary'; terms: Term[]; notes: Labelled[] };
+  | { kind: 'vocabulary'; terms: Term[]; notes: Labelled[] }
+  | BriefPresentation;
 
 export interface Labelled { label: string; text: string }
 export interface Term { n: string | null; term: string; definition: string }
 
-/** Paragraphs, lists and the like: the text between blank lines. */
-export function blocksOf(markdown: string): string[] {
-  return markdown.split(/\n[ \t]*\n/).map(b => b.trim()).filter(Boolean);
-}
 
-const keyOf = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+/**
+ * The order sections are shown in: the document's, except that the Sales
+ * Brief leads with "What I should remember today", as its brief asks.
+ */
+export function displayOrder(feedId: FeedId, sections: Section[]): Section[] {
+  if (feedId !== 'enterprise-ai-sales-brief') return sections;
+  const remember = sections.find(s => /what i should remember/.test(keyOf(s.title)));
+  if (!remember) return sections;
+  const rest = sections.filter(s => s !== remember);
+  const at = rest.findIndex(s => s.role !== 'title');
+  return at === -1 ? sections : [...rest.slice(0, at), remember, ...rest.slice(at)];
+}
 
 /** A short name for the section index: the title up to a dash or colon. */
 export function shortTitle(title: string): string {
@@ -36,11 +48,6 @@ const LABEL = /^\*\*((?:(?!\*\*)[^\n])+?)\*\*:?$/;
 const NUMBERED = /^\*\*\s*(\d+)[.)]\s+((?:(?!\*\*)[^\n])+?)\s*\*\*$/;
 const TERM = /^\*\*\s*(?:(\d+)[.)]\s*)?((?:(?!\*\*)[^\n])+?)\s*\*\*\s*(?:[—–-]|:)\s*([\s\S]+)$/;
 const LABELLED_LINE = /^\*\*((?:(?!\*\*)[^\n])+?)\*\*:?\s+([^\n]+)$/;
-const SEPARATOR = /\s+[•·]\s+/;
-/** Topic names are plain words: no emphasis, links or code to lose. */
-const PLAIN = /^[^*_`[\]<>#\n]+$/;
-
-const unlabel = (label: string) => label.replace(/\s*:\s*$/, '').trim();
 
 function lead(markdown: string): Presentation {
   const first = /^\s*(\S[^\n]*)(?:\n[ \t]*\n|\s*$)/.exec(markdown);
@@ -118,11 +125,11 @@ function vocabulary(markdown: string): Presentation | null {
   return notes ? { kind: 'vocabulary', terms, notes } : null;
 }
 
-/** The form a section takes. Only the AI Challenge has its own forms so far. */
+/** The form a section takes, by feed and by what the section is. */
 export function presentSection(feedId: FeedId, section: Section): Presentation {
   const { markdown } = section;
   const fallback: Presentation = { kind: 'markdown', markdown };
-  if (feedId !== 'enterprise-ai-challenge') return fallback;
+  if (feedId !== 'enterprise-ai-challenge') return presentBrief(section) ?? fallback;
   const key = keyOf(section.title);
   if (/topic map$/.test(key)) return topics(markdown) ?? fallback;
   if (key === 'challenge') return lead(markdown);

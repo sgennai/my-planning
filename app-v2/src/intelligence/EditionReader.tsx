@@ -8,7 +8,8 @@
 import { Component, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { Markdown } from './Markdown';
 import { splitSections, type Edition, type Section } from './parse';
-import { presentSection, shortTitle, copyText, readingMinutes, type Presentation, type Term } from './present';
+import { presentSection, displayOrder, shortTitle, copyText, readingMinutes, type Presentation, type Term } from './present';
+import type { Development, Part } from './briefs';
 import { feedById } from './feeds';
 import { EditionActionsContext, useEditionActions, type EditionActions } from './context';
 import { useEdgeFade } from './useEdgeFade';
@@ -158,8 +159,79 @@ function Labelled({ label, text, section, className }: { label: string; text: st
   );
 }
 
+const ASKS: Part['tone'][] = ['question', 'response', 'quote'];
+
+/** A development's labelled parts: what happened, what it means, what to ask. */
+function Parts({ parts, sectionId, sectionTitle }: { parts: Part[]; sectionId: string; sectionTitle: string }) {
+  return (
+    <div className="intel-parts">
+      {parts.map((part, i) => (
+        <div key={i} className={`intel-part is-${part.tone}`}>
+          {part.label && <span className="intel-part-label"><Markdown inline>{part.label}</Markdown></span>}
+          {part.markdown && <div className="intel-md"><Markdown>{part.markdown}</Markdown></div>}
+          {part.label && part.markdown && ASKS.includes(part.tone) && (
+            <div className="intel-question-actions">
+              <CopyButton markdown={part.markdown} label={part.label} />
+              <SaveButton name={part.label} input={{ kind: 'labelled', sectionId, sectionTitle, label: part.label, text: part.markdown }} />
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** One of the Sales Brief's developments, as a card. */
+function DevelopmentCard({ dev }: { dev: Development }) {
+  const { savedItem, toggleSave } = useEditionActions();
+  const input: SaveInput = { kind: 'section', sectionId: dev.id, sectionTitle: dev.title, text: dev.markdown };
+  const saved = !!savedItem(input);
+  const name = shortTitle(dev.title);
+  return (
+    <article className="intel-dev" id={`intel-${dev.id}`}>
+      <div className="intel-dev-head">
+        <h3><Markdown inline>{dev.title}</Markdown></h3>
+        <button
+          type="button"
+          className={`intel-sec-save${saved ? ' on' : ''}`}
+          aria-pressed={saved}
+          aria-label={saved ? `${name}: saved to Takeaways. Remove` : `Save the development ${name} to Takeaways`}
+          onClick={() => toggleSave(input)}
+        ><IconBookmark /></button>
+      </div>
+      <Parts parts={dev.parts} sectionId={dev.id} sectionTitle={dev.title} />
+    </article>
+  );
+}
+
+function Asked({ markdown, label, section }: { markdown: string; label: string; section: Section }) {
+  return (
+    <div className="intel-question">
+      <div className="intel-question-text"><Markdown>{markdown}</Markdown></div>
+      <div className="intel-question-actions">
+        <CopyButton markdown={markdown} label={label} />
+        <SaveButton name={label} input={{ kind: 'labelled', sectionId: section.id, sectionTitle: section.title, label, text: markdown }} />
+      </div>
+    </div>
+  );
+}
+
 function SectionBody({ p, section }: { p: Presentation; section: Section }) {
   switch (p.kind) {
+    case 'summary':
+      return <div className="intel-summary"><div className="intel-md"><Markdown>{p.markdown}</Markdown></div></div>;
+    case 'callout':
+      return p.tone === 'question'
+        ? <Asked markdown={p.markdown} label={shortTitle(section.title)} section={section} />
+        : <div className={`intel-callout is-${p.tone}`}><div className="intel-md"><Markdown>{p.markdown}</Markdown></div></div>;
+    case 'developments':
+      return (
+        <>
+          {p.themes && <ul className="intel-topics" aria-label="Themes">{p.themes.map((t, i) => <li key={`${i}-${t}`}>{t}</li>)}</ul>}
+          {p.intro && <div className="intel-md"><Markdown>{p.intro}</Markdown></div>}
+          <div className="intel-devs">{p.items.map(d => <DevelopmentCard key={d.id} dev={d} />)}</div>
+        </>
+      );
     case 'lead':
       return (
         <>
@@ -257,7 +329,17 @@ function Reader({
   edition, scroller, onNote, heroActions = true, reading, saved = [], onToggleRead, onToggleSave, onPosition, startAt, flags = [],
 }: Props) {
   const sections = useMemo(() => splitSections(edition.markdownBody), [edition.markdownBody]);
-  const indexed = useMemo(() => sections.filter(s => s.title && s.role !== 'title'), [sections]);
+  const displayed = useMemo(() => displayOrder(edition.feedId, sections), [edition.feedId, sections]);
+  const presented = useMemo(
+    () => new Map(displayed.map(s => [s.id, presentSection(edition.feedId, s)])),
+    [edition.feedId, displayed],
+  );
+  // The index: every titled section, and the developments inside one.
+  const indexed = useMemo(() => displayed.filter(s => s.title && s.role !== 'title').flatMap(s => {
+    const own = { id: s.id, label: shortTitle(s.title), sub: false };
+    const p = presented.get(s.id);
+    return p?.kind === 'developments' ? [own, ...p.items.map(d => ({ id: d.id, label: shortTitle(d.title), sub: true }))] : [own];
+  }), [displayed, presented]);
   const feed = feedById(edition.feedId);
   const record = reading?.get(edition.driveFileId);
   const articleRef = useRef<HTMLElement | null>(null);
@@ -400,7 +482,7 @@ function Reader({
             {progress !== null && ` · ${progress}% read`}
             {resumeAt && resumeAt.id !== active && (
               <> · <button type="button" className="intel-resume" onClick={() => goTo(resumeAt.id)}>
-                Continue from “{shortTitle(resumeAt.title)}”
+                Continue from “{resumeAt.label}”
               </button></>
             )}
           </p>
@@ -410,20 +492,21 @@ function Reader({
         {indexed.length > 1 && (
           <nav className="intel-index" aria-label="Sections" ref={indexRef}>
             <div className={`intel-index-row${indexFade}`} ref={indexRowRef}>
-              {indexed.map(s => (
+              {indexed.map(a => (
                 <button
-                  key={s.id}
+                  key={a.id}
                   type="button"
-                  data-id={s.id}
-                  aria-current={active === s.id ? 'true' : undefined}
-                  onClick={() => goTo(s.id)}
-                >{shortTitle(s.title)}</button>
+                  data-id={a.id}
+                  className={a.sub ? 'is-sub' : undefined}
+                  aria-current={active === a.id ? 'true' : undefined}
+                  onClick={() => goTo(a.id)}
+                >{a.label}</button>
               ))}
             </div>
           </nav>
         )}
 
-        {sections.map(s => s.role === 'title' ? (
+        {displayed.map(s => s.role === 'title' ? (
           // The document's own title line, and what it says before its first section.
           <div key={s.id} id={`intel-${s.id}`} className="intel-doc-title">
             <p className="intel-doc-title-text"><Markdown inline>{s.title}</Markdown></p>
@@ -437,7 +520,7 @@ function Reader({
                 {onToggleSave && <SectionSave section={s} />}
               </div>
             )}
-            <SectionBody p={presentSection(edition.feedId, s)} section={s} />
+            <SectionBody p={presented.get(s.id)!} section={s} />
           </section>
         ))}
 
