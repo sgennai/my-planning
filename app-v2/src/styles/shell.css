@@ -226,18 +226,23 @@
   .shell-nav-util svg { width: 17px; height: 17px; }
 }
 
-/* ── Phones: the utilities fold behind "More" ─────────────────────────── */
-/* Six sections plus three utilities need about 530px across, more than any
+/* ── Phones: Setup and the utilities fold behind "More" ───────────────── */
+/* Seven sections plus three utilities need about 600px across, more than any
    phone has in portrait, and more height than one has held sideways. There
-   the utilities move into a small menu, and every remaining control keeps a
-   full 44px. Declared last so it outranks the portrait utilities above. */
+   Setup and the utilities move into a small menu, Intelligence is "Intel",
+   and every remaining control keeps a full 44px. Declared last so it
+   outranks the portrait utilities above. */
 .shell-nav-item.shell-nav-more,
+.shell-nav-short,
 .shell-more-menu,
 .shell-more-scrim { display: none; }
 
 @media (orientation: portrait) and (max-width: 600px),
        (orientation: landscape) and (max-height: 520px) {
-  .shell-nav-utils { display: none; }
+  .shell-nav-utils,
+  .shell-nav-item.shell-nav-fold,
+  .shell-nav-long { display: none; }
+  .shell-nav-short { display: inline; }
   .shell-nav-item.shell-nav-more { display: flex; }
 
   .shell-more-scrim { display: block; position: fixed; inset: 0; z-index: 299; }
@@ -267,7 +272,8 @@
     font-weight: 500;
     text-align: left;
   }
-  .shell-more-menu button:active { background: var(--nav-active); }
+  .shell-more-menu button:active,
+  .shell-more-menu button.on { background: var(--nav-active); }
   .shell-more-menu svg { width: 19px; height: 19px; flex: none; color: var(--nav-ink); }
   .shell-more-menu small { display: block; font-size: 12px; font-weight: 400; color: var(--nav-ink); }
   .shell-more-menu .is-alert,

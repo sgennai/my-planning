@@ -10,6 +10,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
+        // /api is the server's (the Intelligence feeds): never answered with
+        // the app shell, never cached here. The app keeps its own copy.
+        navigateFallbackDenylist: [/^\/api\//],
         // The photographs are deliberately *not* precached — 4.4 MB on an
         // iPad 7th gen would make the first install crawl, and a tile whose
         // image fails simply draws its plate instead. They are cached the
@@ -50,6 +53,14 @@ export default defineConfig({
       }
     })
   ],
+  // Local development only: /api goes to `wrangler pages dev` on 8788, which
+  // runs functions/ with the key from .dev.vars. Start it with the throwaway
+  // login dev/dev (see CLAUDE.md, "Intelligence"); this passes that login on.
+  server: {
+    proxy: {
+      '/api': { target: 'http://localhost:8788', headers: { Authorization: `Basic ${btoa('dev:dev')}` } },
+    },
+  },
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/setupTests.ts'],

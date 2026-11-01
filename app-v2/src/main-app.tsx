@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState, useEffect, useRef, useCallback, useMemo, Fragment } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, Fragment, lazy, Suspense } from 'react';
 import { SCHEMA_VERSION, SEED_ROUTINE, SEED_PROJECTS, SEED_REFERENCE_LIBRARY, SEED_PRACTICE_CONTENT } from './storage/data';
 import { migrate } from './storage/migrations';
 import { SEED_ROUTINE_ACTIVITIES } from './routine/model';
@@ -14,6 +14,10 @@ import { DEFAULT_MODULES } from './modules/seed-modules';
 import { AppShell } from './ui/AppShell';
 import { CrashBoundary } from './ui/CrashScreen';
 import { RoutineScreen } from './routine/RoutineScreen';
+
+// Loaded on first visit: the Markdown reader is the section's own weight.
+const IntelligenceScreen = lazy(() =>
+  import('./intelligence/IntelligenceScreen').then(m => ({ default: m.IntelligenceScreen })));
 
 // DEFAULT DATA + MIGRATION
 // ═════════════════════════════════════════════════════════════
@@ -412,6 +416,12 @@ export function App() {
     );
   } else if (appPage === 'create') {
     pageContent = <CreateScreen data={data} onPersist={persist} />;
+  } else if (appPage === 'intelligence') {
+    pageContent = (
+      <Suspense fallback={<Centered>Loading…</Centered>}>
+        <IntelligenceScreen />
+      </Suspense>
+    );
   } else {
     pageContent = (
       <CalendarScreen

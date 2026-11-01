@@ -5,7 +5,9 @@ A personal routine and portfolio dashboard, built iPad-first, around a job switc
 **offline-first IndexedDB** store, per-entity sync through a Cloudflare Worker. Replaces the
 v1 runtime-Babel single-global-scope app.
 
-**Six sections, Routine first and default:** Routine · Plan · Practice · Intake · Create · Setup.
+**Seven sections, Routine first and default:** Routine · Plan · Intelligence · Practice · Intake ·
+Create · Setup. On a phone, Setup sits in the More menu and Intelligence is labelled "Intel"
+(`NavEntry.phoneMore` / `short` in `ui/nav.ts`).
 
 ## Sources of truth
 
@@ -300,6 +302,52 @@ on a device west of Paris it is still "yesterday" there for several hours every 
 `dayKeyFromLocalDate()` is the one exception, for Dates the Plan grids built from local
 calendar fields.
 
+## Intelligence (`src/intelligence/`)
+
+A reader for three ChatGPT scheduled-task feeds, specified in
+`../intelligence-dashboard-implementation-brief.md`. Each run writes one private Google Doc of
+literal Markdown (a small YAML header, then the briefing) into its folder in a dedicated Gmail
+account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order).
+
+- **Google access** is server-side and read-only: `functions/api/intel/[[path]].ts` →
+  `server/intel.ts` (`GET /api/intel/feeds/<feedId>`, `GET /api/intel/docs/<fileId>`), signing in
+  as a service account (`server/google.ts`, scope `drive.readonly`). The dedicated account shares
+  its "ChatGPT Intelligence" folder with the service account as Viewer; the server also refuses
+  any document outside the three folders. Key: Cloudflare Pages secret `GOOGLE_SERVICE_ACCOUNT`
+  (Google's JSON, raw or base64). Behind the site login like every path. No OpenAI API.
+- **Content vs your data:** Drive documents are cached per device in their own IndexedDB
+  database `my-planning-intel` (`library.ts`, keyed by file ID, refetched when Drive's
+  `modifiedTime` changes), never in the synced data. Reading state and saved items will be
+  synced records (`progressLog` `ir:<fileId>`, `content` `is:<id>`).
+- **Parsing** (`parse.ts`): header via js-yaml `CORE_SCHEMA`; missing or invalid fields fall
+  back to the filename (`YYYY-MM-DD_HHmm__<type>`) and Drive's dates and are listed in
+  `issues` (logged as `[intel]`), never invented. The body is kept as written; `splitSections`
+  cuts it at its shallowest heading level. Order: `edition_date`, then the Paris time of
+  `generated_at`; never `modifiedTime`.
+- **The reader** (`IntelligenceScreen.tsx`, lazy-loaded with its own CSS chunk,
+  `styles/intelligence.css`): feed tabs (Enterprise AI · AI Challenge · Customer Engagement),
+  then by orientation — landscape: edition rail + reader; iPad portrait: reader with an
+  "Editions" drawer; phone (same query as the shell's More): list, then the edition. It fills
+  the shell like Routine; in portrait the text runs under the pill and every list ends clear of
+  it (`--intel-foot`). `useFeeds` shows the device's copy at once and refreshes on opening, on
+  the button, and on return after 10 min. Last feed and edition opened: `localStorage`.
+- **Sections** (`EditionReader.tsx`, `present.ts`): a sticky index of chips, then each
+  section in its order. AI Challenge sections take a richer form (topic cloud with today's lit,
+  bold lead, numbered approach cards, quote cards, question callouts with Copy, tap-to-reveal
+  vocabulary, the rehearse sentence with Copy) **only when every block fits that form**, else
+  the Markdown as written (react-markdown + remark-gfm; raw HTML stays text, images become
+  links, links open beside the app). `present.test.tsx` asserts every word of a document
+  reaches the screen. An edition that throws shows "couldn't be shown" + Open original
+  (`EditionBoundary`) without taking the section down. Other feeds render as Markdown until
+  they publish and get their own forms.
+- **Not yet (phase 3):** Today, À retenir, read/unread and progress, Mark as read and Save
+  icons beside Open original.
+- **Local development** with real documents: `.dev.vars` in `app-v2` holds
+  `GOOGLE_SERVICE_ACCOUNT` (gitignored, never read by tools). Run
+  `npx wrangler pages dev <any folder> --port 8788 --binding BASIC_AUTH_USER=dev --binding BASIC_AUTH_PASS=dev`
+  next to `npm run dev`; Vite proxies `/api` to it with that throwaway login. The service worker
+  never serves the app shell for `/api` (`navigateFallbackDenylist`).
+
 ## Plan calendar integration
 
 `CalendarScreen` no longer reads `data.routine`. It derives:
@@ -376,7 +424,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (213 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (266 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris

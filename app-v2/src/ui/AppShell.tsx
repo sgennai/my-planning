@@ -1,4 +1,4 @@
-// The shared application shell — one navigation surface for all six sections.
+// The shared application shell — one navigation surface for all seven sections.
 //
 // A floating near-black pill: vertical at the left in landscape, horizontal at
 // the foot in portrait. It floats over the content rather than taking a
@@ -32,7 +32,9 @@ function useNavIndicator(appPage: AppPage) {
     if (!nav) return;
 
     const measure = () => {
-      const active = nav.querySelector<HTMLElement>('.shell-nav-item.on');
+      // The first one shown: on a phone a section folded into More is hidden,
+      // and More stands for it.
+      const active = [...nav.querySelectorAll<HTMLElement>('.shell-nav-item.on')].find(el => el.getClientRects().length);
       if (!active) return;
       const a = active.getBoundingClientRect();
       const n = nav.getBoundingClientRect();
@@ -84,6 +86,8 @@ export function AppShell({
   }, [moreOpen]);
 
   const closingMore = (action: () => void) => () => { setMoreOpen(false); action(); };
+  const folded = NAV.filter(n => n.phoneMore);
+  const onFolded = folded.some(n => n.page === appPage);
 
   return (
     <div className="shell">
@@ -100,14 +104,18 @@ export function AppShell({
             style={{ transform: `translate(${box.x}px, ${box.y}px)`, width: box.w, height: box.h, left: 0, top: 0 }}
           />
         )}
-        {NAV.map(({ page, label, Icon }) => (
+        {NAV.map(({ page, label, short, phoneMore, Icon }) => (
           <button
             key={page}
-            className={`shell-nav-item${appPage === page ? ' on' : ''}`}
+            className={`shell-nav-item${phoneMore ? ' shell-nav-fold' : ''}${appPage === page ? ' on' : ''}`}
             onClick={closingMore(() => onNavigate(page))}
             aria-current={appPage === page ? 'page' : undefined}
+            aria-label={short ? label : undefined}
           >
-            <Icon /><span>{label}</span>
+            <Icon />
+            {short
+              ? <><span className="shell-nav-long">{label}</span><span className="shell-nav-short" aria-hidden>{short}</span></>
+              : <span>{label}</span>}
           </button>
         ))}
 
@@ -133,12 +141,12 @@ export function AppShell({
           )}
         </div>
 
-        {/* On a phone the six sections and three utilities do not fit in one
-            pill, either way up, so the utilities fold behind "More". A sync
+        {/* On a phone the seven sections and three utilities do not fit in one
+            pill, either way up, so Setup and the utilities fold behind "More". A sync
             failure shows as a dot on it, so it is still seen with the menu
             closed. Only one of the utilities and "More" is ever visible. */}
         <button
-          className={`shell-nav-item shell-nav-more${syncError ? ' is-alert' : ''}`}
+          className={`shell-nav-item shell-nav-more${syncError ? ' is-alert' : ''}${onFolded ? ' on' : ''}`}
           onClick={() => setMoreOpen(open => !open)}
           aria-haspopup="menu"
           aria-expanded={moreOpen}
@@ -148,6 +156,17 @@ export function AppShell({
         </button>
         {moreOpen && (
           <div className="shell-more-menu" role="menu" aria-label="More">
+            {folded.map(({ page, label, Icon }) => (
+              <button
+                key={page}
+                role="menuitem"
+                className={appPage === page ? 'on' : undefined}
+                aria-current={appPage === page ? 'page' : undefined}
+                onClick={closingMore(() => onNavigate(page))}
+              >
+                <Icon /><span>{label}</span>
+              </button>
+            ))}
             <button role="menuitemcheckbox" aria-checked={isDark} onClick={closingMore(onToggleTheme)}>
               {isDark ? <IconMoon /> : <IconSun />}<span>Dark theme</span>
             </button>

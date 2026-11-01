@@ -20,6 +20,9 @@ export const IconRoutine = (p: P) => (
 export const IconPlan = (p: P) => (
   <svg {...base} {...p}><rect x="3" y="5" width="18" height="16" rx="2.5" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>
 );
+export const IconIntel = (p: P) => (
+  <svg {...base} {...p}><path d="M5.5 4.5A1.5 1.5 0 0 1 7 3h7.5l4 4v12.5A1.5 1.5 0 0 1 17 21H7a1.5 1.5 0 0 1-1.5-1.5z" /><path d="M14.5 3v4h4M9 12h6M9 15.5h6M9 8.5h2.5" /></svg>
+);
 export const IconPractice = (p: P) => (
   <svg {...base} {...p}><rect x="9" y="2.5" width="6" height="11" rx="3" /><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7" /></svg>
 );
@@ -102,6 +105,18 @@ export const IconAlert = (p: P) => (
 );
 export const IconClock = (p: P) => (
   <svg {...base} {...p}><circle cx="12" cy="12" r="8.6" /><path d="M12 7.4V12l3 1.9" /></svg>
+);
+export const IconExternal = (p: P) => (
+  <svg {...base} {...p}><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" /></svg>
+);
+export const IconCopy = (p: P) => (
+  <svg {...base} {...p}><rect x="8.5" y="8.5" width="12" height="12" rx="2" /><path d="M15.5 8.5V5.5a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h3" /></svg>
+);
+export const IconList = (p: P) => (
+  <svg {...base} {...p}><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" /></svg>
+);
+export const IconRefresh = (p: P) => (
+  <svg {...base} {...p}><path d="M20 11.5a8 8 0 1 0-2.3 5.7M20 4.5v7h-7" /></svg>
 );
 export const IconEllipsis = (p: P) => (
   <svg {...base} {...p} strokeWidth={2.4}><path d="M6 12h.01M12 12h.01M18 12h.01" /></svg>
