@@ -118,6 +118,33 @@ function TermCard({ term, section }: { term: Term; section: Section }) {
   );
 }
 
+/**
+ * Today's topics first, under the document's own label; the whole map (often
+ * some thirty topics) one tap away, with today's still lit. A map that marks
+ * nothing as today's shows whole.
+ */
+function TopicMap({ topics, label, highlighted }: { topics: string[]; label: string | null; highlighted: string[] }) {
+  const [whole, setWhole] = useState(false);
+  const on = new Set(highlighted.map(t => t.toLowerCase()));
+  const today = topics.filter(t => on.has(t.toLowerCase()));
+  const cloud = (list: string[]) => (
+    <ul className="intel-cloud">
+      {list.map((t, i) => <li key={`${i}-${t}`} className={on.has(t.toLowerCase()) ? 'on' : undefined}>{t}</li>)}
+    </ul>
+  );
+  if (!today.length) return cloud(topics);
+  return (
+    <>
+      {label && <p className="intel-legend"><i aria-hidden />{label}</p>}
+      {cloud(today)}
+      <button type="button" className="intel-linkbtn" aria-expanded={whole} onClick={() => setWhole(w => !w)}>
+        {whole ? 'Hide the full map' : `All topics (${topics.length})`}
+      </button>
+      {whole && cloud(topics)}
+    </>
+  );
+}
+
 function Labelled({ label, text, section, className }: { label: string; text: string; section: Section; className: string }) {
   return (
     <div className={className}>
@@ -140,17 +167,8 @@ function SectionBody({ p, section }: { p: Presentation; section: Section }) {
           {p.rest && <div className="intel-md"><Markdown>{p.rest}</Markdown></div>}
         </>
       );
-    case 'topics': {
-      const on = new Set(p.highlighted.map(t => t.toLowerCase()));
-      return (
-        <>
-          <ul className="intel-cloud">
-            {p.topics.map((t, i) => <li key={`${i}-${t}`} className={on.has(t.toLowerCase()) ? 'on' : undefined}>{t}</li>)}
-          </ul>
-          {p.label && <p className="intel-legend"><i aria-hidden />{p.label}</p>}
-        </>
-      );
-    }
+    case 'topics':
+      return <TopicMap topics={p.topics} label={p.label} highlighted={p.highlighted} />;
     case 'numbered':
       return (
         <ol className="intel-steps">

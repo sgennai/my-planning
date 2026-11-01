@@ -139,6 +139,19 @@ describe('the edition on screen', () => {
     expect(screen.getAllByRole('button', { name: /^(Enterprise AI topic map|Challenge|Executive Vocabulary)$/ })).toHaveLength(3);
   });
 
+  it("the topic map leads with today's topics; the whole map is a tap away", () => {
+    const { container } = render(<EditionReader edition={edition} scroller={scroller} onNote={() => {}} />);
+    const map = container.querySelector('#intel-enterprise-ai-topic-map')!;
+    const shown = () => [...map.querySelectorAll('.intel-cloud li')].map(li => li.textContent);
+    expect(shown()).toEqual(['Governance', 'Agentic AI', 'Operating models']);
+    expect(map.textContent).toContain("Relevant to today's challenge");
+    fireEvent.click(screen.getByRole('button', { name: 'All topics (5)' }));
+    expect(shown()).toEqual(['Governance', 'Agentic AI', 'Operating models', 'Strategy', 'Governance', 'Agentic AI', 'Operating models', 'ROI']);
+    expect(map.querySelectorAll('.intel-cloud li.on')).toHaveLength(6);
+    fireEvent.click(screen.getByRole('button', { name: 'Hide the full map' }));
+    expect(shown()).toHaveLength(3);
+  });
+
   it('a vocabulary card reveals its definition on a tap', () => {
     render(<EditionReader edition={edition} scroller={scroller} onNote={() => {}} />);
     expect(screen.queryByText('Uncontrolled growth in the number of AI agents.')).toBeNull();
