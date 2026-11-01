@@ -140,6 +140,35 @@ export function copyText(markdown: string): string {
   return quoted ? quoted[2] : plain;
 }
 
+/** Markdown as the words it shows: no emphasis, link targets, markers or headings. */
+export function plainText(markdown: string): string {
+  return markdown
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/^\s{0,3}(?:#{1,6}\s+|>\s?|[-*+]\s+|\d+[.)]\s+)/gm, '')
+    .replace(/\*\*|__|`/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+const PREVIEW_MAX = 220;
+
+/**
+ * A few lines to know an edition by, taken from its own words: the first
+ * paragraph of "What I should remember today", else of the Challenge, else of
+ * the first section that is prose. Cut at a word, with an ellipsis.
+ */
+export function previewOf(sections: Section[]): string | null {
+  const prose = (s: Section) => blocksOf(s.markdown).find(b => !/^\s*(?:[-*+]|\d+[.)])\s/.test(b) && !SEPARATOR.test(b));
+  const pick = sections.find(s => /what i should remember/.test(keyOf(s.title)))
+    ?? sections.find(s => keyOf(s.title) === 'challenge')
+    ?? sections.find(s => s.title && prose(s));
+  const block = pick && prose(pick);
+  if (!block) return null;
+  const text = plainText(block);
+  if (text.length <= PREVIEW_MAX) return text;
+  return `${text.slice(0, text.lastIndexOf(' ', PREVIEW_MAX - 1)).replace(/[,;:.\s]+$/, '')}…`;
+}
+
 /** Minutes to read, at 220 words a minute; never under one. */
 export function readingMinutes(markdown: string): number {
   const words = markdown.split(/\s+/).filter(w => /[\p{L}\p{N}]/u.test(w)).length;

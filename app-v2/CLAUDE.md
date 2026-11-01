@@ -324,13 +324,17 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   `issues` (logged as `[intel]`), never invented. The body is kept as written; `splitSections`
   cuts it at its shallowest heading level. Order: `edition_date`, then the Paris time of
   `generated_at`; never `modifiedTime`.
-- **The reader** (`IntelligenceScreen.tsx`, lazy-loaded with its own CSS chunk,
-  `styles/intelligence.css`): feed tabs (Enterprise AI · AI Challenge · Customer Engagement),
-  then by orientation — landscape: edition rail + reader; iPad portrait: reader with an
-  "Editions" drawer; phone (same query as the shell's More): list, then the edition. It fills
-  the shell like Routine; in portrait the text runs under the pill and every list ends clear of
-  it (`--intel-foot`). `useFeeds` shows the device's copy at once and refreshes on opening, on
-  the button, and on return after 10 min. Last feed and edition opened: `localStorage`.
+- **The section** (`IntelligenceScreen.tsx`, lazy-loaded with its own CSS chunk,
+  `styles/intelligence.css`): tabs Today · Enterprise AI · AI Challenge · Customer Engagement ·
+  À retenir (a dot on a feed with something new, the count on À retenir; the row scrolls and
+  fades at an edge with more, `useEdgeFade`). A feed, by orientation — landscape: edition rail +
+  reader; iPad portrait: reader with an "Editions" drawer; phone (same query as the shell's
+  More): list, then the edition with its actions in the top bar. It fills the shell like
+  Routine; in portrait the text runs under the pill and every list ends clear of it
+  (`--intel-foot`). `useFeeds` shows the device's copy at once and refreshes on opening, on the
+  button, and on return after 10 min. A feed opens on the edition chosen this session, else the
+  newest unread one if newer than the last opened (`localStorage`), else the last opened;
+  acting on an edition (scrolling, read, save) keeps it.
 - **Sections** (`EditionReader.tsx`, `present.ts`): a sticky index of chips, then each
   section in its order. AI Challenge sections take a richer form (topic cloud with today's lit,
   bold lead, numbered approach cards, quote cards, question callouts with Copy, tap-to-reveal
@@ -340,8 +344,22 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   reaches the screen. An edition that throws shows "couldn't be shown" + Open original
   (`EditionBoundary`) without taking the section down. Other feeds render as Markdown until
   they publish and get their own forms.
-- **Not yet (phase 3):** Today, À retenir, read/unread and progress, Mark as read and Save
-  icons beside Open original.
+- **Reading state** (`reading.ts`): one synced `progressLog` record per edition,
+  `ir:<driveFileId>`, type `intel-reading`, value `{ feedId, progress (furthest, 0–1), section
+  (last), readAt }`. Written when scrolling rests (1.2 s), on leaving the edition, and when the
+  app is hidden; only a new section, +10 % or the end is worth a write. The end marks it read;
+  Mark as unread starts over. An edition reopens at its last section while unread. "Updated" =
+  Drive's `modifiedTime` after `readAt`.
+- **À retenir** (`saved.ts`, `SavedView.tsx`): synced `content` records `is:<uuid>`, type
+  `intel-saved`, kinds edition / section / labelled (a question or the rehearse line) / term /
+  passage (selected text, via a button at the foot because iOS gives web apps no selection
+  menu). Each keeps the words as written plus the edition's title, date, time and link, so it
+  shows on a device that never fetched the edition. Note, tags (comma-separated), search
+  (every word, any field, accents and case ignored), tag filter, a way back to the section.
+  Every save button toggles; taking something out asks first (`window.confirm`).
+- **Today** (`TodayView.tsx`): the newest edition of each feed in `FEEDS` order (AI Challenge,
+  sales brief, customer engagement) with New / Updated / n % read / Read, a preview taken from
+  its own first lines (`previewOf`), and Read / Continue · section / Read again.
 - **Local development** with real documents: `.dev.vars` in `app-v2` holds
   `GOOGLE_SERVICE_ACCOUNT` (gitignored, never read by tools). Run
   `npx wrangler pages dev <any folder> --port 8788 --binding BASIC_AUTH_USER=dev --binding BASIC_AUTH_PASS=dev`
@@ -424,7 +442,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (266 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (285 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris

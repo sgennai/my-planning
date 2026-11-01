@@ -419,7 +419,7 @@ export function App() {
   } else if (appPage === 'intelligence') {
     pageContent = (
       <Suspense fallback={<Centered>Loading…</Centered>}>
-        <IntelligenceScreen />
+        <IntelligenceScreen data={data} onPersist={persist} />
       </Suspense>
     );
   } else {

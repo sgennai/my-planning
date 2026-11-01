@@ -1,26 +1,45 @@
 // The Intelligence section: the ChatGPT briefings, read from private Google
 // Docs in Drive through /api/intel, newest first, at reading size.
 //
-// iPad landscape and desktop: the editions on the left, the reader beside
-// them. iPad portrait: the reader takes the width and "Editions" slides the
-// list in. Phone: one pane at a time, the list and then the edition.
+// Views: Today (the newest of each feed), one per feed, and À retenir. In a
+// feed, iPad landscape and desktop show the editions on the left and the
+// reader beside them; iPad portrait gives the reader the width and slides the
+// list in from "Editions"; a phone shows one pane at a time.
+//
+// The documents stay Google's (cached per device by `library.ts`); what you
+// do with them (how far you read, what you keep) is yours and syncs, in
+// `progressLog` and `content`.
 import '../styles/intelligence.css';
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { feedById, type FeedId } from './feeds';
 import { useFeeds } from './useFeeds';
-import { EditionReader, EditionActions } from './EditionReader';
+import { useEdgeFade } from './useEdgeFade';
+import { EditionReader, EditionTools } from './EditionReader';
+import { TodayView } from './TodayView';
+import { SavedView } from './SavedView';
 import type { Edition } from './parse';
 import type { FeedState } from './library';
+import { readingIndex, readingState, withPosition, withRead } from './reading';
+import {
+  savedOf, saveInsight, removeInsight, updateInsight, findSaved, nameOf, type SaveInput, type SavedInsight,
+} from './saved';
 import { dayNameShort, formatDayCompact } from '../routine/dates';
-import { IconRefresh, IconList, IconX, IconChevronLeft } from '../ui/icons';
+import { IconRefresh, IconList, IconX, IconChevronLeft, IconBookmark } from '../ui/icons';
+
+type View = 'today' | FeedId | 'saved';
 
 /** The tabs, in the brief's order. */
-const TABS: FeedId[] = ['enterprise-ai-sales-brief', 'enterprise-ai-challenge', 'customer-engagement-brief'];
-const DEFAULT_FEED: FeedId = 'enterprise-ai-challenge';
+const FEED_TABS: FeedId[] = ['enterprise-ai-sales-brief', 'enterprise-ai-challenge', 'customer-engagement-brief'];
+const VIEWS: View[] = ['today', ...FEED_TABS, 'saved'];
 const PHONE = '(orientation: portrait) and (max-width: 600px), (orientation: landscape) and (max-height: 520px)';
 const PORTRAIT = '(orientation: portrait)';
-const FEED_KEY = 'my-planning-intel-feed';
+const VIEW_KEY = 'my-planning-intel-view';
 const editionKey = (feedId: FeedId) => `my-planning-intel-edition:${feedId}`;
+/** A position is written once scrolling has rested this long. */
+const POSITION_REST_MS = 1200;
+
+const isFeed = (v: View): v is FeedId => v !== 'today' && v !== 'saved';
+const tabLabel = (v: View) => (v === 'today' ? 'Today' : v === 'saved' ? 'À retenir' : feedById(v)!.label);
 
 function useMatches(query: string) {
   const subscribe = useCallback((onChange: () => void) => {
@@ -31,7 +50,7 @@ function useMatches(query: string) {
   return useSyncExternalStore(subscribe, () => window.matchMedia(query).matches);
 }
 
-// Each device remembers the last feed and edition it opened, as a reader app does.
+// Each device remembers the last view and the edition last opened in each feed.
 function recall(key: string): string | null {
   try { return localStorage.getItem(key); } catch { return null; }
 }
@@ -56,7 +75,7 @@ function statusOf(state: FeedState | undefined): { text: string; alert: boolean 
 }
 
 function Empty({ state, loading, onRetry }: { state: FeedState | undefined; loading: boolean; onRetry: () => void }) {
-  const feed = feedById(state?.feedId ?? DEFAULT_FEED);
+  const feed = state && feedById(state.feedId);
   const retry = <button type="button" className="ds-btn" onClick={onRetry}><IconRefresh />Try again</button>;
   let body: ReactNode;
   if (loading) body = <p>Loading editions…</p>;
@@ -74,40 +93,76 @@ function Empty({ state, loading, onRetry }: { state: FeedState | undefined; load
   return <div className="intel-empty" role="status">{body}</div>;
 }
 
-export function IntelligenceScreen() {
+interface IntelData {
+  progressLog?: unknown[];
+  content?: unknown[];
+}
+
+interface Props {
+  data: IntelData | null;
+  onPersist: (mutator: (current: IntelData & Record<string, unknown>) => IntelData & Record<string, unknown>) => void;
+}
+
+export function IntelligenceScreen({ data, onPersist }: Props) {
   const { states, refreshed, refreshing, refresh } = useFeeds();
   const phone = useMatches(PHONE);
   const portrait = useMatches(PORTRAIT);
   const mode = phone ? 'single' : portrait ? 'drawer' : 'rail';
 
-  const [feedId, setFeedId] = useState<FeedId>(() => {
-    const saved = recall(FEED_KEY) as FeedId | null;
-    return saved && TABS.includes(saved) ? saved : DEFAULT_FEED;
+  const [view, setView] = useState<View>(() => {
+    const saved = recall(VIEW_KEY) as View | null;
+    return saved && VIEWS.includes(saved) ? saved : 'today';
   });
-  const [chosen, setChosen] = useState<Partial<Record<FeedId, string>>>(() => {
+  // The edition last opened in each feed on this device, as the section opened…
+  const [remembered] = useState<Partial<Record<FeedId, string>>>(() => {
     const out: Partial<Record<FeedId, string>> = {};
-    for (const id of TABS) {
+    for (const id of FEED_TABS) {
       const saved = recall(editionKey(id));
       if (saved) out[id] = saved;
     }
     return out;
   });
+  // …and the ones chosen since.
+  const [chosen, setChosen] = useState<Partial<Record<FeedId, string>>>({});
+  // Where an edition opened from Today or À retenir should start.
+  const [jump, setJump] = useState<{ driveFileId: string; sectionId: string | null } | null>(null);
   const [drawer, setDrawer] = useState(false);
   const [pane, setPane] = useState<'list' | 'reader'>('list');
   const [note, setNote] = useState<{ text: string; at: number } | null>(null);
   const readerRef = useRef<HTMLDivElement | null>(null);
+  const [tabsRef, tabsFade] = useEdgeFade<HTMLDivElement>(view);
 
-  const feed = feedById(feedId)!;
-  const state = states[feedId];
-  const editions = state?.editions ?? [];
-  const edition = editions.find(e => e.driveFileId === chosen[feedId]) ?? editions[0] ?? null;
-  const loading = !editions.length && !refreshed[feedId] && state?.status !== 'not-configured';
-  const drawerOpen = drawer && mode === 'drawer';
-  const status = statusOf(state);
+  const reading = useMemo(() => readingIndex(data?.progressLog), [data?.progressLog]);
+  // What was unread when the section opened: the edition a feed opens on must
+  // not change under you as you read.
+  const [readingAtOpen] = useState(() => readingIndex(data?.progressLog));
+  const saved = useMemo(() => savedOf(data?.content), [data?.content]);
+  const savedFiles = useMemo(() => new Set(saved.map(s => s.driveFileId)), [saved]);
 
-  // A new edition opens at its top.
-  const editionId = edition?.driveFileId;
-  useEffect(() => { readerRef.current?.scrollTo({ top: 0 }); }, [editionId]);
+  const feedId = isFeed(view) ? view : null;
+  const state = feedId ? states[feedId] : undefined;
+  const editions = useMemo(() => state?.editions ?? [], [state]);
+
+  // Which edition a feed opens on: the one chosen or read this session; else
+  // the newest unread edition if it is newer than the one last opened (this
+  // morning's); else the one last opened; else the newest.
+  const edition = useMemo(() => {
+    if (!feedId || !editions.length) return null;
+    const pick = (id?: string) => (id ? editions.find(e => e.driveFileId === id) : undefined);
+    const now = pick(chosen[feedId]);
+    if (now) return now;
+    const last = pick(remembered[feedId]);
+    const unread = editions.find(e => readingState(e, readingAtOpen) === 'new');
+    if (unread && (!last || unread.sortKey > last.sortKey)) return unread;
+    return last ?? editions[0];
+  }, [feedId, editions, chosen, remembered, readingAtOpen]);
+
+  const loading = feedId ? !editions.length && !refreshed[feedId] && state?.status !== 'not-configured' : false;
+  const drawerOpen = drawer && mode === 'drawer' && !!feedId;
+  const status = feedId ? statusOf(state) : null;
+  const record = edition ? reading.get(edition.driveFileId) : undefined;
+  const startAt = edition && jump?.driveFileId === edition.driveFileId ? jump.sectionId
+    : record && !record.readAt ? record.section : null;
 
   useEffect(() => {
     if (!note) return;
@@ -123,19 +178,105 @@ export function IntelligenceScreen() {
     return () => window.removeEventListener('keydown', onKey);
   }, [drawerOpen]);
 
-  const switchFeed = (id: FeedId) => { setFeedId(id); remember(FEED_KEY, id); };
-  const choose = (e: Edition) => {
-    setChosen(prev => ({ ...prev, [feedId]: e.driveFileId }));
-    remember(editionKey(feedId), e.driveFileId);
+  // ── Writes ──────────────────────────────────────────────────────────────
+  const stamp = () => new Date().toISOString();
+
+  // Scrolling reports often; the position is written when it rests, when the
+  // edition changes, and when the section closes.
+  const pending = useRef<{ edition: Edition; progress: number; section: string | null } | null>(null);
+  const restTimer = useRef(0);
+  const flushPosition = useCallback(() => {
+    window.clearTimeout(restTimer.current);
+    const p = pending.current;
+    pending.current = null;
+    if (!p) return;
+    onPersist(d => {
+      const log = d.progressLog || [];
+      const next = withPosition(log, p.edition, p.progress, p.section);
+      return next === log ? d : { ...d, progressLog: next, lastModified: stamp() };
+    });
+  }, [onPersist]);
+  // An edition you act on is the one this feed shows until you pick another.
+  const keep = useCallback((e: Edition) => {
+    setChosen(prev => (prev[e.feedId] === e.driveFileId ? prev : { ...prev, [e.feedId]: e.driveFileId }));
+    remember(editionKey(e.feedId), e.driveFileId);
+  }, []);
+  const onPosition = useCallback((progress: number, section: string | null) => {
+    if (!edition) return;
+    keep(edition);
+    if (pending.current && pending.current.edition !== edition) flushPosition();
+    pending.current = { edition, progress, section };
+    window.clearTimeout(restTimer.current);
+    restTimer.current = window.setTimeout(flushPosition, POSITION_REST_MS);
+  }, [edition, flushPosition, keep]);
+  useEffect(() => flushPosition, [edition, flushPosition]);
+  // A Home Screen app sent to the background may not run its timers again.
+  useEffect(() => {
+    const onHide = () => { if (document.visibilityState === 'hidden') flushPosition(); };
+    document.addEventListener('visibilitychange', onHide);
+    return () => document.removeEventListener('visibilitychange', onHide);
+  }, [flushPosition]);
+  // Today and À retenir open at their top; an edition places itself.
+  useEffect(() => { if (!isFeed(view)) readerRef.current?.scrollTo({ top: 0 }); }, [view]);
+
+  const toggleRead = (e: Edition) => {
+    const read = !reading.get(e.driveFileId)?.readAt;
+    keep(e);
+    flushPosition();
+    onPersist(d => ({ ...d, progressLog: withRead(d.progressLog, e, read), lastModified: stamp() }));
+    onNote(read ? 'Marked as read' : 'Marked as unread');
+  };
+
+  const remove = (item: SavedInsight) => {
+    if (!window.confirm(`Remove “${nameOf(item)}” from À retenir?`)) return;
+    onPersist(d => ({ ...d, content: removeInsight(d.content, item.id), lastModified: stamp() }));
+    onNote('Removed from À retenir');
+  };
+
+  const toggleSave = useCallback((e: Edition, input: SaveInput) => {
+    keep(e);
+    const existing = findSaved(saved, e, input);
+    if (existing) {
+      if (!window.confirm(`Remove “${nameOf(existing)}” from À retenir?`)) return;
+      onPersist(d => ({ ...d, content: removeInsight(d.content, existing.id), lastModified: stamp() }));
+      onNote('Removed from À retenir');
+    } else {
+      onPersist(d => ({ ...d, content: saveInsight(d.content, e, input), lastModified: stamp() }));
+      onNote('Saved to À retenir');
+    }
+  }, [saved, onPersist, onNote, keep]);
+  const toggleSaveHere = useCallback((input: SaveInput) => { if (edition) toggleSave(edition, input); }, [edition, toggleSave]);
+
+  // ── Navigation ──────────────────────────────────────────────────────────
+  const switchView = (v: View) => { setView(v); remember(VIEW_KEY, v); setDrawer(false); };
+  const choose = (e: Edition, sectionId: string | null = null) => {
+    keep(e);
+    setJump(sectionId ? { driveFileId: e.driveFileId, sectionId } : null);
     setDrawer(false);
     setPane('reader');
   };
+  const openEdition = (e: Edition, sectionId: string | null = null) => {
+    switchView(e.feedId);
+    choose(e, sectionId);
+  };
+  const openSaved = (item: SavedInsight) => {
+    const e = states[item.feedId]?.editions.find(x => x.driveFileId === item.driveFileId);
+    if (!e) { onNote("That edition isn't on this device. Its original is in Google Docs."); return; }
+    openEdition(e, item.sectionId);
+  };
 
+  // ── Pieces ──────────────────────────────────────────────────────────────
+  const hasNew = (id: FeedId) => (states[id]?.editions ?? []).some(e => {
+    const s = readingState(e, reading);
+    return s === 'new' || s === 'updated';
+  });
   const tabs = (
-    <div className="ds-segment intel-tabs" role="tablist" aria-label="Briefings">
-      {TABS.map(id => (
-        <button key={id} type="button" role="tab" aria-selected={id === feedId} onClick={() => switchFeed(id)}>
-          {feedById(id)!.label}
+    <div className={`ds-segment intel-tabs${tabsFade}`} role="tablist" aria-label="Intelligence" ref={tabsRef}>
+      {VIEWS.map(v => (
+        <button key={v} type="button" role="tab" data-id={v} aria-selected={v === view} onClick={() => switchView(v)}>
+          {tabLabel(v)}
+          {isFeed(v) && hasNew(v) && <i className="intel-tab-dot" aria-label="new" />}
+          {v === 'saved' && saved.length > 0 && <span className="intel-tab-count">{saved.length}</span>}
         </button>
       ))}
     </div>
@@ -156,52 +297,99 @@ export function IntelligenceScreen() {
     </div>
   );
   const noteLine = note && <div key={note.at} className="intel-note" role="status">{note.text}</div>;
-  const empty = <Empty state={state} loading={loading} onRetry={refresh} />;
 
   const list = (head: ReactNode) => (
     <>
       <div className="intel-rail-head">
-        <h2>{mode === 'single' ? feed.label : 'Editions'}</h2>
+        <h2>{mode === 'single' && feedId ? feedById(feedId)!.label : 'Editions'}</h2>
         {editions.length > 0 && <span className="intel-count">{editions.length}</span>}
         {head}
       </div>
       {editions.length > 0 && (
         <ol className="intel-eds">
-          {editions.map(e => (
-            <li key={e.driveFileId}>
-              <button
-                type="button"
-                className="intel-ed"
-                aria-current={mode !== 'single' && e === edition ? 'true' : undefined}
-                onClick={() => choose(e)}
-              >
-                <span className="intel-ed-date">
-                  {dayNameShort(e.editionDate)} {formatDayCompact(e.editionDate)}{e.time && ` · ${e.time}`}
-                </span>
-                <span className="intel-ed-title">{e.title}</span>
-              </button>
-            </li>
-          ))}
+          {editions.map(e => {
+            const s = readingState(e, reading);
+            const r = reading.get(e.driveFileId);
+            return (
+              <li key={e.driveFileId}>
+                <button
+                  type="button"
+                  className={`intel-ed is-${s}`}
+                  aria-current={mode !== 'single' && e === edition ? 'true' : undefined}
+                  onClick={() => choose(e)}
+                >
+                  {(s === 'new' || s === 'updated') && <i className="intel-ed-dot" aria-label={s === 'new' ? 'Unread' : 'Updated'} />}
+                  <span className="intel-ed-date">
+                    {dayNameShort(e.editionDate)} {formatDayCompact(e.editionDate)}{e.time && ` · ${e.time}`}
+                    {s === 'updated' && ' · Updated'}
+                  </span>
+                  {savedFiles.has(e.driveFileId) && <span className="intel-ed-saved" aria-label="Something saved"><IconBookmark /></span>}
+                  <span className="intel-ed-title">{e.title}</span>
+                  {(s === 'started' || s === 'read') && (
+                    <span className="intel-ed-bar" aria-label={s === 'read' ? 'Read' : `${Math.round((r?.progress ?? 0) * 100)}% read`}>
+                      <i style={{ width: `${s === 'read' ? 100 : Math.round((r?.progress ?? 0) * 100)}%` }} />
+                    </span>
+                  )}
+                </button>
+              </li>
+            );
+          })}
         </ol>
       )}
     </>
   );
 
+  const reader = edition && (
+    <EditionReader
+      edition={edition}
+      scroller={readerRef}
+      onNote={onNote}
+      heroActions={mode !== 'single'}
+      reading={reading}
+      saved={saved}
+      onToggleRead={() => toggleRead(edition)}
+      onToggleSave={toggleSaveHere}
+      onPosition={onPosition}
+      startAt={startAt}
+    />
+  );
+
+  const page = view === 'today'
+    ? <TodayView states={states} reading={reading} loading={!Object.keys(refreshed).length} onOpen={e => openEdition(e)} />
+    : view === 'saved'
+      ? (
+        <SavedView
+          saved={saved}
+          onOpen={openSaved}
+          onUpdate={(item, patch) => {
+            onPersist(d => ({ ...d, content: updateInsight(d.content, item.id, patch), lastModified: stamp() }));
+            onNote('Saved');
+          }}
+          onRemove={remove}
+          onNote={onNote}
+        />
+      )
+      : null;
+
   if (mode === 'single') {
-    if (pane === 'reader' && edition) {
+    if (feedId && pane === 'reader' && edition) {
       return (
         <div className="intel intel--single">
           <div className="intel-bar">
             <button type="button" className="ds-icon-btn" onClick={() => setPane('list')} aria-label="Back to editions">
               <IconChevronLeft />
             </button>
-            <b>{feed.label}</b>
+            <b>{feedById(feedId)!.label}</b>
             <span className="intel-grow" />
-            <EditionActions edition={edition} />
+            <EditionTools
+              edition={edition}
+              read={!!record?.readAt}
+              saved={!!findSaved(saved, edition, { kind: 'edition', text: edition.title })}
+              onToggleRead={() => toggleRead(edition)}
+              onToggleSave={() => toggleSave(edition, { kind: 'edition', text: edition.title })}
+            />
           </div>
-          <div className="intel-reader" ref={readerRef}>
-            <EditionReader edition={edition} scroller={readerRef} onNote={onNote} heroActions={false} />
-          </div>
+          <div className="intel-reader" ref={readerRef}>{reader}</div>
           {noteLine}
         </div>
       );
@@ -211,11 +399,12 @@ export function IntelligenceScreen() {
         <div className="intel-head">{tabs}</div>
         {statusLine}
         <div className="intel-list">
-          {list(<>
-            <span className="intel-grow" />
-            {refreshButton}
-          </>)}
-          {!editions.length && empty}
+          {page ?? (
+            <>
+              {list(<><span className="intel-grow" />{refreshButton}</>)}
+              {!editions.length && <Empty state={state} loading={loading} onRetry={refresh} />}
+            </>
+          )}
         </div>
         {noteLine}
       </div>
@@ -225,7 +414,7 @@ export function IntelligenceScreen() {
   return (
     <div className={`intel intel--${mode}${drawerOpen ? ' is-drawer-open' : ''}`}>
       <div className="intel-head">
-        {mode === 'drawer' && (
+        {mode === 'drawer' && feedId && (
           <button type="button" className="ds-btn intel-editions" onClick={() => setDrawer(true)} aria-expanded={drawerOpen}>
             <IconList />Editions
           </button>
@@ -236,12 +425,12 @@ export function IntelligenceScreen() {
       </div>
       {statusLine}
       <div className="intel-body">
-        {mode === 'rail' && <aside className="intel-rail" aria-label="Editions">{list(null)}</aside>}
+        {mode === 'rail' && feedId && <aside className="intel-rail" aria-label="Editions">{list(null)}</aside>}
         <div className="intel-reader" ref={readerRef}>
-          {edition ? <EditionReader edition={edition} scroller={readerRef} onNote={onNote} /> : empty}
+          {page ?? reader ?? <Empty state={state} loading={loading} onRetry={refresh} />}
         </div>
       </div>
-      {mode === 'drawer' && (
+      {mode === 'drawer' && feedId && (
         <>
           <div className="intel-scrim" onClick={() => setDrawer(false)} aria-hidden />
           <aside className="intel-drawer" aria-label="Editions" inert={!drawerOpen}>

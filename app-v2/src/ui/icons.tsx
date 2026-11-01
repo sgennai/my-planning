@@ -115,6 +115,12 @@ export const IconCopy = (p: P) => (
 export const IconList = (p: P) => (
   <svg {...base} {...p}><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" /></svg>
 );
+export const IconBookmark = (p: P) => (
+  <svg {...base} {...p}><path d="M6.5 3.5h11a1 1 0 0 1 1 1v16l-6.5-4-6.5 4v-16a1 1 0 0 1 1-1z" /></svg>
+);
+export const IconSearch = (p: P) => (
+  <svg {...base} {...p}><circle cx="10.5" cy="10.5" r="6.5" /><path d="m15.5 15.5 5 5" /></svg>
+);
 export const IconRefresh = (p: P) => (
   <svg {...base} {...p}><path d="M20 11.5a8 8 0 1 0-2.3 5.7M20 4.5v7h-7" /></svg>
 );

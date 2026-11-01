@@ -4,7 +4,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { parseEdition, splitSections } from './parse';
-import { presentSection, shortTitle, copyText, readingMinutes, blocksOf } from './present';
+import { presentSection, shortTitle, copyText, readingMinutes, blocksOf, previewOf, plainText } from './present';
 import { EditionReader } from './EditionReader';
 import { CHALLENGE_DOC, CHALLENGE_BODY, CHALLENGE_FILE, wordsOf } from './test-fixtures';
 
@@ -96,6 +96,17 @@ describe('small things', () => {
     expect(readingMinutes('word '.repeat(660))).toBe(3);
   });
 
+  it("Today's preview is the edition's own first lines: the brief's summary, else the challenge", () => {
+    expect(previewOf(sections)).toBe('Teams are deploying AI agents faster than anyone can list them.');
+    const brief = splitSections('## Market\n\nBanks buy.\n\n## What I should remember today\n\n- one\n\nThe **single** thing: [agents](https://x.y) win.');
+    expect(previewOf(brief)).toBe('The single thing: agents win.');
+    const long = splitSections(`## Note\n\n${'word '.repeat(80)}`);
+    expect(previewOf(long)!.length).toBeLessThanOrEqual(221);
+    expect(previewOf(long)).toMatch(/word…$/);
+    expect(previewOf(splitSections('## List only\n\n- a\n- b'))).toBeNull();
+    expect(plainText('> **Bold** and [link](https://x.y) `code`')).toBe('Bold and link code');
+  });
+
   it('blocks are what blank lines separate, lists kept whole', () => {
     expect(blocksOf('One\n\n\n- a\n- b\n  \nTwo')).toEqual(['One', '- a\n- b', 'Two']);
   });
@@ -105,6 +116,7 @@ describe('the edition on screen', () => {
   const edition = parseEdition('enterprise-ai-challenge', CHALLENGE_FILE, CHALLENGE_DOC);
   const scroller = { current: document.createElement('div') };
   vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} });
+  Element.prototype.scrollTo = function scrollTo() {};
 
   it('shows every word of the document, and nothing of its header or filename', () => {
     const { container } = render(<EditionReader edition={edition} scroller={scroller} onNote={() => {}} />);
