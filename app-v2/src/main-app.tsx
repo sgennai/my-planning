@@ -14,6 +14,7 @@ import { DEFAULT_MODULES } from './modules/seed-modules';
 import { AppShell } from './ui/AppShell';
 import { CrashBoundary } from './ui/CrashScreen';
 import { RoutineScreen } from './routine/RoutineScreen';
+import { signOutOfThisDevice } from './ui/sign-out';
 
 // Loaded on first visit: the Markdown reader is the section's own weight.
 const IntelligenceScreen = lazy(() =>
@@ -352,7 +353,20 @@ export function App() {
     setPhase('ready');
   };
   const handleSignOut = async () => {
-    setPhase('signin');
+    if (!window.confirm('Sign out of My Planning on this device?\n\nYour data stays saved and syncs again when you sign back in. The briefings kept here for offline reading are removed.')) return;
+    // Send any edit still waiting first; a slow network does not hold this up.
+    clearTimeout(pendingSync.current);
+    await Promise.race([runBackgroundSync().catch(() => {}), new Promise(r => setTimeout(r, 5000))]);
+    const result = await signOutOfThisDevice();
+    if (result === 'offline') {
+      window.alert("You're offline. Signing out needs a connection, so that the server forgets this device.");
+      return;
+    }
+    if (result === 'refused') {
+      window.alert("Signing out didn't go through. Please try again.");
+      return;
+    }
+    window.location.replace('/');
   };
   const handleReload = async () => {
     setError('');

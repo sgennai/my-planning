@@ -453,14 +453,19 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 ## Deployment
 
 - **Host:** Cloudflare Pages. Base path `/` (`vite.config.ts`). PWA via `vite-plugin-pwa`.
-- **Auth:** HTTP Basic Auth via `functions/_middleware.ts` (Pages Function). Runtime env vars
-  `BASIC_AUTH_USER` / `BASIC_AUTH_PASS` set in the Cloudflare dashboard — never in source.
-  Accepting the password also sets a year-long HttpOnly `mp_session` cookie (an HMAC of the
-  user keyed by the password, renewed on each `/sw.js` fetch). Without it, a Home Screen app
-  never received updates: it opens from its service worker's copy, iOS forgets the password
-  after a swipe-away, and the update check was refused. Changing either credential signs every
-  device out. `src/auth-gate.test.ts` covers the gate. Never make the JS bundle public: it
-  carries `VITE_SYNC_SECRET`.
+- **Auth:** `functions/_middleware.ts` (Pages Function) in front of everything but the icons
+  and manifest. Runtime env vars `BASIC_AUTH_USER` / `BASIC_AUTH_PASS` (dashboard, never in
+  source). A page load without a session gets the gate's own sign-in page (no Basic challenge
+  since 2026-11-01: the browser dialog re-signed signed-out devices in, and Home Screen apps
+  cannot show it); a correct name and password set the year-long HttpOnly `mp_session` cookie
+  (an HMAC of the user keyed by the password, renewed on each `/sw.js` fetch, so a Home Screen
+  app keeps receiving updates). **Sign out** (`ui/sign-out.ts`, asks first) posts
+  `/__auth/sign-out`, which clears the cookie and sets `mp_signed_out` so a remembered Basic
+  password cannot sign the device back in; the app then deletes the Intelligence cache and its
+  service worker and caches, keeping its own database. A Basic header still works for scripts
+  and the Vite proxy. Changing either credential signs every device out.
+  `src/auth-gate.test.ts` covers the gate. Never make the JS bundle public: it carries
+  `VITE_SYNC_SECRET`. Runbooks (password, Google key): `DEPLOY.md`.
 - **Build-time env vars** baked into the JS bundle by Vite (fill empty fields on first boot):
   `VITE_SYNC_URL`, `VITE_SYNC_SECRET`, `VITE_PROXY_URL`. Set in Pages → Settings → Env vars.
   Local dev: copy to `app-v2/.env.local` (gitignored). See `DEPLOY.md` for full rotation steps.

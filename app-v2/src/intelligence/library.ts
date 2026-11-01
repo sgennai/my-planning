@@ -8,8 +8,8 @@
 import { openDB, type IDBPDatabase } from 'idb';
 import { parseEdition, newestFirst, type DriveFile, type Edition } from './parse';
 import type { FeedId } from './feeds';
+import { INTEL_CACHE_DB } from './cache-name';
 
-const DB_NAME = 'my-planning-intel';
 const CONCURRENT_FETCHES = 3;
 
 interface StoredDoc {
@@ -42,10 +42,15 @@ export interface FeedState {
 
 let dbPromise: Promise<IDBPDatabase> | null = null;
 function db() {
-  dbPromise ??= openDB(DB_NAME, 1, {
+  dbPromise ??= openDB(INTEL_CACHE_DB, 1, {
     upgrade(d) {
       d.createObjectStore('docs', { keyPath: 'id' });
       d.createObjectStore('lists', { keyPath: 'feedId' });
+    },
+    // Signing out deletes this database: let go of it rather than block that.
+    blocking() {
+      dbPromise?.then(d => d.close());
+      dbPromise = null;
     },
   });
   return dbPromise;

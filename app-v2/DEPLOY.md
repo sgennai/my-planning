@@ -110,29 +110,47 @@ Worker rejects legitimate clients.
 
 ---
 
-## HTTP Basic Auth
+## Site sign-in (`functions/_middleware.ts`)
 
-The deployed site is gated by HTTP Basic Auth implemented in
-`functions/_middleware.ts` (a Cloudflare Pages Function). The middleware
-intercepts every request, checks the `Authorization: Basic <base64>` header,
-and returns a 401 with `WWW-Authenticate: Basic realm="My Planning"` if the
-header is missing or the credentials don't match. The browser's native auth
-dialog handles the prompt.
+Every request goes through a Cloudflare Pages Function, except the icons and
+`manifest.webmanifest` (`PUBLIC_PATHS`), which iOS fetches without credentials
+when adding the app to the Home Screen.
 
-The icons and `manifest.webmanifest` are the exception (`PUBLIC_PATHS` in the
-middleware): iOS fetches them without the page's credentials when adding the
-app to the Home Screen, and would otherwise fall back to a generic icon.
+- **Signing in.** An unauthenticated page load gets a small sign-in page (name
+  and password, served by the gate itself, Keychain-friendly); anything else
+  gets a plain 401. There is no `WWW-Authenticate` challenge any more: the
+  browser's Basic dialog kept signing a signed-out device back in, and a Home
+  Screen app cannot show it. A correct name and password sets the session
+  cookie and returns to the page asked for (`/__auth/sign-in`, POST).
+- **The session cookie** `mp_session`: HttpOnly, SameSite=Lax, Secure, a year,
+  renewed whenever the app checks for an update (`/sw.js`). Its value is an HMAC
+  of the name keyed by the password, so it is the same on every device and
+  needs no storage; changing either credential signs every device out.
+- **Signing out** (the app's Sign out, which asks first): `/__auth/sign-out`
+  (POST, from this site only) clears the cookie on that device and marks it
+  signed out (`mp_signed_out`), so a password the browser remembered does not
+  sign it back in; the app then deletes the device's Intelligence cache and
+  its offline copy (service worker and caches). Afterwards `/`, `/api/*` and
+  the app's files answer 401 on that device. The app's own database stays (it
+  mirrors synced data and may hold unsent edits, synced first when possible);
+  nothing synced is deleted. Signing in again clears the mark.
+- **Scripts and local development** may still send the password as an
+  `Authorization: Basic` header (`curl -u`, the Vite `/api` proxy), except from
+  a browser that has just signed out.
+- There is no per-device revocation of a session held elsewhere: to sign out a
+  lost device, rotate the password (below).
 
 ### Environment variables (runtime — not build-time)
 
 | Variable | Purpose |
 |---|---|
-| `BASIC_AUTH_USER` | Login username |
-| `BASIC_AUTH_PASS` | Login password |
+| `BASIC_AUTH_USER` | Sign-in name |
+| `BASIC_AUTH_PASS` | Sign-in password |
 
 These are **runtime** env vars, not `VITE_`-prefixed. They are never baked
 into the JS bundle — the Pages Function reads them from `context.env` at
-request time. Changing them requires a redeploy but not a rebuild.
+request time, for every deployment at once (rolling back a deployment does not
+change them).
 
 Set them in the same dashboard location as the `VITE_*` vars:
 Cloudflare dashboard → **Pages** → `my-planning` → **Settings** →
@@ -147,40 +165,38 @@ openssl rand -base64 32
 Copy the output as `BASIC_AUTH_PASS`. Use any memorable string as
 `BASIC_AUTH_USER` (e.g. `stephane`).
 
-### Important: shared-password model
-
-This is single shared-credential auth — there are no per-device accounts. All
-devices use the same username and password. There is no per-device revocation;
-rotating the password invalidates **all** sessions simultaneously.
-
-### Rotating the password
+### Rotating the password (signs every device out)
 
 1. Generate a new password (`openssl rand -base64 32`).
 2. Update `BASIC_AUTH_PASS` in Pages → **Settings** → **Environment variables**.
 3. Redeploy (push a commit, or **Deployments** → **Retry deployment**).
-4. On next request, browsers that had the old credentials cached will receive a
-   401 and the native auth dialog will re-prompt.
+4. Every session cookie is now invalid. A device opening the app online gets
+   the sign-in page; a Home Screen app keeps working offline from its service
+   worker copy until it next goes online, when its calls are refused and the
+   next page load signs in.
 
-**PWA / service worker behaviour during rotation:** After a normal rotation,
-devices that are currently authenticated continue to serve the cached PWA bundle
-without interruption — the service worker has already fetched and cached all
-assets, so the middleware is not in the request path for those assets. The user
-will be re-prompted naturally at the start of their next session (when the
-session credential cache expires or the browser is restarted). This is
-desirable: the app stays available offline and there is no disruption for
-in-progress sessions.
+For a compromise, also bump the service worker (edit any constant in
+`vite.config.ts`) so every device fetches fresh assets on its next online
+load and meets the sign-in page at once.
 
-**Hard invalidation (credential compromise):** If an immediate forced re-auth
-is ever needed on all devices, do both steps together:
+### Rotating the Google key (Intelligence)
 
-1. Rotate `BASIC_AUTH_PASS` as above.
-2. Bump the service worker version — edit any comment or constant in
-   `vite.config.ts` or `src/main.tsx` to produce a cache-busting build. The
-   updated SW forces all clients to fetch fresh assets on next online load,
-   which triggers the 401 + re-prompt for the new credentials.
+The Intelligence feeds are read with a Google service account in the dedicated
+Google account; its JSON key is the Pages secret `GOOGLE_SERVICE_ACCOUNT`
+(base64 of the JSON). Nobody but the user handles the key. To replace it (lost
+laptop, suspected leak, or yearly):
 
-The SW version bump is not needed for routine rotation — document it here for
-the compromise scenario only.
+1. In the dedicated account's Google Cloud console: **IAM & Admin → Service
+   Accounts →** the reader account **→ Keys → Add key → Create new key → JSON**.
+2. In Terminal, from `app-v2`:
+   `base64 < ~/Downloads/NEW-KEY.json | tr -d '\n' | npx wrangler pages secret put GOOGLE_SERVICE_ACCOUNT --project-name my-planning`
+   and replace the `GOOGLE_SERVICE_ACCOUNT=` line in `app-v2/.dev.vars` the same way.
+3. Redeploy (secrets apply to new deployments), then open Intelligence and
+   refresh: editions load.
+4. Back in the console, **delete the old key**, then delete the downloaded file.
+
+The service account only ever has **Viewer** on the "ChatGPT Intelligence"
+folder (scope `drive.readonly`); check the folder's sharing after any change.
 
 ---
 
