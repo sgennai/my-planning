@@ -21,6 +21,8 @@ import { conformanceOf, labelOf, NEEDS_A_LOOK, type FeedConformance } from './co
 import { runsOf, dayLabel, describeSchedule, NEEDS_ATTENTION, type Run } from './schedule';
 import { useClock } from '../ui/useClock';
 import { SavedView } from './SavedView';
+import { SearchView } from './SearchView';
+import { NO_FILTERS, type SearchFilters } from './search';
 import type { Edition } from './parse';
 import type { FeedState } from './library';
 import { readingIndex, readingState, withPosition, withRead } from './reading';
@@ -28,9 +30,9 @@ import {
   savedOf, saveInsight, removeInsight, updateInsight, findSaved, nameOf, type SaveInput, type SavedInsight,
 } from './saved';
 import { dayNameShort, formatDayCompact, dayKeyOf } from '../routine/dates';
-import { IconRefresh, IconList, IconX, IconChevronLeft, IconBookmark, IconPulse } from '../ui/icons';
+import { IconRefresh, IconList, IconX, IconChevronLeft, IconBookmark, IconPulse, IconSearch } from '../ui/icons';
 
-type View = 'today' | FeedId | 'saved';
+type View = 'today' | FeedId | 'saved' | 'search';
 
 /** The tabs, in the brief's order. */
 const FEED_TABS: FeedId[] = ['enterprise-ai-sales-brief', 'enterprise-ai-challenge', 'customer-engagement-brief'];
@@ -42,7 +44,7 @@ const editionKey = (feedId: FeedId) => `my-planning-intel-edition:${feedId}`;
 /** A position is written once scrolling has rested this long. */
 const POSITION_REST_MS = 1200;
 
-const isFeed = (v: View): v is FeedId => v !== 'today' && v !== 'saved';
+const isFeed = (v: View): v is FeedId => v !== 'today' && v !== 'saved' && v !== 'search';
 const tabLabel = (v: View) => (v === 'today' ? 'Today' : v === 'saved' ? 'Takeaways' : feedById(v)!.label);
 
 function useMatches(query: string) {
@@ -136,7 +138,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
 
   const [view, setView] = useState<View>(() => {
     const saved = recall(VIEW_KEY) as View | null;
-    return saved && VIEWS.includes(saved) ? saved : 'today';
+    return saved && (VIEWS.includes(saved) || saved === 'search') ? saved : 'today';
   });
   // The edition last opened in each feed on this device, as the section opened…
   const [remembered] = useState<Partial<Record<FeedId, string>>>(() => {
@@ -171,6 +173,9 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     return out;
   }, [states, now]);
   const [statusSheet, setStatusSheet] = useState<FeedId[] | null>(null);
+  // Kept here, so a search is still there after opening one of its results.
+  const [query, setQuery] = useState('');
+  const [filters, setFilters] = useState<SearchFilters>(NO_FILTERS);
   // Each feed's expected runs and what became of them (feed health).
   const health = useMemo(() => {
     const out: Partial<Record<FeedId, Run[]>> = {};
@@ -321,6 +326,15 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
       ))}
     </div>
   );
+  const searchButton = (
+    <button
+      type="button"
+      className={`ds-icon-btn intel-search-btn${view === 'search' ? ' on' : ''}`}
+      onClick={() => switchView('search')}
+      aria-label="Search every edition"
+      aria-pressed={view === 'search'}
+    ><IconSearch /></button>
+  );
   const refreshButton = (
     <button
       type="button"
@@ -414,7 +428,20 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     />
   );
 
-  const page = view === 'today'
+  const page = view === 'search'
+    ? (
+      <SearchView
+        states={states}
+        query={query}
+        filters={filters}
+        onQuery={setQuery}
+        onFilters={setFilters}
+        onOpen={(e, sectionId) => openEdition(e, sectionId)}
+        today={dayKeyOf(new Date(now))}
+        loading={!Object.keys(refreshed).length}
+      />
+    )
+    : view === 'today'
     ? (
       <TodayView
         states={states}
@@ -471,7 +498,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     }
     return (
       <div className="intel intel--single">
-        <div className="intel-head">{tabs}</div>
+        <div className="intel-head">{tabs}{searchButton}</div>
         {statusLine}
         <div className="intel-list">
           {page ?? (
@@ -497,6 +524,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
         )}
         {tabs}
         <span className="intel-grow" />
+        {searchButton}
         {refreshButton}
       </div>
       {statusLine}

@@ -395,6 +395,13 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   Today ends with the Publishing panel (each feed's run today) and raises an alert for a run late,
   missing or incomplete in the last 3 days; the feed's status line too; Feed status lists 14 days
   of runs and how to recover a missed edition. Screen tests pin the clock (`vi.setSystemTime`).
+- **Search** (`search.ts`, `SearchView.tsx`): the header's magnifier opens a Search view (view
+  `search`, not a tab) over every edition on the device (the whole archive, as each device
+  downloads them all): titles, topics, section titles, full text; every word must appear, case
+  and accents ignored (`fold` in `blocks.ts`, shared with Takeaways). Results newest first, each
+  with its best section (opened there) and a marked snippet; filters by feed, date preset and
+  topic; the count says how much of what Drive lists was searched. Query and filters live in
+  `IntelligenceScreen`, so they survive opening a result.
 - **Sources** (`citations.ts`): ChatGPT citation markers render as "source not linked" (marker in
   the tooltip, no link guessed) and are a conformance problem ("Unlinked sources");
   `sources.test.tsx` checks every link arrives exactly as written. Test fixtures for both briefs
@@ -487,7 +494,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (346 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (355 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris

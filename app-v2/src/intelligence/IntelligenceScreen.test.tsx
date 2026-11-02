@@ -15,7 +15,7 @@ import { CHALLENGE_DOC, CHALLENGE_FILE } from './test-fixtures';
 
 let docText: string;
 let files: (typeof CHALLENGE_FILE)[];
-let texts: Record<string, string>;
+let texts: Record<string, string | null>;
 let mode: 'ok' | 'not-configured';
 let phone = false;
 let confirmAnswer = true;
@@ -34,6 +34,8 @@ vi.stubGlobal('fetch', vi.fn(async (url: string) => {
   if (url === '/api/intel/feeds/enterprise-ai-challenge') return Response.json({ files });
   if (url.startsWith('/api/intel/feeds/')) return Response.json({ files: [] });
   const id = url.split('/').pop()!;
+  // A text of null is a document Drive lists but cannot hand over.
+  if (texts[id] === null) return Response.json({ error: { code: 'google', message: 'Google Drive: internal error' } }, { status: 502 });
   return Response.json({ file: files.find(f => f.id === id), text: texts[id] ?? docText });
 }));
 
@@ -365,5 +367,45 @@ describe('whether the tasks published (feed health)', () => {
     render(<App />);
     const publishing = await screen.findByRole('region', { name: 'Publishing' });
     expect(within(publishing).getByText('No run today · next Wed 4 Nov')).toBeInTheDocument();
+  });
+});
+
+describe('searching every edition', () => {
+  const openSearch = async () => {
+    render(<App />);
+    await screen.findByRole('heading', { level: 2, name: 'Agent Sprawl: Who Owns the Bots?' });
+    fireEvent.click(screen.getByRole('button', { name: 'Search every edition' }));
+    return screen.getByRole('searchbox', { name: 'Search every edition' });
+  };
+
+  it('finds the words, says where, and opens the edition there', async () => {
+    const box = await openSearch();
+    expect(screen.getByText(/All 1 edition · every edition on this device searched/)).toBeInTheDocument();
+    fireEvent.change(box, { target: { value: 'licence COSTS' } });
+    const result = await screen.findByRole('button', { name: /Agent Sprawl/ });
+    expect(result).toHaveTextContent('AI Challenge · Mon 2 Nov · 08:20 · Business impact');
+    expect([...result.querySelectorAll('mark')].map(m => m.textContent)).toEqual(['licence', 'costs']);
+    fireEvent.click(result);
+    expect(screen.getByRole('heading', { level: 1, name: 'Agent Sprawl: Who Owns the Bots?' })).toBeInTheDocument();
+    // The search is still there on coming back.
+    fireEvent.click(screen.getByRole('button', { name: 'Search every edition' }));
+    expect(screen.getByRole('searchbox', { name: 'Search every edition' })).toHaveValue('licence COSTS');
+  });
+
+  it('filters by feed, and says when nothing matches', async () => {
+    await openSearch();
+    fireEvent.click(within(screen.getByRole('group', { name: 'Feed' })).getByRole('button', { name: 'Enterprise AI' }));
+    expect(screen.getByText('No edition matches these filters.')).toBeInTheDocument();
+    fireEvent.click(within(screen.getByRole('group', { name: 'Topic' })).getByRole('button', { name: 'Agentic AI' }));
+    fireEvent.click(within(screen.getByRole('group', { name: 'Feed' })).getByRole('button', { name: 'All feeds' }));
+    expect(screen.getByRole('button', { name: /Agent Sprawl/ })).toBeInTheDocument();
+  });
+
+  it('says how much of the archive it could search', async () => {
+    files = [files[0], { ...files[0], id: '1NotDownloaded00000000000', name: '2026-11-01_0812__enterprise-ai-challenge' }];
+    texts = { '1NotDownloaded00000000000': null };
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    await openSearch();
+    expect(await screen.findByText(/searched 1 of 2; 1 not downloaded yet/)).toBeInTheDocument();
   });
 });

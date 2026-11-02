@@ -5,6 +5,7 @@
 import type { Edition } from './parse';
 import type { FeedId } from './feeds';
 import { generateId } from '../ui/helpers';
+import { fold } from './blocks';
 
 export const SAVED_TYPE = 'intel-saved';
 
@@ -104,8 +105,6 @@ export function parseTags(input: string): string[] {
   return out;
 }
 
-/** Case and accents ignored: "resume" finds "Résumé". */
-const fold = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
 
 /** Items matching every word of the query (in any field) and carrying the tag, if one is chosen. */
 export function searchSaved(saved: SavedInsight[], query: string, tag: string | null, feedLabel: (id: FeedId) => string): SavedInsight[] {

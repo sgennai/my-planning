@@ -14,3 +14,6 @@ export const SEPARATOR = /\s+[•·]\s+/;
 export const PLAIN = /^[^*_`[\]<>#\n]+$/;
 
 export const unlabel = (label: string) => label.replace(/\s*:\s*$/, '').trim();
+
+/** Case and accents ignored: "resume" matches "Résumé". */
+export const fold = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
