@@ -36,6 +36,17 @@ describe('archive search', () => {
     expect(marked).toEqual(['licence', 'costs']);
   });
 
+  it('marks the words where they are, after a middle dot, a backtick or an accent', () => {
+    const dotted = parseEdition('enterprise-ai-challenge', { ...CHALLENGE_FILE, id: '1DottedChallenge0000000000' },
+      CHALLENGE_DOC.replace('Agent Sprawl: Who Owns the Bots?', 'Agents · `Résumé` · licence costs'));
+    const [hit] = search(indexOf([dotted]), 'costs', NO_FILTERS, TODAY);
+    expect(hit.title.marks.map(([a, b]) => hit.title.text.slice(a, b))).toEqual(['costs']);
+  });
+
+  it('keeps what it read of an edition for the next search', () => {
+    expect(indexOf([challenge])[0]).toBe(index[0]);
+  });
+
   it('marks the words in the title too', () => {
     const [hit] = search(index, 'sprawl', NO_FILTERS, TODAY);
     expect(hit.title.marks.map(([a, b]) => hit.title.text.slice(a, b))).toEqual(['Sprawl']);

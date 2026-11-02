@@ -41,7 +41,7 @@ function Feed({ feedId, state, conformance, runs = [], onOpen }: {
       <h3 id={`intel-health-${feedId}`}>{feed.name}</h3>
       <dl>
         <div><dt>Schedule</dt><dd>{describeSchedule(feed.schedule)}, since {dayLabel(feed.schedule.since)}</dd></div>
-        <div><dt>Editions</dt><dd>{editions.length}</dd></div>
+        <div><dt>Editions</dt><dd>{editions.length}{state?.pending ? `, and ${state.pending} still downloading` : ''}</dd></div>
         <div><dt>Newest</dt><dd>{newest ? `${when(newest)}, ${originOf(newest)}` : 'None yet'}</dd></div>
         <div><dt>Last scheduled publication</dt><dd>{conformance?.lastScheduled ? when(conformance.lastScheduled) : 'None yet'}</dd></div>
         <div><dt>Checked with Drive</dt><dd>{state?.refreshedAt ? `at ${checkedAt(state.refreshedAt)}` : 'Not yet'}</dd></div>

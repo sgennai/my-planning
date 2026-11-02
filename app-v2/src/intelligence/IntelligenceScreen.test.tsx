@@ -299,12 +299,13 @@ describe('Today when editions pile up over several days', () => {
 
   it('says how old each edition is, how many are unread, and lists the older ones newest first', async () => {
     render(<App />);
+    // The newest show first; the rest follow as they download.
     const card = (await screen.findByRole('heading', { level: 2, name: 'Challenge of 2026-11-04' })).closest('article')!;
+    const list = await screen.findByRole('region', { name: 'Still unread · 7' });
     expect(card).toHaveTextContent('AI Challenge · Today · 08:12');
     expect(screen.getByText(/Wednesday 4 November/)).toHaveTextContent('Wednesday 4 November · 8 unread');
     expect(within(card).getByRole('button', { name: '7 older unread' })).toBeInTheDocument();
 
-    const list = screen.getByRole('region', { name: 'Still unread · 7' });
     const rows = () => within(list).getAllByRole('button', { name: /Challenge of/ }).map(b => b.textContent);
     expect(rows()).toHaveLength(5);
     expect(rows()[0]).toContain('AI Challenge · Yesterday · 08:12');

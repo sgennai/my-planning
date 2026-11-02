@@ -3,7 +3,7 @@
 // section, on the refresh button, and on coming back to the app after a while
 // (a morning's edition should be there without a tap).
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { cachedFeed, refreshFeed, type FeedState } from './library';
+import { cachedFeed, refreshFeed, releaseLibrary, type FeedState } from './library';
 import { FEEDS, type FeedId } from './feeds';
 
 const STALE_MS = 10 * 60 * 1000;
@@ -18,7 +18,7 @@ export interface FeedsView {
 
 /** This device's storage failing is a feed that cannot load, not a crash. */
 const failed = (feedId: FeedId, e: unknown): FeedState => ({
-  feedId, editions: [], missing: [], status: 'error', message: (e as Error).message, refreshedAt: null,
+  feedId, editions: [], missing: [], status: 'error', message: (e as Error).message, refreshedAt: null, pending: 0,
 });
 
 export function useFeeds(): FeedsView {
@@ -34,7 +34,8 @@ export function useFeeds(): FeedsView {
     lastRefresh.current = Date.now();
     setRefreshing(true);
     Promise.all(FEEDS.map(async ({ id }) => {
-      const state = await refreshFeed(id).catch(e => failed(id, e));
+      // A long download shows what has arrived as it goes.
+      const state = await refreshFeed(id, partial => setStates(prev => ({ ...prev, [id]: partial }))).catch(e => failed(id, e));
       setStates(prev => ({ ...prev, [id]: state }));
       setRefreshed(prev => ({ ...prev, [id]: true }));
     })).finally(() => {
@@ -55,7 +56,12 @@ export function useFeeds(): FeedsView {
       if (document.visibilityState === 'visible' && Date.now() - lastRefresh.current > STALE_MS) refresh();
     };
     document.addEventListener('visibilitychange', onVisible);
-    return () => { clearTimeout(start); document.removeEventListener('visibilitychange', onVisible); };
+    return () => {
+      clearTimeout(start);
+      document.removeEventListener('visibilitychange', onVisible);
+      // A large archive is no weight on the rest of the app.
+      releaseLibrary();
+    };
   }, [refresh]);
 
   return { states, refreshed, refreshing, refresh };

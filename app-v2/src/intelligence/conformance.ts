@@ -44,6 +44,15 @@ export const NEEDS_A_LOOK: EditionFlag['kind'][] = ['incomplete', 'format', 'dup
 
 const age = (e: Edition, now: number) => now - Date.parse(e.createdTime ?? e.modifiedTime);
 
+// Counted once per edition: the checks run again every minute, over the
+// whole archive, and an edition is the same object while its document is.
+const markerCounts = new WeakMap<Edition, number>();
+function markersIn(e: Edition): number {
+  let n = markerCounts.get(e);
+  if (n === undefined) markerCounts.set(e, n = citationsIn(e.markdownBody).length);
+  return n;
+}
+
 export function conformanceOf(editions: Edition[], now: number): FeedConformance {
   const byName = new Map<string, number>();
   for (const e of editions) byName.set(e.fileName, (byName.get(e.fileName) ?? 0) + 1);
@@ -58,7 +67,7 @@ export function conformanceOf(editions: Edition[], now: number): FeedConformance
       if (empty) list.push({ kind: 'incomplete' });
       if (e.issues.length) list.push({ kind: 'format', issues: e.issues });
     }
-    const markers = citationsIn(e.markdownBody).length;
+    const markers = markersIn(e);
     if (markers) list.push({ kind: 'citations', count: markers });
     const copies = byName.get(e.fileName) ?? 1;
     if (copies > 1) list.push({ kind: 'duplicate', copies });

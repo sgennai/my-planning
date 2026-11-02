@@ -78,13 +78,24 @@ describe('/api/intel', () => {
   it("lists a feed's Google Docs from its folder only, every page", async () => {
     pages = [[{ id: 'a', name: '2026-11-02_0820__x' }], [{ id: 'b', name: '2026-11-01_0820__x' }]];
     const res = await get('feeds/enterprise-ai-challenge');
-    expect(await res.json()).toEqual({ feedId: 'enterprise-ai-challenge', files: pages.flat() });
+    expect(await res.json()).toEqual({ feedId: 'enterprise-ai-challenge', files: pages.flat(), complete: true });
     const lists = calls.filter(c => c.url.includes('/drive/v3/files?'));
     expect(lists).toHaveLength(2);
     const q = new URL(lists[0].url).searchParams.get('q');
     expect(q).toBe(`'${CHALLENGE}' in parents and mimeType = 'application/vnd.google-apps.document' and trashed = false`);
+    expect(new URL(lists[0].url).searchParams.get('orderBy')).toBe('name desc');
     expect(lists.every(c => c.auth === 'Bearer token-1')).toBe(true);
     expect(res.headers.get('Cache-Control')).toBe('no-store');
+  });
+
+  it('lists up to 10,000 documents a feed, and says when a folder holds more', async () => {
+    pages = Array.from({ length: 11 }, (_, i) => [{ id: `p${i}`, name: `page ${i}` }]);
+    const res = await get('feeds/enterprise-ai-challenge');
+    const body = await res.json();
+    expect(body.files).toHaveLength(10);
+    expect(body.complete).toBe(false);
+    const lists = calls.filter(c => c.url.includes('/drive/v3/files?'));
+    expect(lists.map(c => new URL(c.url).searchParams.get('pageSize'))).toEqual(Array(10).fill('1000'));
   });
 
   it('reuses its token between requests', async () => {

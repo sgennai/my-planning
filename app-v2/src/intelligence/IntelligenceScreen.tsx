@@ -66,7 +66,7 @@ function remember(key: string, value: string) {
 
 const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? '' : 's'}`;
 
-interface Status { text: string; alert: boolean; action: 'retry' | 'details' }
+interface Status { text: string; alert: boolean; action: 'retry' | 'details' | null }
 
 /**
  * A line under the header: the copy shown is not fresh from Drive, or
@@ -78,6 +78,10 @@ function statusOf(state: FeedState | undefined, conformance: FeedConformance | u
     case 'offline': return { text: 'Offline. Showing the copy on this device.', alert: false, action: 'retry' };
     case 'not-configured': return { text: "Google Drive isn't connected. Showing the copy on this device.", alert: true, action: 'retry' };
     case 'error': return { text: `Couldn't refresh from Google Drive: ${state.message}`, alert: true, action: 'retry' };
+  }
+  if (state.pending) {
+    const all = state.editions.length + state.missing.length + state.pending;
+    return { text: `Downloading the archive: ${state.editions.length} of ${all} editions on this device.`, alert: false, action: null };
   }
   if (state.missing.length) {
     return { text: `${plural(state.missing.length, 'edition')} in Drive couldn't be loaded.`, alert: true, action: 'details' };
@@ -347,9 +351,8 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   const statusLine = status && (
     <div className={`intel-status${status.alert ? ' is-alert' : ''}`} role="status">
       <span>{status.text}</span>
-      {status.action === 'retry'
-        ? <button type="button" onClick={refresh}>Try again</button>
-        : <button type="button" onClick={() => feedId && setStatusSheet([feedId])}>Details</button>}
+      {status.action === 'retry' && <button type="button" onClick={refresh}>Try again</button>}
+      {status.action === 'details' && <button type="button" onClick={() => feedId && setStatusSheet([feedId])}>Details</button>}
     </div>
   );
   const statusSheetView = statusSheet && (

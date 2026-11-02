@@ -320,8 +320,8 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   (Google's JSON, raw or base64). Behind the site login like every path. No OpenAI API.
 - **Content vs your data:** Drive documents are cached per device in their own IndexedDB
   database `my-planning-intel` (`library.ts`, keyed by file ID, refetched when Drive's
-  `modifiedTime` changes), never in the synced data. Reading state and saved items will be
-  synced records (`progressLog` `ir:<fileId>`, `content` `is:<id>`).
+  `modifiedTime` changes; version 2 adds an index by feed), never in the synced data. Reading
+  state and saved items will be synced records (`progressLog` `ir:<fileId>`, `content` `is:<id>`).
 - **Parsing** (`parse.ts`): header via js-yaml `CORE_SCHEMA`; missing or invalid fields fall
   back to the filename (`YYYY-MM-DD_HHmm__<type>`) and Drive's dates and are listed in
   `issues` (logged as `[intel]`), never invented. The body is kept as written; `splitSections`
@@ -407,6 +407,19 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   `sources.test.tsx` checks every link arrives exactly as written. Test fixtures for both briefs
   (`test-fixtures.ts`) copy the real structure with made-up words: real briefing text stays out of
   the repo.
+- **Large archive** (INT-32, measured with 300 and 1,000 generated editions per feed): each
+  feed's documents are read from the database once a visit to the section (index `feedId`) and
+  parsed once, so an edition stays the same object while its document is unchanged and
+  per-edition caches hold (`WeakMap`s: search entries in `search.ts`, citation counts in
+  `conformance.ts`); leaving the section lets go of all of it (`releaseLibrary`). A
+  refresh downloads newest first (Drive lists by name, descending), 6 at a time, and shows what
+  has arrived (`refreshFeed`'s `onProgress`: once the newest six are in, then every second);
+  `FeedState.pending` counts what is still to come (the feed's status line, Feed status, the
+  search count). Search builds its index in 12 ms slices when over 150 editions are new to it
+  ("Preparing the search"). The server lists up to 10,000 documents a feed in pages of 1,000 and
+  answers `complete: false` past that, when the device keeps what the list left out. `fold`
+  removes only combining marks (U+0300–U+036F): ten times quicker than `\p{Diacritic}`, and
+  text keeps its length, so highlights land on the words.
 - **Local development** with real documents: `.dev.vars` in `app-v2` holds
   `GOOGLE_SERVICE_ACCOUNT` (gitignored, never read by tools). Run
   `npx wrangler pages dev <any folder> --port 8788 --binding BASIC_AUTH_USER=dev --binding BASIC_AUTH_PASS=dev`
@@ -494,7 +507,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (355 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (364 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris

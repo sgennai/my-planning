@@ -15,5 +15,10 @@ export const PLAIN = /^[^*_`[\]<>#\n]+$/;
 
 export const unlabel = (label: string) => label.replace(/\s*:\s*$/, '').trim();
 
-/** Case and accents ignored: "resume" matches "Résumé". */
-export const fold = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+/**
+ * Case and accents ignored: "resume" matches "Résumé". Only the marks that
+ * decomposing a letter leaves are taken out, so text keeps its length (where
+ * a search's words are is where they are highlighted), and it is quick enough
+ * for a whole archive.
+ */
+export const fold = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();

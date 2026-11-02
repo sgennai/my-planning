@@ -16,7 +16,11 @@ export interface IntelEnv {
 
 const DOC_MIME = 'application/vnd.google-apps.document';
 const FILE_FIELDS = 'id,name,createdTime,modifiedTime,webViewLink';
-const MAX_PAGES = 5;
+// Up to 10,000 documents a feed, about 27 years of a daily one. A folder
+// larger still is listed newest first and said to be cut short, so that the
+// app keeps the older editions it has rather than dropping them.
+const PAGE_SIZE = 1000;
+const MAX_PAGES = 10;
 const FILE_ID = /^[A-Za-z0-9_-]{10,200}$/;
 
 const json = (status: number, body: unknown) => new Response(JSON.stringify(body), {
@@ -44,7 +48,7 @@ export async function handleIntel(request: Request, env: IntelEnv, fetchImpl: ty
       let pageToken = '';
       for (let page = 0; page < MAX_PAGES; page++) {
         const params = new URLSearchParams({
-          q, orderBy: 'name desc', pageSize: '200', fields: `nextPageToken,files(${FILE_FIELDS})`,
+          q, orderBy: 'name desc', pageSize: String(PAGE_SIZE), fields: `nextPageToken,files(${FILE_FIELDS})`,
           ...(pageToken && { pageToken }),
         });
         const body = await (await drive(`files?${params}`, token, fetchImpl)).json() as { files?: unknown[]; nextPageToken?: string };
@@ -52,7 +56,7 @@ export async function handleIntel(request: Request, env: IntelEnv, fetchImpl: ty
         pageToken = body.nextPageToken || '';
         if (!pageToken) break;
       }
-      return json(200, { feedId: feed.id, files });
+      return json(200, { feedId: feed.id, files, complete: !pageToken });
     }
 
     if (kind === 'docs') {

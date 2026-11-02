@@ -29,18 +29,31 @@ export interface Hit {
 interface IndexedSection { id: string; title: string; plain: string; folded: string }
 export interface Indexed { edition: Edition; title: string; topics: string; sections: IndexedSection[] }
 
-/** Each edition read once into folded text, so a search is a few string scans. */
-export function indexOf(editions: Edition[]): Indexed[] {
-  return editions.map(edition => ({
-    edition,
-    title: fold(edition.title),
-    topics: fold(edition.topics.join(' · ')),
-    sections: splitSections(edition.markdownBody).map(s => {
-      const plain = plainText(s.markdown);
-      return { id: s.id, title: s.title, plain, folded: fold(`${s.title} ${plain}`) };
-    }),
-  }));
+// Each edition read once into folded text, so a search is a few string scans.
+// An edition is the same object while its document is unchanged, so its entry
+// is kept for the next search, and an archive is only read once a session.
+const entries = new WeakMap<Edition, Indexed>();
+
+export const isIndexed = (edition: Edition) => entries.has(edition);
+
+export function indexEntry(edition: Edition): Indexed {
+  let it = entries.get(edition);
+  if (!it) {
+    it = {
+      edition,
+      title: fold(edition.title),
+      topics: fold(edition.topics.join(' · ')),
+      sections: splitSections(edition.markdownBody).map(s => {
+        const plain = plainText(s.markdown);
+        return { id: s.id, title: s.title, plain, folded: fold(`${s.title} ${plain}`) };
+      }),
+    };
+    entries.set(edition, it);
+  }
+  return it;
 }
+
+export const indexOf = (editions: Edition[]): Indexed[] => editions.map(indexEntry);
 
 export const queryWords = (query: string) => fold(query).split(/[^\p{L}\p{N}'’]+/u).filter(w => w.length > 0);
 
