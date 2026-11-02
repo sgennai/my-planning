@@ -18,6 +18,7 @@ import { EditionReader, EditionTools } from './EditionReader';
 import { TodayView } from './TodayView';
 import { FeedStatus } from './FeedStatus';
 import { conformanceOf, labelOf, NEEDS_A_LOOK, type FeedConformance } from './conformance';
+import { runsOf, dayLabel, describeSchedule, NEEDS_ATTENTION, type Run } from './schedule';
 import { useClock } from '../ui/useClock';
 import { SavedView } from './SavedView';
 import type { Edition } from './parse';
@@ -69,7 +70,7 @@ interface Status { text: string; alert: boolean; action: 'retry' | 'details' }
  * A line under the header: the copy shown is not fresh from Drive, or
  * something in the feed wants a look (with the details a tap away).
  */
-function statusOf(state: FeedState | undefined, conformance: FeedConformance | undefined): Status | null {
+function statusOf(state: FeedState | undefined, conformance: FeedConformance | undefined, runs: Run[] = []): Status | null {
   if (!state?.editions.length) return null; // the empty reader says it instead
   switch (state.status) {
     case 'offline': return { text: 'Offline. Showing the copy on this device.', alert: false, action: 'retry' };
@@ -78,6 +79,14 @@ function statusOf(state: FeedState | undefined, conformance: FeedConformance | u
   }
   if (state.missing.length) {
     return { text: `${plural(state.missing.length, 'edition')} in Drive couldn't be loaded.`, alert: true, action: 'details' };
+  }
+  const off = runs.find(r => NEEDS_ATTENTION.includes(r.state));
+  if (off) {
+    const schedule = feedById(state.feedId)!.schedule;
+    const text = off.state === 'late' ? `Today's edition hasn't arrived (${describeSchedule(schedule).toLowerCase()}).`
+      : off.state === 'missing' ? `The edition of ${dayLabel(off.day)} is missing.`
+        : `The edition of ${dayLabel(off.day)} was published incomplete.`;
+    return { text, alert: true, action: 'details' };
   }
   const problems = (conformance?.problems ?? []).filter(p => NEEDS_A_LOOK.includes(p.flag.kind));
   if (problems.length) {
@@ -162,6 +171,12 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     return out;
   }, [states, now]);
   const [statusSheet, setStatusSheet] = useState<FeedId[] | null>(null);
+  // Each feed's expected runs and what became of them (feed health).
+  const health = useMemo(() => {
+    const out: Partial<Record<FeedId, Run[]>> = {};
+    for (const f of FEEDS) out[f.id] = runsOf(f.id, states[f.id]?.editions ?? [], conformance[f.id]?.flags, now);
+    return out;
+  }, [states, conformance, now]);
   const savedFiles = useMemo(() => new Set(saved.map(s => s.driveFileId)), [saved]);
 
   const feedId = isFeed(view) ? view : null;
@@ -184,7 +199,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
 
   const loading = feedId ? !editions.length && !refreshed[feedId] && state?.status !== 'not-configured' : false;
   const drawerOpen = drawer && mode === 'drawer' && !!feedId;
-  const status = feedId ? statusOf(state, conformance[feedId]) : null;
+  const status = feedId ? statusOf(state, conformance[feedId], health[feedId]) : null;
   const record = edition ? reading.get(edition.driveFileId) : undefined;
   const startAt = edition && jump?.driveFileId === edition.driveFileId ? jump.sectionId
     : record && !record.readAt ? record.section : null;
@@ -328,6 +343,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
       feeds={statusSheet}
       states={states}
       conformance={conformance}
+      health={health}
       onOpen={e => { setStatusSheet(null); openEdition(e); }}
       onClose={() => setStatusSheet(null)}
     />
@@ -406,6 +422,8 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
         loading={!Object.keys(refreshed).length}
         checked={id => !!refreshed[id]}
         today={dayKeyOf(new Date(now))}
+        now={now}
+        health={health}
         onOpen={e => openEdition(e)}
         onOpenFeed={switchView}
         labelOf={e => labelOf(conformance[e.feedId]?.flags.get(e.driveFileId))}

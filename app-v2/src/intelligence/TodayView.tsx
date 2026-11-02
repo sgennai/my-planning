@@ -12,6 +12,8 @@ import { readingState, type ReadingIndex } from './reading';
 import type { FeedState } from './library';
 import type { FeedId } from './feeds';
 import { formatDayAnchor, dayNameShort, formatDayCompact, daysBetween, type DayKey } from '../routine/dates';
+import { PublishingAlert, PublishingPanel } from './Publishing';
+import type { Run } from './schedule';
 
 /** How many older unread editions show before "Show all". */
 const FIRST_FEW = 5;
@@ -24,6 +26,10 @@ interface Props {
   checked: (feedId: FeedId) => boolean;
   /** Today in Paris. */
   today: DayKey;
+  /** Now, on the screen's minute clock: for feed health. */
+  now: number;
+  /** Each feed's expected runs (`schedule.ts`). */
+  health: Partial<Record<FeedId, Run[]>>;
   onOpen: (edition: Edition) => void;
   onOpenFeed: (feedId: FeedId) => void;
   /** The short label conformance gives the edition, if any. */
@@ -88,7 +94,7 @@ function TodayCard({ edition, reading, onOpen, label, today, olderUnread, onOpen
   );
 }
 
-export function TodayView({ states, reading, loading, checked, today, onOpen, onOpenFeed, labelOf, onStatus }: Props) {
+export function TodayView({ states, reading, loading, checked, today, now, health, onOpen, onOpenFeed, labelOf, onStatus }: Props) {
   const [showAll, setShowAll] = useState(false);
   const newest = FEEDS.map(f => states[f.id]?.editions[0]).filter((e): e is Edition => !!e);
   // Only a feed Drive has answered for is known to have nothing yet.
@@ -104,6 +110,7 @@ export function TodayView({ states, reading, loading, checked, today, onOpen, on
 
   return (
     <div className="intel-col intel-today">
+      <PublishingAlert health={health} now={now} onStatus={onStatus} />
       <p className="intel-eyebrow intel-today-date">
         {formatDayAnchor(today)}{unread.length > 0 && <span className="intel-age"> · {unread.length} unread</span>}
       </p>
@@ -158,7 +165,7 @@ export function TodayView({ states, reading, loading, checked, today, onOpen, on
       {newest.length > 0 && without.length > 0 && (
         <p className="intel-today-none">No edition yet: {without.join(', ')}.</p>
       )}
-      <button type="button" className="intel-linkbtn intel-today-status" onClick={onStatus}>Feed status</button>
+      <PublishingPanel health={health} now={now} onStatus={onStatus} />
     </div>
   );
 }

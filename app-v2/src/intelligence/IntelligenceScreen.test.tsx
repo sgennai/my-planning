@@ -53,6 +53,10 @@ const openChallenge = async () => {
 };
 
 beforeEach(async () => {
+  // Monday 2 November, 07:00 in Paris: before any scheduled run is due, so
+  // feed health has nothing to say unless a test moves the clock.
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date('2026-11-02T06:00:00Z'));
   _closeLibrary();
   await new Promise<void>(res => { const r = indexedDB.deleteDatabase('my-planning-intel'); r.onsuccess = r.onerror = () => res(); });
   localStorage.clear();
@@ -64,7 +68,7 @@ beforeEach(async () => {
   phone = false;
   confirmAnswer = true;
 });
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.useRealTimers(); });
 
 describe('the Intelligence section', () => {
   it('opens on Today: the newest edition of each feed, with a few of its own words', async () => {
@@ -261,7 +265,8 @@ describe('what the app says about the documents (conformance)', () => {
 
   it('Today leads to the status of every feed', async () => {
     render(<App />);
-    fireEvent.click(await screen.findByRole('button', { name: 'Feed status' }));
+    const publishing = await screen.findByRole('region', { name: 'Publishing' });
+    fireEvent.click(within(publishing).getByRole('button', { name: /Feed status/ }));
     const sheet = screen.getByRole('dialog', { name: 'Feed status' });
     expect(within(sheet).getAllByRole('heading', { level: 3 }).map(h => h.textContent)).toEqual([
       'Enterprise AI Challenge', 'Enterprise AI Executive Sales Brief', 'Customer Engagement Brief',
@@ -322,5 +327,43 @@ describe('Today when editions pile up over several days', () => {
     render(<App />);
     fireEvent.click(await screen.findByRole('button', { name: '7 older unread' }));
     expect(screen.getByRole('tab', { name: /AI Challenge/ })).toHaveAttribute('aria-selected', 'true');
+  });
+});
+
+describe('whether the tasks published (feed health)', () => {
+  it('Today shows each run, and says when one did not publish as scheduled', async () => {
+    // 13:00 in Paris: the AI Challenge is in, the Sales Brief is late, Customer Engagement is missing.
+    vi.setSystemTime(new Date('2026-11-02T12:00:00Z'));
+    render(<App />);
+    const publishing = await screen.findByRole('region', { name: 'Publishing' });
+    await vi.waitFor(() => expect(within(publishing).getByText('Published at 08:20')).toBeInTheDocument());
+    const rows = within(publishing).getAllByRole('listitem').map(li => li.textContent);
+    expect(rows).toEqual([
+      'AI ChallengeDaily, around 08:12Published at 08:20',
+      'Enterprise AIDaily, around 09:00Late · expected around 09:00',
+      'Customer EngagementMon, Wed and Fri at 08:00Missing',
+    ]);
+    expect(screen.getByText("2 briefings didn't publish as scheduled.")).toBeInTheDocument();
+
+    fireEvent.click(within(publishing).getByRole('button', { name: /Feed status/ }));
+    const sheet = screen.getByRole('dialog', { name: 'Feed status' });
+    expect(within(sheet).getByText('Mon, Wed and Fri at 08:00, since Mon 2 Nov')).toBeInTheDocument();
+    expect(within(sheet).getAllByText('Recent runs')).toHaveLength(3);
+    expect(within(sheet).getByText(/To recover a missed edition/)).toBeInTheDocument();
+  });
+
+  it("a feed whose run is late says so in its status line", async () => {
+    vi.setSystemTime(new Date('2026-11-03T12:00:00Z'));
+    render(<App />);
+    fireEvent.click(await screen.findByRole('tab', { name: /AI Challenge/ }));
+    await screen.findByRole('heading', { level: 1 });
+    expect(await screen.findByText("Today's edition hasn't arrived (daily, around 08:12).")).toBeInTheDocument();
+  });
+
+  it('a day with no run says when the next one is', async () => {
+    vi.setSystemTime(new Date('2026-11-03T06:00:00Z'));
+    render(<App />);
+    const publishing = await screen.findByRole('region', { name: 'Publishing' });
+    expect(within(publishing).getByText('No run today · next Wed 4 Nov')).toBeInTheDocument();
   });
 });

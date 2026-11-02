@@ -387,6 +387,14 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   customer questions and the competitive watchlist take their forms. Developments fold
   (`FoldsContext`, all open by default; a chip opens before scrolling). Any section that does not
   fit is Markdown as written; `briefs.test.tsx` checks every word on screen.
+- **Feed health** (`schedule.ts`, `Publishing.tsx`): each feed's `schedule` (`feeds.ts`: days,
+  Paris time, flexible or exact, `since` = first day it published by itself) gives the expected
+  runs, due in Paris time across clock changes (`parisInstant`). Flexible: late 3 h after its time,
+  missing when its Paris day ends; exact: late after 30 min, missing after 3 h. A day's edition
+  that is not `origin: "backfill"` fulfils its run; only a backfill = "Missed, imported later".
+  Today ends with the Publishing panel (each feed's run today) and raises an alert for a run late,
+  missing or incomplete in the last 3 days; the feed's status line too; Feed status lists 14 days
+  of runs and how to recover a missed edition. Screen tests pin the clock (`vi.setSystemTime`).
 - **Sources** (`citations.ts`): ChatGPT citation markers render as "source not linked" (marker in
   the tooltip, no link guessed) and are a conformance problem ("Unlinked sources");
   `sources.test.tsx` checks every link arrives exactly as written. Test fixtures for both briefs
@@ -479,7 +487,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (333 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (346 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris
