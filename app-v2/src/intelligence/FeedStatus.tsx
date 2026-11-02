@@ -1,7 +1,8 @@
 // Feed status: what Drive holds for each feed, and anything in it that wants
 // a look, so that whether the scheduled tasks publish as they should can be
 // checked here rather than in Drive. Nothing is hidden or removed from here.
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { useModalFocus } from './useModalFocus';
 import { feedById, type FeedId } from './feeds';
 import { parseEdition, type Edition } from './parse';
 import { noticeOf, type FeedConformance } from './conformance';
@@ -93,6 +94,8 @@ function Feed({ feedId, state, conformance, runs = [], onOpen }: {
 }
 
 export function FeedStatus({ feeds, states, conformance, health, onOpen, onClose }: Props) {
+  const sheet = useRef<HTMLDivElement>(null);
+  useModalFocus(sheet, true);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
@@ -107,12 +110,13 @@ export function FeedStatus({ feeds, states, conformance, health, onOpen, onClose
       aria-labelledby="intel-health-title"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="ds-modal intel-health-sheet">
+      <div className="ds-modal intel-health-sheet" ref={sheet}>
         <div className="ds-modal-head">
           <h2 id="intel-health-title">Feed status</h2>
           <button type="button" className="ds-icon-btn" onClick={onClose} aria-label="Close"><IconX /></button>
         </div>
-        <div className="ds-modal-body">
+        {/* Focusable, so that a keyboard can scroll it. */}
+        <div className="ds-modal-body" tabIndex={0}>
           {feeds.map(id => (
             <Feed key={id} feedId={id} state={states[id]} conformance={conformance[id]} runs={health[id]} onOpen={onOpen} />
           ))}

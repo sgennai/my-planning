@@ -51,16 +51,19 @@ function SavedCard({ item, onOpen, onUpdate, onRemove, onNote }: { item: SavedIn
   return (
     <article className="intel-saved">
       <div className="intel-saved-top">
-        <span className="intel-eyebrow">
-          {kindOf(item)}{item.kind === 'section' && item.sectionTitle && ` · ${item.sectionTitle}`}
-        </span>
+        {/* Each kept item has one heading: an edition's title, else what it is. */}
+        {item.kind === 'edition' ? <span className="intel-eyebrow">{kindOf(item)}</span> : (
+          <h2 className="intel-eyebrow">
+            {kindOf(item)}{item.kind === 'section' && item.sectionTitle && ` · ${item.sectionTitle}`}
+          </h2>
+        )}
         <span className="intel-grow" />
         <button type="button" className="intel-iconbtn" onClick={copy} aria-label={`Copy ${name}`}><IconCopy /></button>
         <button type="button" className="intel-iconbtn" onClick={startEdit} aria-label={`Note and tags for ${name}`} aria-expanded={editing}><IconPencil /></button>
         <button type="button" className="intel-iconbtn" onClick={() => onRemove(item)} aria-label={`Remove ${name} from Takeaways`}><IconTrash /></button>
       </div>
 
-      {item.kind === 'edition' && <h3 className="intel-saved-title">{item.editionTitle}</h3>}
+      {item.kind === 'edition' && <h2 className="intel-saved-title">{item.editionTitle}</h2>}
       {item.kind === 'term' && (
         <p className="intel-saved-term"><b><Markdown inline>{item.label ?? ''}</Markdown></b> — <Markdown inline>{item.text}</Markdown></p>
       )}
@@ -117,6 +120,7 @@ export function SavedView({ saved, ...actions }: Props) {
 
   return (
     <div className="intel-col intel-saved-view">
+      <h1 className="intel-vh">Takeaways</h1>
       {saved.length > 0 && (
         <>
           <label className="intel-search">

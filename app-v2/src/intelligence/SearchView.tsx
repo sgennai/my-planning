@@ -120,6 +120,7 @@ export function SearchView({ states, query, filters, onQuery, onFilters, onOpen,
 
   return (
     <div className="intel-col intel-search-view">
+      <h1 className="intel-vh">Search</h1>
       <label className="intel-search">
         <IconSearch />
         <input

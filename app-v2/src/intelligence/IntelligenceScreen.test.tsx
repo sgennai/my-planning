@@ -18,11 +18,12 @@ let files: (typeof CHALLENGE_FILE)[];
 let texts: Record<string, string | null>;
 let mode: 'ok' | 'not-configured';
 let phone = false;
+let portrait = false;
 let confirmAnswer = true;
 
 vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} });
 vi.stubGlobal('matchMedia', (query: string) => ({
-  matches: query.includes('max-width: 600px') ? phone : false,
+  matches: query.includes('max-width: 600px') ? phone : query === '(orientation: portrait)' ? portrait : false,
   addEventListener() {}, removeEventListener() {},
 }));
 vi.stubGlobal('confirm', vi.fn(() => confirmAnswer));
@@ -68,6 +69,7 @@ beforeEach(async () => {
   texts = {};
   mode = 'ok';
   phone = false;
+  portrait = false;
   confirmAnswer = true;
 });
 afterEach(() => { cleanup(); vi.useRealTimers(); });
@@ -90,7 +92,7 @@ describe('the Intelligence section', () => {
     await openChallenge();
     const listed = screen.getByRole('button', { name: /Mon 2 Nov · 08:20/ });
     expect(listed).toHaveAttribute('aria-current', 'true');
-    expect(within(listed).getByLabelText('Unread')).toBeInTheDocument();
+    expect(listed).toHaveAccessibleName(/^Unread,\s*Mon 2 Nov · 08:20/);
   });
 
   it('Mark as read is kept in the synced data, and undone the same way', async () => {
@@ -98,7 +100,7 @@ describe('the Intelligence section', () => {
     await openChallenge();
     fireEvent.click(screen.getByRole('button', { name: 'Mark as read' }));
     expect(readingIndex(latest.progressLog).get(CHALLENGE_FILE.id)?.readAt).toBeTruthy();
-    expect(within(screen.getByRole('button', { name: /Mon 2 Nov/ })).queryByLabelText('Unread')).toBeNull();
+    expect(screen.getByRole('button', { name: /Mon 2 Nov/ })).toHaveAccessibleName(/^Mon 2 Nov · 08:20.*, read$/);
     fireEvent.click(screen.getByRole('button', { name: 'Read. Mark as unread' }));
     expect(readingIndex(latest.progressLog).get(CHALLENGE_FILE.id)?.readAt).toBeNull();
   });
@@ -408,5 +410,70 @@ describe('searching every edition', () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     await openSearch();
     expect(await screen.findByText(/searched 1 of 2; 1 not downloaded yet/)).toBeInTheDocument();
+  });
+});
+
+describe('with a keyboard and a screen reader (INT-33)', () => {
+  it('each view is named by its one level-one heading', async () => {
+    render(<App />);
+    expect(await screen.findByRole('heading', { level: 1, name: 'Today' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: /Takeaways/ }));
+    expect(screen.getAllByRole('heading', { level: 1 }).map(h => h.textContent)).toEqual(['Takeaways']);
+    fireEvent.click(screen.getByRole('button', { name: 'Search every edition' }));
+    expect(screen.getAllByRole('heading', { level: 1 }).map(h => h.textContent)).toEqual(['Search']);
+    await openChallenge();
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+  });
+
+  it('the tabs: one stop for Tab, arrows between them, Enter to open; the panel is named by its tab', async () => {
+    render(<App />);
+    await screen.findByRole('heading', { level: 1, name: 'Today' });
+    const tabs = screen.getAllByRole('tab');
+    expect(tabs.map(t => t.tabIndex)).toEqual([0, -1, -1, -1, -1]);
+    tabs[0].focus();
+    fireEvent.keyDown(tabs[0], { key: 'ArrowRight' });
+    expect(document.activeElement).toBe(tabs[1]);
+    fireEvent.keyDown(tabs[1], { key: 'End' });
+    expect(document.activeElement).toBe(tabs[4]);
+    fireEvent.keyDown(tabs[4], { key: 'ArrowRight' });
+    expect(document.activeElement).toBe(tabs[0]);
+    expect(screen.getByRole('tabpanel', { name: 'Today' })).toBeInTheDocument();
+    fireEvent.click(tabs[4]);
+    expect(screen.getByRole('tabpanel', { name: /Takeaways/ })).toBeInTheDocument();
+    expect(screen.getAllByRole('tab').map(t => t.tabIndex)).toEqual([-1, -1, -1, -1, 0]);
+  });
+
+  it('Feed status takes focus, keeps it, and gives it back', async () => {
+    render(<App />);
+    const opener = within(await screen.findByRole('region', { name: 'Publishing' })).getByRole('button', { name: 'Feed status' });
+    opener.focus();
+    fireEvent.click(opener);
+    const sheet = screen.getByRole('dialog', { name: 'Feed status' });
+    expect(sheet).toContainElement(document.activeElement as HTMLElement);
+    const close = within(sheet).getByRole('button', { name: 'Close' });
+    expect(document.activeElement).toBe(close);
+    fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
+    expect(sheet).toContainElement(document.activeElement as HTMLElement);
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(document.activeElement).toBe(opener);
+  });
+
+  it('on an iPad in portrait, the Editions drawer opens on the edition being read, and gives focus back', async () => {
+    portrait = true;
+    render(<App />);
+    await openChallenge();
+    const opener = screen.getByRole('button', { name: 'Editions' });
+    opener.focus();
+    fireEvent.click(opener);
+    expect(document.activeElement).toHaveAttribute('aria-current', 'true');
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(document.activeElement).toBe(opener);
+  });
+
+  it('Today says which edition each button is for', async () => {
+    render(<App />);
+    const read = await screen.findByRole('button', { name: 'Read' });
+    expect(read).toHaveAccessibleDescription('Agent Sprawl: Who Owns the Bots?');
   });
 });

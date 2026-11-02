@@ -10,10 +10,12 @@
 // do with them (how far you read, what you keep) is yours and syncs, in
 // `progressLog` and `content`.
 import '../styles/intelligence.css';
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react';
 import { FEEDS, feedById, type FeedId } from './feeds';
 import { useFeeds } from './useFeeds';
 import { useEdgeFade } from './useEdgeFade';
+import { useModalFocus } from './useModalFocus';
+import { useTextScale } from './useTextScale';
 import { EditionReader, EditionTools } from './EditionReader';
 import { TodayView } from './TodayView';
 import { FeedStatus } from './FeedStatus';
@@ -45,6 +47,19 @@ const editionKey = (feedId: FeedId) => `my-planning-intel-edition:${feedId}`;
 const POSITION_REST_MS = 1200;
 
 const isFeed = (v: View): v is FeedId => v !== 'today' && v !== 'saved' && v !== 'search';
+const tabId = (v: View) => `intel-tab-${v}`;
+const PANEL = 'intel-panel';
+
+/** Arrow keys, Home and End move between the tabs; Enter or Space opens one. */
+function moveAmongTabs(e: ReactKeyboardEvent<HTMLDivElement>) {
+  const step = { ArrowRight: 1, ArrowLeft: -1, Home: 0, End: 0 }[e.key];
+  if (step === undefined) return;
+  const tabs = [...e.currentTarget.querySelectorAll<HTMLElement>('[role="tab"]')];
+  const at = tabs.indexOf(document.activeElement as HTMLElement);
+  const next = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : (at + step + tabs.length) % tabs.length;
+  e.preventDefault();
+  tabs[next]?.focus();
+}
 const tabLabel = (v: View) => (v === 'today' ? 'Today' : v === 'saved' ? 'Takeaways' : feedById(v)!.label);
 
 function useMatches(query: string) {
@@ -226,6 +241,12 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [drawerOpen]);
+  // The drawer takes focus as it opens, on the edition being read.
+  const drawerRef = useRef<HTMLElement>(null);
+  useModalFocus(drawerRef, drawerOpen, '[aria-current="true"]');
+  // Text at the size set on the iPad.
+  const scale = useTextScale();
+  const rootStyle = scale === 1 ? undefined : ({ '--intel-scale': scale } as CSSProperties);
 
   // ── Writes ──────────────────────────────────────────────────────────────
   const stamp = () => new Date().toISOString();
@@ -319,17 +340,31 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     const s = readingState(e, reading);
     return s === 'new' || s === 'updated';
   });
+  // One tab is in the Tab order: the open one, else the first.
+  const tabStop = VIEWS.includes(view) ? view : VIEWS[0];
   const tabs = (
-    <div className={`ds-segment intel-tabs${tabsFade}`} role="tablist" aria-label="Intelligence" ref={tabsRef}>
+    <div className={`ds-segment intel-tabs${tabsFade}`} role="tablist" aria-label="Intelligence" ref={tabsRef} onKeyDown={moveAmongTabs}>
       {VIEWS.map(v => (
-        <button key={v} type="button" role="tab" data-id={v} aria-selected={v === view} onClick={() => switchView(v)}>
+        <button
+          key={v}
+          id={tabId(v)}
+          type="button"
+          role="tab"
+          data-id={v}
+          aria-selected={v === view}
+          aria-controls={v === view ? PANEL : undefined}
+          tabIndex={v === tabStop ? 0 : -1}
+          onClick={() => switchView(v)}
+        >
           {tabLabel(v)}
-          {isFeed(v) && hasNew(v) && <i className="intel-tab-dot" aria-label="new" />}
-          {v === 'saved' && saved.length > 0 && <span className="intel-tab-count">{saved.length}</span>}
+          {isFeed(v) && hasNew(v) && <><i className="intel-tab-dot" aria-hidden /><span className="intel-vh">, new</span></>}
+          {v === 'saved' && saved.length > 0 && <span className="intel-tab-count"><span className="intel-vh">, </span>{saved.length}</span>}
         </button>
       ))}
     </div>
   );
+  // What the open tab shows, named by it.
+  const panel = VIEWS.includes(view) ? { id: PANEL, role: 'tabpanel', 'aria-labelledby': tabId(view) } : {};
   const searchButton = (
     <button
       type="button"
@@ -349,7 +384,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     ><IconRefresh /></button>
   );
   const statusLine = status && (
-    <div className={`intel-status${status.alert ? ' is-alert' : ''}`} role="status">
+    <div className={`intel-status${status.alert ? ' is-alert' : ''}`} role="status" inert={drawerOpen || undefined}>
       <span>{status.text}</span>
       {status.action === 'retry' && <button type="button" onClick={refresh}>Try again</button>}
       {status.action === 'details' && <button type="button" onClick={() => feedId && setStatusSheet([feedId])}>Details</button>}
@@ -370,8 +405,8 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   const list = (head: ReactNode) => (
     <>
       <div className="intel-rail-head">
-        <h2>{mode === 'single' && feedId ? feedById(feedId)!.label : 'Editions'}</h2>
-        {editions.length > 0 && <span className="intel-count">{editions.length}</span>}
+        {mode === 'single' && feedId ? <h1>{feedById(feedId)!.label}</h1> : <h2>Editions</h2>}
+        {editions.length > 0 && <span className="intel-count">{editions.length}<span className="intel-vh"> editions</span></span>}
         {feedId && (
           <button type="button" className="intel-iconbtn" onClick={() => setStatusSheet([feedId])} aria-label="Feed status">
             <IconPulse />
@@ -393,18 +428,21 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
                   aria-current={mode !== 'single' && e === edition ? 'true' : undefined}
                   onClick={() => choose(e)}
                 >
-                  {(s === 'new' || s === 'updated') && <i className="intel-ed-dot" aria-label={s === 'new' ? 'Unread' : 'Updated'} />}
+                  {(s === 'new' || s === 'updated') && <><i className="intel-ed-dot" aria-hidden /><span className="intel-vh">{s === 'new' ? 'Unread, ' : 'Updated, '}</span></>}
                   <span className="intel-ed-date">
                     {dayNameShort(e.editionDate)} {formatDayCompact(e.editionDate)}{e.time && ` · ${e.time}`}
                     {s === 'updated' && ' · Updated'}
                     {label && <span className={`intel-tag${label === 'Imported' ? '' : ' is-alert'}`}>{label}</span>}
                   </span>
-                  {savedFiles.has(e.driveFileId) && <span className="intel-ed-saved" aria-label="Something saved"><IconBookmark /></span>}
+                  {savedFiles.has(e.driveFileId) && <><span className="intel-ed-saved" aria-hidden><IconBookmark /></span><span className="intel-vh">, something saved, </span></>}
                   <span className="intel-ed-title">{e.title}</span>
                   {(s === 'started' || s === 'read') && (
-                    <span className="intel-ed-bar" aria-label={s === 'read' ? 'Read' : `${Math.round((r?.progress ?? 0) * 100)}% read`}>
-                      <i style={{ width: `${s === 'read' ? 100 : Math.round((r?.progress ?? 0) * 100)}%` }} />
-                    </span>
+                    <>
+                      <span className="intel-ed-bar" aria-hidden>
+                        <i style={{ width: `${s === 'read' ? 100 : Math.round((r?.progress ?? 0) * 100)}%` }} />
+                      </span>
+                      <span className="intel-vh">{s === 'read' ? ', read' : `, ${Math.round((r?.progress ?? 0) * 100)}% read`}</span>
+                    </>
                   )}
                 </button>
               </li>
@@ -478,7 +516,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   if (mode === 'single') {
     if (feedId && pane === 'reader' && edition) {
       return (
-        <div className="intel intel--single">
+        <div className="intel intel--single" style={rootStyle}>
           <div className="intel-bar">
             <button type="button" className="ds-icon-btn" onClick={() => setPane('list')} aria-label="Back to editions">
               <IconChevronLeft />
@@ -500,10 +538,10 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
       );
     }
     return (
-      <div className="intel intel--single">
+      <div className="intel intel--single" style={rootStyle}>
         <div className="intel-head">{tabs}{searchButton}</div>
         {statusLine}
-        <div className="intel-list">
+        <div className="intel-list" {...panel}>
           {page ?? (
             <>
               {list(<><span className="intel-grow" />{refreshButton}</>)}
@@ -518,8 +556,8 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   }
 
   return (
-    <div className={`intel intel--${mode}${drawerOpen ? ' is-drawer-open' : ''}`}>
-      <div className="intel-head">
+    <div className={`intel intel--${mode}${drawerOpen ? ' is-drawer-open' : ''}`} style={rootStyle}>
+      <div className="intel-head" inert={drawerOpen || undefined}>
         {mode === 'drawer' && feedId && (
           <button type="button" className="ds-btn intel-editions" onClick={() => setDrawer(true)} aria-expanded={drawerOpen}>
             <IconList />Editions
@@ -531,7 +569,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
         {refreshButton}
       </div>
       {statusLine}
-      <div className="intel-body">
+      <div className="intel-body" inert={drawerOpen || undefined} {...panel}>
         {mode === 'rail' && feedId && <aside className="intel-rail" aria-label="Editions">{list(null)}</aside>}
         <div className="intel-reader" ref={readerRef}>
           {page ?? reader ?? <Empty state={state} loading={loading} onRetry={refresh} />}
@@ -540,7 +578,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
       {mode === 'drawer' && feedId && (
         <>
           <div className="intel-scrim" onClick={() => setDrawer(false)} aria-hidden />
-          <aside className="intel-drawer" aria-label="Editions" inert={!drawerOpen}>
+          <aside className="intel-drawer" aria-label="Editions" inert={!drawerOpen} ref={drawerRef}>
             {list(<>
               <span className="intel-grow" />
               <button type="button" className="ds-icon-btn" onClick={() => setDrawer(false)} aria-label="Close editions"><IconX /></button>

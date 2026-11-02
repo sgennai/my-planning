@@ -4,7 +4,7 @@
 // other edition still unread, newest first, so that days of editions piling
 // up are not hidden behind the newest. Only what Drive already holds:
 // nothing is generated, and a feed with no edition just says so.
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { FEEDS, feedById } from './feeds';
 import { splitSections, newestFirst, type Edition } from './parse';
 import { previewOf, shortTitle } from './present';
@@ -62,18 +62,20 @@ function TodayCard({ edition, reading, onOpen, label, today, olderUnread, onOpen
     : state === 'read' ? 'Read again' : 'Read';
 
   const { day, ago } = dayOf(edition.editionDate, today);
+  // The card's buttons say which feed and edition they are for.
+  const id = useId();
 
   return (
     <article className={`intel-today-card is-${state}`}>
       <div className="intel-today-top">
         <span className="intel-eyebrow">
-          {feedById(edition.feedId)?.label} · {day}{edition.time && ` · ${edition.time}`}
+          <span id={`${id}-feed`}>{feedById(edition.feedId)?.label}</span> · {day}{edition.time && ` · ${edition.time}`}
           {ago && <span className="intel-age"> · {ago}</span>}
         </span>
         {label && <span className={`intel-tag${label === 'Imported' ? '' : ' is-alert'}`}>{label}</span>}
         <span className={`intel-badge is-${state}`}>{badge}</span>
       </div>
-      <h2 className="intel-today-title">{edition.title}</h2>
+      <h2 className="intel-today-title" id={`${id}-title`}>{edition.title}</h2>
       {preview && <p className="intel-today-preview">{preview}</p>}
       {edition.topics.length > 0 && (
         <ul className="intel-topics" aria-label="Topics">
@@ -81,11 +83,11 @@ function TodayCard({ edition, reading, onOpen, label, today, olderUnread, onOpen
         </ul>
       )}
       <div className="intel-today-actions">
-        <button type="button" className={`ds-btn${state === 'read' ? '' : ' ds-btn--primary'}`} onClick={() => onOpen(edition)}>
+        <button type="button" className={`ds-btn${state === 'read' ? '' : ' ds-btn--primary'}`} onClick={() => onOpen(edition)} aria-describedby={`${id}-title`}>
           {action}
         </button>
         {olderUnread > 0 && (
-          <button type="button" className="intel-linkbtn" onClick={() => onOpenFeed(edition.feedId)}>
+          <button type="button" className="intel-linkbtn" onClick={() => onOpenFeed(edition.feedId)} aria-describedby={`${id}-feed`}>
             {olderUnread} older unread
           </button>
         )}
@@ -110,6 +112,7 @@ export function TodayView({ states, reading, loading, checked, today, now, healt
 
   return (
     <div className="intel-col intel-today">
+      <h1 className="intel-vh">Today</h1>
       <PublishingAlert health={health} now={now} onStatus={onStatus} />
       <p className="intel-eyebrow intel-today-date">
         {formatDayAnchor(today)}{unread.length > 0 && <span className="intel-age"> · {unread.length} unread</span>}
@@ -141,9 +144,10 @@ export function TodayView({ states, reading, loading, checked, today, now, healt
                     </span>
                     <span className="intel-ed-title">{e.title}</span>
                     {progress > 0 && (
-                      <span className="intel-ed-bar" aria-label={`${Math.round(progress * 100)}% read`}>
-                        <i style={{ width: `${Math.round(progress * 100)}%` }} />
-                      </span>
+                      <>
+                        <span className="intel-ed-bar" aria-hidden><i style={{ width: `${Math.round(progress * 100)}%` }} /></span>
+                        <span className="intel-vh">, {Math.round(progress * 100)}% read</span>
+                      </>
                     )}
                   </button>
                 </li>

@@ -420,6 +420,21 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   answers `complete: false` past that, when the device keeps what the list left out. `fold`
   removes only combining marks (U+0300–U+036F): ten times quicker than `\p{Diacritic}`, and
   text keeps its length, so highlights land on the words.
+- **Accessibility** (INT-33): axe-core finds nothing in any view, light or dark, in Chromium or
+  WebKit. Each view has one `h1` (hidden "Today", "Takeaways", "Search"; the edition's title; the
+  feed's name over a phone's list); part labels are headings (`h4` in a development card, `h3` in
+  an Engagement section and for the AI Challenge's labelled blocks). States are words, not labels
+  on dots or bars: `.intel-vh` text ("Unread,", "something saved", "n% read", ", new" on a tab;
+  `aria-label` on a `span` or `i` is not reliably read). Tabs: one Tab stop, arrows / Home / End
+  move, Enter opens, and the content is their `tabpanel`. Feed status and the portrait Editions
+  drawer take focus, keep it and give it back (`useModalFocus`); the drawer makes the rest inert.
+  Text follows the iPad's Text Size (`useTextScale`: the system body style against its usual
+  17px, touch devices only, 0.8–2×) through `--tpx` and the type tokens redefined on `.intel`:
+  **write a new font size as `calc(N * var(--tpx))`**. For contrast, `.intel` darkens `--ink-3` to
+  #626B79 in light, lightens the dark accent to #4F8EF7, and puts white text on #2563EB
+  (`--intel-fill`); the rest of the app keeps its tokens. On a phone the pill's "Intel" is that
+  button's name (Voice Control). In Safari on a Mac, Tab reaches buttons only with Option-Tab or
+  "Press Tab to highlight each item".
 - **Local development** with real documents: `.dev.vars` in `app-v2` holds
   `GOOGLE_SERVICE_ACCOUNT` (gitignored, never read by tools). Run
   `npx wrangler pages dev <any folder> --port 8788 --binding BASIC_AUTH_USER=dev --binding BASIC_AUTH_PASS=dev`
@@ -507,7 +522,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (364 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (372 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris

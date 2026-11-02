@@ -110,11 +110,11 @@ export function AppShell({
             className={`shell-nav-item${phoneMore ? ' shell-nav-fold' : ''}${appPage === page ? ' on' : ''}`}
             onClick={closingMore(() => onNavigate(page))}
             aria-current={appPage === page ? 'page' : undefined}
-            aria-label={short ? label : undefined}
           >
             <Icon />
+            {/* The one on show is the name (Voice Control's "Tap Intel"). */}
             {short
-              ? <><span className="shell-nav-long">{label}</span><span className="shell-nav-short" aria-hidden>{short}</span></>
+              ? <><span className="shell-nav-long">{label}</span><span className="shell-nav-short">{short}</span></>
               : <span>{label}</span>}
           </button>
         ))}

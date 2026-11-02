@@ -149,7 +149,7 @@ function TopicMap({ topics, label, highlighted }: { topics: string[]; label: str
 function Labelled({ label, text, section, className }: { label: string; text: string; section: Section; className: string }) {
   return (
     <div className={className}>
-      <span className="intel-question-label"><Markdown inline>{label}</Markdown></span>
+      <h3 className="intel-question-label"><Markdown inline>{label}</Markdown></h3>
       <div className="intel-question-text"><Markdown>{text}</Markdown></div>
       <div className="intel-question-actions">
         <CopyButton markdown={text} label={label} />
@@ -181,12 +181,14 @@ function FoldButton({ id, name }: { id: string; name: string }) {
 const ASKS: Part['tone'][] = ['question', 'response', 'quote'];
 
 /** A development's labelled parts: what happened, what it means, what to ask. */
-function Parts({ parts, sectionId, sectionTitle }: { parts: Part[]; sectionId: string; sectionTitle: string }) {
+/** Labelled parts; each label is a heading one level under what holds them. */
+function Parts({ parts, sectionId, sectionTitle, level }: { parts: Part[]; sectionId: string; sectionTitle: string; level: 3 | 4 }) {
+  const Label = level === 3 ? 'h3' : 'h4';
   return (
     <div className="intel-parts">
       {parts.map((part, i) => (
         <div key={i} className={`intel-part is-${part.tone}`}>
-          {part.label && <span className="intel-part-label"><Markdown inline>{part.label}</Markdown></span>}
+          {part.label && <Label className="intel-part-label"><Markdown inline>{part.label}</Markdown></Label>}
           {part.markdown && <div className="intel-md"><Markdown>{part.markdown}</Markdown></div>}
           {part.label && part.markdown && ASKS.includes(part.tone) && (
             <div className="intel-question-actions">
@@ -222,7 +224,7 @@ function DevelopmentCard({ dev }: { dev: Development }) {
       </div>
       {isOpen(dev.id) && (
         <div id={`intel-body-${dev.id}`}>
-          <Parts parts={dev.parts} sectionId={dev.id} sectionTitle={dev.title} />
+          <Parts parts={dev.parts} sectionId={dev.id} sectionTitle={dev.title} level={4} />
         </div>
       )}
     </article>
@@ -272,7 +274,7 @@ function SectionBody({ p, section }: { p: Presentation; section: Section }) {
         </dl>
       );
     case 'development':
-      return <Parts parts={p.parts} sectionId={section.id} sectionTitle={section.title} />;
+      return <Parts parts={p.parts} sectionId={section.id} sectionTitle={section.title} level={3} />;
     case 'developments':
       return (
         <>
@@ -552,7 +554,7 @@ function Reader({
         </header>
 
         {indexed.length > 1 && (
-          <nav className="intel-index" aria-label="Sections" ref={indexRef}>
+          <nav className="intel-index" aria-label="In this edition" ref={indexRef}>
             <div className={`intel-index-row${indexFade}`} ref={indexRowRef}>
               {indexed.map(a => (
                 <button
