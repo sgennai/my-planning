@@ -15,7 +15,8 @@ import { formatDayAnchor, dayNameShort, formatDayCompact, daysBetween, type DayK
 import { PublishingAlert, PublishingPanel } from './Publishing';
 import type { Run } from './schedule';
 import type { SavedInsight } from './saved';
-import { kindsOf, minutesFor } from './review';
+import { kindsOf, minutesFor, type ReviewIndex } from './review';
+import { signalsOf, sinceNote, type Signals } from './signals';
 import { IconReview } from '../ui/icons';
 
 /** How many older unread editions show before "Show all". */
@@ -41,6 +42,44 @@ interface Props {
   /** Takeaways due for review today, and how many come due tomorrow. */
   review: { due: SavedInsight[]; tomorrow: number };
   onReview: () => void;
+  /** Every takeaway's review, for "reviewed this week". */
+  reviews: ReviewIndex;
+}
+
+const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+
+/** A few plain counts, each saying what it counts and since when (signals.ts). */
+function ReadingPanel({ signals: s, today }: { signals: Signals; today: DayKey }) {
+  // Said once, after the longer window: the shorter one never starts earlier.
+  const since = sinceNote(30, today);
+  return (
+    <section className="intel-publishing intel-signals" aria-labelledby="intel-signals-title">
+      <div className="intel-publishing-head"><h2 id="intel-signals-title" className="intel-eyebrow">Your reading</h2></div>
+      <dl>
+        <div>
+          <dt>Unread</dt>
+          <dd>
+            <span>
+              {s.unread.map((u, i) => (
+                <span key={u.feedId}>{i > 0 && ' · '}<span className="intel-nowrap">{feedById(u.feedId)?.label} {u.count}</span></span>
+              ))}
+            </span>
+            {s.unread.some(u => u.partial) && <small>More are still downloading to this device.</small>}
+          </dd>
+        </div>
+        <div>
+          <dt>Read</dt>
+          <dd>
+            <span>{s.read7} in the last 7 days · {s.read30} in the last 30 days{since && <span className="intel-nowrap"> ({since})</span>}</span>
+          </dd>
+        </div>
+        <div>
+          <dt>Reviewed</dt>
+          <dd><span>{plural(s.reviewed, 'takeaway')} this week, <span className="intel-nowrap">since {dayNameShort(s.weekStart)} {formatDayCompact(s.weekStart)}</span></span></dd>
+        </div>
+      </dl>
+    </section>
+  );
 }
 
 /** Takeaways waiting for review, after the day's editions; only when some are due. */
@@ -122,8 +161,9 @@ function TodayCard({ edition, reading, onOpen, label, today, olderUnread, onOpen
   );
 }
 
-export function TodayView({ states, reading, loading, checked, today, now, health, onOpen, onOpenFeed, labelOf, onStatus, review, onReview }: Props) {
+export function TodayView({ states, reading, loading, checked, today, now, health, onOpen, onOpenFeed, labelOf, onStatus, review, onReview, reviews }: Props) {
   const [showAll, setShowAll] = useState(false);
+  const signals = useMemo(() => signalsOf(states, reading, reviews, today), [states, reading, reviews, today]);
   const newest = FEEDS.map(f => states[f.id]?.editions[0]).filter((e): e is Edition => !!e);
   // Only a feed Drive has answered for is known to have nothing yet.
   const without = FEEDS.filter(f => checked(f.id) && !states[f.id]?.editions.length).map(f => f.label);
@@ -196,6 +236,7 @@ export function TodayView({ states, reading, loading, checked, today, now, healt
       {newest.length > 0 && without.length > 0 && (
         <p className="intel-today-none">No edition yet: {without.join(', ')}.</p>
       )}
+      {newest.length > 0 && <ReadingPanel signals={signals} today={today} />}
       <PublishingPanel health={health} now={now} onStatus={onStatus} />
     </div>
   );

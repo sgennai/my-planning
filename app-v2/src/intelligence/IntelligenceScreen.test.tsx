@@ -582,3 +582,19 @@ describe('Takeaways exported as a file (INT-43)', () => {
     expect(narrowed).not.toContain('LinkedIn angle');
   });
 });
+
+describe('Your reading (INT-44)', () => {
+  it('counts unread by feed, editions read lately and takeaways reviewed this week, saying since when', async () => {
+    render(<App />);
+    const panel = await screen.findByRole('region', { name: 'Your reading' });
+    expect(within(panel).getByText('Unread').nextElementSibling).toHaveTextContent('AI Challenge 1 · Enterprise AI 0 · Customer Engagement 0');
+    expect(within(panel).getByText('Read').nextElementSibling).toHaveTextContent('0 in the last 7 days · 0 in the last 30 days (since 1 Nov)');
+    expect(within(panel).getByText('Reviewed').nextElementSibling).toHaveTextContent('0 takeaways this week, since Mon 2 Nov');
+    await openChallenge();
+    fireEvent.click(screen.getByRole('button', { name: 'Mark as read' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Today' }));
+    const after = await screen.findByRole('region', { name: 'Your reading' });
+    expect(within(after).getByText('Unread').nextElementSibling).toHaveTextContent('AI Challenge 0');
+    expect(within(after).getByText('Read').nextElementSibling).toHaveTextContent('1 in the last 7 days · 1 in the last 30 days');
+  });
+});

@@ -1161,3 +1161,22 @@ p.intel-review-prompt { margin: var(--sp-4) 0 0; font-size: calc(18 * var(--tpx)
 .intel--single .intel-rate b { width: 18px; font-size: calc(17 * var(--tpx)); }
 .intel--single .intel-rate span { flex: 1; font-size: calc(15 * var(--tpx)); }
 .intel--single .intel-rate small { font-size: var(--t-meta); }
+
+/* ── Your reading (INT-44, signals.ts) ─────────────────────────────────────
+   Plain counts in the Publishing panel's frame: a label, then the figures. */
+.intel-signals dl { display: flex; flex-direction: column; margin: 0; }
+.intel-signals dl > div {
+  display: grid;
+  grid-template-columns: minmax(0, 0.5fr) minmax(0, 2fr);
+  align-items: baseline;
+  gap: var(--sp-3);
+  padding: 10px 0;
+  border-top: 1px solid var(--hairline-faint);
+  font-size: var(--t-meta);
+}
+.intel-signals dl > div:first-child { border-top: 0; }
+.intel-signals dt { font-weight: 600; color: var(--ink); }
+.intel-signals dd { margin: 0; display: flex; flex-direction: column; gap: 2px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.intel-signals dd small { font-size: calc(12 * var(--tpx)); color: var(--ink-3); }
+.intel-nowrap { white-space: nowrap; }
+.intel--single .intel-signals dl > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }

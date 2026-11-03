@@ -441,6 +441,12 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   rating is saved as given, so leaving part-way loses nothing. Two devices' copies merge
   (`mergeReview`, D12): the later action (its `at`, the moment it was done) stands; the count
   keeps the higher.
+- **Your reading** (INT-44, D16; `signals.ts`, `ReadingPanel` in `TodayView.tsx`): a panel at the
+  foot of Today, above Publishing, once an edition exists. Unread per feed (editions on this
+  device without `readAt`, started ones included; "More are still downloading" while a feed has
+  `pending`), editions read in the last 7 and 30 days (synced `readAt`, today included, from any
+  device), takeaways reviewed this week (review `lastAt` since Monday, Paris). Windows reaching
+  back before `RECORDS_SINCE` (2026-11-01) say "since 1 Nov". No streaks, goals or charts.
 - **Reading place** (INT-35, `useReadingAnchor.ts`): Safari keeps no scroll anchor, so a new
   text size moved the reader ~1,700 px and rotating lost the section. The block at the top of the
   reading area (below the sticky index) is noted as scrolling rests; when the reader or its content
@@ -555,7 +561,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (403 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (408 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris

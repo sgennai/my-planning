@@ -527,6 +527,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
         onStatus={() => setStatusSheet(FEEDS.map(f => f.id))}
         review={{ due, tomorrow: dueTomorrow }}
         onReview={() => startReview('today')}
+        reviews={reviews}
       />
     )
     : view === 'saved'
