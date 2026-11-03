@@ -2,7 +2,7 @@
 // the rules over them.
 import { describe, it, expect } from 'vitest';
 import { parseEdition } from './parse';
-import { readingIndex, readingState, withPosition, withRead, readingId, READING_TYPE } from './reading';
+import { readingIndex, readingState, withPosition, withRead, readingId, mergeReading, READING_TYPE, type ReadingRecord } from './reading';
 import {
   savedOf, saveInsight, removeInsight, updateInsight, findSaved, parseTags, searchSaved, tagsOf, nameOf, SAVED_TYPE,
 } from './saved';
@@ -41,7 +41,7 @@ describe('reading state', () => {
     expect(readingIndex(log).get(edition.driveFileId)).toMatchObject({ progress: 1 });
     expect(readingState(edition, readingIndex(log))).toBe('read');
     log = withRead(log, edition, false);
-    expect(readingIndex(log).get(edition.driveFileId)).toEqual({ feedId: 'enterprise-ai-challenge', progress: 0, section: null, readAt: null });
+    expect(readingIndex(log).get(edition.driveFileId)).toEqual({ feedId: 'enterprise-ai-challenge', progress: 0, section: null, readAt: null, resetAt: expect.any(String) });
     log = withRead(log, edition, true);
     expect(readingState(edition, readingIndex(log))).toBe('read');
   });
@@ -59,6 +59,53 @@ describe('reading state', () => {
     log = withRead(log, edition, true);
     log = withPosition(log, other, 0.2, 'a');
     expect(log.map(r => (r as { id: string }).id)).toEqual([readingId(edition.driveFileId), readingId(other.driveFileId)]);
+  });
+});
+
+describe('two devices\' copies of one edition\'s reading (D11)', () => {
+  const copy = (at: string, value: Partial<ReadingRecord['value']>): ReadingRecord => ({
+    id: readingId(edition.driveFileId), type: READING_TYPE, refId: edition.driveFileId, at,
+    value: { feedId: 'enterprise-ai-challenge', progress: 0, section: null, readAt: null, ...value },
+  });
+  const both = (a: ReadingRecord, b: ReadingRecord) => {
+    const m = mergeReading(a, b);
+    expect(mergeReading(b, a)).toEqual(m);
+    return m.value;
+  };
+
+  it('read on one, scrolled a little on another that had not caught up: still read, furthest kept, latest section', () => {
+    const read = copy('2026-11-03T09:00:00Z', { progress: 1, section: 'vocabulary', readAt: '2026-11-03T09:00:00Z' });
+    const stale = copy('2026-11-03T09:30:00Z', { progress: 0.35, section: 'challenge' });
+    expect(both(read, stale)).toEqual({ feedId: 'enterprise-ai-challenge', progress: 1, section: 'challenge', readAt: '2026-11-03T09:00:00Z' });
+  });
+
+  it('Mark as unread after reading starts it over everywhere, even against a later write that had not seen it', () => {
+    const read = copy('2026-11-03T09:00:00Z', { progress: 1, section: 'vocabulary', readAt: '2026-11-03T09:00:00Z' });
+    const unread = copy('2026-11-03T10:00:00Z', { progress: 0, resetAt: '2026-11-03T10:00:00Z' });
+    expect(both(read, unread)).toMatchObject({ progress: 0, readAt: null, resetAt: '2026-11-03T10:00:00Z' });
+    const staleScroll = copy('2026-11-03T11:00:00Z', { progress: 1, section: 'approaches', readAt: '2026-11-03T09:00:00Z' });
+    expect(both(unread, staleScroll)).toMatchObject({ progress: 0, readAt: null, section: 'approaches' });
+    // Read again after starting over: read.
+    const again = copy('2026-11-03T12:00:00Z', { progress: 1, section: 'vocabulary', readAt: '2026-11-03T12:00:00Z', resetAt: '2026-11-03T10:00:00Z' });
+    expect(both(unread, again)).toMatchObject({ progress: 1, readAt: '2026-11-03T12:00:00Z' });
+  });
+
+  it('neither read: the furthest progress and the later section', () => {
+    expect(both(copy('2026-11-03T09:00:00Z', { progress: 0.6, section: 'approaches' }), copy('2026-11-03T09:05:00Z', { progress: 0.3, section: 'challenge' })))
+      .toMatchObject({ progress: 0.6, section: 'challenge', readAt: null });
+    const same = copy('2026-11-03T09:00:00Z', { progress: 0.4, section: 'challenge' });
+    expect(mergeReading(same, same)).toEqual(same);
+  });
+
+  it('Mark as unread is recorded, and kept by later reading', () => {
+    let log = withPosition([], edition, 0.99, 'vocabulary');
+    log = withRead(log, edition, false);
+    const reset = readingIndex(log).get(edition.driveFileId)!.resetAt;
+    expect(reset).toBeTruthy();
+    log = withPosition(log, edition, 0.4, 'challenge');
+    expect(readingIndex(log).get(edition.driveFileId)?.resetAt).toBe(reset);
+    log = withRead(log, edition, true);
+    expect(readingIndex(log).get(edition.driveFileId)?.resetAt).toBe(reset);
   });
 });
 

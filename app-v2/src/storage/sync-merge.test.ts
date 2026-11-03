@@ -12,6 +12,10 @@ import { mergeActivityLists } from './merge';
 import { makeDefaultData } from '../main-app';
 import { setCompletion, buildCompletionIndex, stateOf } from '../routine/engine';
 import type { RoutineActivity } from '../routine/model';
+import { readingIndex, withPosition, withRead } from '../intelligence/reading';
+import { reviewIndex, withRating } from '../intelligence/review';
+import type { Edition } from '../intelligence/parse';
+import type { SavedInsight } from '../intelligence/saved';
 
 // ── Stand-in Worker: last-write-wins by updatedAt, listed by arrival ─────────
 let clock = Date.parse('2026-10-29T08:00:00.000Z');
@@ -195,6 +199,73 @@ describe('changes made offline', () => {
       expect(pulls[pulls.length - 1].since).toBe(ipadCursor);
       expect(stateOf(buildCompletionIndex((await read()).progressLog), 'ra-plank', '2026-10-29')).toBe('done');
     });
+  });
+});
+
+describe('two devices reading the same edition (INT-14, D11)', () => {
+  const ed = { driveFileId: '1Edition0000000000000000000', feedId: 'enterprise-ai-challenge', modifiedTime: '2026-10-01T00:00:00.000Z' } as Edition;
+  /** Changes this device's reading of the edition, at the clock's next second. */
+  const reading = async (change: (log: unknown[]) => unknown[]) => {
+    const d = await read();
+    vi.setSystemTime(tick());
+    await save({ ...d, progressLog: change(d.progressLog) });
+  };
+  const stateOn = async () => readingIndex((await read()).progressLog).get(ed.driveFileId);
+  const onServer = () => (server.get(`progressLog:ir:${ed.driveFileId}`)?.payload as { value: unknown }).value;
+
+  it('a device that had not caught up cannot make an edition read elsewhere unread, nor take its progress back', async () => {
+    const [first, iphone] = await twoDevices();
+    const ipad = await as(first, async () => { await reading(log => withPosition(log, ed, 1, 'vocabulary')); tick(); await sync(); });
+    // The iPhone has not pulled since; it scrolls the same edition a little.
+    await as(iphone, async () => {
+      await reading(log => withPosition(log, ed, 0.35, 'challenge'));
+      tick();
+      await sync();
+      expect(await stateOn()).toMatchObject({ progress: 1, section: 'challenge', readAt: expect.any(String) });
+    });
+    expect(onServer()).toMatchObject({ progress: 1, readAt: expect.any(String) });
+    await as(ipad, async () => {
+      tick();
+      await sync();
+      expect(await stateOn()).toMatchObject({ progress: 1, section: 'challenge', readAt: expect.any(String) });
+    });
+  });
+
+  it('Mark as unread starts it over on both, whatever the other did meanwhile', async () => {
+    let [ipad, iphone] = await twoDevices();
+    ipad = await as(ipad, async () => { await reading(log => withPosition(log, ed, 1, 'vocabulary')); tick(); await sync(); });
+    iphone = await as(iphone, async () => { tick(); await sync(); await reading(log => withRead(log, ed, false)); tick(); await sync(); });
+    // The iPad, not synced since it read it, scrolls back through it.
+    await as(ipad, async () => {
+      await reading(log => withPosition(log, ed, 0.5, 'approaches'));
+      tick();
+      await sync();
+      expect(await stateOn()).toMatchObject({ progress: 0, readAt: null, section: 'approaches' });
+    });
+    await as(iphone, async () => {
+      tick();
+      await sync();
+      expect(await stateOn()).toMatchObject({ progress: 0, readAt: null, section: 'approaches' });
+    });
+  });
+
+  it('a review given offline on each: the later rating stands, the count keeps the higher (D12)', async () => {
+    const item = { id: 'is:q' } as SavedInsight;
+    const review = async (confidence: number) => {
+      const d = await read();
+      vi.setSystemTime(tick());
+      await save({ ...d, progressLog: withRating(d.progressLog, item, confidence, new Date(clock)) });
+    };
+    let [ipad, iphone] = await twoDevices();
+    ipad = await as(ipad, async () => { await review(2); tick(); await sync(); });
+    iphone = await as(iphone, async () => { tick(); await sync(); });
+    online.value = false;
+    ipad = await as(ipad, async () => { await review(4); await review(5); await sync(); });
+    iphone = await as(iphone, async () => { tick(); await review(1); await sync(); });
+    online.value = true;
+    ipad = await as(ipad, async () => { tick(); await sync(); });
+    await as(iphone, async () => { tick(); await sync(); expect(reviewIndex((await read()).progressLog).get('is:q')).toMatchObject({ confidence: 1, count: 3 }); });
+    await as(ipad, async () => { tick(); await sync(); expect(reviewIndex((await read()).progressLog).get('is:q')).toMatchObject({ confidence: 1, count: 3 }); });
   });
 });
 

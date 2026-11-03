@@ -5,6 +5,10 @@
 // Progress is how far down the edition you have been, and only grows; the
 // section is where you were last, which is where it reopens. Reaching the end
 // marks it read; Mark as unread starts it over.
+//
+// Two devices' copies of a record combine (`mergeReading`, decision D11)
+// rather than the later replacing the other, so a device that had not caught
+// up cannot make an edition read elsewhere unread, or its progress go back.
 import type { Edition } from './parse';
 import type { FeedId } from './feeds';
 
@@ -26,6 +30,8 @@ export interface ReadingRecord {
     section: string | null;
     /** When it was read to the end or marked read; null while unread. */
     readAt: string | null;
+    /** When Mark as unread last started it over; absent if it never was. */
+    resetAt?: string | null;
   };
 }
 
@@ -73,13 +79,44 @@ export function withPosition(log: unknown[] | undefined, edition: Edition, progr
     || furthest - before.progress >= 0.1
     || (ended && !before.readAt);
   if (!moved || (furthest === 0 && !section)) return log || [];
-  return put(log, edition, { feedId: edition.feedId, progress: ended ? 1 : furthest, section, readAt });
+  return put(log, edition, { feedId: edition.feedId, progress: ended ? 1 : furthest, section, readAt, ...keptReset(before) });
 }
+
+const keptReset = (before: ReadingRecord['value'] | undefined) => (before?.resetAt ? { resetAt: before.resetAt } : {});
 
 /** Mark as read, or as unread, which starts the edition over. */
 export function withRead(log: unknown[] | undefined, edition: Edition, read: boolean): unknown[] {
   const before = readingIndex(log).get(edition.driveFileId);
+  const now = new Date().toISOString();
   return put(log, edition, read
-    ? { feedId: edition.feedId, progress: before?.progress ?? 0, section: before?.section ?? null, readAt: new Date().toISOString() }
-    : { feedId: edition.feedId, progress: 0, section: null, readAt: null });
+    ? { feedId: edition.feedId, progress: before?.progress ?? 0, section: before?.section ?? null, readAt: now, ...keptReset(before) }
+    : { feedId: edition.feedId, progress: 0, section: null, readAt: null, resetAt: now });
+}
+
+/** Later first by `at`; a tie is settled by the content, so either order gives the same. */
+const byTime = (a: ReadingRecord, b: ReadingRecord) =>
+  (a.at !== b.at ? (a.at < b.at ? -1 : 1) : JSON.stringify(a.value) < JSON.stringify(b.value) ? -1 : 1);
+
+/**
+ * One edition's reading as two devices left it, combined (D11): the furthest
+ * progress, read if either read it, and the section of the later write. Mark
+ * as unread starts it over: of a copy from before it (a device that had not
+ * seen it), only a read after it and the section count. Either order gives
+ * the same result, so every device and the server converge on it.
+ */
+export function mergeReading(a: ReadingRecord, b: ReadingRecord): ReadingRecord {
+  const resetAt = [a.value.resetAt, b.value.resetAt].filter((t): t is string => !!t).sort().pop() ?? null;
+  const current = [a, b].filter(r => (r.value.resetAt ?? null) === resetAt);
+  const reads = [a, b].map(r => r.value.readAt).filter((t): t is string => !!t && (!resetAt || t > resetAt)).sort();
+  const later = [a, b].sort(byTime)[1];
+  return {
+    ...later,
+    value: {
+      feedId: later.value.feedId,
+      progress: Math.max(...current.map(r => r.value.progress)),
+      section: later.value.section,
+      readAt: reads.pop() ?? null,
+      ...(resetAt && { resetAt }),
+    },
+  };
 }

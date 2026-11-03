@@ -1,3 +1,6 @@
+import { mergeReading, READING_TYPE, type ReadingRecord } from '../intelligence/reading';
+import { mergeReview, REVIEW_TYPE, type ReviewRecord } from '../intelligence/review';
+
 // Merging a synced record that both devices changed since they last synced.
 //
 // Most records are small and last-write-wins is fine. The routine's activity
@@ -28,4 +31,21 @@ export function mergeActivityLists<T extends Stamped>(local: T[], remote: T[]): 
     return (r.updatedAt ?? '') > (a.updatedAt ?? '') ? r : a;
   });
   return [...merged, ...theirs.values()];
+}
+
+/**
+ * A `progressLog` record held by both this device and the server, combined
+ * instead of the later copy replacing the other, for the two kinds where
+ * replacing loses something: an edition's reading (D11: a device that had not
+ * caught up must not make it unread, or its progress go back) and a
+ * takeaway's review (D12). Null for every other kind, which stays
+ * last-write-wins. Applied on every pull, so a stale copy that reached the
+ * server anyway is corrected by the next device that holds a better one.
+ */
+export function mergeLogRecord(local: unknown, remote: unknown): unknown | null {
+  const type = (local as { type?: unknown } | null)?.type;
+  if (!type || type !== (remote as { type?: unknown } | null)?.type) return null;
+  if (type === READING_TYPE) return mergeReading(local as ReadingRecord, remote as ReadingRecord);
+  if (type === REVIEW_TYPE) return mergeReview(local as ReviewRecord, remote as ReviewRecord);
+  return null;
 }

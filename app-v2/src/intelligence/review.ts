@@ -110,9 +110,10 @@ export function dueOn(saved: SavedInsight[], index: ReviewIndex, day: DayKey): n
 /** The day a rating sends a takeaway back for review. */
 export const dueAfter = (confidence: number, today: DayKey) => addDaysKey(today, practiceIntervalDays(confidence));
 
-function put(log: unknown[] | undefined, takeawayId: string, value: ReviewValue): unknown[] {
+/** `at` is when it was done: which of two devices' actions came later (`mergeReview`). */
+function put(log: unknown[] | undefined, takeawayId: string, value: ReviewValue, now: Date): unknown[] {
   const id = reviewId(takeawayId);
-  const record: ReviewRecord = { id, type: REVIEW_TYPE, refId: takeawayId, at: new Date().toISOString(), value };
+  const record: ReviewRecord = { id, type: REVIEW_TYPE, refId: takeawayId, at: now.toISOString(), value };
   return [...(log || []).filter(r => (r as { id?: string })?.id !== id), record];
 }
 
@@ -125,7 +126,7 @@ export function withRating(log: unknown[] | undefined, item: SavedInsight, confi
     confidence,
     count: (before?.count ?? 0) + 1,
     lastAt: now.toISOString(),
-  });
+  }, now);
 }
 
 /** Into review (back the next day) or out of it, keeping what it knew. */
@@ -138,7 +139,17 @@ export function withReviewing(log: unknown[] | undefined, item: SavedInsight, on
     confidence: before?.confidence ?? null,
     count: before?.count ?? 0,
     lastAt: before?.lastAt ?? null,
-  });
+  }, now);
+}
+
+/**
+ * One takeaway's review as two devices left it (decision D12): the later
+ * action stands (a rating, or taking it out), and the count keeps the higher.
+ * Either order gives the same result.
+ */
+export function mergeReview(a: ReviewRecord, b: ReviewRecord): ReviewRecord {
+  const later = a.at !== b.at ? (a.at > b.at ? a : b) : JSON.stringify(a.value) > JSON.stringify(b.value) ? a : b;
+  return { ...later, value: { ...later.value, count: Math.max(a.value.count, b.value.count) } };
 }
 
 /** A takeaway removed takes its review with it. */

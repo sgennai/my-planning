@@ -5,6 +5,7 @@ import { describe, it, expect } from 'vitest';
 import type { SavedInsight } from './saved';
 import {
   reviewIndex, statusOf, dueOf, dueOn, withRating, withReviewing, withoutReview, kindsOf, cueOf, whenText, dayText, reviewId,
+  mergeReview, type ReviewRecord,
 } from './review';
 import { getNextPracticeDate } from '../practice/practice-logic';
 
@@ -62,6 +63,20 @@ describe('what comes back for review', () => {
     expect(log.filter(r => (r as { id: string }).id === reviewId('is:q'))).toHaveLength(1);
     expect(withoutReview(log, 'is:q')).toEqual([{ id: 'ir:x', type: 'intel-reading' }]);
     expect(withoutReview(log, 'is:nothing')).toBe(log);
+  });
+});
+
+describe('two devices\' copies of one review (D12)', () => {
+  it('the later action stands, the count keeps the higher, in either order', () => {
+    const recordOf = (log: unknown[]) => log.find(r => (r as { id: string }).id === reviewId('is:q')) as ReviewRecord;
+    const base = withRating([], question, 2, at('2026-11-03T08:00:00Z'));
+    const ipad = recordOf(withRating(withRating(base, question, 3, at('2026-11-04T08:00:00Z')), question, 4, at('2026-11-05T08:00:00Z')));
+    const iphone = recordOf(withRating(base, question, 1, at('2026-11-06T08:00:00Z')));
+    const merged = mergeReview(ipad, iphone);
+    expect(mergeReview(iphone, ipad)).toEqual(merged);
+    expect(merged.value).toMatchObject({ confidence: 1, due: '2026-11-07', count: 3 });
+    const stopped = recordOf(withReviewing([iphone], question, false, at('2026-11-06T09:00:00Z')));
+    expect(mergeReview(ipad, stopped).value).toMatchObject({ on: false, count: 3 });
   });
 });
 

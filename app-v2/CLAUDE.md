@@ -351,8 +351,11 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   `ir:<driveFileId>`, type `intel-reading`, value `{ feedId, progress (furthest, 0–1), section
   (last), readAt }`. Written when scrolling rests (1.2 s), on leaving the edition, and when the
   app is hidden; only a new section, +10 % or the end is worth a write. The end marks it read;
-  Mark as unread starts over. An edition reopens at its last section while unread. "Updated" =
-  Drive's `modifiedTime` after `readAt`.
+  Mark as unread starts over (and stamps `resetAt`). An edition reopens at its last section while
+  unread. "Updated" = Drive's `modifiedTime` after `readAt`. Two devices' copies **merge** on sync
+  (`mergeReading`, D11, INT-14): the furthest progress, read if either read it, the later write's
+  section; after a Mark as unread, only what came after it counts. A device that had not caught
+  up used to make an edition read elsewhere unread, its progress lower.
 - **Takeaways** (the brief's "À retenir"; `saved.ts`, `SavedView.tsx`): synced `content` records `is:<uuid>`, type
   `intel-saved`, kinds edition / section / labelled (a question or the rehearse line) / term /
   passage (selected text, via a button at the foot because iOS gives web apps no selection
@@ -431,7 +434,9 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   Takeaways a bar and each item's status. The review is view `review` (not a tab, never
   remembered as the view to reopen): a cue per kind (`cueOf`), then what was kept with its note
   and a way to the edition, then the ratings, each saying when it brings the card back; each
-  rating is saved as given, so leaving part-way loses nothing.
+  rating is saved as given, so leaving part-way loses nothing. Two devices' copies merge
+  (`mergeReview`, D12): the later action (its `at`, the moment it was done) stands; the count
+  keeps the higher.
 - **Accessibility** (INT-33): axe-core finds nothing in any view, light or dark, in Chromium or
   WebKit. Each view has one `h1` (hidden "Today", "Takeaways", "Search"; the edition's title; the
   feed's name over a phone's list); part labels are headings (`h4` in a development card, `h3` in
@@ -511,6 +516,13 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
   lists merge per activity by `activity.updatedAt` (`storage/merge.ts`): every real edit stamps
   it, migrations never do. Other singletons stay last-write-wins. `sync-merge.test.ts` replays
   both failures with two devices.
+- **Merged log records (INT-14):** on every pull, a `progressLog` record of type `intel-reading`
+  or `intel-review` that this device also holds is combined (`mergeLogRecord`, `storage/merge.ts`)
+  rather than the later replacing the other; a result that is neither copy goes up stamped after
+  both, so a stale copy that reached the Worker is corrected by the next device holding a better
+  one. Every other record stays last-write-wins by the writing device's `updatedAt` (the Worker's
+  `ON CONFLICT … WHERE excluded.updated_at >`): two offline edits of one takeaway's note keep the
+  later, and an edit after a removal on a device that had not synced brings the item back (D12).
 - **Pull cursor:** the Worker stamps `server_at` on each write and lists pulls by it, returning
   a `cursor` (its clock, one minute behind) that the device sends as `since` next time
   (`SYNC_CURSOR_KEY`). Listing by the sender's `updated_at` meant changes uploaded late by an
@@ -534,7 +546,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (381 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (389 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris
