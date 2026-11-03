@@ -441,6 +441,14 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   rating is saved as given, so leaving part-way loses nothing. Two devices' copies merge
   (`mergeReview`, D12): the later action (its `at`, the moment it was done) stands; the count
   keeps the higher.
+- **Related by topic** (INT-42, D14; `related.ts`, `RelatedEditions` in `EditionReader.tsx`): after
+  an edition's last section, up to 5 editions listing a topic it lists: header topics only (no
+  vendors, no guessing), labels compared without case, accents, hyphens or "&" (`topicKey`, cached
+  per label). Other feeds first, then most shared, then newest; each row says "Shares: …" in this
+  edition's words and opens the edition. Nothing shows when nothing is shared. The index
+  (`topicIndex`) is built in `IntelligenceScreen` from every edition on the device. Reading
+  progress ends at the briefing's own end (a marker before Related, with the reader's bottom
+  clearance), so the list never delays "read".
 - **Your reading** (INT-44, D16; `signals.ts`, `ReadingPanel` in `TodayView.tsx`): a panel at the
   foot of Today, above Publishing, once an edition exists. Unread per feed (editions on this
   device without `readAt`, started ones included; "More are still downloading" while a feed has
@@ -561,7 +569,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (408 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (414 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris

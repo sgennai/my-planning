@@ -16,7 +16,8 @@ import { useEdgeFade } from './useEdgeFade';
 import { findSaved, type SaveInput, type SavedInsight } from './saved';
 import type { ReadingIndex } from './reading';
 import { noticeOf, type EditionFlag } from './conformance';
-import { formatDayAnchor } from '../routine/dates';
+import type { Related } from './related';
+import { formatDayAnchor, dayNameShort, formatDayCompact } from '../routine/dates';
 import { IconExternal, IconCopy, IconCheck, IconBookmark, IconChevronDown } from '../ui/icons';
 
 type Note = (text: string) => void;
@@ -374,11 +375,39 @@ interface Props {
   startAt?: string | null;
   /** What conformance says about this document (`conformance.ts`). */
   flags?: EditionFlag[];
+  /** Other editions sharing a topic (`related.ts`), shown after the last section. */
+  related?: Related[];
+  onOpenRelated?: (edition: Edition) => void;
+}
+
+/** Other editions listing a topic this one lists: a reason to look, saying which topics. */
+function RelatedEditions({ items, onOpen }: { items: Related[]; onOpen?: (e: Edition) => void }) {
+  return (
+    <section className="intel-related" aria-labelledby="intel-related-title">
+      <h2 id="intel-related-title" className="intel-eyebrow">Related by topic</h2>
+      <ol className="intel-eds">
+        {items.map(({ edition: e, shares }) => (
+          <li key={e.driveFileId}>
+            <button type="button" className="intel-ed" onClick={() => onOpen?.(e)}>
+              <span className="intel-ed-date">
+                {feedById(e.feedId)?.label} · {dayNameShort(e.editionDate)} {formatDayCompact(e.editionDate)}{e.time && ` · ${e.time}`}
+              </span>
+              <span className="intel-ed-title">{e.title}</span>
+              <span className="intel-related-why">Shares: {shares.join(', ')}</span>
+            </button>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
 }
 
 function Reader({
   edition, scroller, onNote, heroActions = true, reading, saved = [], onToggleRead, onToggleSave, onPosition, startAt, flags = [],
+  related = [], onOpenRelated,
 }: Props) {
+  // Where the briefing ends, before what follows it (Related): reading to here is reading it all.
+  const endRef = useRef<HTMLDivElement>(null);
   const sections = useMemo(() => splitSections(edition.markdownBody), [edition.markdownBody]);
   const displayed = useMemo(() => displayOrder(edition.feedId, sections), [edition.feedId, sections]);
   const presented = useMemo(
@@ -452,11 +481,19 @@ function Reader({
         const node = document.getElementById(`intel-${s.id}`);
         if (node && node.getBoundingClientRect().top <= line) current = s.id;
       }
+      // The end is the briefing's own, before Related: its last line clear
+      // of the reader's foot, as the very bottom used to be.
       const room = el.scrollHeight - el.clientHeight;
-      const atEnd = room > 0 && el.scrollTop >= room - 4;
+      const end = endRef.current;
+      const ownRoom = end
+        ? end.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop
+          + parseFloat(getComputedStyle(el).paddingBottom || '0') - el.clientHeight
+        : room;
+      const reach = ownRoom > 0 ? Math.min(room, ownRoom) : room;
+      const atEnd = room > 0 && el.scrollTop >= reach - 4;
       if (atEnd && indexed.length) current = indexed[indexed.length - 1].id;
       setActive(current);
-      if (room > 0) onPosition?.(atEnd ? 1 : el.scrollTop / room, current);
+      if (room > 0) onPosition?.(atEnd ? 1 : Math.min(1, el.scrollTop / reach), current);
     };
     const onScroll = () => { if (!frame) frame = requestAnimationFrame(measure); };
     el.addEventListener('scroll', onScroll, { passive: true });
@@ -594,6 +631,8 @@ function Reader({
           </section>
         ))}
         </FoldsContext.Provider>
+        <div ref={endRef} aria-hidden="true" />
+        {related.length > 0 && <RelatedEditions items={related} onOpen={onOpenRelated} />}
 
         {selection && onToggleSave && (
           <button

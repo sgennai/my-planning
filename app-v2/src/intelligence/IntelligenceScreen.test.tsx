@@ -11,11 +11,13 @@ import { IntelligenceScreen } from './IntelligenceScreen';
 import { _closeLibrary } from './library';
 import { savedOf } from './saved';
 import { readingIndex } from './reading';
-import { CHALLENGE_DOC, CHALLENGE_FILE } from './test-fixtures';
+import { CHALLENGE_DOC, CHALLENGE_FILE, ENGAGEMENT_DOC, ENGAGEMENT_FILE } from './test-fixtures';
 
 let docText: string;
 let files: (typeof CHALLENGE_FILE)[];
 let texts: Record<string, string | null>;
+/** The other feeds' folders, empty unless a test fills them. */
+let otherFeeds: Record<string, (typeof CHALLENGE_FILE)[]>;
 let mode: 'ok' | 'not-configured';
 let phone = false;
 let portrait = false;
@@ -33,7 +35,7 @@ vi.stubGlobal('fetch', vi.fn(async (url: string) => {
     return Response.json({ error: { code: 'not-configured', message: 'Google Drive is not connected yet.' } }, { status: 503 });
   }
   if (url === '/api/intel/feeds/enterprise-ai-challenge') return Response.json({ files });
-  if (url.startsWith('/api/intel/feeds/')) return Response.json({ files: [] });
+  if (url.startsWith('/api/intel/feeds/')) return Response.json({ files: otherFeeds[url.split('/').pop()!] ?? [] });
   const id = url.split('/').pop()!;
   // A text of null is a document Drive lists but cannot hand over.
   if (texts[id] === null) return Response.json({ error: { code: 'google', message: 'Google Drive: internal error' } }, { status: 502 });
@@ -67,6 +69,7 @@ beforeEach(async () => {
   // Created well before now, so no grace period is running.
   files = [{ ...CHALLENGE_FILE, createdTime: '2026-01-02T07:20:30.000Z', modifiedTime: '2026-01-02T07:20:32.000Z' }];
   texts = {};
+  otherFeeds = {};
   mode = 'ok';
   phone = false;
   portrait = false;
@@ -596,5 +599,28 @@ describe('Your reading (INT-44)', () => {
     const after = await screen.findByRole('region', { name: 'Your reading' });
     expect(within(after).getByText('Unread').nextElementSibling).toHaveTextContent('AI Challenge 0');
     expect(within(after).getByText('Read').nextElementSibling).toHaveTextContent('1 in the last 7 days · 1 in the last 30 days');
+  });
+});
+
+describe('Related by topic (INT-42)', () => {
+  it('lists another feed\u2019s edition sharing a topic, says which, and opens it', async () => {
+    otherFeeds['customer-engagement-brief'] = [{ ...ENGAGEMENT_FILE, createdTime: '2026-01-02T07:00:00.000Z', modifiedTime: '2026-01-02T07:00:05.000Z' }];
+    texts[ENGAGEMENT_FILE.id] = ENGAGEMENT_DOC;
+    render(<App />);
+    await screen.findByRole('heading', { level: 2, name: 'Connected Agents and Headless CDPs' });
+    await openChallenge();
+    const related = screen.getByRole('region', { name: 'Related by topic' });
+    const row = within(related).getByRole('button', { name: /Customer Engagement · Mon 2 Nov/ });
+    expect(row).toHaveTextContent('Connected Agents and Headless CDPs');
+    expect(row).toHaveTextContent('Shares: Agentic AI');
+    fireEvent.click(row);
+    expect(screen.getByRole('heading', { level: 1, name: 'Connected Agents and Headless CDPs' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /Customer Engagement/ })).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('shows nothing when no other edition shares a topic', async () => {
+    render(<App />);
+    await openChallenge();
+    expect(screen.queryByRole('region', { name: 'Related by topic' })).toBeNull();
   });
 });

@@ -17,6 +17,7 @@ import { useEdgeFade } from './useEdgeFade';
 import { useModalFocus } from './useModalFocus';
 import { useTextScale } from './useTextScale';
 import { useReadingAnchor } from './useReadingAnchor';
+import { topicIndex, relatedTo } from './related';
 import { EditionReader, EditionTools } from './EditionReader';
 import { TodayView } from './TodayView';
 import { FeedStatus } from './FeedStatus';
@@ -206,6 +207,8 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     return out;
   }, [states, conformance, now]);
   const savedFiles = useMemo(() => new Set(saved.map(s => s.driveFileId)), [saved]);
+  // Every edition under its topics, for an edition's related ones.
+  const topics = useMemo(() => topicIndex(FEEDS.flatMap(f => states[f.id]?.editions ?? [])), [states]);
   // Takeaways due for review today, and how many tomorrow.
   const today = dayKeyOf(new Date(now));
   const due = useMemo(() => dueOf(saved, reviews, today), [saved, reviews, today]);
@@ -230,6 +233,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     if (unread && (!last || unread.sortKey > last.sortKey)) return unread;
     return last ?? editions[0];
   }, [feedId, editions, chosen, remembered, readingAtOpen]);
+  const related = useMemo(() => (edition ? relatedTo(edition, topics) : []), [edition, topics]);
 
   const loading = feedId ? !editions.length && !refreshed[feedId] && state?.status !== 'not-configured' : false;
   const drawerOpen = drawer && mode === 'drawer' && !!feedId;
@@ -495,6 +499,8 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
       onPosition={onPosition}
       startAt={startAt}
       flags={conformance[edition.feedId]?.flags.get(edition.driveFileId)}
+      related={related}
+      onOpenRelated={e => openEdition(e)}
     />
   );
 

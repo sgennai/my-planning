@@ -1180,3 +1180,9 @@ p.intel-review-prompt { margin: var(--sp-4) 0 0; font-size: calc(18 * var(--tpx)
 .intel-signals dd small { font-size: calc(12 * var(--tpx)); color: var(--ink-3); }
 .intel-nowrap { white-space: nowrap; }
 .intel--single .intel-signals dl > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+
+/* ── Related by topic (INT-42, related.ts) ─────────────────────────────────
+   After the last section: the edition list's rows, each with what it shares. */
+.intel-related { display: flex; flex-direction: column; gap: var(--sp-2); margin-top: var(--sp-10); padding-top: var(--sp-5); border-top: 1px solid var(--hairline); }
+.intel-related .intel-ed { width: 100%; }
+.intel-related-why { font-size: var(--t-meta); color: var(--ink-3); }
