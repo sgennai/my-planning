@@ -362,7 +362,11 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   menu). Each keeps the words as written plus the edition's title, date, time and link, so it
   shows on a device that never fetched the edition. Note, tags (comma-separated), search
   (every word, any field, accents and case ignored), tag filter, a way back to the section.
-  Every save button toggles; taking something out asks first (`window.confirm`).
+  Every save button toggles; taking something out asks first (`window.confirm`). **Export**
+  (INT-43, D15; `export.ts`): what the list shows, newest first, as Markdown: each item's kind,
+  feed, date, edition and section, the words quoted line by line as kept, note, tags, the Google
+  Doc's link. On a touch device through the share sheet (`navigator.share` with a file), else a
+  download; the file is `takeaways-<Paris day>.md`. The JSON backup in Settings is unchanged.
 - **Today** (`TodayView.tsx`): the newest edition of each feed in `FEEDS` order (AI Challenge,
   sales brief, customer engagement) with its age (Today / Yesterday / date · n days ago),
   New / Updated / n % read / Read, a preview taken from its own first lines (`previewOf`), and
@@ -551,7 +555,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (393 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (403 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris

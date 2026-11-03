@@ -1,6 +1,7 @@
 // Takeaways: everything kept from the briefings, newest first, searchable
 // and filtered by tag, each with a note and tags of your own and a way back
-// to where it came from. Removing one asks first.
+// to where it came from. Removing one asks first. What the list shows can be
+// exported as a Markdown file (export.ts).
 import { useState } from 'react';
 import { Markdown } from './Markdown';
 import { feedById, type FeedId } from './feeds';
@@ -8,7 +9,8 @@ import { copyText } from './present';
 import { searchSaved, tagsOf, parseTags, nameOf, type SavedInsight } from './saved';
 import { canReview, dayText, statusOf, RATINGS, type ReviewIndex } from './review';
 import { dayNameShort, formatDayCompact, type DayKey } from '../routine/dates';
-import { IconCopy, IconPencil, IconTrash, IconExternal, IconSearch, IconChevronRight, IconReview } from '../ui/icons';
+import { takeawaysMarkdown, exportFileName, handOver } from './export';
+import { IconCopy, IconPencil, IconTrash, IconExternal, IconSearch, IconChevronRight, IconReview, IconExport } from '../ui/icons';
 
 interface Props {
   saved: SavedInsight[];
@@ -147,6 +149,14 @@ export function SavedView({ saved, due, dueTomorrow, onReview, ...actions }: Pro
   const shown = searchSaved(saved, query, tag, label);
   const inReview = saved.filter(s => statusOf(s, actions.reviews).on).length;
   const next = due.length ? null : saved.map(s => statusOf(s, actions.reviews).due).filter((d): d is DayKey => !!d).sort()[0];
+  // The share sheet on an iPad or iPhone, a download on a Mac.
+  const exportShown = async () => {
+    const now = new Date();
+    const narrowedBy = [query.trim() && `matching “${query.trim()}”`, tag && `tagged ${tag}`].filter(Boolean).join(' and ') || null;
+    if (await handOver(exportFileName(now), takeawaysMarkdown(shown, { now, narrowedBy }))) {
+      actions.onNote(`Exported ${shown.length} ${shown.length === 1 ? 'takeaway' : 'takeaways'}`);
+    }
+  };
 
   return (
     <div className="intel-col intel-saved-view">
@@ -167,17 +177,22 @@ export function SavedView({ saved, due, dueTomorrow, onReview, ...actions }: Pro
       )}
       {saved.length > 0 && (
         <>
-          <label className="intel-search">
-            <IconSearch />
-            <input
-              className="ds-input"
-              type="search"
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              placeholder="Search Takeaways"
-              aria-label="Search Takeaways"
-            />
-          </label>
+          <div className="intel-saved-tools">
+            <label className="intel-search">
+              <IconSearch />
+              <input
+                className="ds-input"
+                type="search"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder="Search Takeaways"
+                aria-label="Search Takeaways"
+              />
+            </label>
+            <button type="button" className="ds-btn intel-export" onClick={exportShown} disabled={!shown.length} title="Export what is listed as a Markdown file">
+              <IconExport aria-hidden />Export
+            </button>
+          </div>
           {tags.length > 0 && (
             <div className="intel-tagbar" role="group" aria-label="Tags">
               <button type="button" aria-pressed={!tag} onClick={() => setTag(null)}>All</button>

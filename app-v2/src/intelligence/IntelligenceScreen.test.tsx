@@ -548,3 +548,37 @@ describe('Takeaways back for review (INT-40)', () => {
     expect(reviewOf('is:q')).toBeUndefined();
   });
 });
+
+describe('Takeaways exported as a file (INT-43)', () => {
+  const kept = (id: string, label: string, text: string, note = '') => ({
+    id, type: 'intel-saved', kind: 'labelled', feedId: 'enterprise-ai-sales-brief', driveFileId: '1Kept000000000000000000000',
+    editionTitle: 'Model Pricing After the Funding Reset', editionDate: '2026-11-01', editionTime: '09:30',
+    sourceUrl: 'https://docs.google.com/document/d/1Kept/edit', sectionId: 'capital', sectionTitle: 'Capital availability',
+    label, text, note, tags: [], savedAt: '2026-11-01T10:00:00Z',
+  });
+
+  it('exports what the list shows, and says so', async () => {
+    let file: File | null = null;
+    Object.assign(URL, { createObjectURL: (f: File) => { file = f; return 'blob:x'; }, revokeObjectURL: () => {} });
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    render(<App initial={{ progressLog: [], content: [
+      kept('is:a', 'Executive question', 'Which processes would be hard to move?', 'Ask the CIO'),
+      kept('is:b', 'LinkedIn angle', 'The next failure may not be technical.'),
+    ] }} />);
+    fireEvent.click(await screen.findByRole('tab', { name: /Takeaways/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Export' }));
+    expect(await screen.findByText('Exported 2 takeaways')).toBeInTheDocument();
+    expect(file!.name).toBe('takeaways-2026-11-02.md');
+    const all = await file!.text();
+    expect(all).toContain('2 takeaways, newest first.');
+    expect(all).toContain('> Which processes would be hard to move?');
+    expect(all).toContain('**Note:** Ask the CIO');
+
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Search Takeaways' }), { target: { value: 'cio' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Export' }));
+    expect(await screen.findByText('Exported 1 takeaway')).toBeInTheDocument();
+    const narrowed = await file!.text();
+    expect(narrowed).toContain('1 takeaway, newest first, only those matching “cio”.');
+    expect(narrowed).not.toContain('LinkedIn angle');
+  });
+});

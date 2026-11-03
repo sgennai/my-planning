@@ -118,6 +118,10 @@ export const IconList = (p: P) => (
 export const IconBookmark = (p: P) => (
   <svg {...base} {...p}><path d="M6.5 3.5h11a1 1 0 0 1 1 1v16l-6.5-4-6.5 4v-16a1 1 0 0 1 1-1z" /></svg>
 );
+/** Export: an arrow leaving a tray, as the share sheet's own sign. */
+export const IconExport = (p: P) => (
+  <svg {...base} {...p}><path d="M12 3.5v11M8 7.5l4-4 4 4" /><path d="M8.5 10.5h-2A1.5 1.5 0 0 0 5 12v7a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-7a1.5 1.5 0 0 0-1.5-1.5h-2" /></svg>
+);
 /** Takeaways back for review: a card with another behind it. */
 export const IconReview = (p: P) => (
   <svg {...base} {...p}><rect x="3" y="7" width="14" height="13.5" rx="2.5" /><path d="M7 3.5h11.5A2.5 2.5 0 0 1 21 6v10.5" /></svg>
