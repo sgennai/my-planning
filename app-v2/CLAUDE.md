@@ -437,6 +437,11 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   rating is saved as given, so leaving part-way loses nothing. Two devices' copies merge
   (`mergeReview`, D12): the later action (its `at`, the moment it was done) stands; the count
   keeps the higher.
+- **Reading place** (INT-35, `useReadingAnchor.ts`): Safari keeps no scroll anchor, so a new
+  text size moved the reader ~1,700 px and rotating lost the section. The block at the top of the
+  reading area (below the sticky index) is noted as scrolling rests; when the reader or its content
+  changes size with no tap or key in the 0.7 s before (a fold, a reveal, a jump are on purpose),
+  it scrolls back to it. Keyed by view, edition and phone pane.
 - **Accessibility** (INT-33): axe-core finds nothing in any view, light or dark, in Chromium or
   WebKit. Each view has one `h1` (hidden "Today", "Takeaways", "Search"; the edition's title; the
   feed's name over a phone's list); part labels are headings (`h4` in a development card, `h3` in
@@ -546,7 +551,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (389 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (393 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris

@@ -16,6 +16,7 @@ import { useFeeds } from './useFeeds';
 import { useEdgeFade } from './useEdgeFade';
 import { useModalFocus } from './useModalFocus';
 import { useTextScale } from './useTextScale';
+import { useReadingAnchor } from './useReadingAnchor';
 import { EditionReader, EditionTools } from './EditionReader';
 import { TodayView } from './TodayView';
 import { FeedStatus } from './FeedStatus';
@@ -255,6 +256,8 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   useModalFocus(drawerRef, drawerOpen, '[aria-current="true"]');
   // Text at the size set on the iPad.
   const scale = useTextScale();
+  // The reading place survives the iPad rotating and a new text size.
+  useReadingAnchor(readerRef, `${view}:${edition?.driveFileId ?? ''}:${pane}`);
   const rootStyle = scale === 1 ? undefined : ({ '--intel-scale': scale } as CSSProperties);
 
   // ── Writes ──────────────────────────────────────────────────────────────
