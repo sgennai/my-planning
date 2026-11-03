@@ -24,6 +24,8 @@ import { runsOf, dayLabel, describeSchedule, NEEDS_ATTENTION, type Run } from '.
 import { useClock } from '../ui/useClock';
 import { SavedView } from './SavedView';
 import { SearchView } from './SearchView';
+import { ReviewView } from './ReviewView';
+import { reviewIndex, dueOf, dueOn, withRating, withReviewing, withoutReview, SESSION_SIZE } from './review';
 import { NO_FILTERS, type SearchFilters } from './search';
 import type { Edition } from './parse';
 import type { FeedState } from './library';
@@ -31,10 +33,10 @@ import { readingIndex, readingState, withPosition, withRead } from './reading';
 import {
   savedOf, saveInsight, removeInsight, updateInsight, findSaved, nameOf, type SaveInput, type SavedInsight,
 } from './saved';
-import { dayNameShort, formatDayCompact, dayKeyOf } from '../routine/dates';
+import { dayNameShort, formatDayCompact, dayKeyOf, addDaysKey } from '../routine/dates';
 import { IconRefresh, IconList, IconX, IconChevronLeft, IconBookmark, IconPulse, IconSearch } from '../ui/icons';
 
-type View = 'today' | FeedId | 'saved' | 'search';
+type View = 'today' | FeedId | 'saved' | 'search' | 'review';
 
 /** The tabs, in the brief's order. */
 const FEED_TABS: FeedId[] = ['enterprise-ai-sales-brief', 'enterprise-ai-challenge', 'customer-engagement-brief'];
@@ -46,7 +48,7 @@ const editionKey = (feedId: FeedId) => `my-planning-intel-edition:${feedId}`;
 /** A position is written once scrolling has rested this long. */
 const POSITION_REST_MS = 1200;
 
-const isFeed = (v: View): v is FeedId => v !== 'today' && v !== 'saved' && v !== 'search';
+const isFeed = (v: View): v is FeedId => (FEED_TABS as View[]).includes(v);
 const tabId = (v: View) => `intel-tab-${v}`;
 const PANEL = 'intel-panel';
 
@@ -183,6 +185,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   // not change under you as you read.
   const [readingAtOpen] = useState(() => readingIndex(data?.progressLog));
   const saved = useMemo(() => savedOf(data?.content), [data?.content]);
+  const reviews = useMemo(() => reviewIndex(data?.progressLog), [data?.progressLog]);
   // What each feed's documents look like, judged again every minute so that
   // one still being written gets its grace period and no more.
   const now = useClock(60_000);
@@ -202,6 +205,12 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     return out;
   }, [states, conformance, now]);
   const savedFiles = useMemo(() => new Set(saved.map(s => s.driveFileId)), [saved]);
+  // Takeaways due for review today, and how many tomorrow.
+  const today = dayKeyOf(new Date(now));
+  const due = useMemo(() => dueOf(saved, reviews, today), [saved, reviews, today]);
+  const dueTomorrow = useMemo(() => dueOn(saved, reviews, addDaysKey(today, 1)), [saved, reviews, today]);
+  // A review in progress: its takeaways as it began, and where it was opened from.
+  const [session, setSession] = useState<{ items: SavedInsight[]; from: View; key: number } | null>(null);
 
   const feedId = isFeed(view) ? view : null;
   const state = feedId ? states[feedId] : undefined;
@@ -299,8 +308,14 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
 
   const remove = (item: SavedInsight) => {
     if (!window.confirm(`Remove “${nameOf(item)}” from Takeaways?`)) return;
-    onPersist(d => ({ ...d, content: removeInsight(d.content, item.id), lastModified: stamp() }));
+    onPersist(d => ({ ...d, content: removeInsight(d.content, item.id), progressLog: withoutReview(d.progressLog, item.id), lastModified: stamp() }));
     onNote('Removed from Takeaways');
+  };
+  const rate = (item: SavedInsight, confidence: number) =>
+    onPersist(d => ({ ...d, progressLog: withRating(d.progressLog, item, confidence), lastModified: stamp() }));
+  const setReviewing = (item: SavedInsight, on: boolean) => {
+    onPersist(d => ({ ...d, progressLog: withReviewing(d.progressLog, item, on), lastModified: stamp() }));
+    onNote(on ? 'Added to review: it comes back tomorrow' : 'Taken out of review');
   };
 
   const toggleSave = useCallback((e: Edition, input: SaveInput) => {
@@ -308,7 +323,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     const existing = findSaved(saved, e, input);
     if (existing) {
       if (!window.confirm(`Remove “${nameOf(existing)}” from Takeaways?`)) return;
-      onPersist(d => ({ ...d, content: removeInsight(d.content, existing.id), lastModified: stamp() }));
+      onPersist(d => ({ ...d, content: removeInsight(d.content, existing.id), progressLog: withoutReview(d.progressLog, existing.id), lastModified: stamp() }));
       onNote('Removed from Takeaways');
     } else {
       onPersist(d => ({ ...d, content: saveInsight(d.content, e, input), lastModified: stamp() }));
@@ -328,6 +343,17 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   const openEdition = (e: Edition, sectionId: string | null = null) => {
     switchView(e.feedId);
     choose(e, sectionId);
+  };
+  // A review is not remembered as the view to reopen on: it is a moment's.
+  const startReview = (from: View) => {
+    setSession({ items: due.slice(0, SESSION_SIZE), from, key: Date.now() });
+    setView('review');
+    setDrawer(false);
+  };
+  const endReview = () => {
+    const from = session?.from ?? 'today';
+    setSession(null);
+    switchView(from);
   };
   const openSaved = (item: SavedInsight) => {
     const e = states[item.feedId]?.editions.find(x => x.driveFileId === item.driveFileId);
@@ -478,7 +504,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
         onQuery={setQuery}
         onFilters={setFilters}
         onOpen={(e, sectionId) => openEdition(e, sectionId)}
-        today={dayKeyOf(new Date(now))}
+        today={today}
         loading={!Object.keys(refreshed).length}
       />
     )
@@ -489,13 +515,15 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
         reading={reading}
         loading={!Object.keys(refreshed).length}
         checked={id => !!refreshed[id]}
-        today={dayKeyOf(new Date(now))}
+        today={today}
         now={now}
         health={health}
         onOpen={e => openEdition(e)}
         onOpenFeed={switchView}
         labelOf={e => labelOf(conformance[e.feedId]?.flags.get(e.driveFileId))}
         onStatus={() => setStatusSheet(FEEDS.map(f => f.id))}
+        review={{ due, tomorrow: dueTomorrow }}
+        onReview={() => startReview('today')}
       />
     )
     : view === 'saved'
@@ -509,9 +537,35 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
           }}
           onRemove={remove}
           onNote={onNote}
+          reviews={reviews}
+          today={today}
+          due={due}
+          dueTomorrow={dueTomorrow}
+          onReview={() => startReview('saved')}
+          onReviewing={setReviewing}
         />
       )
       : null;
+
+  if (view === 'review' && session) {
+    return (
+      <div className={`intel intel--${mode} intel--review`} style={rootStyle}>
+        <ReviewView
+          key={session.key}
+          items={session.items}
+          today={today}
+          backTo={session.from === 'saved' ? 'Takeaways' : 'Today'}
+          moreDue={due.filter(d => !session.items.some(i => i.id === d.id)).length}
+          onRate={rate}
+          onStop={item => setReviewing(item, false)}
+          onOpen={item => { setSession(null); openSaved(item); }}
+          onMore={() => startReview(session.from)}
+          onClose={endReview}
+        />
+        {noteLine}
+      </div>
+    );
+  }
 
   if (mode === 'single') {
     if (feedId && pane === 'reader' && edition) {

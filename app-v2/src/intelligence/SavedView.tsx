@@ -6,8 +6,9 @@ import { Markdown } from './Markdown';
 import { feedById, type FeedId } from './feeds';
 import { copyText } from './present';
 import { searchSaved, tagsOf, parseTags, nameOf, type SavedInsight } from './saved';
-import { dayNameShort, formatDayCompact } from '../routine/dates';
-import { IconCopy, IconPencil, IconTrash, IconExternal, IconSearch, IconChevronRight } from '../ui/icons';
+import { canReview, dayText, statusOf, RATINGS, type ReviewIndex } from './review';
+import { dayNameShort, formatDayCompact, type DayKey } from '../routine/dates';
+import { IconCopy, IconPencil, IconTrash, IconExternal, IconSearch, IconChevronRight, IconReview } from '../ui/icons';
 
 interface Props {
   saved: SavedInsight[];
@@ -15,6 +16,31 @@ interface Props {
   onUpdate: (item: SavedInsight, patch: { note: string; tags: string[] }) => void;
   onRemove: (item: SavedInsight) => void;
   onNote: (text: string) => void;
+  reviews: ReviewIndex;
+  today: DayKey;
+  /** Due for review today, and how many tomorrow. */
+  due: SavedInsight[];
+  dueTomorrow: number;
+  onReview: () => void;
+  onReviewing: (item: SavedInsight, on: boolean) => void;
+}
+
+/** Where a takeaway stands in review, at the foot of its card. */
+function ReviewStatusLine({ item, reviews, today, onReviewing }: { item: SavedInsight } & Pick<Props, 'reviews' | 'today' | 'onReviewing'>) {
+  if (!canReview(item)) return null;
+  const s = statusOf(item, reviews);
+  if (!s.on) {
+    return (
+      <div className="intel-saved-review">
+        <i aria-hidden /><span>Not in review</span>
+        <button type="button" className="intel-linkbtn" onClick={() => onReviewing(item, true)}>Add to review</button>
+      </div>
+    );
+  }
+  const last = s.confidence ? ` · last time: ${RATINGS[s.confidence - 1].label.toLowerCase()}` : '';
+  return s.due && s.due <= today
+    ? <div className="intel-saved-review is-due"><i aria-hidden /><span>Due for review today{last}</span></div>
+    : <div className="intel-saved-review is-on"><i aria-hidden /><span>In review · next {dayText(s.due!, today)}{last}</span></div>;
 }
 
 const label = (id: FeedId) => feedById(id)?.label ?? id;
@@ -32,7 +58,7 @@ function kindOf(item: SavedInsight): string {
 /** Long sections fold to a few lines until opened. */
 const LONG = 420;
 
-function SavedCard({ item, onOpen, onUpdate, onRemove, onNote }: { item: SavedInsight } & Omit<Props, 'saved'>) {
+function SavedCard({ item, onOpen, onUpdate, onRemove, onNote, reviews, today, onReviewing }: { item: SavedInsight } & Omit<Props, 'saved' | 'due' | 'dueTomorrow' | 'onReview'>) {
   const [editing, setEditing] = useState(false);
   const [note, setNote] = useState(item.note);
   const [tags, setTags] = useState(item.tags.join(', '));
@@ -101,6 +127,8 @@ function SavedCard({ item, onOpen, onUpdate, onRemove, onNote }: { item: SavedIn
         </>
       )}
 
+      <ReviewStatusLine item={item} reviews={reviews} today={today} onReviewing={onReviewing} />
+
       <div className="intel-saved-foot">
         <button type="button" className="intel-saved-source" onClick={() => onOpen(item)}>
           <span>{label(item.feedId)} · {dayNameShort(item.editionDate)} {formatDayCompact(item.editionDate)}{item.kind !== 'edition' && ` · ${item.editionTitle}`}</span>
@@ -112,15 +140,31 @@ function SavedCard({ item, onOpen, onUpdate, onRemove, onNote }: { item: SavedIn
   );
 }
 
-export function SavedView({ saved, ...actions }: Props) {
+export function SavedView({ saved, due, dueTomorrow, onReview, ...actions }: Props) {
   const [query, setQuery] = useState('');
   const [tag, setTag] = useState<string | null>(null);
   const tags = tagsOf(saved);
   const shown = searchSaved(saved, query, tag, label);
+  const inReview = saved.filter(s => statusOf(s, actions.reviews).on).length;
+  const next = due.length ? null : saved.map(s => statusOf(s, actions.reviews).due).filter((d): d is DayKey => !!d).sort()[0];
 
   return (
     <div className="intel-col intel-saved-view">
       <h1 className="intel-vh">Takeaways</h1>
+      {inReview > 0 && (
+        <section className="intel-review-bar-saved" aria-label="Review">
+          <IconReview aria-hidden />
+          <div>
+            <b>{due.length ? `${due.length} to review today` : 'Nothing to review today'}</b>
+            <span>
+              {due.length ? (dueTomorrow ? `${dueTomorrow} more tomorrow · ` : '')
+                : next ? `Next ${dayText(next, actions.today) === 'tomorrow' ? 'tomorrow' : `on ${dayText(next, actions.today)}`} · ` : ''}
+              {inReview} of {saved.length} takeaways in review
+            </span>
+          </div>
+          {due.length > 0 && <button type="button" className="ds-btn ds-btn--primary" onClick={onReview}>Start review</button>}
+        </section>
+      )}
       {saved.length > 0 && (
         <>
           <label className="intel-search">

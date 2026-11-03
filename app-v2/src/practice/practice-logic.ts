@@ -8,18 +8,24 @@ export function getStatusFromConfidence(confidence: number): PracticeItem['statu
   return 'draft';
 }
 
+// Basic spaced repetition mapping for confidence 1-5. Intelligence's
+// Takeaways review (intelligence/review.ts) comes back on the same days.
+const INTERVAL_DAYS: Record<number, number> = {
+  1: 1,  // tomorrow
+  2: 3,  // in 3 days
+  3: 7,  // in a week
+  4: 14, // in two weeks
+  5: 30  // in a month
+};
+
+/** Days until an item comes back, by how confident you were (1-5). */
+export function practiceIntervalDays(confidence: number): number {
+  return INTERVAL_DAYS[Math.max(1, Math.min(5, Math.floor(confidence)))] || 1;
+}
+
 export function getNextPracticeDate(confidence: number, now: Date = new Date()): string {
   const d = new Date(now.getTime());
-  // Basic spaced repetition mapping for confidence 1-5
-  const intervals: Record<number, number> = {
-    1: 1,  // tomorrow
-    2: 3,  // in 3 days
-    3: 7,  // in a week
-    4: 14, // in two weeks
-    5: 30  // in a month
-  };
-  const interval = intervals[Math.max(1, Math.min(5, Math.floor(confidence)))] || 1;
-  d.setDate(d.getDate() + interval);
+  d.setDate(d.getDate() + practiceIntervalDays(confidence));
   return d.toISOString();
 }
 

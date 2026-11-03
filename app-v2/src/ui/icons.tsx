@@ -118,6 +118,10 @@ export const IconList = (p: P) => (
 export const IconBookmark = (p: P) => (
   <svg {...base} {...p}><path d="M6.5 3.5h11a1 1 0 0 1 1 1v16l-6.5-4-6.5 4v-16a1 1 0 0 1 1-1z" /></svg>
 );
+/** Takeaways back for review: a card with another behind it. */
+export const IconReview = (p: P) => (
+  <svg {...base} {...p}><rect x="3" y="7" width="14" height="13.5" rx="2.5" /><path d="M7 3.5h11.5A2.5 2.5 0 0 1 21 6v10.5" /></svg>
+);
 export const IconSearch = (p: P) => (
   <svg {...base} {...p}><circle cx="10.5" cy="10.5" r="6.5" /><path d="m15.5 15.5 5 5" /></svg>
 );

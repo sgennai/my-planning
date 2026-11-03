@@ -1029,3 +1029,131 @@
 .intel-result-title { font-size: calc(16 * var(--tpx)); font-weight: 650; line-height: var(--lh-snug); color: var(--ink); }
 .intel-result-snippet { font-size: calc(14.5 * var(--tpx)); line-height: 1.5; color: var(--ink-2); }
 .intel-result mark { background: var(--accent-ghost); color: var(--ink); border-radius: 3px; padding: 0 1px; }
+
+/* ── Review (INT-40, review.ts, ReviewView.tsx) ──────────────────────────
+   Takeaways come back one card at a time: a cue, then what was kept and
+   five ratings, each saying when it brings the card back. Today shows what
+   is waiting after the day's editions; Takeaways, where each one stands. */
+.intel-review-waiting { border-color: var(--accent-line); background: var(--surface-done); }
+.intel-review-eyebrow { display: inline-flex; align-items: center; gap: var(--sp-2); color: var(--accent); }
+.intel-review-eyebrow svg { width: calc(18 * var(--tpx)); height: calc(18 * var(--tpx)); }
+.intel-review-waiting .intel-topics li { background: var(--surface); }
+.intel-review-later { font-size: var(--t-meta); color: var(--ink-3); }
+
+.intel-review-bar-saved {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4) var(--sp-3) var(--sp-5);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--r-md);
+  background: var(--surface-done);
+}
+.intel-review-bar-saved > svg { flex: none; width: 22px; height: 22px; color: var(--accent); }
+.intel-review-bar-saved > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.intel-review-bar-saved b { font-size: var(--t-card); font-weight: 600; }
+.intel-review-bar-saved span { font-size: var(--t-meta); color: var(--ink-2); }
+
+.intel-saved-review {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 36px;
+  font-size: var(--t-meta);
+  color: var(--ink-2);
+}
+.intel-saved-review > i { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--ink-4); }
+.intel-saved-review.is-on > i { background: var(--accent); opacity: .45; }
+.intel-saved-review.is-due { color: var(--accent); font-weight: 600; }
+.intel-saved-review.is-due > i { background: var(--accent); }
+.intel-saved-review .intel-linkbtn { align-self: center; margin-left: auto; }
+
+.intel--review { padding-left: var(--sp-5); padding-right: var(--sp-5); }
+.intel-review-bar { display: flex; align-items: center; gap: var(--sp-3); }
+.intel-review-bar h1 { margin: 0; font-size: calc(17 * var(--tpx)); font-weight: 600; }
+.intel-review-count { font-size: var(--t-meta); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.intel-review-progress { width: 220px; height: 6px; border-radius: var(--r-pill); background: var(--hairline); overflow: hidden; }
+.intel-review-progress i { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: width var(--dur-release) var(--spring); }
+.intel-review-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: var(--sp-6) 0 var(--intel-foot);
+}
+.intel-review-card {
+  box-sizing: border-box;
+  width: min(680px, 100%);
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-8) 40px var(--sp-6);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+}
+.intel-review-card h2:focus, .intel-review-answer:focus { outline: none; }
+.intel-review-kind { margin: 0; color: var(--accent); }
+.intel-review-term { margin: var(--sp-1) 0 0; font-size: calc(34 * var(--tpx)); line-height: 1.15; font-weight: 700; letter-spacing: -0.02em; }
+h2.intel-review-prompt { margin: var(--sp-2) 0 0; font-size: calc(28 * var(--tpx)); line-height: 1.25; font-weight: 700; letter-spacing: -0.02em; }
+p.intel-review-prompt { margin: var(--sp-4) 0 0; font-size: calc(18 * var(--tpx)); line-height: 1.45; font-weight: 500; }
+.intel-review-from { margin: 0; font-size: calc(15 * var(--tpx)); line-height: 1.5; color: var(--ink-2); }
+.intel-review-from span { color: var(--ink-3); }
+.intel-review-help { margin: 0; font-size: calc(16 * var(--tpx)); line-height: 1.5; color: var(--ink-2); }
+.intel-review-help.is-small { font-size: var(--t-meta); color: var(--ink-3); }
+.intel-review-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); margin-top: var(--sp-4); }
+.intel-review-answer { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-3); margin-top: var(--sp-2); }
+.intel-review-kept { align-self: stretch; }
+.intel-review-kept.is-line { font-size: calc(21 * var(--tpx)); line-height: 1.4; font-weight: 600; letter-spacing: -0.01em; }
+.intel-review-kept.is-passage { margin: 0; padding-left: 14px; border-left: 3px solid var(--accent-line); font-size: calc(18 * var(--tpx)); line-height: 1.5; }
+.intel-review-note { align-self: stretch; margin: 0; padding: 10px 14px; border-radius: var(--r-sm); background: var(--surface-sunken); font-size: calc(15 * var(--tpx)); color: var(--ink-2); }
+.intel-review-note b { color: var(--ink); font-weight: 600; }
+.intel-review-rate { display: flex; flex-direction: column; gap: var(--sp-3); margin-top: var(--sp-2); padding-top: var(--sp-4); border-top: 1px solid var(--hairline); }
+.intel-review-rate h3 { margin: 0; font-size: var(--t-card); font-weight: 600; }
+.intel-review-rate .intel-review-actions { margin-top: 0; }
+.intel-rates { display: flex; gap: var(--sp-2); }
+.intel-rate {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: var(--sp-3) 6px;
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--ink);
+  transition: transform var(--dur-release) var(--spring);
+}
+.intel-rate:active { transform: scale(.98); transition-duration: var(--dur-press); }
+.intel-rate b { font-size: calc(20 * var(--tpx)); font-weight: 700; font-variant-numeric: tabular-nums; }
+.intel-rate span { font-size: var(--t-meta); font-weight: 600; }
+.intel-rate small { font-size: calc(12 * var(--tpx)); color: var(--ink-3); }
+.intel-rate.is-top { border-color: var(--accent-line); background: var(--surface-done); }
+.intel-rate.is-top b { color: var(--accent); }
+.intel-review-done { gap: var(--sp-3); }
+.intel-review-done h2 { margin: 0; font-size: calc(26 * var(--tpx)); font-weight: 700; letter-spacing: -0.02em; }
+.intel-review-check { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 50%; background: var(--accent-tint); color: var(--accent); }
+.intel-review-check svg { width: 26px; height: 26px; }
+.intel-review-done section { margin-top: var(--sp-2); }
+.intel-review-back { margin: var(--sp-1) 0 0; padding: 0; list-style: none; }
+.intel-review-back li { display: flex; align-items: baseline; gap: var(--sp-3); padding: 9px 0; border-bottom: 1px solid var(--hairline); font-size: calc(15 * var(--tpx)); }
+.intel-review-back li:last-child { border-bottom: 0; }
+.intel-review-back b { min-width: 24px; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.intel-review-back span { color: var(--ink-2); }
+
+/* A phone: the progress under the bar, ratings one under another. */
+.intel--single.intel--review { padding-left: var(--sp-4); padding-right: var(--sp-4); }
+.intel--single .intel-review-bar { flex-wrap: wrap; }
+.intel--single .intel-review-progress { order: 5; flex-basis: 100%; }
+.intel--single .intel-review-body { padding-top: var(--sp-4); }
+.intel--single .intel-review-card { padding: var(--sp-6) 18px var(--sp-4); }
+.intel--single .intel-rates { flex-direction: column; gap: 6px; }
+.intel--single .intel-rate { flex-direction: row; justify-content: flex-start; gap: var(--sp-3); min-height: 48px; padding: 0 var(--sp-4); text-align: left; }
+.intel--single .intel-rate b { width: 18px; font-size: calc(17 * var(--tpx)); }
+.intel--single .intel-rate span { flex: 1; font-size: calc(15 * var(--tpx)); }
+.intel--single .intel-rate small { font-size: var(--t-meta); }

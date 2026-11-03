@@ -420,6 +420,18 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   answers `complete: false` past that, when the device keeps what the list left out. `fold`
   removes only combining marks (U+0300–U+036F): ten times quicker than `\p{Diacritic}`, and
   text keeps its length, so highlights land on the words.
+- **Review** (INT-40, D7; `review.ts`, `ReviewView.tsx`): Takeaways come back for recall. A
+  question, line, term or passage is in review from the Paris day after it is kept; a section only
+  once added ("Add to review"); an edition never. A rating 1–5 sends it back after the Practice
+  section's own intervals (`practiceIntervalDays`: 1, 3, 7, 14, 30 days); "Stop reviewing this
+  one" takes it out (it stays in Takeaways). One synced `progressLog` record per takeaway,
+  `rv:<takeaway id>`, type `intel-review`, value `{ on, due (DayKey), confidence, count, lastAt }`,
+  removed with its takeaway. Due today, least known first, at most 10 a review (`SESSION_SIZE`),
+  then "Review n more". Today shows a card after the newest editions when something is due;
+  Takeaways a bar and each item's status. The review is view `review` (not a tab, never
+  remembered as the view to reopen): a cue per kind (`cueOf`), then what was kept with its note
+  and a way to the edition, then the ratings, each saying when it brings the card back; each
+  rating is saved as given, so leaving part-way loses nothing.
 - **Accessibility** (INT-33): axe-core finds nothing in any view, light or dark, in Chromium or
   WebKit. Each view has one `h1` (hidden "Today", "Takeaways", "Search"; the edition's title; the
   feed's name over a phone's list); part labels are headings (`h4` in a development card, `h3` in
@@ -522,7 +534,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (372 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (381 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris

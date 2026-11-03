@@ -14,6 +14,9 @@ import type { FeedId } from './feeds';
 import { formatDayAnchor, dayNameShort, formatDayCompact, daysBetween, type DayKey } from '../routine/dates';
 import { PublishingAlert, PublishingPanel } from './Publishing';
 import type { Run } from './schedule';
+import type { SavedInsight } from './saved';
+import { kindsOf, minutesFor } from './review';
+import { IconReview } from '../ui/icons';
 
 /** How many older unread editions show before "Show all". */
 const FIRST_FEW = 5;
@@ -35,6 +38,29 @@ interface Props {
   /** The short label conformance gives the edition, if any. */
   labelOf: (edition: Edition) => string | null;
   onStatus: () => void;
+  /** Takeaways due for review today, and how many come due tomorrow. */
+  review: { due: SavedInsight[]; tomorrow: number };
+  onReview: () => void;
+}
+
+/** Takeaways waiting for review, after the day's editions; only when some are due. */
+function ReviewCard({ due, tomorrow, onReview }: Props['review'] & { onReview: () => void }) {
+  return (
+    <section className="intel-today-card intel-review-waiting" aria-labelledby="intel-review-waiting">
+      <div className="intel-today-top">
+        <span className="intel-eyebrow intel-review-eyebrow"><IconReview aria-hidden />Review</span>
+      </div>
+      <h2 className="intel-today-title" id="intel-review-waiting">{due.length} {due.length === 1 ? 'takeaway' : 'takeaways'} to review</h2>
+      <p className="intel-today-preview">
+        Questions, terms and lines you kept, back for a quick recall before they fade. About {minutesFor(Math.min(due.length, 10))} {minutesFor(Math.min(due.length, 10)) === 1 ? 'minute' : 'minutes'}.
+      </p>
+      <ul className="intel-topics" aria-label="To review">{kindsOf(due).map(k => <li key={k}>{k}</li>)}</ul>
+      <div className="intel-today-actions">
+        <button type="button" className="ds-btn ds-btn--primary" onClick={onReview}>Start review</button>
+        {tomorrow > 0 && <span className="intel-review-later">{tomorrow} more tomorrow</span>}
+      </div>
+    </section>
+  );
 }
 
 /** "Today", "Yesterday", or the date, with how long ago once that is more than a day. */
@@ -96,7 +122,7 @@ function TodayCard({ edition, reading, onOpen, label, today, olderUnread, onOpen
   );
 }
 
-export function TodayView({ states, reading, loading, checked, today, now, health, onOpen, onOpenFeed, labelOf, onStatus }: Props) {
+export function TodayView({ states, reading, loading, checked, today, now, health, onOpen, onOpenFeed, labelOf, onStatus, review, onReview }: Props) {
   const [showAll, setShowAll] = useState(false);
   const newest = FEEDS.map(f => states[f.id]?.editions[0]).filter((e): e is Edition => !!e);
   // Only a feed Drive has answered for is known to have nothing yet.
@@ -129,6 +155,7 @@ export function TodayView({ states, reading, loading, checked, today, now, healt
           onOpenFeed={onOpenFeed}
         />
       ))}
+      {review.due.length > 0 && <ReviewCard {...review} onReview={onReview} />}
       {older.length > 0 && (
         <section className="intel-catchup" aria-labelledby="intel-catchup-title">
           <h2 id="intel-catchup-title" className="intel-eyebrow">Still unread · {older.length}</h2>

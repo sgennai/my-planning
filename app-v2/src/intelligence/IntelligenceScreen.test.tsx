@@ -477,3 +477,74 @@ describe('with a keyboard and a screen reader (INT-33)', () => {
     expect(read).toHaveAccessibleDescription('Agent Sprawl: Who Owns the Bots?');
   });
 });
+
+describe('Takeaways back for review (INT-40)', () => {
+  const kept = (id: string, kind: 'labelled' | 'term' | 'section', label: string | null, text: string, savedAt = '2026-11-01T10:00:00Z') => ({
+    id, type: 'intel-saved', kind, feedId: 'enterprise-ai-sales-brief', driveFileId: '1Kept000000000000000000000',
+    editionTitle: 'Model Pricing After the Funding Reset', editionDate: '2026-11-01', editionTime: '09:30',
+    sourceUrl: 'https://docs.google.com/document/d/1Kept/edit', sectionId: 'capital', sectionTitle: 'Capital availability',
+    label, text, note: '', tags: [], savedAt,
+  });
+  const question = kept('is:q', 'labelled', 'Executive question', 'Which processes would be hard to move?', '2026-11-01T09:00:00Z');
+  const term = kept('is:t', 'term', 'Shadow AI', 'AI used without approval.');
+  const section = kept('is:s', 'section', null, '- One point.\n- Another.');
+  const reviewOf = (id: string) => (latest.progressLog as { id: string; value: unknown }[]).find(r => r.id === `rv:${id}`)?.value;
+
+  it('Today offers what is due, and a review goes card by card, keeping each rating as it is given', async () => {
+    render(<App initial={{ progressLog: [], content: [question, term, section] }} />);
+    const card = (await screen.findByRole('heading', { level: 2, name: '2 takeaways to review' })).closest('section')!;
+    expect(within(card).getAllByRole('listitem').map(li => li.textContent)).toEqual(['1 question', '1 term']);
+    fireEvent.click(within(card).getByRole('button', { name: 'Start review' }));
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Review' })).toBeInTheDocument();
+    expect(screen.getByText('1 of 2')).toBeInTheDocument();
+    const cue = screen.getByRole('heading', { level: 2, name: 'What would you ask a customer about this?' });
+    expect(document.activeElement).toBe(cue);
+    expect(screen.queryByText('Which processes would be hard to move?')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Show what you kept' }));
+    expect(screen.getByText('Which processes would be hard to move?')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Fairly well/ }));
+    expect(reviewOf('is:q')).toMatchObject({ on: true, confidence: 3, due: '2026-11-09', count: 1 });
+
+    expect(screen.getByRole('heading', { level: 2, name: 'Shadow AI' })).toBeInTheDocument();
+    expect(screen.getByText('What does it mean?')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Show the meaning' }));
+    fireEvent.click(screen.getByRole('button', { name: /Knew it/ }));
+    expect(reviewOf('is:t')).toMatchObject({ confidence: 5, due: '2026-12-02' });
+
+    expect(screen.getByRole('heading', { level: 2, name: 'Review done' })).toBeInTheDocument();
+    const back = screen.getByRole('region', { name: 'Coming back' });
+    expect(within(back).getAllByRole('listitem').map(li => li.textContent)).toEqual(['1Mon 9 Nov', '1Wed 2 Dec']);
+    fireEvent.click(screen.getByRole('button', { name: 'Back to Today' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Today' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /to review/ })).toBeNull();
+  });
+
+  it('Takeaways says where each one stands; a section can be added, and a card taken out', async () => {
+    render(<App initial={{ progressLog: [], content: [question, section] }} />);
+    fireEvent.click(await screen.findByRole('tab', { name: /Takeaways/ }));
+    const bar = screen.getByRole('region', { name: 'Review' });
+    expect(bar).toHaveTextContent('1 to review today');
+    expect(bar).toHaveTextContent('1 of 2 takeaways in review');
+    expect(screen.getByText('Due for review today')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Add to review' }));
+    expect(reviewOf('is:s')).toMatchObject({ on: true, due: '2026-11-03' });
+    expect(screen.getByText('In review · next tomorrow')).toBeInTheDocument();
+
+    fireEvent.click(within(bar).getByRole('button', { name: 'Start review' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Stop reviewing this one' }));
+    expect(reviewOf('is:q')).toMatchObject({ on: false });
+    expect(screen.getByText(/1 takeaway taken out of review/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Back to Takeaways' }));
+    expect(screen.getAllByText('Not in review')).toHaveLength(1);
+    expect(screen.getByRole('region', { name: 'Review' })).toHaveTextContent('Nothing to review today');
+  });
+
+  it('a takeaway removed takes its review with it', async () => {
+    render(<App initial={{ progressLog: [{ id: 'rv:is:q', type: 'intel-review', refId: 'is:q', at: '2026-11-01T12:00:00Z', value: { on: true, due: '2026-11-05', confidence: 2, count: 1, lastAt: '2026-11-01T12:00:00Z' } }], content: [question] }} />);
+    fireEvent.click(await screen.findByRole('tab', { name: /Takeaways/ }));
+    expect(screen.getByText('In review · next Thu 5 Nov · last time: a little')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /^Remove .* from Takeaways$/ }));
+    expect(reviewOf('is:q')).toBeUndefined();
+  });
+});
