@@ -5,7 +5,7 @@
 // implying a longer history.
 import { FEEDS, type FeedId } from './feeds';
 import type { FeedState } from './library';
-import type { ReadingIndex } from './reading';
+import { countsAsUnread, type ReadingIndex } from './reading';
 import type { ReviewIndex } from './review';
 import { addDaysKey, dayKeyOf, formatDayCompact, weekStartKey, type DayKey } from '../routine/dates';
 
@@ -14,8 +14,9 @@ export const RECORDS_SINCE: DayKey = '2026-11-01';
 
 export interface Signals {
   /**
-   * Editions on this device not yet read (started ones included), per feed
-   * in `FEEDS` order; `partial` while the feed is still downloading.
+   * Editions on this device not yet read (started ones included; imported
+   * ones are the archive, never unread), per feed in `FEEDS` order;
+   * `partial` while the feed is still downloading.
    */
   unread: { feedId: FeedId; count: number; partial: boolean }[];
   /** Editions read to the end or marked read, today included, from the synced reading records. */
@@ -37,7 +38,7 @@ export function signalsOf(states: Partial<Record<FeedId, FeedState>>, reading: R
   return {
     unread: FEEDS.map(f => ({
       feedId: f.id,
-      count: (states[f.id]?.editions ?? []).filter(e => !reading.get(e.driveFileId)?.readAt).length,
+      count: (states[f.id]?.editions ?? []).filter(e => countsAsUnread(e, reading)).length,
       partial: (states[f.id]?.pending ?? 0) > 0,
     })),
     read7: inLast(7),

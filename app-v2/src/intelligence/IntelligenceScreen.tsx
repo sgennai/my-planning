@@ -31,7 +31,7 @@ import { reviewIndex, dueOf, dueOn, withRating, withReviewing, withoutReview, SE
 import { NO_FILTERS, type SearchFilters } from './search';
 import type { Edition } from './parse';
 import type { FeedState } from './library';
-import { readingIndex, readingState, withPosition, withRead } from './reading';
+import { readingIndex, readingState, withPosition, withRead, isArchive } from './reading';
 import {
   savedOf, saveInsight, removeInsight, updateInsight, findSaved, nameOf, type SaveInput, type SavedInsight,
 } from './saved';
@@ -229,7 +229,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     const now = pick(chosen[feedId]);
     if (now) return now;
     const last = pick(remembered[feedId]);
-    const unread = editions.find(e => readingState(e, readingAtOpen) === 'new');
+    const unread = editions.find(e => !isArchive(e) && readingState(e, readingAtOpen) === 'new');
     if (unread && (!last || unread.sortKey > last.sortKey)) return unread;
     return last ?? editions[0];
   }, [feedId, editions, chosen, remembered, readingAtOpen]);
@@ -371,7 +371,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   // ── Pieces ──────────────────────────────────────────────────────────────
   const hasNew = (id: FeedId) => (states[id]?.editions ?? []).some(e => {
     const s = readingState(e, reading);
-    return s === 'new' || s === 'updated';
+    return !isArchive(e) && (s === 'new' || s === 'updated');
   });
   // One tab is in the Tab order: the open one, else the first.
   const tabStop = VIEWS.includes(view) ? view : VIEWS[0];
@@ -450,7 +450,8 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
       {editions.length > 0 && (
         <ol className="intel-eds">
           {editions.map(e => {
-            const s = readingState(e, reading);
+            // An imported edition not opened yet is the archive's, not new.
+            const s = isArchive(e) && readingState(e, reading) === 'new' ? 'archive' : readingState(e, reading);
             const r = reading.get(e.driveFileId);
             const label = labelOf(conformance[e.feedId]?.flags.get(e.driveFileId));
             return (

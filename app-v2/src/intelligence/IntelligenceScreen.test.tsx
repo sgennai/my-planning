@@ -624,3 +624,32 @@ describe('Related by topic (INT-42)', () => {
     expect(screen.queryByRole('region', { name: 'Related by topic' })).toBeNull();
   });
 });
+
+describe('imported editions are the archive, never unread (INT-34)', () => {
+  const OLD = { ...CHALLENGE_FILE, id: '1ImportedChallenge00000000', name: '2026-10-01_0841__enterprise-ai-challenge', createdTime: '2026-11-04T08:00:00.000Z', modifiedTime: '2026-11-04T08:00:00.000Z' };
+  beforeEach(() => {
+    files = [files[0], OLD];
+    texts = {
+      [OLD.id]: CHALLENGE_DOC.replace('edition_date: "2026-11-02"', 'edition_date: "2026-10-01"')
+        .replace('2026-11-02T08:20:00+01:00', '2026-10-01T08:41:00+02:00')
+        .replace('title: "Agent Sprawl: Who Owns the Bots?"', 'origin: "backfill"\ntitle: "An Archived Challenge"'),
+    };
+  });
+
+  it('is listed and labelled, but counted in no unread list, count or dot', async () => {
+    render(<App />);
+    await screen.findByRole('heading', { level: 2, name: 'Agent Sprawl: Who Owns the Bots?' });
+    expect(screen.queryByRole('region', { name: /Still unread/ })).toBeNull();
+    expect(screen.getByText(/Monday 2 November/)).toHaveTextContent('Monday 2 November · 1 unread');
+    const panel = screen.getByRole('region', { name: 'Your reading' });
+    expect(within(panel).getByText('Unread').nextElementSibling).toHaveTextContent('AI Challenge 1');
+
+    await openChallenge();
+    const archived = within(screen.getByRole('complementary', { name: 'Editions' })).getByRole('button', { name: /Thu 1 Oct/ });
+    expect(archived).toHaveTextContent('Imported');
+    expect(archived).not.toHaveAccessibleName(/Unread/);
+    // Once the scheduled edition is read, nothing in the feed is new.
+    fireEvent.click(screen.getByRole('button', { name: 'Mark as read' }));
+    expect(screen.getByRole('tab', { name: /AI Challenge/ })).not.toHaveAccessibleName(/new/);
+  });
+});

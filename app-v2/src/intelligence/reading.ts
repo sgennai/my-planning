@@ -52,6 +52,15 @@ export function readingIndex(log: unknown[] | undefined): ReadingIndex {
 
 export type ReadingState = 'new' | 'started' | 'read' | 'updated';
 
+/**
+ * Imported editions (`origin: "backfill"`, INT-34) are the archive: listed,
+ * searchable, read like any other, but never counted or flagged as unread.
+ */
+export const isArchive = (e: Pick<Edition, 'origin'>) => e.origin === 'backfill';
+
+/** Unread for the lists, counts and dots: not read yet, and not in the archive. */
+export const countsAsUnread = (e: Edition, index: ReadingIndex) => !isArchive(e) && !index.get(e.driveFileId)?.readAt;
+
 /** New, started, read, or read before Drive's copy last changed. */
 export function readingState(edition: Edition, index: ReadingIndex): ReadingState {
   const r = index.get(edition.driveFileId);

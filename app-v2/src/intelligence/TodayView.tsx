@@ -8,7 +8,7 @@ import { useId, useMemo, useState } from 'react';
 import { FEEDS, feedById } from './feeds';
 import { splitSections, newestFirst, type Edition } from './parse';
 import { previewOf, shortTitle } from './present';
-import { readingState, type ReadingIndex } from './reading';
+import { readingState, countsAsUnread, isArchive, type ReadingIndex } from './reading';
 import type { FeedState } from './library';
 import type { FeedId } from './feeds';
 import { formatDayAnchor, dayNameShort, formatDayCompact, daysBetween, type DayKey } from '../routine/dates';
@@ -138,7 +138,7 @@ function TodayCard({ edition, reading, onOpen, label, today, olderUnread, onOpen
           {ago && <span className="intel-age"> · {ago}</span>}
         </span>
         {label && <span className={`intel-tag${label === 'Imported' ? '' : ' is-alert'}`}>{label}</span>}
-        <span className={`intel-badge is-${state}`}>{badge}</span>
+        {!(isArchive(edition) && state === 'new') && <span className={`intel-badge is-${state}`}>{badge}</span>}
       </div>
       <h2 className="intel-today-title" id={`${id}-title`}>{edition.title}</h2>
       {preview && <p className="intel-today-preview">{preview}</p>}
@@ -169,7 +169,7 @@ export function TodayView({ states, reading, loading, checked, today, now, healt
   const without = FEEDS.filter(f => checked(f.id) && !states[f.id]?.editions.length).map(f => f.label);
   // Unread is anything not read to the end or marked read, started or not.
   const unread = FEEDS.flatMap(f => states[f.id]?.editions ?? [])
-    .filter(e => !reading.get(e.driveFileId)?.readAt)
+    .filter(e => countsAsUnread(e, reading))
     .sort(newestFirst);
   const onCards = new Set(newest.map(e => e.driveFileId));
   const older = unread.filter(e => !onCards.has(e.driveFileId));

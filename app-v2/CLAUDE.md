@@ -305,10 +305,11 @@ calendar fields.
 ## Intelligence (`src/intelligence/`)
 
 A reader for three ChatGPT scheduled-task feeds, specified in
-`../intelligence-dashboard-implementation-brief.md`. **Remaining work lives only in
-`../intelligence-roadmap.md`** (task IDs `INT-xx`, awaiting approval as of 2026-11-01); it
-supersedes the report's and the consolidated backlog's lists. Those files sit in the main
-checkout's root, untracked. Each run writes one private Google Doc of
+`../SUPPORTING FILES/intelligence-dashboard-implementation-brief.md`. **Remaining work lives only
+in `../SUPPORTING FILES/intelligence-roadmap.md`** (task IDs `INT-xx`); it supersedes the
+report's and the consolidated backlog's lists. Those files sit in the main checkout's
+`SUPPORTING FILES` folder (moved there 2026-11-04), untracked, with the progress reports, the
+device test plan and the backfill investigation. Each run writes one private Google Doc of
 literal Markdown (a small YAML header, then the briefing) into its folder in a dedicated Gmail
 account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order).
 
@@ -441,6 +442,18 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   rating is saved as given, so leaving part-way loses nothing. Two devices' copies merge
   (`mergeReview`, D12): the later action (its `at`, the moment it was done) stands; the count
   keeps the higher.
+- **Backfill and the archive** (INT-34): imported editions (`origin: "backfill"`) are the
+  archive: `isArchive` / `countsAsUnread` (`reading.ts`) keep them out of every unread list, count
+  and dot (Today's "Still unread" and "n unread", "Your reading", a feed tab's dot, the edition
+  list's unread mark, the edition a feed opens on), while they stay listed ("Imported"),
+  searchable, related and readable. History comes from the scheduled task's ChatGPT page:
+  `SUPPORTING FILES/backfill/extract-chatgpt-task.js` (a console script, read-only, reads each
+  turn's `<time datetime>` and reply) → `backfill.ts` (pure: Paris `generated_at`, the edition's
+  own title and topics, `source_message`, skip what Drive has, conflicts to a person) → the
+  hand-run `scripts/backfill.dryrun.test.tsx` (env `BACKFILL_EXTRACT`, `BACKFILL_EXISTING`,
+  `BACKFILL_OUT`, `BACKFILL_FEED`), which checks each document with the parser and the reader and
+  writes them with a report. Writing to Drive is a separate, approved step; the app stays
+  read-only.
 - **Related by topic** (INT-42, D14; `related.ts`, `RelatedEditions` in `EditionReader.tsx`): after
   an edition's last section, up to 5 editions listing a topic it lists: header topics only (no
   vendors, no guessing), labels compared without case, accents, hyphens or "&" (`topicKey`, cached
@@ -569,7 +582,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (414 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (422 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris
