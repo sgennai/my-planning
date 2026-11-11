@@ -7,13 +7,15 @@
 // Drive's own dates stand in, and `issues` says so: nothing is invented, and
 // the edition still reads. The body is kept exactly as written, but for
 // ChatGPT's own messages that came into a few imported editions
-// (`artifacts.ts`), which are set aside and named. An optional
+// (`artifacts.ts`), which are set aside and named, and a brief's labels laid
+// out as its earlier editions wrote them (`layout.ts`). An optional
 // `origin` says whether a scheduled run published it or it was imported by
 // hand; without it, nobody knows, and the edition says nothing either way.
 import { load, CORE_SCHEMA } from 'js-yaml';
 import { TZ, isValidDayKey, dayKeyOf, type DayKey } from '../routine/dates';
 import { feedById, type FeedId } from './feeds';
 import { setAside, type SetAside } from './artifacts';
+import { laidOut } from './layout';
 
 /** What the server sends for a document in a feed folder. */
 export interface DriveFile {
@@ -35,7 +37,11 @@ export interface Edition {
   /** The run's time in Paris, `HH:mm`, from the header or the filename. */
   time: string | null;
   topics: string[];
-  /** Everything after the header, as written, less ChatGPT's own messages (`setAside`). */
+  /**
+   * Everything after the header, as written, less ChatGPT's own messages
+   * (`setAside`), a brief's labels laid out as its earlier editions wrote them
+   * (`laidOut`): no word differs from the document.
+   */
   markdownBody: string;
   /** ChatGPT's own messages left out of `markdownBody`; the original keeps them. */
   setAside: SetAside[];
@@ -98,7 +104,8 @@ export function parseEdition(feedId: FeedId, file: DriveFile, rawText: string): 
   // with CRLF.
   const text = rawText.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').replace(/^(?:[ \t]*\n)+/, '');
   const { values, body: written, problem } = splitHeader(text);
-  const { body, aside } = setAside(written);
+  const { body: kept, aside } = setAside(written);
+  const body = laidOut(feedId, kept);
   if (problem) issues.push(problem);
   const h = values || {};
   const named = FILENAME.exec(file.name.trim());
