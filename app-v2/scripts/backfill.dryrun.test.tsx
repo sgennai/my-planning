@@ -13,11 +13,11 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, fireEvent, cleanup } from '@testing-library/react';
 import { readFileSync, readdirSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { backfillDocs, pauses, type Extract, type Existing } from '../src/intelligence/backfill';
+import { backfillDocs, bodyOf, pauses, untagged, type Extract, type Existing } from '../src/intelligence/backfill';
 import { parseEdition } from '../src/intelligence/parse';
 import { EditionReader } from '../src/intelligence/EditionReader';
 import { wordsOf } from '../src/intelligence/test-fixtures';
-import type { FeedId } from '../src/intelligence/feeds';
+import { feedById, type FeedId } from '../src/intelligence/feeds';
 
 const { BACKFILL_EXTRACT, BACKFILL_EXISTING, BACKFILL_OUT, BACKFILL_FEED } = process.env;
 
@@ -26,6 +26,7 @@ describe.skipIf(!BACKFILL_EXTRACT || !BACKFILL_OUT)('backfill dry run', () => {
     vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} });
     Element.prototype.scrollTo = function scrollTo() {};
     const feed = (BACKFILL_FEED || 'enterprise-ai-challenge') as FeedId;
+    const runDays = feedById(feed)?.schedule.days;
     const extract = JSON.parse(readFileSync(BACKFILL_EXTRACT!, 'utf8')) as Extract;
     const existing: Existing[] = BACKFILL_EXISTING
       ? readdirSync(BACKFILL_EXISTING).filter((f: string) => f.endsWith('.json')).map((f: string) => {
@@ -42,12 +43,16 @@ describe.skipIf(!BACKFILL_EXTRACT || !BACKFILL_OUT)('backfill dry run', () => {
       expect(e.issues, doc.fileName).toEqual([]);
       expect(e.origin).toBe('backfill');
       expect(`${e.editionDate} ${e.time}`).toBe(`${doc.generatedAt.slice(0, 10)} ${doc.generatedAt.slice(11, 16)}`);
-      const { container, getAllByRole } = render(<EditionReader edition={e} scroller={{ current: document.createElement('div') }} onNote={() => {}} />);
-      for (const fold of getAllByRole('button', { expanded: false })) fireEvent.click(fold);
+      const { container, queryAllByRole } = render(<EditionReader edition={e} scroller={{ current: document.createElement('div') }} onNote={() => {}} />);
+      for (const fold of queryAllByRole('button', { expanded: false })) fireEvent.click(fold);
       const shown = container.textContent ?? '';
       const lost = wordsOf(e.markdownBody).filter(w => !shown.includes(w));
       expect(lost, `${doc.fileName}: words not on screen`).toEqual([]);
       expect(shown).not.toMatch(/schema_version|source_message|time_note/);
+      // Tidying links loses no source: every address of the reply is still there.
+      const reply = extract.items.find(i => i.messageId === doc.messageId)!.markdown!;
+      const addresses = (md: string) => [...new Set([...md.matchAll(/\]\(([^()\s]+)\)/g)].map(m => untagged(m[1])))].sort();
+      expect(addresses(e.markdownBody), `${doc.fileName}: a source was lost`).toEqual(addresses(bodyOf(reply)));
       cleanup();
       checks.push(doc.fileName);
       writeFileSync(join(BACKFILL_OUT!, `${doc.fileName}.md`), doc.text);
@@ -63,7 +68,7 @@ describe.skipIf(!BACKFILL_EXTRACT || !BACKFILL_OUT)('backfill dry run', () => {
       `Editions in the extract: ${decisions.length}. To import: ${count('import')}. Skipped (already in Drive): ${count('skip')}. Conflicts: ${count('conflict')}. Problems: ${count('problem')}.`,
       `Checked with the app's parser and reader (no header issue, origin backfill, date and time, every word on screen): ${checks.length} of ${docs.length}.`,
       '',
-      `Days with no edition (the task's pauses): ${pauses(days).join(', ') || 'none'}.`,
+      `Days with no edition (the task's pauses): ${pauses(days, Array.isArray(runDays) ? runDays : undefined).join(', ') || 'none'}.`,
       '',
       '| # | Paris time | Title | Decision | Why |',
       '|---:|---|---|---|---|',
@@ -72,6 +77,14 @@ describe.skipIf(!BACKFILL_EXTRACT || !BACKFILL_OUT)('backfill dry run', () => {
         return `| ${d.edition} | ${d.time ?? '—'} | ${doc ? doc.title.replace(/\|/g, '\\|') : '—'} | ${d.action} | ${d.reason} |`;
       }),
       '',
+      ...(docs.some(d => d.tidied.tags || d.tidied.repeats.length) ? [
+        '## Links tidied',
+        '',
+        'The tracking tag ChatGPT adds to addresses (`utm_source=chatgpt.com`) removed, and each source chip that repeated the link right before it dropped. Every address is still in the document.',
+        '',
+        ...docs.flatMap(d => [`- **${d.fileName}**: ${d.tidied.tags} tag${d.tidied.tags === 1 ? '' : 's'} removed; ${d.tidied.repeats.length ? `repeats dropped: ${d.tidied.repeats.join(' · ')}` : 'no repeat'}`]),
+        '',
+      ] : []),
     ].join('\n');
     writeFileSync(join(BACKFILL_OUT!, 'report.md'), report);
     writeFileSync(join(BACKFILL_OUT!, 'report.json'), JSON.stringify({ feed, decisions, docs: docs.map(d => Object.fromEntries(Object.entries(d).filter(([k]) => k !== 'text'))) }, null, 2));

@@ -448,12 +448,23 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   list's unread mark, the edition a feed opens on), while they stay listed ("Imported"),
   searchable, related and readable. History comes from the scheduled task's ChatGPT page:
   `SUPPORTING FILES/backfill/extract-chatgpt-task.js` (a console script, read-only, reads each
-  turn's `<time datetime>` and reply) → `backfill.ts` (pure: Paris `generated_at`, the edition's
-  own title and topics, `source_message`, skip what Drive has, conflicts to a person) → the
-  hand-run `scripts/backfill.dryrun.test.tsx` (env `BACKFILL_EXTRACT`, `BACKFILL_EXISTING`,
-  `BACKFILL_OUT`, `BACKFILL_FEED`), which checks each document with the parser and the reader and
-  writes them with a report. Writing to Drive is a separate, approved step; the app stays
-  read-only.
+  turn's `<time datetime>` and reply; an edition is a reply of 600+ characters) → `backfill.ts`
+  (pure: Paris `generated_at`; the edition's own title and topics, `ownTitleAndTopics`: the AI
+  Challenge's Challenge sentence, a brief's first development headline (past its standing
+  headings, `STANDING`), topics from its own "Relevant to …" line or "Relevant executive themes
+  today" (`relevantTopics`, never the whole map, none if it lists none); `source_message`; skip what Drive has: the same message, the same day's words, or the
+  same run within `SAME_RUN_MINUTES`, as a task can write its Drive copy in other words; conflicts
+  to a person; links tidied for the feeds in `TIDY_LINKS`: ChatGPT's `utm_source` tag and source
+  chips repeating the previous link's address) → the hand-run `scripts/backfill.dryrun.test.tsx`
+  (env `BACKFILL_EXTRACT`, `BACKFILL_EXISTING`, `BACKFILL_OUT`, `BACKFILL_FEED`), which checks each
+  document with the parser and the reader, that no source address was lost, and writes them with a
+  report. The user uploads them to the feed's folder as `.txt` with Drive's "Convert uploads" on
+  (2 samples, then the rest); `scripts/backfill.verify.test.tsx` (env `BACKFILL_DRIVE`: the
+  folder's documents from `/api/intel/docs/<id>`, `BACKFILL_DRY`, `BACKFILL_EXPECT`,
+  `BACKFILL_FEED`) reads them back: same name, header, words and lines, no duplicate. The app
+  stays read-only. Imported 2026-11-11: AI Challenge 5 Sep – 31 Oct (41), Customer Engagement
+  20 Sep – 28 Oct (13), Sales Brief 20 Aug – 31 Oct (42); files and reports in
+  `SUPPORTING FILES/backfill/`.
 - **Related by topic** (INT-42, D14; `related.ts`, `RelatedEditions` in `EditionReader.tsx`): after
   an edition's last section, up to 5 editions listing a topic it lists: header topics only (no
   vendors, no guessing), labels compared without case, accents, hyphens or "&" (`topicKey`, cached
@@ -582,7 +593,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (422 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (429 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris

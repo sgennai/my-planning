@@ -7,15 +7,18 @@
 //     real offset; a reply that showed no time of its own (the first, right
 //     after the task was set up) takes the earlier one and says so in the
 //     header (`time_note`) and the report;
-//   - the title is the edition's own Challenge sentence, the topics its own
-//     "Relevant to today's challenge" list (AI Challenge);
+//   - the title and topics are the edition's own (`ownTitleAndTopics`);
 //   - `origin: "backfill"`, and `source_message` names the reply it came from;
 //   - the only thing removed is what the task appended for its own archive
-//     (a closing rule and "Google Drive archive" link).
+//     (a closing rule and "Google Drive archive" link, or a closing "Google
+//     Drive archive" section), and, for a feed whose links are tidied
+//     (`TIDY_LINKS`), what ChatGPT's page adds to links (`tidyLinks`).
 //
-// An edition already in Drive (the same reply, or the same day with the same
-// words) is skipped; the same day with other words is a conflict, left for a
-// person to decide. Pure: it reads and writes nothing itself.
+// An edition already in Drive is skipped: the same reply, the same day with
+// the same words, or a document of the same run (the same day, its
+// `generated_at` within minutes: a task can write its Drive copy in other
+// words than its reply). The same day with other words and another time is a
+// conflict, left for a person to decide. Pure: it reads and writes nothing itself.
 import { TZ, type DayKey } from '../routine/dates';
 import type { FeedId } from './feeds';
 
@@ -55,6 +58,8 @@ export interface BackfillDoc {
   topics: string[];
   messageId: string;
   timeNote: string | null;
+  /** What `tidyLinks` changed: tracking tags removed, repeated links dropped. */
+  tidied: { tags: number; repeats: string[] };
 }
 
 export interface Decision {
@@ -82,7 +87,51 @@ export function parisIso(instant: Date): string {
 /** What the task appended for its own archive: a closing rule and the "Google Drive archive" link. */
 const ARCHIVE_NOTE = /\n+(?:-{3,}|\*{3,}|_{3,})?\s*\n*\[Google Drive archive\]\([^)\n]*\)\s*$/;
 
-export const bodyOf = (markdown: string) => markdown.replace(ARCHIVE_NOTE, '').trim();
+/** The same, as a closing section of its own, with no heading after it. */
+const ARCHIVE_SECTION = /\n+#{1,4} +Google Drive archive[ \t]*\n(?![\s\S]*\n#{1,4} )[\s\S]*$/;
+
+export const bodyOf = (markdown: string) => markdown.replace(ARCHIVE_NOTE, '').replace(ARCHIVE_SECTION, '').trim();
+
+/**
+ * Feeds whose links are tidied (the user's choice for the Customer Engagement
+ * Brief, 2026-11-11). The AI Challenge's editions were imported as the page
+ * showed them.
+ */
+export const TIDY_LINKS: readonly FeedId[] = ['customer-engagement-brief', 'enterprise-ai-sales-brief'];
+
+const LINK = /\[([^\]\n]*)\]\(([^()\s]+)\)/g;
+
+/** An address without the tag ChatGPT adds to every source it links (`utm_source=chatgpt.com`). */
+export const untagged = (url: string) => url.replace(/([?&])utm_source=chatgpt\.com(&?)/, (_, sep: string, more: string) => (more ? sep : ''));
+
+/**
+ * What ChatGPT's page adds to a reply's links, taken out: the tracking tag on
+ * each address, and a source chip that repeats the address of the link right
+ * before it (only spaces between). Every link to somewhere new is kept, and no
+ * other text changes.
+ */
+export function tidyLinks(markdown: string): { markdown: string; tags: number; repeats: string[] } {
+  let out = '';
+  let from = 0;
+  let tags = 0;
+  const repeats: string[] = [];
+  let prev: { end: number; url: string } | null = null;
+  for (const m of markdown.matchAll(LINK)) {
+    const start = m.index, end = start + m[0].length;
+    const url = untagged(m[2]);
+    if (prev && prev.url === url && /^[ \t]*$/.test(markdown.slice(prev.end, start))) {
+      repeats.push(`[${m[1]}](${url})`);
+      from = end;
+      prev = { end, url };
+      continue;
+    }
+    if (url !== m[2]) tags++;
+    out += `${markdown.slice(from, start)}[${m[1]}](${url})`;
+    from = end;
+    prev = { end, url };
+  }
+  return { markdown: out + markdown.slice(from), tags, repeats };
+}
 
 /** The words of a body, for telling whether two documents say the same. */
 export const wordsIn = (markdown: string) => markdown
@@ -98,13 +147,44 @@ function firstLineUnder(markdown: string, label: string): string | null {
   return m ? m[1].trim() : null;
 }
 
-/** The edition's own title and topics (AI Challenge). */
-export function ownTitleAndTopics(markdown: string): { title: string | null; topics: string[] } {
-  const line = firstLineUnder(markdown, 'Challenge');
-  const title = line ? line.replace(/\*\*|__/g, '').replace(/[.。]\s*$/, '').trim() || null : null;
-  const relevant = /\*\*Relevant to today'?s challenge:?\*\*:?\s*([^\n]+)/i.exec(markdown);
-  const topics = relevant ? relevant[1].split(/\s+[•·]\s+/).map(t => t.replace(/[.\s]+$/, '').trim()).filter(Boolean) : [];
-  return { title, topics };
+const plainTitle = (line: string) => line.replace(/\*\*|__/g, '').replace(/[.。]\s*$/, '').trim() || null;
+
+/** A brief's standing sections, which never name the day's news (both briefs, every format they have had). */
+const STANDING = new RegExp('^(?:executive take|three |competitive watchlist|contrarian insight|development to (?:monitor|watch)'
+  + '|single development to watch|google drive archive|(?:two )?material (?:update|addendum|addition|additions|development|developments)\\b'
+  + '|enterprise ai customer-conversation topic map|(?:hcl )?unica\\+ (?:verification basis|customer conversation)'
+  + '|relevant executive themes|what i should remember|best executive question)', 'i');
+
+/** A brief's first development headline: its first numbered heading, else its first heading that is neither its opening title nor a standing section. */
+function firstDevelopment(markdown: string): string | null {
+  const numbered = /(?:^|\n)#{2,4} +\d+\.\s*([^\n]+)/.exec(markdown);
+  if (numbered) return numbered[1];
+  const headings = [...markdown.matchAll(/(?:^|\n)(#{1,4}) +([^\n]+)/g)];
+  const opening = headings[0] && markdown.slice(0, headings[0].index).trim() === '' ? 1 : 0;
+  return headings.slice(opening).map(h => h[2].replace(/\*\*/g, '').trim()).find(h => !STANDING.test(h)) ?? null;
+}
+
+/**
+ * The topics an edition says it is about, in its own words: a "**Relevant to
+ * today's challenge:**", "**Relevant to this update:**" or "**Relevant to this
+ * week's developments:**" line, or the bold line under a "Relevant executive
+ * themes today" heading. Never the whole topic map. None when it says nothing.
+ */
+function relevantTopics(markdown: string): string[] {
+  const line = /\*\*Relevant to [^*\n]{1,40}?:?\*\*:?[ \t]*([^\n]+)/i.exec(markdown)
+    ?? /(?:^|\n)#{1,4} +Relevant executive themes today[^\n]*\n+[ \t]*\*\*([^\n]+?)\*\*[ \t]*(?:\n|$)/i.exec(markdown);
+  return line ? line[1].split(/\s+[•·]\s+/).map(t => t.replace(/\*\*/g, '').replace(/[.\s]+$/, '').trim()).filter(Boolean) : [];
+}
+
+/**
+ * The edition's own title and topics (`relevantTopics`). AI Challenge: its
+ * Challenge sentence. The briefs: their first development headline (the
+ * user's choice for Customer Engagement, 2026-11-11, whose replies list no
+ * topics).
+ */
+export function ownTitleAndTopics(markdown: string, feedId: FeedId = 'enterprise-ai-challenge'): { title: string | null; topics: string[] } {
+  const line = feedId === 'enterprise-ai-challenge' ? firstLineUnder(markdown, 'Challenge') : firstDevelopment(markdown);
+  return { title: line ? plainTitle(line) : null, topics: relevantTopics(markdown) };
 }
 
 const yamlString = (s: string) => JSON.stringify(s);
@@ -137,7 +217,10 @@ const bodyOfDocument = (text: string) => {
   return t.startsWith('---') && close ? t.slice(3 + close.index + close[0].length) : t;
 };
 
-export const TIME_NOTE_EARLIER = 'ChatGPT showed no time for this reply; the time is that of the message just before it, in the same conversation.';
+export const TIME_NOTE_EARLIER = 'ChatGPT showed no time for this reply; the time is the last one it showed above it in the same conversation, so the reply came then or a little later.';
+
+/** How far apart a reply's time and a Drive document's `generated_at` can be for both to be the same run. */
+export const SAME_RUN_MINUTES = 15;
 
 /** The documents to import, and a decision for every edition in the extract. */
 export function backfillDocs(extract: Extract, feedId: FeedId, existing: Existing[]): { docs: BackfillDoc[]; decisions: Decision[] } {
@@ -161,7 +244,8 @@ export function backfillDocs(extract: Extract, feedId: FeedId, existing: Existin
     }
     const generatedAt = parisIso(instant);
     const editionDate = generatedAt.slice(0, 10);
-    const body = bodyOf(item.markdown);
+    const tidied = TIDY_LINKS.includes(feedId) ? tidyLinks(bodyOf(item.markdown)) : { markdown: bodyOf(item.markdown), tags: 0, repeats: [] };
+    const body = tidied.markdown;
     if (fromMessage.has(item.messageId)) {
       decisions.push({ edition: n, time: generatedAt, action: 'skip', reason: 'already imported (same source message)' });
       continue;
@@ -172,35 +256,49 @@ export function backfillDocs(extract: Extract, feedId: FeedId, existing: Existin
       decisions.push({ edition: n, time: generatedAt, action: 'skip', reason: `already in Drive with the same words (${same.name})` });
       continue;
     }
+    const run = sameDay.find(e => {
+      const at = Date.parse(headerField(e.text, 'generated_at') ?? '');
+      return Math.abs(at - instant.getTime()) <= SAME_RUN_MINUTES * 60_000;
+    });
+    if (run) {
+      decisions.push({ edition: n, time: generatedAt, action: 'skip', reason: `the same run is already in Drive, in its own words (${run.name})` });
+      continue;
+    }
     if (sameDay.length) {
       decisions.push({ edition: n, time: generatedAt, action: 'conflict', reason: `Drive has ${sameDay.map(e => e.name).join(', ')} that day, with other words: left for a person to decide` });
       continue;
     }
-    const { title, topics } = ownTitleAndTopics(body);
+    const { title, topics } = ownTitleAndTopics(body, feedId);
     if (!title) {
-      decisions.push({ edition: n, time: generatedAt, action: 'problem', reason: 'no Challenge sentence to take the title from' });
+      decisions.push({ edition: n, time: generatedAt, action: 'problem', reason: 'no title of its own to take' });
       continue;
     }
     const timeNote = item.timeSource === 'own-separator' ? null : TIME_NOTE_EARLIER;
     const fileName = `${editionDate}_${generatedAt.slice(11, 13)}${generatedAt.slice(14, 16)}__${feedId}`;
     const text = `${headerOf({ feedId, editionDate, generatedAt, title, topics, messageId: item.messageId, conversationId: extract.page.conversationId, timeNote })}\n\n${body}\n`;
-    docs.push({ edition: n, fileName, text, editionDate, generatedAt, title, topics, messageId: item.messageId, timeNote });
-    decisions.push({ edition: n, time: generatedAt, action: 'import', reason: timeNote ? 'new; time from the message before it' : 'new', fileName });
+    docs.push({ edition: n, fileName, text, editionDate, generatedAt, title, topics, messageId: item.messageId, timeNote, tidied: { tags: tidied.tags, repeats: tidied.repeats } });
+    decisions.push({ edition: n, time: generatedAt, action: 'import', reason: timeNote ? 'new; time from the last one shown above it' : 'new', fileName });
   }
   return { docs, decisions };
 }
 
-/** Days between the first and last edition with none, as runs of dates: the task's pauses. */
-export function pauses(days: string[]): string[] {
+/**
+ * Days between the first and last edition with none, as runs of dates: the
+ * task's pauses. With `weekdays` (0 = Sunday), only days the task runs on
+ * count: a Tuesday is no gap for a Monday, Wednesday and Friday brief.
+ */
+export function pauses(days: string[], weekdays?: number[]): string[] {
   const sorted = [...new Set(days)].sort();
+  const noon = (d: string) => Date.parse(`${d}T12:00:00Z`);
+  const key = (t: number) => new Date(t).toISOString().slice(0, 10);
+  const runs = (t: number) => !weekdays || weekdays.includes(new Date(t).getUTCDay());
   const out: string[] = [];
   for (let i = 1; i < sorted.length; i++) {
-    const gap = (Date.parse(`${sorted[i]}T12:00:00Z`) - Date.parse(`${sorted[i - 1]}T12:00:00Z`)) / 86_400_000;
-    if (gap > 1) {
-      const from = new Date(Date.parse(`${sorted[i - 1]}T12:00:00Z`) + 86_400_000).toISOString().slice(0, 10);
-      const to = new Date(Date.parse(`${sorted[i]}T12:00:00Z`) - 86_400_000).toISOString().slice(0, 10);
-      out.push(from === to ? from : `${from} to ${to}`);
-    }
+    const missing: string[] = [];
+    for (let t = noon(sorted[i - 1]) + 86_400_000; t < noon(sorted[i]); t += 86_400_000) if (runs(t)) missing.push(key(t));
+    if (!missing.length) continue;
+    const from = missing[0], to = missing[missing.length - 1];
+    out.push(from === to ? from : weekdays ? `${missing.length} runs from ${from} to ${to}` : `${from} to ${to}`);
   }
   return out;
 }
