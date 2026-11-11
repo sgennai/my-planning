@@ -2,27 +2,18 @@
 // this one lists, from the topics written in the documents' headers and
 // nothing else (no guessing, no vendors yet). Labels match after case,
 // accents, hyphens and "&" are set aside, so "Customer-data governance"
-// meets "Customer data governance". Shared topics are a reason to look, not
-// proof of a link, and each match says which it shares. Other feeds come
-// first; then the most topics in common; then the newest.
-import { fold } from './blocks';
+// meets "Customer data governance", and a historical label matches the
+// canonical topics it names (INT-46, `topics.ts`), so "Investment & budgets"
+// meets "Investment". Shared topics are a reason to look, not proof of a
+// link, and each match says which it shares, in this edition's words. Other
+// feeds come first; then the most topics in common; then the newest.
 import type { Edition } from './parse';
+import { topicKeys } from './topics';
+
+export { topicKey } from './topics';
 
 /** At most this many. */
 export const RELATED_MAX = 5;
-
-// Labels repeat across thousands of editions: each is worked out once.
-const keys = new Map<string, string>();
-
-/** A topic label as compared: "Investment & budgets" → "investment and budgets". */
-export function topicKey(topic: string): string {
-  let key = keys.get(topic);
-  if (key === undefined) {
-    key = fold(topic).replace(/&/g, ' and ').replace(/[-_/]+/g, ' ').replace(/\s+/g, ' ').trim();
-    keys.set(topic, key);
-  }
-  return key;
-}
 
 export type TopicIndex = Map<string, Edition[]>;
 
@@ -30,8 +21,7 @@ export type TopicIndex = Map<string, Edition[]>;
 export function topicIndex(editions: Edition[]): TopicIndex {
   const index: TopicIndex = new Map();
   for (const e of editions) {
-    for (const key of new Set(e.topics.map(topicKey))) {
-      if (!key) continue;
+    for (const key of new Set(e.topics.flatMap(topicKeys))) {
       const list = index.get(key);
       if (list) list.push(e); else index.set(key, [e]);
     }
@@ -49,13 +39,15 @@ export function relatedTo(edition: Edition, index: TopicIndex, max = RELATED_MAX
   const found = new Map<string, Related>();
   const seen = new Set<string>();
   for (const topic of edition.topics) {
-    const key = topicKey(topic);
-    if (!key || seen.has(key)) continue;
-    seen.add(key);
-    for (const other of index.get(key) ?? []) {
-      if (other.driveFileId === edition.driveFileId) continue;
-      const r = found.get(other.driveFileId);
-      if (r) r.shares.push(topic); else found.set(other.driveFileId, { edition: other, shares: [topic] });
+    for (const key of topicKeys(topic)) {
+      if (seen.has(key)) continue;
+      seen.add(key);
+      for (const other of index.get(key) ?? []) {
+        if (other.driveFileId === edition.driveFileId) continue;
+        const r = found.get(other.driveFileId);
+        if (!r) found.set(other.driveFileId, { edition: other, shares: [topic] });
+        else if (!r.shares.includes(topic)) r.shares.push(topic);
+      }
     }
   }
   const elsewhere = (r: Related) => (r.edition.feedId === edition.feedId ? 1 : 0);
