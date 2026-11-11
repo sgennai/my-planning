@@ -796,6 +796,9 @@
   line-height: var(--lh-snug);
 }
 .intel-today-status { align-self: flex-start; color: var(--ink-3); }
+/* ChatGPT's own message, left out of the edition (artifacts.ts). */
+.intel-aside { margin: var(--sp-4) 0 0; color: var(--ink-3); font-size: var(--t-meta); font-style: italic; line-height: var(--lh-snug); }
+.intel-hero .intel-aside { margin: 0; }
 
 .intel-health-sheet .ds-modal-body { display: flex; flex-direction: column; gap: var(--sp-6); }
 .intel-health h3 { font-size: var(--t-card); margin-bottom: var(--sp-2); }

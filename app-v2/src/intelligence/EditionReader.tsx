@@ -17,6 +17,7 @@ import { findSaved, type SaveInput, type SavedInsight } from './saved';
 import type { ReadingIndex } from './reading';
 import { noticeOf, type EditionFlag } from './conformance';
 import type { Related } from './related';
+import { asideNote } from './artifacts';
 import { formatDayAnchor, dayNameShort, formatDayCompact } from '../routine/dates';
 import { IconExternal, IconCopy, IconCheck, IconBookmark, IconChevronDown } from '../ui/icons';
 
@@ -588,6 +589,7 @@ function Reader({
             )}
           </p>
           {notices.map(n => <p key={n} className="intel-notice" role="note">{n}</p>)}
+          {edition.setAside.filter(a => a.where === 'start').map(a => <p key={a.kind} className="intel-aside" role="note">{asideNote(a)}</p>)}
         </header>
 
         {indexed.length > 1 && (
@@ -632,6 +634,7 @@ function Reader({
         ))}
         </FoldsContext.Provider>
         <div ref={endRef} aria-hidden="true" />
+        {edition.setAside.filter(a => a.where === 'end').map(a => <p key={a.kind} className="intel-aside" role="note">{asideNote(a)}</p>)}
         {related.length > 0 && <RelatedEditions items={related} onOpen={onOpenRelated} />}
 
         {selection && onToggleSave && (

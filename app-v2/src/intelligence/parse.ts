@@ -5,12 +5,15 @@
 // title, topics), then the briefing, untouched. The header is never shown.
 // When it is missing or wrong, the filename (`YYYY-MM-DD_HHmm__<type>`) and
 // Drive's own dates stand in, and `issues` says so: nothing is invented, and
-// the edition still reads. The body is kept exactly as written. An optional
+// the edition still reads. The body is kept exactly as written, but for
+// ChatGPT's own messages that came into a few imported editions
+// (`artifacts.ts`), which are set aside and named. An optional
 // `origin` says whether a scheduled run published it or it was imported by
 // hand; without it, nobody knows, and the edition says nothing either way.
 import { load, CORE_SCHEMA } from 'js-yaml';
 import { TZ, isValidDayKey, dayKeyOf, type DayKey } from '../routine/dates';
 import { feedById, type FeedId } from './feeds';
+import { setAside, type SetAside } from './artifacts';
 
 /** What the server sends for a document in a feed folder. */
 export interface DriveFile {
@@ -32,8 +35,10 @@ export interface Edition {
   /** The run's time in Paris, `HH:mm`, from the header or the filename. */
   time: string | null;
   topics: string[];
-  /** Everything after the header, as written. */
+  /** Everything after the header, as written, less ChatGPT's own messages (`setAside`). */
   markdownBody: string;
+  /** ChatGPT's own messages left out of `markdownBody`; the original keeps them. */
+  setAside: SetAside[];
   /** The private Google Doc. */
   sourceUrl: string;
   modifiedTime: string;
@@ -92,7 +97,8 @@ export function parseEdition(feedId: FeedId, file: DriveFile, rawText: string): 
   // Google's plain-text export starts with a byte-order mark and ends lines
   // with CRLF.
   const text = rawText.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').replace(/^(?:[ \t]*\n)+/, '');
-  const { values, body, problem } = splitHeader(text);
+  const { values, body: written, problem } = splitHeader(text);
+  const { body, aside } = setAside(written);
   if (problem) issues.push(problem);
   const h = values || {};
   const named = FILENAME.exec(file.name.trim());
@@ -154,6 +160,7 @@ export function parseEdition(feedId: FeedId, file: DriveFile, rawText: string): 
     time: clock ? clock.slice(0, 5) : null,
     topics,
     markdownBody: body,
+    setAside: aside,
     sourceUrl: file.webViewLink || `https://docs.google.com/document/d/${file.id}/edit`,
     modifiedTime: file.modifiedTime,
     issues,
