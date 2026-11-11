@@ -211,7 +211,8 @@ const headerField = (text: string, field: string) => {
   const m = new RegExp(`^${field}:\\s*"?([^"\\n]*)"?\\s*$`, 'm').exec(head);
   return m ? m[1] : null;
 };
-const bodyOfDocument = (text: string) => {
+/** A document's body: its plain-text export after the YAML header. */
+export const bodyOfDocument = (text: string) => {
   const t = text.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
   const close = /\n---[ \t]*\n/.exec(t.slice(3));
   return t.startsWith('---') && close ? t.slice(3 + close.index + close[0].length) : t;

@@ -327,7 +327,15 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   back to the filename (`YYYY-MM-DD_HHmm__<type>`) and Drive's dates and are listed in
   `issues` (logged as `[intel]`), never invented. The body is kept as written; `splitSections`
   cuts it at its shallowest heading level. Order: `edition_date`, then the Paris time of
-  `generated_at`; never `modifiedTime`.
+  `generated_at`; never `modifiedTime`. Two exceptions, words never changed and Drive untouched:
+  ChatGPT's own messages in imported editions (INT-47, `artifacts.ts`: its set-up confirmation
+  before the first heading, its "keep it running?" question or pause note as the last paragraph,
+  exact sentences only) are set aside (`Edition.setAside`), the reader saying "Left out here: …";
+  and a brief's labels are laid out as its earlier editions wrote them (INT-48, `layout.ts`: the
+  Sales Brief's "**Relevant executive themes today:**" line and closing sections written as bold
+  lines since 6/8 Nov become their `##` headings; a label line with its text right under it stands
+  apart). Drive stores the 8–11 Nov Sales Briefs as one paragraph with soft breaks; the plain-text
+  export the server reads turns them into lines.
 - **The section** (`IntelligenceScreen.tsx`, lazy-loaded with its own CSS chunk,
   `styles/intelligence.css`): tabs Today · Enterprise AI · AI Challenge · Customer Engagement ·
   Takeaways (a dot on a feed with something new, the count on Takeaways; the row scrolls and
@@ -415,6 +423,15 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   `sources.test.tsx` checks every link arrives exactly as written. Test fixtures for both briefs
   (`test-fixtures.ts`) copy the real structure with made-up words: real briefing text stays out of
   the repo.
+- **Publication integrity** (INT-45; contract `SUPPORTING FILES/intelligence-publication-integrity-contract.md`):
+  the task's ChatGPT reply is the authority, the Drive Doc its archive. `fidelity.ts` (pure)
+  compares the two, setting aside what the contract allows (header, receipt, ChatGPT's messages,
+  its `utm_source` tag and source chips, formatting, case, punctuation) and naming changed, missing
+  or added words with their section, sections, and source addresses. Run by hand:
+  `scripts/fidelity.check.test.ts` (env `FIDELITY_EXTRACT` from the console script,
+  `FIDELITY_DRIVE`, `FIDELITY_FEED`, `FIDELITY_OUT`, optional `FIDELITY_STRICT`), pairing documents
+  to replies by `source_message` or the same run. The task prompts are ChatGPT's: amendments go in
+  `SUPPORTING FILES/chatgpt-task-amendments-2026-11-11.md`, never applied from here.
 - **Large archive** (INT-32, measured with 300 and 1,000 generated editions per feed): each
   feed's documents are read from the database once a visit to the section (index `feedId`) and
   parsed once, so an edition stays the same object while its document is unchanged and
@@ -468,7 +485,10 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
 - **Related by topic** (INT-42, D14; `related.ts`, `RelatedEditions` in `EditionReader.tsx`): after
   an edition's last section, up to 5 editions listing a topic it lists: header topics only (no
   vendors, no guessing), labels compared without case, accents, hyphens or "&" (`topicKey`, cached
-  per label). Other feeds first, then most shared, then newest; each row says "Shares: …" in this
+  per label), and historical labels as the canonical topics they name (INT-46, `topics.ts`: the 27
+  of the Enterprise AI topic map are canonical; `TOPIC_ALIASES` maps the Sales Brief's old long
+  labels and a few own words, a composite to each topic it names, nothing by guess; `topicKeys`).
+  Labels stay as written everywhere else, search filter included. Other feeds first, then most shared, then newest; each row says "Shares: …" in this
   edition's words and opens the edition. Nothing shows when nothing is shared. The index
   (`topicIndex`) is built in `IntelligenceScreen` from every edition on the device. Reading
   progress ends at the briefing's own end (a marker before Related, with the reader's bottom
@@ -593,7 +613,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (429 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (455 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris
