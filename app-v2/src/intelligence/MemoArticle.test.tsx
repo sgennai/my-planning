@@ -131,15 +131,15 @@ describe('saving from the memo', () => {
     expect(screen.getByRole('button', { name: 'Save opening question' })).toHaveAttribute('aria-pressed', 'false');
   });
 
-  it('terms, the conversation line, a section and the edition still save, quietly', () => {
+  it('terms, the conversation line and the edition save, quietly; no save in the sections\u2019 margin', () => {
     const onToggleSave = vi.fn();
     memo({ onToggleSave });
     fireEvent.click(screen.getByRole('button', { name: 'Save the term Agent sprawl' }));
     expect(onToggleSave).toHaveBeenLastCalledWith(expect.objectContaining({ kind: 'term', label: 'Agent sprawl', text: 'Uncontrolled growth in the number of AI agents.' }));
     fireEvent.click(screen.getByRole('button', { name: 'Save the line use it in a conversation' }));
     expect(onToggleSave).toHaveBeenLastCalledWith(expect.objectContaining({ kind: 'labelled', label: 'Use it in a conversation' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Save the section Business impact to Takeaways' }));
-    expect(onToggleSave).toHaveBeenLastCalledWith(expect.objectContaining({ kind: 'section', sectionId: 'business-impact' }));
+    expect(screen.queryByRole('button', { name: /^Save the section/ })).toBeNull();
+    expect(document.querySelector('.memo-index button')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Save this edition' }));
     expect(onToggleSave).toHaveBeenLastCalledWith({ kind: 'edition', text: 'Agent Sprawl: Who Owns the Bots?' });
   });

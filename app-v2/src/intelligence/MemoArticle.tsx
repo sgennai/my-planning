@@ -15,7 +15,6 @@ import { feedById } from './feeds';
 import { useEditionActions } from './context';
 import { asideNote } from './artifacts';
 import { memoOrder, memoTopics, challengeLead, memoDate, barDate, shortDate, two, TOPICS_SHOWN } from './memo';
-import { shortTitle } from './present';
 
 /** Related editions shown before "Show more", and how many more each time. */
 const RELATED_FIRST = 5;
@@ -40,7 +39,7 @@ function MemoSave({ input, name, quiet = false }: { input: SaveInput; name: stri
     return (
       <button
         type="button"
-        className="memo-sec-save"
+        className="memo-mark"
         aria-pressed={saved}
         aria-label={saved ? `Remove saved ${name}` : `Save ${name}`}
         title={saved ? 'Saved to Takeaways' : 'Save to Takeaways'}
@@ -57,24 +56,6 @@ function MemoSave({ input, name, quiet = false }: { input: SaveInput; name: stri
       title={saved ? 'Saved to Takeaways' : 'Save to Takeaways'}
       onClick={() => toggleSave(input)}
     ><Bookmark /><span>{saved ? 'Saved' : 'Save'}</span></button>
-  );
-}
-
-/** The whole section to Takeaways: quiet, in the margin. */
-function SectionSave({ section }: { section: Section }) {
-  const { savedItem, toggleSave } = useEditionActions();
-  const input: SaveInput = { kind: 'section', sectionId: section.id, sectionTitle: section.title, text: section.markdown };
-  const saved = !!savedItem(input);
-  const name = shortTitle(section.title);
-  return (
-    <button
-      type="button"
-      className="memo-sec-save"
-      aria-pressed={saved}
-      aria-label={saved ? `${name}: saved to Takeaways. Remove` : `Save the section ${name} to Takeaways`}
-      title={saved ? 'Section saved to Takeaways' : 'Save this section'}
-      onClick={() => toggleSave(input)}
-    ><Bookmark /></button>
   );
 }
 
@@ -251,7 +232,6 @@ export function MemoArticle({
                 <div className="memo-index">
                   {index && <span className="memo-idx" aria-hidden>{index}</span>}
                   {s.title && <h2 className="memo-idx-label"><Markdown inline heading>{s.title}</Markdown></h2>}
-                  {!plain && onToggleEditionSave && <SectionSave section={s} />}
                 </div>
                 <div className="memo-body"><Body section={s} p={s === challenge ? undefined : presented.get(s.id)} markdown={markdown} /></div>
               </section>

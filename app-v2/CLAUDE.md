@@ -362,7 +362,8 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   questions with Save, vocabulary with a quiet save, "Use it in a conversation" with Save), or
   as its Markdown; the topic map moved to a fold at the end (`memoOrder`), "Related by topic"
   a second fold under it (all of `relatedTo`, 5 then "Show more"); the footer, then quiet tools
-  (Mark as read, Save this edition, Open original). Section saving is a quiet mark in the margin.
+  (Mark as read, Save this edition, Open original). No save in the sections' margin (the user's
+  choice, 12 Nov): a whole section is kept by selecting its text, or in the briefs.
   The history (`MemoHistory`): shut by default, over the Intelligence area, every edition by
   month with a search, the one read marked, "New" and problem labels (not "Imported", which the
   memo's subline says), Feed status at its foot; Escape, its close button or a tap outside shut

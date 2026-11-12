@@ -171,7 +171,7 @@ describe('the Intelligence section', () => {
   it('a saved item leads back to its edition', async () => {
     render(<App />);
     await openChallenge();
-    fireEvent.click(screen.getByRole('button', { name: 'Save the section Business impact to Takeaways' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save the term Agent sprawl' }));
     fireEvent.click(screen.getByRole('tab', { name: /Takeaways/ }));
     fireEvent.click(screen.getByRole('button', { name: /AI Challenge · Mon 2 Nov · Agent Sprawl/ }));
     expect(screen.getByRole('heading', { level: 1, name: 'Agent Sprawl: Who Owns the Bots?' })).toBeInTheDocument();
