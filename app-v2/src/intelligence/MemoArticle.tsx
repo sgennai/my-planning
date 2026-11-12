@@ -1,6 +1,6 @@
 // The AI Challenge as an executive memo (INT-50), after the approved
-// prototype: a quiet bar (history, the run's date and time, a 2px reading
-// line), the title, the edition's relevant topics, its one-sentence
+// prototype: a quiet bar (history, the run's date and time between the
+// older and newer editions' chevrons, a 2px reading line), the title, the edition's relevant topics, its one-sentence
 // challenge, then each section numbered in the margin, and at the end the
 // topic map and the related editions, both folded. Every word of the document
 // is here, in its order; only the topic map moves to the end (`memo.ts`).
@@ -56,6 +56,25 @@ function MemoSave({ input, name, quiet = false }: { input: SaveInput; name: stri
       title={saved ? 'Saved to Takeaways' : 'Save to Takeaways'}
       onClick={() => toggleSave(input)}
     ><Bookmark /><span>{saved ? 'Saved' : 'Save'}</span></button>
+  );
+}
+
+/** The bar's chevron to the older or the newer edition; faded where there is none. */
+function Step({ to, newer, onOpen }: { to: Edition | null; newer: boolean; onOpen?: (e: Edition) => void }) {
+  const which = newer ? 'Next edition' : 'Previous edition';
+  return (
+    <button
+      type="button"
+      className="memo-step"
+      disabled={!to}
+      aria-label={to ? `${which}: ${shortDate(to.editionDate)}, ${to.title}` : `${which}: none`}
+      title={to ? `${which}: ${shortDate(to.editionDate)}` : undefined}
+      onClick={() => to && onOpen?.(to)}
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d={newer ? 'M9 6l6 6-6 6' : 'M15 6l-6 6 6 6'} />
+      </svg>
+    </button>
   );
 }
 
@@ -159,6 +178,9 @@ export interface MemoProps {
   articleRef: RefObject<HTMLElement | null>;
   onHistory?: () => void;
   historyOpen?: boolean;
+  /** The editions either side of this one in the feed (newest first), for the bar's chevrons. */
+  adjacent?: { older: Edition | null; newer: Edition | null };
+  onOpenAdjacent?: (e: Edition) => void;
   related: Related[];
   onOpenRelated?: (e: Edition) => void;
   read: boolean;
@@ -171,7 +193,7 @@ export interface MemoProps {
 
 export function MemoArticle({
   edition, sections, presented, minutes, barRef, fillRef, endRef, articleRef, onHistory, historyOpen = false,
-  related, onOpenRelated, read, editionSaved, onToggleRead, onToggleEditionSave, notices, imported,
+  adjacent, onOpenAdjacent, related, onOpenRelated, read, editionSaved, onToggleRead, onToggleEditionSave, notices, imported,
 }: MemoProps) {
   const { body, map } = memoOrder(sections);
   const mapForm = map ? presented.get(map.id) : undefined;
@@ -201,7 +223,11 @@ export function MemoArticle({
           )}
           <span className="memo-brand-text">AI Challenge</span>
         </div>
-        <span className="memo-bar-date">{barDate(edition.editionDate, edition.time)}</span>
+        <div className="memo-bar-right">
+          {adjacent && <Step to={adjacent.older} newer={false} onOpen={onOpenAdjacent} />}
+          <span className="memo-bar-date">{barDate(edition.editionDate, edition.time)}</span>
+          {adjacent && <Step to={adjacent.newer} newer onOpen={onOpenAdjacent} />}
+        </div>
         <div className="memo-track" aria-hidden><div className="memo-fill" ref={fillRef} /></div>
       </header>
 

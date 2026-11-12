@@ -703,6 +703,17 @@ describe('imported editions are the archive, never unread (INT-34)', () => {
     };
   });
 
+  it('the memo\u2019s chevrons step to the older edition and back to the newer', async () => {
+    render(<App />);
+    await openChallenge();
+    expect(screen.getByRole('button', { name: 'Next edition: none' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Previous edition: Thu 1 Oct, An Archived Challenge' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'An Archived Challenge' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Previous edition: none' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Next edition: Mon 2 Nov, Agent Sprawl: Who Owns the Bots?' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Agent Sprawl: Who Owns the Bots?' })).toBeInTheDocument();
+  });
+
   it('is listed and labelled, but counted in no unread list, count or dot', async () => {
     render(<App />);
     await screen.findByRole('heading', { level: 2, name: 'Agent Sprawl: Who Owns the Bots?' });

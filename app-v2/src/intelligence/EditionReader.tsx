@@ -288,6 +288,9 @@ interface Props {
   /** The memo's history (AI Challenge): opens it, and whether it is open. */
   onHistory?: () => void;
   historyOpen?: boolean;
+  /** The memo's chevrons: the editions either side of this one. */
+  adjacent?: { older: Edition | null; newer: Edition | null };
+  onOpenAdjacent?: (edition: Edition) => void;
 }
 
 /** Other editions listing a topic this one lists: a reason to look, saying which topics. */
@@ -314,7 +317,7 @@ function RelatedEditions({ items, onOpen }: { items: Related[]; onOpen?: (e: Edi
 
 function Reader({
   edition, scroller, onNote, heroActions = true, reading, saved = [], onToggleRead, onToggleSave, onPosition, startAt, flags = [],
-  related = [], onOpenRelated, onHistory, historyOpen,
+  related = [], onOpenRelated, onHistory, historyOpen, adjacent, onOpenAdjacent,
 }: Props) {
   const memo = edition.feedId === 'enterprise-ai-challenge';
   // Where the briefing ends, before what follows it (Related): reading to here is reading it all.
@@ -509,6 +512,8 @@ function Reader({
           articleRef={articleRef}
           onHistory={onHistory}
           historyOpen={historyOpen}
+          adjacent={adjacent}
+          onOpenAdjacent={onOpenAdjacent}
           related={related}
           onOpenRelated={onOpenRelated}
           read={!!record?.readAt}

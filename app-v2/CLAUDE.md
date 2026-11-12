@@ -354,7 +354,9 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   `EditionReader` draws it for the AI Challenge, sharing the reader's place, progress, resume,
   selection-save and Takeaways (`EditionActionsContext`). A sticky 76px bar (`data-sticky`, which
   `useReadingAnchor` reads like the briefs' index): history menu, "AI Challenge", the run's
-  date and time; along its foot a 2px reading line, the same measure as `onPosition` (to the
+  date and time between two quiet chevrons to the older and newer edition (`adjacent`, from the
+  feed's newest-first order; faded at an end; the date hidden on a phone, the chevrons kept);
+  along its foot a 2px reading line, the same measure as `onPosition` (to the
   briefing's own end) painted on scroll and on resize. Then the edition's own relevant topics,
   three and "+n topics" (`memoTopics`: the document's line, else the header); the Challenge's
   bold sentence "In one sentence" (`challengeLead`), its rest section 01; every other section
@@ -637,7 +639,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (476 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (478 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris

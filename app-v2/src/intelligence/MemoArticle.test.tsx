@@ -160,6 +160,18 @@ describe('the memo’s history and related editions', () => {
     expect(onHistory).toHaveBeenCalled();
   });
 
+  it('the chevrons either side of the date open the older and the newer edition; none, faded, at an end', () => {
+    const onOpenAdjacent = vi.fn();
+    const older = other(1).edition;
+    memo({ adjacent: { older, newer: null }, onOpenAdjacent });
+    const previous = screen.getByRole('button', { name: 'Previous edition: Sun 11 Oct, Related 1' });
+    fireEvent.click(previous);
+    expect(onOpenAdjacent).toHaveBeenCalledWith(older);
+    expect(screen.getByRole('button', { name: 'Next edition: none' })).toBeDisabled();
+    // The date sits between them.
+    expect([...document.querySelector('.memo-bar-right')!.children].map(c => c.className)).toEqual(['memo-step', 'memo-bar-date', 'memo-step']);
+  });
+
   it('related editions are folded under the topic map, a few at a time, each opening its edition', () => {
     const onOpenRelated = vi.fn();
     const related = [other(1, 'customer-engagement-brief'), ...Array.from({ length: 11 }, (_, i) => other(i + 2))];

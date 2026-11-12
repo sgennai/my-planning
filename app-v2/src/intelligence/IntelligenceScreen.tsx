@@ -242,6 +242,12 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   const memo = feedId === 'enterprise-ai-challenge';
   // The memo lists every related edition, a few at a time; the other readers the first few.
   const related = useMemo(() => (edition ? relatedTo(edition, topics, memo ? Infinity : undefined) : []), [edition, topics, memo]);
+  // The memo's chevrons: the editions either side of this one, newest first as the feed keeps them.
+  const adjacent = useMemo(() => {
+    if (!memo || !edition) return undefined;
+    const at = editions.indexOf(edition);
+    return { older: editions[at + 1] ?? null, newer: at > 0 ? editions[at - 1] : null };
+  }, [memo, edition, editions]);
 
   const loading = feedId ? !editions.length && !refreshed[feedId] && state?.status !== 'not-configured' : false;
   const drawerOpen = drawer && mode === 'drawer' && !!feedId && !memo;
@@ -516,6 +522,8 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
       onOpenRelated={e => openEdition(e)}
       onHistory={memo ? () => setHistory(true) : undefined}
       historyOpen={historyOpen}
+      adjacent={adjacent}
+      onOpenAdjacent={e => choose(e)}
     />
   );
   const memoHistory = memo && editions.length > 0 && (
