@@ -7,6 +7,7 @@ import { render, fireEvent } from '@testing-library/react';
 import { laidOut } from './layout';
 import { parseEdition, splitSections } from './parse';
 import { presentBrief } from './briefs';
+import { presentSection } from './present';
 import { EditionReader } from './EditionReader';
 import { SALES_BODY, ENGAGEMENT_BODY, CHALLENGE_BODY, SALES_FILE, wordsOf } from './test-fixtures';
 
@@ -80,8 +81,14 @@ describe('the Sales Brief’s newer layout', () => {
   it('leaves the earlier layouts, the Engagement Brief and the AI Challenge as written', () => {
     expect(laidOut('enterprise-ai-sales-brief', SALES_BODY)).toBe(SALES_BODY);
     expect(laidOut('customer-engagement-brief', ENGAGEMENT_BODY)).toBe(ENGAGEMENT_BODY);
-    expect(laidOut('enterprise-ai-challenge', NEWER)).toBe(NEWER);
     expect(laidOut('enterprise-ai-challenge', CHALLENGE_BODY)).toBe(CHALLENGE_BODY);
+  });
+
+  it('the AI Challenge: a label right above its text stands apart; nothing else of the brief\u2019s rules', () => {
+    const tight = '## 3 approaches\n\n**1. Keep a register**\nRecord every agent.\n\n**2. Retire orphans**\nSwitch them off.\n\n## Executive discovery questions\n\n**Opening question:**\n"How many agents?"\n\n**What I should remember today**\n- One.';
+    expect(laidOut('enterprise-ai-challenge', tight)).toBe('## 3 approaches\n\n**1. Keep a register**\n\nRecord every agent.\n\n**2. Retire orphans**\n\nSwitch them off.\n\n## Executive discovery questions\n\n**Opening question:**\n\n"How many agents?"\n\n**What I should remember today**\n\n- One.');
+    const challenge = parseEdition('enterprise-ai-challenge', { ...SALES_FILE, name: '2026-09-06_0818__enterprise-ai-challenge' }, `---\nschema_version: 1\ncontent_type: "enterprise-ai-challenge"\nedition_date: "2026-09-06"\ngenerated_at: "2026-09-06T08:18:00+02:00"\ntitle: "T"\ntopics: []\n---\n\n${tight}\n`);
+    expect(splitSections(challenge.markdownBody).map(sec => presentSection('enterprise-ai-challenge', sec).kind)).toEqual(['numbered', 'questions']);
   });
 
   it('turns only a whole bold line into a heading, and only the brief’s own closing names', () => {

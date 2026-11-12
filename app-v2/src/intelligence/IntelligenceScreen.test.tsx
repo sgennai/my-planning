@@ -56,6 +56,16 @@ const openChallenge = async () => {
   fireEvent.click(await screen.findByRole('tab', { name: /AI Challenge/ }));
   return screen.findByRole('heading', { level: 1, name: 'Agent Sprawl: Who Owns the Bots?' });
 };
+/** The AI Challenge memo's history drawer, opened from its bar. */
+const openHistory = () => {
+  fireEvent.click(screen.getByRole('button', { name: 'Open challenge history' }));
+  return screen.getByRole('dialog', { name: 'Edition history' });
+};
+/** A Customer Engagement edition, for the list and drawer the briefs keep. */
+const withEngagement = () => {
+  otherFeeds['customer-engagement-brief'] = [{ ...ENGAGEMENT_FILE, createdTime: '2026-01-02T07:00:00.000Z', modifiedTime: '2026-01-02T07:00:05.000Z' }];
+  texts[ENGAGEMENT_FILE.id] = ENGAGEMENT_DOC;
+};
 
 beforeEach(async () => {
   // Monday 2 November, 07:00 in Paris: before any scheduled run is due, so
@@ -90,12 +100,25 @@ describe('the Intelligence section', () => {
     expect(screen.getByRole('tab', { name: /AI Challenge/ })).toHaveAttribute('aria-selected', 'true');
   });
 
-  it('lists the edition, unread, in its feed', async () => {
+  it('the AI Challenge opens as its memo, its history in a drawer listing the edition, new', async () => {
     render(<App />);
     await openChallenge();
-    const listed = screen.getByRole('button', { name: /Mon 2 Nov · 08:20/ });
+    expect(screen.queryByRole('complementary', { name: 'Editions' })).toBeNull();
+    const history = openHistory();
+    expect(within(history).getByText('1 edition, November 2026.')).toBeInTheDocument();
+    expect(within(history).getByText('November 2026')).toBeInTheDocument();
+    const listed = within(history).getByRole('button', { name: /Mon 2 Nov · 08:20/ });
+    expect(listed).toHaveAttribute('aria-current', 'page');
+    expect(listed).toHaveAccessibleName(/^Mon 2 Nov · 08:20,\s*New\s*Agent Sprawl/);
+  });
+
+  it('a brief keeps its list of editions, unread marked', async () => {
+    withEngagement();
+    render(<App />);
+    fireEvent.click(await screen.findByRole('tab', { name: /Customer Engagement/ }));
+    const listed = await within(screen.getByRole('complementary', { name: 'Editions' })).findByRole('button', { name: /Mon 2 Nov · 08:00/ });
     expect(listed).toHaveAttribute('aria-current', 'true');
-    expect(listed).toHaveAccessibleName(/^Unread,\s*Mon 2 Nov · 08:20/);
+    expect(listed).toHaveAccessibleName(/^Unread,\s*Mon 2 Nov · 08:00/);
   });
 
   it('Mark as read is kept in the synced data, and undone the same way', async () => {
@@ -103,16 +126,17 @@ describe('the Intelligence section', () => {
     await openChallenge();
     fireEvent.click(screen.getByRole('button', { name: 'Mark as read' }));
     expect(readingIndex(latest.progressLog).get(CHALLENGE_FILE.id)?.readAt).toBeTruthy();
-    expect(screen.getByRole('button', { name: /Mon 2 Nov/ })).toHaveAccessibleName(/^Mon 2 Nov · 08:20.*, read$/);
-    fireEvent.click(screen.getByRole('button', { name: 'Read. Mark as unread' }));
+    expect(within(openHistory()).getByRole('button', { name: /Mon 2 Nov/ })).not.toHaveTextContent('New');
+    fireEvent.keyDown(window, { key: 'Escape' });
+    fireEvent.click(screen.getByRole('button', { name: 'Read · Mark as unread' }));
     expect(readingIndex(latest.progressLog).get(CHALLENGE_FILE.id)?.readAt).toBeNull();
   });
 
   it('saves a question to Takeaways with where it came from, and finds it again', async () => {
     render(<App />);
     await openChallenge();
-    fireEvent.click(screen.getByRole('button', { name: 'Save Opening question to Takeaways' }));
-    expect(screen.getByRole('button', { name: 'Opening question: saved to Takeaways. Remove' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Save opening question' }));
+    expect(screen.getByRole('button', { name: 'Remove saved opening question' })).toHaveAttribute('aria-pressed', 'true');
     const [item] = savedOf(latest.content);
     expect(item).toMatchObject({ kind: 'labelled', label: 'Opening question', editionTitle: 'Agent Sprawl: Who Owns the Bots?' });
 
@@ -132,7 +156,7 @@ describe('the Intelligence section', () => {
   it('removing from Takeaways asks first', async () => {
     render(<App />);
     await openChallenge();
-    fireEvent.click(screen.getByRole('button', { name: 'Save edition to Takeaways' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save this edition' }));
     fireEvent.click(screen.getByRole('tab', { name: /Takeaways/ }));
     confirmAnswer = false;
     fireEvent.click(screen.getByRole('button', { name: 'Remove Agent Sprawl: Who Owns the Bots? from Takeaways' }));
@@ -197,18 +221,32 @@ describe('the Intelligence section', () => {
     fireEvent.click(screen.getByRole('tab', { name: /AI Challenge/ }));
     expect(await screen.findByRole('heading', { level: 1, name: 'Enterprise AI Challenge' })).toBeInTheDocument();
     expect(screen.getByText('The header went missing.')).toBeInTheDocument();
-    expect(screen.getByText(/Monday 2 November · 08:20/)).toBeInTheDocument();
+    expect(screen.getByText('Mon 2 Nov 2026 · 08:20')).toBeInTheDocument();
   });
 
-  it('on a phone, the list first, then the edition with its actions in the top bar, and back', async () => {
+  it('on a phone, the AI Challenge is its memo, the tabs above it, its history a tap away', async () => {
     phone = true;
     render(<App />);
     fireEvent.click(screen.getByRole('tab', { name: /AI Challenge/ }));
-    fireEvent.click(await screen.findByRole('button', { name: /Mon 2 Nov · 08:20/ }));
-    expect(screen.getByRole('heading', { level: 1, name: 'Agent Sprawl: Who Owns the Bots?' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Agent Sprawl: Who Owns the Bots?' })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Mark as read' })).toHaveLength(1);
+    expect(screen.getByRole('tab', { name: 'Today' })).toBeInTheDocument();
+    const history = openHistory();
+    expect(history).toHaveClass('is-open');
+    fireEvent.click(within(history).getByRole('button', { name: /Mon 2 Nov · 08:20/ }));
+    expect(history).not.toHaveClass('is-open');
+  });
+
+  it('on a phone, a brief\u2019s list first, then the edition with its actions in the top bar, and back', async () => {
+    phone = true;
+    withEngagement();
+    render(<App />);
+    fireEvent.click(screen.getByRole('tab', { name: /Customer Engagement/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /Mon 2 Nov · 08:00/ }));
+    expect(screen.getByRole('heading', { level: 1, name: 'Connected Agents and Headless CDPs' })).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'Mark as read' })).toHaveLength(1);
     fireEvent.click(screen.getByRole('button', { name: 'Back to editions' }));
-    expect(screen.getByRole('button', { name: /Mon 2 Nov · 08:20/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Mon 2 Nov · 08:00/ })).toBeInTheDocument();
   });
 });
 
@@ -224,7 +262,8 @@ describe('what the app says about the documents (conformance)', () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     await openFeed();
     expect(screen.getByRole('note')).toHaveTextContent("doesn't follow the publication format (no generated_at)");
-    expect(within(screen.getByRole('button', { name: /Mon 2 Nov/ })).getByText('Format issue')).toBeInTheDocument();
+    expect(within(within(openHistory()).getByRole('button', { name: /Mon 2 Nov/ })).getByText('Format issue')).toBeInTheDocument();
+    fireEvent.keyDown(window, { key: 'Escape' });
     expect(screen.getByText('1 document in this feed needs a look.')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Details' }));
     const sheet = screen.getByRole('dialog', { name: 'Feed status' });
@@ -236,7 +275,7 @@ describe('what the app says about the documents (conformance)', () => {
   it('two documents with the same name: both kept, both labelled, a warning', async () => {
     files = [files[0], { ...files[0], id: '1SecondCopy00000000000000' }];
     await openFeed();
-    expect(screen.getAllByText('Duplicate')).toHaveLength(2);
+    expect(within(openHistory()).getAllByText('Duplicate')).toHaveLength(2);
     expect(screen.getByText('2 documents in this feed need a look.')).toBeInTheDocument();
     expect(screen.getAllByRole('note')[0]).toHaveTextContent('2 documents in this feed have the same name. All of them are kept.');
   });
@@ -250,7 +289,8 @@ describe('what the app says about the documents (conformance)', () => {
     await screen.findByRole('heading', { level: 1 });
     expect(screen.queryByRole('note')).toBeNull();
     expect(screen.queryByText(/needs a look/)).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: 'Feed status' }));
+    expect(screen.getByText(/The executive memo/)).toHaveTextContent('Imported');
+    fireEvent.click(within(openHistory()).getByRole('button', { name: 'Feed status' }));
     expect(within(screen.getByRole('dialog')).getByText('Mon 2 Nov · 08:20, imported')).toBeInTheDocument();
   });
 
@@ -259,14 +299,14 @@ describe('what the app says about the documents (conformance)', () => {
     docText = '';
     await openFeed();
     expect(screen.getByText('An edition is still being written. It is checked again on each refresh.')).toBeInTheDocument();
-    expect(screen.getAllByText('Being written').length).toBeGreaterThan(0);
+    expect(within(openHistory()).getAllByText('Being written').length).toBeGreaterThan(0);
     expect(screen.queryByText('Incomplete')).toBeNull();
   });
 
   it('once the grace period has passed, an empty document is incomplete', async () => {
     docText = '';
     await openFeed();
-    expect(screen.getByText('Incomplete')).toBeInTheDocument();
+    expect(within(openHistory()).getByText('Incomplete')).toBeInTheDocument();
     expect(screen.getAllByRole('note').map(n => n.textContent).join(' ')).toContain('has no briefing text');
   });
 
@@ -462,10 +502,31 @@ describe('with a keyboard and a screen reader (INT-33)', () => {
     expect(document.activeElement).toBe(opener);
   });
 
-  it('on an iPad in portrait, the Editions drawer opens on the edition being read, and gives focus back', async () => {
+  it('the memo\u2019s history opens on the edition being read, and gives focus back on Escape, its close button or a tap outside', async () => {
     portrait = true;
     render(<App />);
     await openChallenge();
+    expect(screen.queryByRole('button', { name: 'Editions' })).toBeNull();
+    const opener = screen.getByRole('button', { name: 'Open challenge history' });
+    expect(opener).toHaveAttribute('aria-expanded', 'false');
+    opener.focus();
+    fireEvent.click(opener);
+    expect(opener).toHaveAttribute('aria-expanded', 'true');
+    expect(document.activeElement).toHaveAttribute('aria-current', 'page');
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(document.activeElement).toBe(opener);
+    fireEvent.click(opener);
+    fireEvent.click(screen.getByRole('button', { name: 'Close history' }));
+    expect(document.activeElement).toBe(opener);
+    expect(opener).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('on an iPad in portrait, a brief\u2019s Editions drawer opens on the edition being read, and gives focus back', async () => {
+    portrait = true;
+    withEngagement();
+    render(<App />);
+    fireEvent.click(await screen.findByRole('tab', { name: /Customer Engagement/ }));
+    await screen.findByRole('heading', { level: 1, name: 'Connected Agents and Headless CDPs' });
     const opener = screen.getByRole('button', { name: 'Editions' });
     opener.focus();
     fireEvent.click(opener);
@@ -609,19 +670,25 @@ describe('Related by topic (INT-42)', () => {
     render(<App />);
     await screen.findByRole('heading', { level: 2, name: 'Connected Agents and Headless CDPs' });
     await openChallenge();
-    const related = screen.getByRole('region', { name: 'Related by topic' });
-    const row = within(related).getByRole('button', { name: /Customer Engagement · Mon 2 Nov/ });
-    expect(row).toHaveTextContent('Connected Agents and Headless CDPs');
-    expect(row).toHaveTextContent('Shares: Agentic AI');
+    // In the memo: a folded row under the topic map.
+    const fold = screen.getByText('Related by topic').closest('details')!;
+    expect(fold).not.toHaveAttribute('open');
+    fireEvent.click(screen.getByText('Related by topic'));
+    const row = within(fold).getByRole('button', { name: /Connected Agents and Headless CDPs/ });
+    expect(row).toHaveTextContent('Mon 2 Nov 2026 · 08:00 · Customer Engagement Brief');
+    expect(row).toHaveTextContent('Shared: Agentic AI');
     fireEvent.click(row);
     expect(screen.getByRole('heading', { level: 1, name: 'Connected Agents and Headless CDPs' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /Customer Engagement/ })).toHaveAttribute('aria-selected', 'true');
+    // A brief keeps its own list at its end, leading back.
+    const back = within(screen.getByRole('region', { name: 'Related by topic' })).getByRole('button', { name: /AI Challenge · Mon 2 Nov/ });
+    expect(back).toHaveTextContent('Shares: Agentic AI');
   });
 
   it('shows nothing when no other edition shares a topic', async () => {
     render(<App />);
     await openChallenge();
-    expect(screen.queryByRole('region', { name: 'Related by topic' })).toBeNull();
+    expect(screen.queryByText('Related by topic')).toBeNull();
   });
 });
 
@@ -645,10 +712,15 @@ describe('imported editions are the archive, never unread (INT-34)', () => {
     expect(within(panel).getByText('Unread').nextElementSibling).toHaveTextContent('AI Challenge 1');
 
     await openChallenge();
-    const archived = within(screen.getByRole('complementary', { name: 'Editions' })).getByRole('button', { name: /Thu 1 Oct/ });
-    expect(archived).toHaveTextContent('Imported');
-    expect(archived).not.toHaveAccessibleName(/Unread/);
+    const history = openHistory();
+    expect(within(history).getByRole('button', { name: /Mon 2 Nov/ })).toHaveTextContent('New');
+    const archived = within(history).getByRole('button', { name: /Thu 1 Oct/ });
+    expect(archived).not.toHaveTextContent(/New|Imported/);
+    fireEvent.click(archived);
+    expect(screen.getByRole('heading', { level: 1, name: 'An Archived Challenge' })).toBeInTheDocument();
+    expect(screen.getByText(/The executive memo/)).toHaveTextContent('1 October 2026 / Imported');
     // Once the scheduled edition is read, nothing in the feed is new.
+    fireEvent.click(within(openHistory()).getByRole('button', { name: /Mon 2 Nov/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Mark as read' }));
     expect(screen.getByRole('tab', { name: /AI Challenge/ })).not.toHaveAccessibleName(/new/);
   });

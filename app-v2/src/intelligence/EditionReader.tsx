@@ -1,6 +1,8 @@
 // One edition at reading size: the run's feed, date and time (Paris), its
 // title and topics, an index of its sections that stays at the top of the
 // reader, then every section of the document in its order and its words.
+// The AI Challenge reads as an executive memo instead (`MemoArticle`), with
+// the same reading place, progress and Takeaways.
 //
 // What you do with it is yours and syncs: how far you have read (reported
 // as you scroll), Mark as read, and Takeaways, where a section, a question,
@@ -8,7 +10,7 @@
 import { Component, createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { Markdown } from './Markdown';
 import { splitSections, type Edition, type Section } from './parse';
-import { presentSection, displayOrder, shortTitle, copyText, readingMinutes, type Presentation, type Term } from './present';
+import { presentSection, displayOrder, shortTitle, copyText, readingMinutes, type Presentation } from './present';
 import type { Development, Part } from './briefs';
 import { feedById } from './feeds';
 import { EditionActionsContext, useEditionActions, type EditionActions } from './context';
@@ -18,6 +20,8 @@ import type { ReadingIndex } from './reading';
 import { noticeOf, type EditionFlag } from './conformance';
 import type { Related } from './related';
 import { asideNote } from './artifacts';
+import { MemoArticle } from './MemoArticle';
+import { memoOrder } from './memo';
 import { formatDayAnchor, dayNameShort, formatDayCompact } from '../routine/dates';
 import { IconExternal, IconCopy, IconCheck, IconBookmark, IconChevronDown } from '../ui/icons';
 
@@ -95,69 +99,6 @@ function SaveButton({ input, name }: { input: SaveInput; name: string }) {
     >
       <IconBookmark /><span>{saved ? 'Saved' : 'Save'}</span>
     </button>
-  );
-}
-
-function TermCard({ term, section }: { term: Term; section: Section }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className={`intel-term${open ? ' is-open' : ''}`}>
-      <button type="button" className="intel-term-face" aria-expanded={open} onClick={() => setOpen(o => !o)}>
-        {term.n && <span className="intel-term-n">{term.n}</span>}
-        <b><Markdown inline>{term.term}</Markdown></b>
-        {open
-          ? <span className="intel-term-def"><Markdown inline>{term.definition}</Markdown></span>
-          : <span className="intel-term-hint">Tap to reveal</span>}
-      </button>
-      {open && (
-        <div className="intel-term-actions">
-          <SaveButton
-            name={term.term}
-            input={{ kind: 'term', sectionId: section.id, sectionTitle: section.title, label: term.term, text: term.definition }}
-          />
-        </div>
-      )}
-    </div>
-  );
-}
-
-/**
- * Today's topics first, under the document's own label; the whole map (often
- * some thirty topics) one tap away, with today's still lit. A map that marks
- * nothing as today's shows whole.
- */
-function TopicMap({ topics, label, highlighted }: { topics: string[]; label: string | null; highlighted: string[] }) {
-  const [whole, setWhole] = useState(false);
-  const on = new Set(highlighted.map(t => t.toLowerCase()));
-  const today = topics.filter(t => on.has(t.toLowerCase()));
-  const cloud = (list: string[]) => (
-    <ul className="intel-cloud">
-      {list.map((t, i) => <li key={`${i}-${t}`} className={on.has(t.toLowerCase()) ? 'on' : undefined}>{t}</li>)}
-    </ul>
-  );
-  if (!today.length) return cloud(topics);
-  return (
-    <>
-      {label && <p className="intel-legend"><i aria-hidden />{label}</p>}
-      {cloud(today)}
-      <button type="button" className="intel-linkbtn" aria-expanded={whole} onClick={() => setWhole(w => !w)}>
-        {whole ? 'Hide the full map' : `All topics (${topics.length})`}
-      </button>
-      {whole && cloud(topics)}
-    </>
-  );
-}
-
-function Labelled({ label, text, section, className }: { label: string; text: string; section: Section; className: string }) {
-  return (
-    <div className={className}>
-      <h3 className="intel-question-label"><Markdown inline>{label}</Markdown></h3>
-      <div className="intel-question-text"><Markdown>{text}</Markdown></div>
-      <div className="intel-question-actions">
-        <CopyButton markdown={text} label={label} />
-        <SaveButton name={label} input={{ kind: 'labelled', sectionId: section.id, sectionTitle: section.title, label, text }} />
-      </div>
-    </div>
   );
 }
 
@@ -285,44 +226,9 @@ function SectionBody({ p, section }: { p: Presentation; section: Section }) {
           <div className="intel-devs">{p.items.map(d => <DevelopmentCard key={d.id} dev={d} />)}</div>
         </>
       );
-    case 'lead':
-      return (
-        <>
-          <p className="intel-lead"><Markdown inline>{p.lead}</Markdown></p>
-          {p.rest && <div className="intel-md"><Markdown>{p.rest}</Markdown></div>}
-        </>
-      );
-    case 'topics':
-      return <TopicMap topics={p.topics} label={p.label} highlighted={p.highlighted} />;
-    case 'numbered':
-      return (
-        <ol className="intel-steps">
-          {p.items.map((item, i) => (
-            <li key={i} className="intel-step">
-              <span className="intel-step-n" aria-hidden>{item.n}</span>
-              <h3><Markdown inline>{item.title}</Markdown></h3>
-              {item.body && <div className="intel-md"><Markdown>{item.body}</Markdown></div>}
-            </li>
-          ))}
-        </ol>
-      );
-    case 'quotes':
-      return <div className="intel-md intel-quotes"><Markdown>{p.markdown}</Markdown></div>;
-    case 'questions':
-      return (
-        <div className="intel-questions">
-          {p.items.map((q, i) => <Labelled key={i} {...q} section={section} className="intel-question" />)}
-        </div>
-      );
-    case 'vocabulary':
-      return (
-        <>
-          <div className="intel-terms">{p.terms.map((t, i) => <TermCard key={i} term={t} section={section} />)}</div>
-          {p.notes.map((n, i) => <Labelled key={i} {...n} section={section} className="intel-rehearse" />)}
-        </>
-      );
     default:
-      return <div className="intel-md"><Markdown>{p.markdown}</Markdown></div>;
+      // The AI Challenge's own forms are the memo's (`MemoArticle`).
+      return <div className="intel-md"><Markdown>{section.markdown}</Markdown></div>;
   }
 }
 
@@ -379,6 +285,9 @@ interface Props {
   /** Other editions sharing a topic (`related.ts`), shown after the last section. */
   related?: Related[];
   onOpenRelated?: (edition: Edition) => void;
+  /** The memo's history (AI Challenge): opens it, and whether it is open. */
+  onHistory?: () => void;
+  historyOpen?: boolean;
 }
 
 /** Other editions listing a topic this one lists: a reason to look, saying which topics. */
@@ -405,8 +314,9 @@ function RelatedEditions({ items, onOpen }: { items: Related[]; onOpen?: (e: Edi
 
 function Reader({
   edition, scroller, onNote, heroActions = true, reading, saved = [], onToggleRead, onToggleSave, onPosition, startAt, flags = [],
-  related = [], onOpenRelated,
+  related = [], onOpenRelated, onHistory, historyOpen,
 }: Props) {
+  const memo = edition.feedId === 'enterprise-ai-challenge';
   // Where the briefing ends, before what follows it (Related): reading to here is reading it all.
   const endRef = useRef<HTMLDivElement>(null);
   const sections = useMemo(() => splitSections(edition.markdownBody), [edition.markdownBody]);
@@ -415,12 +325,18 @@ function Reader({
     () => new Map(displayed.map(s => [s.id, presentSection(edition.feedId, s)])),
     [edition.feedId, displayed],
   );
-  // The index: every titled section, and the developments inside one.
-  const indexed = useMemo(() => displayed.filter(s => s.title && s.role !== 'title').flatMap(s => {
+  // The index: every titled section, and the developments inside one; in the
+  // memo, in its order, the topic map last.
+  const ordered = useMemo(() => {
+    if (!memo) return displayed;
+    const { body, map } = memoOrder(displayed);
+    return map ? [...body, map] : body;
+  }, [memo, displayed]);
+  const indexed = useMemo(() => ordered.filter(s => s.title && s.role !== 'title').flatMap(s => {
     const own = { id: s.id, label: shortTitle(s.title), sub: false };
     const p = presented.get(s.id);
     return p?.kind === 'developments' ? [own, ...p.items.map(d => ({ id: d.id, label: shortTitle(d.title), sub: true }))] : [own];
-  }), [displayed, presented]);
+  }), [ordered, presented]);
   const [folded, setFolded] = useState<Set<string>>(() => new Set());
   const folds = useMemo<Folds>(() => ({
     isOpen: id => !folded.has(id),
@@ -433,7 +349,9 @@ function Reader({
   const feed = feedById(edition.feedId);
   const record = reading?.get(edition.driveFileId);
   const articleRef = useRef<HTMLElement | null>(null);
+  // What sticks at the reader's top: the section index, or the memo's bar.
   const indexRef = useRef<HTMLElement | null>(null);
+  const fillRef = useRef<HTMLDivElement | null>(null);
   const [active, setActive] = useState<string | null>(startAt ?? indexed[0]?.id ?? null);
   const [indexRowRef, indexFade] = useEdgeFade<HTMLDivElement>(active);
   const [selection, setSelection] = useState<SaveInput | null>(null);
@@ -474,16 +392,10 @@ function Reader({
     const el = scroller.current;
     if (!el) return;
     let frame = 0;
-    const measure = () => {
-      frame = 0;
-      const line = el.getBoundingClientRect().top + (indexRef.current?.offsetHeight ?? 0) + 8;
-      let current = indexed[0]?.id ?? null;
-      for (const s of indexed) {
-        const node = document.getElementById(`intel-${s.id}`);
-        if (node && node.getBoundingClientRect().top <= line) current = s.id;
-      }
-      // The end is the briefing's own, before Related: its last line clear
-      // of the reader's foot, as the very bottom used to be.
+    // How far through the briefing: its end is its own, before the reference
+    // at its foot (the topic map, Related), its last line clear of the
+    // reader's foot, as the very bottom used to be.
+    const progress = () => {
       const room = el.scrollHeight - el.clientHeight;
       const end = endRef.current;
       const ownRoom = end
@@ -492,13 +404,33 @@ function Reader({
         : room;
       const reach = ownRoom > 0 ? Math.min(room, ownRoom) : room;
       const atEnd = room > 0 && el.scrollTop >= reach - 4;
+      return { room, atEnd, value: room > 0 ? (atEnd ? 1 : Math.min(1, el.scrollTop / reach)) : 1 };
+    };
+    // The memo's reading line: drawn from the same measure, on every change of size too.
+    const paint = (value = progress().value) => {
+      if (fillRef.current) fillRef.current.style.width = `${(value * 100).toFixed(1)}%`;
+    };
+    const measure = () => {
+      frame = 0;
+      const line = el.getBoundingClientRect().top + (indexRef.current?.offsetHeight ?? 0) + 8;
+      let current = indexed[0]?.id ?? null;
+      for (const s of indexed) {
+        const node = document.getElementById(`intel-${s.id}`);
+        if (node && node.getBoundingClientRect().top <= line) current = s.id;
+      }
+      const { room, atEnd, value } = progress();
       if (atEnd && indexed.length) current = indexed[indexed.length - 1].id;
       setActive(current);
-      if (room > 0) onPosition?.(atEnd ? 1 : Math.min(1, el.scrollTop / reach), current);
+      paint(value);
+      if (room > 0) onPosition?.(value, current);
     };
     const onScroll = () => { if (!frame) frame = requestAnimationFrame(measure); };
     el.addEventListener('scroll', onScroll, { passive: true });
-    return () => { el.removeEventListener('scroll', onScroll); cancelAnimationFrame(frame); };
+    const resized = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => paint());
+    resized?.observe(el);
+    if (el.firstElementChild) resized?.observe(el.firstElementChild);
+    paint();
+    return () => { el.removeEventListener('scroll', onScroll); cancelAnimationFrame(frame); resized?.disconnect(); };
   }, [scroller, indexed, onPosition]);
 
   // Text selected in the edition can be saved: iOS lets a web app add nothing
@@ -514,7 +446,7 @@ function Reader({
       const el = node ? (node.nodeType === Node.ELEMENT_NODE ? node as Element : node.parentElement) : null;
       window.clearTimeout(hide);
       if (text.length >= 3 && el && articleRef.current?.contains(el) && !el.closest('button')) {
-        const id = el.closest('section.intel-sec')?.id.replace(/^intel-/, '') ?? null;
+        const id = el.closest('[data-section]')?.getAttribute('data-section') ?? null;
         const section = sections.find(s => s.id === id);
         setSelection({ kind: 'passage', sectionId: section?.id ?? null, sectionTitle: section?.title || null, text });
       } else {
@@ -552,6 +484,44 @@ function Reader({
   // A suspected import is for the feed's status only; it is never proof.
   const notices = flags.filter(f => f.kind !== 'possibly-imported').map(noticeOf).filter((n): n is string => !!n);
   const imported = flags.some(f => f.kind === 'imported');
+
+  const selectionSave = selection && onToggleSave && (
+    <button
+      type="button"
+      className="intel-selsave"
+      // Keeps the selection where a mouse would otherwise clear it.
+      onMouseDown={e => e.preventDefault()}
+      onClick={savePassage}
+    ><IconBookmark />Save to Takeaways</button>
+  );
+
+  if (memo) {
+    return (
+      <EditionActionsContext.Provider value={actions}>
+        <MemoArticle
+          edition={edition}
+          sections={displayed}
+          presented={presented}
+          minutes={readingMinutes(edition.markdownBody)}
+          barRef={indexRef}
+          fillRef={fillRef}
+          endRef={endRef}
+          articleRef={articleRef}
+          onHistory={onHistory}
+          historyOpen={historyOpen}
+          related={related}
+          onOpenRelated={onOpenRelated}
+          read={!!record?.readAt}
+          editionSaved={!!findSaved(saved, edition, editionInput)}
+          onToggleRead={onToggleRead}
+          onToggleEditionSave={onToggleSave && (() => onToggleSave(editionInput))}
+          notices={notices}
+          imported={imported}
+        />
+        {selectionSave}
+      </EditionActionsContext.Provider>
+    );
+  }
 
   return (
     <EditionActionsContext.Provider value={actions}>
@@ -593,7 +563,7 @@ function Reader({
         </header>
 
         {indexed.length > 1 && (
-          <nav className="intel-index" aria-label="In this edition" ref={indexRef}>
+          <nav className="intel-index" aria-label="In this edition" ref={indexRef} data-sticky>
             <div className={`intel-index-row${indexFade}`} ref={indexRowRef}>
               {indexed.map(a => (
                 <button
@@ -617,7 +587,7 @@ function Reader({
             {s.markdown && <div className="intel-md"><Markdown>{s.markdown}</Markdown></div>}
           </div>
         ) : (
-          <section key={s.id} id={`intel-${s.id}`} className={`intel-sec${presented.get(s.id)?.kind === 'development' ? ' intel-sec--dev' : ''}`}>
+          <section key={s.id} id={`intel-${s.id}`} data-section={s.id} className={`intel-sec${presented.get(s.id)?.kind === 'development' ? ' intel-sec--dev' : ''}`}>
             {s.title && (
               <div className="intel-sec-head">
                 <h2><Markdown inline heading>{s.title}</Markdown></h2>
@@ -637,15 +607,7 @@ function Reader({
         {edition.setAside.filter(a => a.where === 'end').map(a => <p key={a.kind} className="intel-aside" role="note">{asideNote(a)}</p>)}
         {related.length > 0 && <RelatedEditions items={related} onOpen={onOpenRelated} />}
 
-        {selection && onToggleSave && (
-          <button
-            type="button"
-            className="intel-selsave"
-            // Keeps the selection where a mouse would otherwise clear it.
-            onMouseDown={e => e.preventDefault()}
-            onClick={savePassage}
-          ><IconBookmark />Save to Takeaways</button>
-        )}
+        {selectionSave}
       </article>
     </EditionActionsContext.Provider>
   );

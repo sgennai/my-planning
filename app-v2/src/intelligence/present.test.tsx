@@ -6,7 +6,7 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { parseEdition, splitSections } from './parse';
 import { presentSection, shortTitle, copyText, readingMinutes, blocksOf, previewOf, plainText } from './present';
 import { EditionReader } from './EditionReader';
-import { CHALLENGE_DOC, CHALLENGE_BODY, CHALLENGE_FILE, wordsOf } from './test-fixtures';
+import { CHALLENGE_BODY, CHALLENGE_FILE, SALES_DOC, SALES_FILE } from './test-fixtures';
 
 const sections = splitSections(CHALLENGE_BODY);
 const section = (title: string) => sections.find(s => s.title.startsWith(title))!;
@@ -116,59 +116,19 @@ describe('small things', () => {
 });
 
 describe('the edition on screen', () => {
-  const edition = parseEdition('enterprise-ai-challenge', CHALLENGE_FILE, CHALLENGE_DOC);
   const scroller = { current: document.createElement('div') };
   vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} });
   Element.prototype.scrollTo = function scrollTo() {};
 
-  it('shows every word of the document, and nothing of its header or filename', () => {
-    const { container } = render(<EditionReader edition={edition} scroller={scroller} onNote={() => {}} />);
-    for (const card of screen.getAllByRole('button', { expanded: false })) fireEvent.click(card);
-    const text = container.textContent!;
-    for (const word of wordsOf(CHALLENGE_BODY)) expect(text).toContain(word);
-    expect(text).not.toMatch(/schema_version|content_type|generated_at|__enterprise-ai-challenge/);
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Agent Sprawl: Who Owns the Bots?');
-    expect(text).toContain('AI Challenge · Monday 2 November · 08:20');
-  });
-
-  it('in the forms chosen for each section', () => {
-    const { container } = render(<EditionReader edition={edition} scroller={scroller} onNote={() => {}} />);
-    expect(container.querySelectorAll('.intel-cloud li.on')).toHaveLength(3);
-    expect(container.querySelectorAll('.intel-step')).toHaveLength(3);
-    expect(container.querySelectorAll('.intel-question')).toHaveLength(2);
-    expect(container.querySelectorAll('.intel-term')).toHaveLength(3);
-    expect(screen.getByRole('link', { name: 'inventory' })).toHaveAttribute('target', '_blank');
-    expect(screen.getByRole('link', { name: 'Open original in Google Docs' })).toHaveAttribute('href', CHALLENGE_FILE.webViewLink);
-    expect(screen.getAllByRole('button', { name: /^(Enterprise AI topic map|Challenge|Executive Vocabulary)$/ })).toHaveLength(3);
-  });
-
-  it("the topic map leads with today's topics; the whole map is a tap away", () => {
-    const { container } = render(<EditionReader edition={edition} scroller={scroller} onNote={() => {}} />);
-    const map = container.querySelector('#intel-enterprise-ai-topic-map')!;
-    const shown = () => [...map.querySelectorAll('.intel-cloud li')].map(li => li.textContent);
-    expect(shown()).toEqual(['Governance', 'Agentic AI', 'Operating models']);
-    expect(map.textContent).toContain("Relevant to today's challenge");
-    fireEvent.click(screen.getByRole('button', { name: 'All topics (5)' }));
-    expect(shown()).toEqual(['Governance', 'Agentic AI', 'Operating models', 'Strategy', 'Governance', 'Agentic AI', 'Operating models', 'ROI']);
-    expect(map.querySelectorAll('.intel-cloud li.on')).toHaveLength(6);
-    fireEvent.click(screen.getByRole('button', { name: 'Hide the full map' }));
-    expect(shown()).toHaveLength(3);
-  });
-
-  it('a vocabulary card reveals its definition on a tap', () => {
-    render(<EditionReader edition={edition} scroller={scroller} onNote={() => {}} />);
-    expect(screen.queryByText('Uncontrolled growth in the number of AI agents.')).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: /Agent sprawl/ }));
-    expect(screen.getByText('Uncontrolled growth in the number of AI agents.')).toBeInTheDocument();
-  });
-
-  it('copies a discovery question as words, and says so', async () => {
+  // The AI Challenge's own forms are the memo's (MemoArticle.test.tsx).
+  it('copies a brief\u2019s question as words, and says so', async () => {
     const writeText = vi.fn(() => Promise.resolve());
     Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
     const onNote = vi.fn();
-    render(<EditionReader edition={edition} scroller={scroller} onNote={onNote} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Copy: Opening question' }));
-    expect(writeText).toHaveBeenCalledWith('How many AI agents are running in your organisation today?');
+    const sales = parseEdition('enterprise-ai-sales-brief', SALES_FILE, SALES_DOC);
+    render(<EditionReader edition={sales} scroller={scroller} onNote={onNote} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Copy: Best executive question today' }));
+    expect(writeText).toHaveBeenCalledWith('Which outcomes would you be willing to pay for?');
     await vi.waitFor(() => expect(onNote).toHaveBeenCalledWith('Copied'));
   });
 

@@ -8,6 +8,9 @@
 // cannot find the developments. Read here as the earlier editions wrote them:
 // those exact labels become the headings they were, and a label line stands
 // apart from its text. No word changes; the document itself is untouched.
+// The AI Challenge's imported editions of 5 September to 6 October put their
+// labels ("**1. Start with the outcome**", "**Opening question:**") on the
+// line right above their text too: there, only that last rule applies (INT-50).
 import type { FeedId } from './feeds';
 
 /** A line that is only a bold label; trailing spaces (a hard break) aside. */
@@ -17,9 +20,8 @@ const THEMES = /^\*\*Relevant executive themes today:?\*\*:?[ \t]+(\S.*?)[ \t]*$
 const CLOSING = /^(?:what i should remember today|best executive question today|contrarian(?: or non-obvious)? insight|development to (?:watch|monitor)(?: next(?: week)?)?)$/i;
 const FENCE = /^[ \t]{0,3}(?:`{3,}|~{3,})/;
 
-/** A brief's body laid out as its earlier editions were; the AI Challenge's as written. */
+/** A body laid out as the feed's other editions are: each label line apart from its text; the Sales Brief's own headings as headings. */
 export function laidOut(feedId: FeedId, body: string): string {
-  if (feedId === 'enterprise-ai-challenge') return body;
   const sales = feedId === 'enterprise-ai-sales-brief';
   const lines = body.split('\n');
   const out: string[] = [];

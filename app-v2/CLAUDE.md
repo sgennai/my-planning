@@ -333,25 +333,48 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   exact sentences only) are set aside (`Edition.setAside`), the reader saying "Left out here: …";
   and a brief's labels are laid out as its earlier editions wrote them (INT-48, `layout.ts`: the
   Sales Brief's "**Relevant executive themes today:**" line and closing sections written as bold
-  lines since 6/8 Nov become their `##` headings; a label line with its text right under it stands
-  apart). Drive stores the 8–11 Nov Sales Briefs as one paragraph with soft breaks; the plain-text
+  lines since 6/8 Nov become their `##` headings; in every feed, a label line with its text right
+  under it stands apart, as in the AI Challenge's imported editions of 5 Sep – 6 Oct). Drive stores the 8–11 Nov Sales Briefs as one paragraph with soft breaks; the plain-text
   export the server reads turns them into lines.
 - **The section** (`IntelligenceScreen.tsx`, lazy-loaded with its own CSS chunk,
   `styles/intelligence.css`): tabs Today · Enterprise AI · AI Challenge · Customer Engagement ·
   Takeaways (a dot on a feed with something new, the count on Takeaways; the row scrolls and
-  fades at an edge with more, `useEdgeFade`). A feed, by orientation — landscape: edition rail +
+  fades at an edge with more, `useEdgeFade`). A brief, by orientation — landscape: edition rail +
   reader; iPad portrait: reader with an "Editions" drawer; phone (same query as the shell's
-  More): list, then the edition with its actions in the top bar. It fills the shell like
+  More): list, then the edition with its actions in the top bar. The AI Challenge is its
+  executive memo at every size, its editions in the memo's history drawer (below). It fills the shell like
   Routine; in portrait the text runs under the pill and every list ends clear of it
   (`--intel-foot`). `useFeeds` shows the device's copy at once and refreshes on opening, on the
   button, and on return after 10 min. A feed opens on the edition chosen this session, else the
   newest unread one if newer than the last opened (`localStorage`), else the last opened;
   acting on an edition (scrolling, read, save) keeps it.
+- **The AI Challenge as an executive memo** (INT-50; `MemoArticle.tsx`, `MemoHistory.tsx`,
+  `memo.ts`, `styles/memo.css`), after the user's approved prototype
+  (`SUPPORTING FILES/…/executive-memo-reference.html`, kept outside the repo: it holds real text).
+  `EditionReader` draws it for the AI Challenge, sharing the reader's place, progress, resume,
+  selection-save and Takeaways (`EditionActionsContext`). A sticky 76px bar (`data-sticky`, which
+  `useReadingAnchor` reads like the briefs' index): history menu, "AI Challenge", the run's
+  date and time; along its foot a 2px reading line, the same measure as `onPosition` (to the
+  briefing's own end) painted on scroll and on resize. Then the edition's own relevant topics,
+  three and "+n topics" (`memoTopics`: the document's line, else the header); the Challenge's
+  bold sentence "In one sentence" (`challengeLead`), its rest section 01; every other section
+  numbered in the margin, in its order, in the memo's forms (approaches, what to listen for,
+  questions with Save, vocabulary with a quiet save, "Use it in a conversation" with Save), or
+  as its Markdown; the topic map moved to a fold at the end (`memoOrder`), "Related by topic"
+  a second fold under it (all of `relatedTo`, 5 then "Show more"); the footer, then quiet tools
+  (Mark as read, Save this edition, Open original). Section saving is a quiet mark in the margin.
+  The history (`MemoHistory`): shut by default, over the Intelligence area, every edition by
+  month with a search, the one read marked, "New" and problem labels (not "Imported", which the
+  memo's subline says), Feed status at its foot; Escape, its close button or a tap outside shut
+  it, focus going back (`useModalFocus`). Its CSS is the prototype's: Avenir Next and Georgia,
+  window-based sizes and breakpoints (760/430px), font sizes in --tpx, `:where()` resets so the
+  app's heading and button rules do not reach it, no backdrop blur, light in both themes, small
+  text darkened just enough for 4.5:1 (axe: no violations). `scripts/memo.check.test.tsx`
+  (env `MEMO_DRIVE`) draws every real edition and checks every word is on screen.
 - **Sections** (`EditionReader.tsx`, `present.ts`): a sticky index of chips, then each
-  section in its order. AI Challenge sections take a richer form (topic cloud with today's lit,
-  bold lead, numbered approach cards, quote cards, question callouts with Copy, tap-to-reveal
-  vocabulary, the rehearse sentence with Copy) **only when every block fits that form**, else
-  the Markdown as written (react-markdown + remark-gfm; raw HTML stays text, images become
+  section in its order (the briefs). AI Challenge sections take a richer form (bold lead,
+  numbered approaches, quotes, labelled questions, vocabulary terms and notes) **only when every
+  block fits that form**, drawn by the memo; else the Markdown as written (react-markdown + remark-gfm; raw HTML stays text, images become
   links, links open beside the app). `present.test.tsx` asserts every word of a document
   reaches the screen. An edition that throws shows "couldn't be shown" + Open original
   (`EditionBoundary`) without taking the section down. Other feeds render as Markdown until
@@ -613,7 +636,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (455 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (476 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris

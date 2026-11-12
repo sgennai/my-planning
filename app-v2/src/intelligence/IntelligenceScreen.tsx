@@ -4,12 +4,15 @@
 // Views: Today (the newest of each feed), one per feed, and Takeaways. In a
 // feed, iPad landscape and desktop show the editions on the left and the
 // reader beside them; iPad portrait gives the reader the width and slides the
-// list in from "Editions"; a phone shows one pane at a time.
+// list in from "Editions"; a phone shows one pane at a time. The AI Challenge
+// is an executive memo at every size, its editions in a history drawer that
+// its bar opens (INT-50, `MemoArticle`, `MemoHistory`).
 //
 // The documents stay Google's (cached per device by `library.ts`); what you
 // do with them (how far you read, what you keep) is yours and syncs, in
 // `progressLog` and `content`.
 import '../styles/intelligence.css';
+import '../styles/memo.css';
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react';
 import { FEEDS, feedById, type FeedId } from './feeds';
 import { useFeeds } from './useFeeds';
@@ -19,6 +22,7 @@ import { useTextScale } from './useTextScale';
 import { useReadingAnchor } from './useReadingAnchor';
 import { topicIndex, relatedTo } from './related';
 import { EditionReader, EditionTools } from './EditionReader';
+import { MemoHistory } from './MemoHistory';
 import { TodayView } from './TodayView';
 import { FeedStatus } from './FeedStatus';
 import { conformanceOf, labelOf, NEEDS_A_LOOK, type FeedConformance } from './conformance';
@@ -177,6 +181,8 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   // Where an edition opened from Today or Takeaways should start.
   const [jump, setJump] = useState<{ driveFileId: string; sectionId: string | null } | null>(null);
   const [drawer, setDrawer] = useState(false);
+  // The AI Challenge memo's history drawer.
+  const [history, setHistory] = useState(false);
   const [pane, setPane] = useState<'list' | 'reader'>('list');
   const [note, setNote] = useState<{ text: string; at: number } | null>(null);
   const readerRef = useRef<HTMLDivElement | null>(null);
@@ -233,10 +239,13 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     if (unread && (!last || unread.sortKey > last.sortKey)) return unread;
     return last ?? editions[0];
   }, [feedId, editions, chosen, remembered, readingAtOpen]);
-  const related = useMemo(() => (edition ? relatedTo(edition, topics) : []), [edition, topics]);
+  const memo = feedId === 'enterprise-ai-challenge';
+  // The memo lists every related edition, a few at a time; the other readers the first few.
+  const related = useMemo(() => (edition ? relatedTo(edition, topics, memo ? Infinity : undefined) : []), [edition, topics, memo]);
 
   const loading = feedId ? !editions.length && !refreshed[feedId] && state?.status !== 'not-configured' : false;
-  const drawerOpen = drawer && mode === 'drawer' && !!feedId;
+  const drawerOpen = drawer && mode === 'drawer' && !!feedId && !memo;
+  const historyOpen = history && memo;
   const status = feedId ? statusOf(state, conformance[feedId], health[feedId]) : null;
   const record = edition ? reading.get(edition.driveFileId) : undefined;
   const startAt = edition && jump?.driveFileId === edition.driveFileId ? jump.sectionId
@@ -250,14 +259,16 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   const onNote = useCallback((text: string) => setNote({ text, at: Date.now() }), []);
 
   useEffect(() => {
-    if (!drawerOpen) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setDrawer(false); };
+    if (!drawerOpen && !historyOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { setDrawer(false); setHistory(false); } };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [drawerOpen]);
-  // The drawer takes focus as it opens, on the edition being read.
+  }, [drawerOpen, historyOpen]);
+  // A drawer takes focus as it opens, on the edition being read, and gives it back.
   const drawerRef = useRef<HTMLElement>(null);
   useModalFocus(drawerRef, drawerOpen, '[aria-current="true"]');
+  const historyRef = useRef<HTMLDivElement>(null);
+  useModalFocus(historyRef, historyOpen, '[aria-current="page"]');
   // Text at the size set on the iPad.
   const scale = useTextScale();
   // The reading place survives the iPad rotating and a new text size.
@@ -340,11 +351,12 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   const toggleSaveHere = useCallback((input: SaveInput) => { if (edition) toggleSave(edition, input); }, [edition, toggleSave]);
 
   // ── Navigation ──────────────────────────────────────────────────────────
-  const switchView = (v: View) => { setView(v); remember(VIEW_KEY, v); setDrawer(false); };
+  const switchView = (v: View) => { setView(v); remember(VIEW_KEY, v); setDrawer(false); setHistory(false); };
   const choose = (e: Edition, sectionId: string | null = null) => {
     keep(e);
     setJump(sectionId ? { driveFileId: e.driveFileId, sectionId } : null);
     setDrawer(false);
+    setHistory(false);
     setPane('reader');
   };
   const openEdition = (e: Edition, sectionId: string | null = null) => {
@@ -417,7 +429,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     ><IconRefresh /></button>
   );
   const statusLine = status && (
-    <div className={`intel-status${status.alert ? ' is-alert' : ''}`} role="status" inert={drawerOpen || undefined}>
+    <div className={`intel-status${status.alert ? ' is-alert' : ''}`} role="status" inert={drawerOpen || historyOpen || undefined}>
       <span>{status.text}</span>
       {status.action === 'retry' && <button type="button" onClick={refresh}>Try again</button>}
       {status.action === 'details' && <button type="button" onClick={() => feedId && setStatusSheet([feedId])}>Details</button>}
@@ -502,6 +514,28 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
       flags={conformance[edition.feedId]?.flags.get(edition.driveFileId)}
       related={related}
       onOpenRelated={e => openEdition(e)}
+      onHistory={memo ? () => setHistory(true) : undefined}
+      historyOpen={historyOpen}
+    />
+  );
+  const memoHistory = memo && editions.length > 0 && (
+    <MemoHistory
+      open={historyOpen}
+      editions={editions}
+      current={edition}
+      tagsOf={e => {
+        const s = readingState(e, reading);
+        const label = labelOf(conformance[e.feedId]?.flags.get(e.driveFileId));
+        return [
+          ...(!isArchive(e) && (s === 'new' || s === 'updated') ? [{ text: s === 'new' ? 'New' : 'Updated', alert: false }] : []),
+          // Imported is most of the archive: the memo says it when one is open.
+          ...(label && label !== 'Imported' ? [{ text: label, alert: true }] : []),
+        ];
+      }}
+      onChoose={e => choose(e)}
+      onClose={() => setHistory(false)}
+      onStatus={() => { setHistory(false); if (feedId) setStatusSheet([feedId]); }}
+      drawerRef={historyRef}
     />
   );
 
@@ -579,6 +613,20 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   }
 
   if (mode === 'single') {
+    if (memo) {
+      return (
+        <div className="intel intel--single intel--memo" style={rootStyle}>
+          <div className="intel-head" inert={historyOpen || undefined}>{tabs}{searchButton}</div>
+          {statusLine}
+          <div className="intel-reader intel-reader--memo" ref={readerRef} inert={historyOpen || undefined} {...panel}>
+            {reader ?? <Empty state={state} loading={loading} onRetry={refresh} />}
+          </div>
+          {memoHistory}
+          {noteLine}
+          {statusSheetView}
+        </div>
+      );
+    }
     if (feedId && pane === 'reader' && edition) {
       return (
         <div className="intel intel--single" style={rootStyle}>
@@ -621,9 +669,9 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   }
 
   return (
-    <div className={`intel intel--${mode}${drawerOpen ? ' is-drawer-open' : ''}`} style={rootStyle}>
-      <div className="intel-head" inert={drawerOpen || undefined}>
-        {mode === 'drawer' && feedId && (
+    <div className={`intel intel--${mode}${drawerOpen ? ' is-drawer-open' : ''}${memo ? ' intel--memo' : ''}`} style={rootStyle}>
+      <div className="intel-head" inert={drawerOpen || historyOpen || undefined}>
+        {mode === 'drawer' && feedId && !memo && (
           <button type="button" className="ds-btn intel-editions" onClick={() => setDrawer(true)} aria-expanded={drawerOpen}>
             <IconList />Editions
           </button>
@@ -634,13 +682,14 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
         {refreshButton}
       </div>
       {statusLine}
-      <div className="intel-body" inert={drawerOpen || undefined} {...panel}>
-        {mode === 'rail' && feedId && <aside className="intel-rail" aria-label="Editions">{list(null)}</aside>}
-        <div className="intel-reader" ref={readerRef}>
+      <div className="intel-body" inert={drawerOpen || historyOpen || undefined} {...panel}>
+        {mode === 'rail' && feedId && !memo && <aside className="intel-rail" aria-label="Editions">{list(null)}</aside>}
+        <div className={`intel-reader${memo ? ' intel-reader--memo' : ''}`} ref={readerRef}>
           {page ?? reader ?? <Empty state={state} loading={loading} onRetry={refresh} />}
         </div>
       </div>
-      {mode === 'drawer' && feedId && (
+      {memoHistory}
+      {mode === 'drawer' && feedId && !memo && (
         <>
           <div className="intel-scrim" onClick={() => setDrawer(false)} aria-hidden />
           <aside className="intel-drawer" aria-label="Editions" inert={!drawerOpen} ref={drawerRef}>

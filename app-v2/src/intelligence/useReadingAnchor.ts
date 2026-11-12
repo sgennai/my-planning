@@ -2,7 +2,7 @@
 // text size, the web font arriving. Safari keeps no scroll anchor of its own,
 // so the line at the top of the reader used to move by as much as two
 // screens (INT-35). As scrolling rests, the block at the top of the reading
-// area (below the sticky section index) and its offset are noted; when the
+// area (below the sticky section index or memo bar) and its offset are noted; when the
 // reader or its content then changes size with no tap or key just before
 // (which means the reader moved things on purpose: a fold, a reveal, a jump),
 // the reader scrolls back so that block sits where it was.
@@ -13,10 +13,10 @@ const REST_MS = 100;
 /** A size change this soon after a tap or key is the reader's own doing. */
 const AFTER_INPUT_MS = 700;
 
-/** Where reading starts: the scroller's top, or the foot of the section index while it sticks there. */
+/** Where reading starts: the scroller's top, or the foot of what sticks there (the section index, the memo's bar). */
 function lineOf(box: HTMLElement): number {
   const top = box.getBoundingClientRect().top;
-  const index = box.querySelector('.intel-index')?.getBoundingClientRect();
+  const index = box.querySelector('[data-sticky]')?.getBoundingClientRect();
   return index && index.top <= top + 1 && index.bottom > top ? index.bottom : top;
 }
 
