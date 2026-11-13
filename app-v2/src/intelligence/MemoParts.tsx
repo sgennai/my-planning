@@ -1,9 +1,8 @@
-// What the executive memos share (INT-50, INT-51, INT-52): the quiet bar
-// (history, the feed's name, the run's date and time between the older and
-// newer editions' chevrons, a 2px reading line), the relevant topics, Save, a
-// question to ask, the briefs' folded contents and their chapters, the
-// related editions' fold, and the end (footer, then quiet tools).
-import { useState, type MouseEvent, type ReactNode, type RefObject } from 'react';
+// What the executive memos share (INT-50, INT-51, INT-52): the relevant
+// topics, Save, a question to ask, the briefs' folded contents and their
+// chapters, the related editions' fold, and the end (footer, then quiet
+// tools). Their bar and edition index are the workspace's (`MemoWorkspace`).
+import { useState, type MouseEvent, type ReactNode } from 'react';
 import { Markdown } from './Markdown';
 import type { Edition } from './parse';
 import type { Related } from './related';
@@ -11,7 +10,7 @@ import type { SaveInput } from './saved';
 import type { PartTone } from './briefs';
 import { feedById } from './feeds';
 import { useEditionActions } from './context';
-import { barDate, chapterTitle, memoDate, shortDate, two, TOPICS_SHOWN, type Chapter, type Field, type MemoBrand } from './memo';
+import { chapterTitle, memoDate, shortDate, two, TOPICS_SHOWN, type Chapter, type Field, type MemoBrand } from './memo';
 
 /** Related editions shown before "Show more", and how many more each time. */
 const RELATED_FIRST = 5;
@@ -156,67 +155,6 @@ export function MemoChapter({ chapter, n, total, next, tones, ask, go, toContent
         </div>
       )}
     </section>
-  );
-}
-
-/** The bar's chevron to the older or the newer edition; faded where there is none. */
-function Step({ to, newer, onOpen }: { to: Edition | null; newer: boolean; onOpen?: (e: Edition) => void }) {
-  const which = newer ? 'Next edition' : 'Previous edition';
-  return (
-    <button
-      type="button"
-      className="memo-step"
-      disabled={!to}
-      aria-label={to ? `${which}: ${shortDate(to.editionDate)}, ${to.title}` : `${which}: none`}
-      title={to ? `${which}: ${shortDate(to.editionDate)}` : undefined}
-      onClick={() => to && onOpen?.(to)}
-    >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <path d={newer ? 'M9 6l6 6-6 6' : 'M15 6l-6 6 6 6'} />
-      </svg>
-    </button>
-  );
-}
-
-export interface BarProps {
-  brand: MemoBrand;
-  edition: Edition;
-  /** The sticky bar, and the reading line along its foot. */
-  barRef: RefObject<HTMLElement | null>;
-  fillRef: RefObject<HTMLDivElement | null>;
-  onHistory?: () => void;
-  historyOpen?: boolean;
-  /** The editions either side of this one in the feed (newest first), for the bar's chevrons. */
-  adjacent?: { older: Edition | null; newer: Edition | null };
-  onOpenAdjacent?: (e: Edition) => void;
-}
-
-export function MemoBar({ brand, edition, barRef, fillRef, onHistory, historyOpen = false, adjacent, onOpenAdjacent }: BarProps) {
-  return (
-    <header className="memo-bar" ref={barRef} data-sticky>
-      <div className="memo-brand">
-        {onHistory && (
-          <button
-            type="button"
-            className="memo-hamburger"
-            aria-label={brand.history}
-            aria-controls="memo-history"
-            aria-expanded={historyOpen}
-            title={brand.browse}
-            onClick={onHistory}
-          >
-            <svg width="21" height="21" viewBox="0 0 24 24" stroke="currentColor" fill="none" strokeWidth="1.7" strokeLinecap="round" aria-hidden><path d="M4 7h16M4 12h16M4 17h16" /></svg>
-          </button>
-        )}
-        <span className="memo-brand-text">{brand.name}</span>
-      </div>
-      <div className="memo-bar-right">
-        {adjacent && <Step to={adjacent.older} newer={false} onOpen={onOpenAdjacent} />}
-        <span className="memo-bar-date">{barDate(edition.editionDate, edition.time)}</span>
-        {adjacent && <Step to={adjacent.newer} newer onOpen={onOpenAdjacent} />}
-      </div>
-      <div className="memo-track" aria-hidden><div className="memo-fill" ref={fillRef} /></div>
-    </header>
   );
 }
 

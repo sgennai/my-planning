@@ -1,13 +1,17 @@
 // The Intelligence section: the ChatGPT briefings, read from private Google
 // Docs in Drive through /api/intel, newest first, at reading size.
 //
-// Views: Today (the newest of each feed), one per feed, and Takeaways. In a
-// feed, iPad landscape and desktop show the editions on the left and the
-// reader beside them; iPad portrait gives the reader the width and slides the
-// list in from "Editions"; a phone shows one pane at a time. The AI Challenge
-// and the Sales Brief are executive memos at every size, their editions in a
-// history drawer that the memo's bar opens (INT-50, `MemoArticle`; INT-51,
-// `SalesMemo`; `MemoHistory`).
+// Views: Today (the newest of each feed), one per feed, and Takeaways. The
+// three feeds are executive memos (INT-50, `MemoArticle`; INT-51,
+// `SalesMemo`; INT-52, `EngagementMemo`) in one workspace (INT-53,
+// `MemoWorkspace`): a reading bar across it, the paper index of the feed's
+// editions by month beside the memo, both scrolling on their own, the index
+// hidden or shown from the bar (one choice for the three feeds, kept on the
+// device); on a phone the index takes the whole width when shown, and
+// choosing an edition goes back to the memo. A feed without a memo would
+// read as a brief: iPad landscape and desktop show the editions on the left
+// and the reader beside them; iPad portrait slides the list in from
+// "Editions"; a phone shows one pane at a time.
 //
 // The documents stay Google's (cached per device by `library.ts`); what you
 // do with them (how far you read, what you keep) is yours and syncs, in
@@ -23,7 +27,7 @@ import { useTextScale } from './useTextScale';
 import { useReadingAnchor } from './useReadingAnchor';
 import { topicIndex, relatedTo } from './related';
 import { EditionReader, EditionTools } from './EditionReader';
-import { MemoHistory } from './MemoHistory';
+import { MemoIndex, MemoReadbar } from './MemoWorkspace';
 import { memoBrand } from './memo';
 import { TodayView } from './TodayView';
 import { FeedStatus } from './FeedStatus';
@@ -53,6 +57,8 @@ const PHONE = '(orientation: portrait) and (max-width: 600px), (orientation: lan
 const PORTRAIT = '(orientation: portrait)';
 const VIEW_KEY = 'my-planning-intel-view';
 const editionKey = (feedId: FeedId) => `my-planning-intel-edition:${feedId}`;
+/** Whether the memos' edition index is hidden, for the three feeds (iPad and wider). */
+const INDEX_KEY = 'my-planning-intel-index';
 /** A position is written once scrolling has rested this long. */
 const POSITION_REST_MS = 1200;
 
@@ -183,8 +189,10 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   // Where an edition opened from Today or Takeaways should start.
   const [jump, setJump] = useState<{ driveFileId: string; sectionId: string | null } | null>(null);
   const [drawer, setDrawer] = useState(false);
-  // A memo's history drawer (AI Challenge, Sales Brief).
-  const [history, setHistory] = useState(false);
+  // The memos' edition index: shown or hidden beside the memo, the same in
+  // every feed and kept on the device; on a phone, shown only when asked for.
+  const [indexShown, setIndexShown] = useState(() => recall(INDEX_KEY) !== 'hidden');
+  const [phoneIndex, setPhoneIndex] = useState(false);
   const [pane, setPane] = useState<'list' | 'reader'>('list');
   const [note, setNote] = useState<{ text: string; at: number } | null>(null);
   const readerRef = useRef<HTMLDivElement | null>(null);
@@ -254,7 +262,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
 
   const loading = feedId ? !editions.length && !refreshed[feedId] && state?.status !== 'not-configured' : false;
   const drawerOpen = drawer && mode === 'drawer' && !!feedId && !memo;
-  const historyOpen = history && memo;
+  const shown = phone ? phoneIndex : indexShown;
   const status = feedId ? statusOf(state, conformance[feedId], health[feedId]) : null;
   const record = edition ? reading.get(edition.driveFileId) : undefined;
   const startAt = edition && jump?.driveFileId === edition.driveFileId ? jump.sectionId
@@ -268,16 +276,39 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   const onNote = useCallback((text: string) => setNote({ text, at: Date.now() }), []);
 
   useEffect(() => {
-    if (!drawerOpen && !historyOpen) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { setDrawer(false); setHistory(false); } };
+    if (!drawerOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setDrawer(false); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [drawerOpen, historyOpen]);
+  }, [drawerOpen]);
   // A drawer takes focus as it opens, on the edition being read, and gives it back.
   const drawerRef = useRef<HTMLElement>(null);
   useModalFocus(drawerRef, drawerOpen, '[aria-current="true"]');
-  const historyRef = useRef<HTMLDivElement>(null);
-  useModalFocus(historyRef, historyOpen, '[aria-current="page"]');
+
+  // Showing or hiding the index. On a phone, where it covers the memo, the
+  // focus goes to what is now in front: the edition being read in the index,
+  // or the bar's toggle when the memo comes back.
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const indexRef = useRef<HTMLElement>(null);
+  const fillRef = useRef<HTMLDivElement>(null);
+  const focusNext = useRef<'index' | 'toggle' | null>(null);
+  const toggleIndex = () => {
+    if (phone) {
+      focusNext.current = phoneIndex ? 'toggle' : 'index';
+      setPhoneIndex(v => !v);
+      return;
+    }
+    setIndexShown(v => { remember(INDEX_KEY, v ? 'hidden' : 'shown'); return !v; });
+  };
+  useEffect(() => {
+    const next = focusNext.current;
+    focusNext.current = null;
+    if (next === 'toggle') toggleRef.current?.focus();
+    if (next === 'index') {
+      const index = indexRef.current;
+      (index?.querySelector<HTMLElement>('[aria-current="page"]') ?? index?.querySelector<HTMLElement>('input'))?.focus({ preventScroll: true });
+    }
+  }, [shown, edition]);
   // Text at the size set on the iPad.
   const scale = useTextScale();
   // The reading place survives the iPad rotating and a new text size.
@@ -360,12 +391,14 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   const toggleSaveHere = useCallback((input: SaveInput) => { if (edition) toggleSave(edition, input); }, [edition, toggleSave]);
 
   // ── Navigation ──────────────────────────────────────────────────────────
-  const switchView = (v: View) => { setView(v); remember(VIEW_KEY, v); setDrawer(false); setHistory(false); };
+  const switchView = (v: View) => { setView(v); remember(VIEW_KEY, v); setDrawer(false); };
+  // Opening an edition leaves a memo's index where it is, beside the memo; on
+  // a phone, where the index covers the memo, the memo comes back.
   const choose = (e: Edition, sectionId: string | null = null) => {
     keep(e);
     setJump(sectionId ? { driveFileId: e.driveFileId, sectionId } : null);
     setDrawer(false);
-    setHistory(false);
+    if (phone && phoneIndex) { focusNext.current = 'toggle'; setPhoneIndex(false); }
     setPane('reader');
   };
   const openEdition = (e: Edition, sectionId: string | null = null) => {
@@ -438,7 +471,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     ><IconRefresh /></button>
   );
   const statusLine = status && (
-    <div className={`intel-status${status.alert ? ' is-alert' : ''}`} role="status" inert={drawerOpen || historyOpen || undefined}>
+    <div className={`intel-status${status.alert ? ' is-alert' : ''}`} role="status" inert={drawerOpen || undefined}>
       <span>{status.text}</span>
       {status.action === 'retry' && <button type="button" onClick={refresh}>Try again</button>}
       {status.action === 'details' && <button type="button" onClick={() => feedId && setStatusSheet([feedId])}>Details</button>}
@@ -523,33 +556,49 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
       flags={conformance[edition.feedId]?.flags.get(edition.driveFileId)}
       related={related}
       onOpenRelated={e => openEdition(e)}
-      onHistory={memo ? () => setHistory(true) : undefined}
-      historyOpen={historyOpen}
-      adjacent={adjacent}
-      onOpenAdjacent={e => choose(e)}
+      fill={memo ? fillRef : undefined}
     />
   );
-  const memoHistory = brand && editions.length > 0 && (
-    <MemoHistory
-      key={feedId}
-      brand={brand}
-      open={historyOpen}
-      editions={editions}
-      current={edition}
-      tagsOf={e => {
-        const s = readingState(e, reading);
-        const label = labelOf(conformance[e.feedId]?.flags.get(e.driveFileId));
-        return [
-          ...(!isArchive(e) && (s === 'new' || s === 'updated') ? [{ text: s === 'new' ? 'New' : 'Updated', alert: false }] : []),
-          // Imported is most of the archive: the memo says it when one is open.
-          ...(label && label !== 'Imported' ? [{ text: label, alert: true }] : []),
-        ];
-      }}
-      onChoose={e => choose(e)}
-      onClose={() => setHistory(false)}
-      onStatus={() => { setHistory(false); if (feedId) setStatusSheet([feedId]); }}
-      drawerRef={historyRef}
-    />
+  // The memos' workspace: the bar across it, the index and the memo side by side.
+  const workspace = brand && feedId && (
+    <div className={`memo-workspace${shown ? '' : ' is-hidden'}${phone ? ' memo-workspace--phone' : ''}`} {...panel}>
+      <MemoReadbar
+        brand={brand}
+        edition={edition}
+        shown={shown}
+        onToggle={toggleIndex}
+        toggleRef={toggleRef}
+        adjacent={adjacent}
+        onOpenAdjacent={e => choose(e)}
+        fillRef={fillRef}
+      />
+      <div className="memo-columns">
+        <MemoIndex
+          key={feedId}
+          feedId={feedId}
+          brand={brand}
+          editions={editions}
+          current={edition}
+          shown={shown}
+          tagsOf={e => {
+            const s = readingState(e, reading);
+            const label = labelOf(conformance[e.feedId]?.flags.get(e.driveFileId));
+            return [
+              ...(!isArchive(e) && (s === 'new' || s === 'updated') ? [{ text: s === 'new' ? 'New' : 'Updated', alert: false }] : []),
+              // Imported is most of the archive: the memo says it when one is open.
+              ...(label && label !== 'Imported' ? [{ text: label, alert: true }] : []),
+            ];
+          }}
+          onChoose={e => choose(e)}
+          onStatus={() => setStatusSheet([feedId])}
+          indexRef={indexRef}
+          loading={loading}
+        />
+        <div className="intel-reader intel-reader--memo" ref={readerRef} inert={(phone && shown) || undefined}>
+          {reader ?? <Empty state={state} loading={loading} onRetry={refresh} />}
+        </div>
+      </div>
+    </div>
   );
 
   const page = view === 'search'
@@ -625,21 +674,24 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     );
   }
 
-  if (mode === 'single') {
-    if (memo) {
-      return (
-        <div className="intel intel--single intel--memo" style={rootStyle}>
-          <div className="intel-head" inert={historyOpen || undefined}>{tabs}{searchButton}</div>
-          {statusLine}
-          <div className="intel-reader intel-reader--memo" ref={readerRef} inert={historyOpen || undefined} {...panel}>
-            {reader ?? <Empty state={state} loading={loading} onRetry={refresh} />}
-          </div>
-          {memoHistory}
-          {noteLine}
-          {statusSheetView}
+  if (workspace) {
+    return (
+      <div className={`intel intel--${mode} intel--memo`} style={rootStyle}>
+        <div className="intel-head">
+          {tabs}
+          {mode !== 'single' && <span className="intel-grow" />}
+          {searchButton}
+          {mode !== 'single' && refreshButton}
         </div>
-      );
-    }
+        {statusLine}
+        {workspace}
+        {noteLine}
+        {statusSheetView}
+      </div>
+    );
+  }
+
+  if (mode === 'single') {
     if (feedId && pane === 'reader' && edition) {
       return (
         <div className="intel intel--single" style={rootStyle}>
@@ -682,9 +734,9 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   }
 
   return (
-    <div className={`intel intel--${mode}${drawerOpen ? ' is-drawer-open' : ''}${memo ? ' intel--memo' : ''}`} style={rootStyle}>
-      <div className="intel-head" inert={drawerOpen || historyOpen || undefined}>
-        {mode === 'drawer' && feedId && !memo && (
+    <div className={`intel intel--${mode}${drawerOpen ? ' is-drawer-open' : ''}`} style={rootStyle}>
+      <div className="intel-head" inert={drawerOpen || undefined}>
+        {mode === 'drawer' && feedId && (
           <button type="button" className="ds-btn intel-editions" onClick={() => setDrawer(true)} aria-expanded={drawerOpen}>
             <IconList />Editions
           </button>
@@ -695,14 +747,13 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
         {refreshButton}
       </div>
       {statusLine}
-      <div className="intel-body" inert={drawerOpen || historyOpen || undefined} {...panel}>
-        {mode === 'rail' && feedId && !memo && <aside className="intel-rail" aria-label="Editions">{list(null)}</aside>}
-        <div className={`intel-reader${memo ? ' intel-reader--memo' : ''}`} ref={readerRef}>
+      <div className="intel-body" inert={drawerOpen || undefined} {...panel}>
+        {mode === 'rail' && feedId && <aside className="intel-rail" aria-label="Editions">{list(null)}</aside>}
+        <div className="intel-reader" ref={readerRef}>
           {page ?? reader ?? <Empty state={state} loading={loading} onRetry={refresh} />}
         </div>
       </div>
-      {memoHistory}
-      {mode === 'drawer' && feedId && !memo && (
+      {mode === 'drawer' && feedId && (
         <>
           <div className="intel-scrim" onClick={() => setDrawer(false)} aria-hidden />
           <aside className="intel-drawer" aria-label="Editions" inert={!drawerOpen} ref={drawerRef}>

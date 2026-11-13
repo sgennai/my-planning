@@ -256,12 +256,8 @@ interface Props {
   /** Other editions sharing a topic (`related.ts`), shown after the last section. */
   related?: Related[];
   onOpenRelated?: (edition: Edition) => void;
-  /** The memo's history (AI Challenge, Sales Brief): opens it, and whether it is open. */
-  onHistory?: () => void;
-  historyOpen?: boolean;
-  /** The memo's chevrons: the editions either side of this one. */
-  adjacent?: { older: Edition | null; newer: Edition | null };
-  onOpenAdjacent?: (edition: Edition) => void;
+  /** A memo's reading line, in the workspace's bar above the reader (`MemoWorkspace`). */
+  fill?: RefObject<HTMLDivElement | null>;
 }
 
 /** Other editions listing a topic this one lists: a reason to look, saying which topics. */
@@ -288,7 +284,7 @@ function RelatedEditions({ items, onOpen }: { items: Related[]; onOpen?: (e: Edi
 
 function Reader({
   edition, scroller, onNote, heroActions = true, reading, saved = [], onToggleRead, onToggleSave, onPosition, startAt, flags = [],
-  related = [], onOpenRelated, onHistory, historyOpen, adjacent, onOpenAdjacent,
+  related = [], onOpenRelated, fill,
 }: Props) {
   const memo = edition.feedId === 'enterprise-ai-challenge';
   // Where the briefing ends, before what follows it (Related): reading to here is reading it all.
@@ -323,9 +319,10 @@ function Reader({
   const feed = feedById(edition.feedId);
   const record = reading?.get(edition.driveFileId);
   const articleRef = useRef<HTMLElement | null>(null);
-  // What sticks at the reader's top: the section index, or the memo's bar.
+  // What sticks at the reader's top: the section index (a memo's bar is above the reader, not in it).
   const indexRef = useRef<HTMLElement | null>(null);
-  const fillRef = useRef<HTMLDivElement | null>(null);
+  const ownFill = useRef<HTMLDivElement | null>(null);
+  const fillRef = fill ?? ownFill;
   const [active, setActive] = useState<string | null>(startAt ?? indexed[0]?.id ?? null);
   const [indexRowRef, indexFade] = useEdgeFade<HTMLDivElement>(active);
   const [selection, setSelection] = useState<SaveInput | null>(null);
@@ -407,7 +404,7 @@ function Reader({
     if (el.firstElementChild) resized?.observe(el.firstElementChild);
     paint();
     return () => { el.removeEventListener('scroll', onScroll); cancelAnimationFrame(frame); resized?.disconnect(); };
-  }, [scroller, indexed, onPosition]);
+  }, [scroller, indexed, onPosition, fillRef]);
 
   // Text selected in the edition can be saved: iOS lets a web app add nothing
   // to its own selection menu, so a button appears at the foot instead. It
@@ -476,14 +473,8 @@ function Reader({
     onGoTo: goTo,
     edition,
     minutes: readingMinutes(edition.markdownBody),
-    barRef: indexRef,
-    fillRef,
     endRef,
     articleRef,
-    onHistory,
-    historyOpen,
-    adjacent,
-    onOpenAdjacent,
     related,
     onOpenRelated,
     read: !!record?.readAt,
@@ -511,14 +502,8 @@ function Reader({
           sections={sections}
           presented={presented}
           minutes={readingMinutes(edition.markdownBody)}
-          barRef={indexRef}
-          fillRef={fillRef}
           endRef={endRef}
           articleRef={articleRef}
-          onHistory={onHistory}
-          historyOpen={historyOpen}
-          adjacent={adjacent}
-          onOpenAdjacent={onOpenAdjacent}
           related={related}
           onOpenRelated={onOpenRelated}
           read={!!record?.readAt}

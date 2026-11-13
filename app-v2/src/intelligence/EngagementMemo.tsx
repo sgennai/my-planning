@@ -1,6 +1,6 @@
 // The Customer Engagement Brief as an executive memo (INT-52), after the
 // approved prototype, in the family of the AI Challenge and Sales Brief memos
-// (`MemoParts`): the quiet bar, the title, the coverage line and the relevant
+// (`MemoParts`; its bar and edition index are the workspace's): the title, the coverage line and the relevant
 // topics; the Executive take; a folded table of contents; each development as
 // a chapter ("Development 01 / 03", its heading, its labelled parts in a
 // margin column, its question to ask the executive, "Next development"); the
@@ -20,7 +20,7 @@ import { countLabel, memoBrand, memoDate, questionInput, two, type Chapter, type
 import { closingQuestionInput, questionSaves, questionsOf, type EngagementMemo as EngagementMemoModel } from './engagement-memo';
 import { CANONICAL_TOPICS } from './topics';
 import type { SaveInput } from './saved';
-import { CONTENTS, MemoBar, MemoChapter, MemoContents, MemoEnd, MemoQuestion, RefFold, RelatedFold, Topics, type ChapterAsk } from './MemoParts';
+import { CONTENTS, MemoChapter, MemoContents, MemoEnd, MemoQuestion, RefFold, RelatedFold, Topics, type ChapterAsk } from './MemoParts';
 import type { MemoProps } from './MemoArticle';
 
 type Saves = (own: SaveInput) => { input: SaveInput; also: SaveInput[] };
@@ -77,8 +77,8 @@ function Row({ section, n, saves, level }: { section: Section; n: number; saves:
 }
 
 export function EngagementMemo({
-  memo, onGoTo, edition, minutes, barRef, fillRef, endRef, articleRef, onHistory, historyOpen = false,
-  adjacent, onOpenAdjacent, related, onOpenRelated, read, editionSaved, onToggleRead, onToggleEditionSave, notices, imported,
+  memo, onGoTo, edition, minutes, endRef, articleRef,
+  related, onOpenRelated, read, editionSaved, onToggleRead, onToggleEditionSave, notices, imported,
 }: Omit<MemoProps, 'sections' | 'presented'> & { memo: EngagementMemoModel; onGoTo: (id: string) => void }) {
   const brand = memoBrand(edition.feedId)!;
   const [contents, setContents] = useState(false);
@@ -101,8 +101,6 @@ export function EngagementMemo({
 
   return (
     <div className="memo memo--engagement">
-      <MemoBar brand={brand} edition={edition} barRef={barRef} fillRef={fillRef} onHistory={onHistory} historyOpen={historyOpen} adjacent={adjacent} onOpenAdjacent={onOpenAdjacent} />
-
       <div className="memo-content">
         <article aria-labelledby={titleId} ref={articleRef}>
           <div className="memo-subline">

@@ -23,27 +23,12 @@ import type { DayKey } from '../routine/dates';
 /** The feeds read as a memo, and what their memo calls itself. */
 export interface MemoBrand {
   name: string;
-  /** The history menu's name and hint. */
-  history: string;
-  browse: string;
-  /** The history search's name, and its list's ("All 53 challenge editions"). */
-  search: string;
-  editions: string;
 }
 
 const BRANDS: Partial<Record<FeedId, MemoBrand>> = {
-  'enterprise-ai-challenge': {
-    name: 'AI Challenge', history: 'Open challenge history', browse: 'Browse all challenges',
-    search: 'Search challenge editions', editions: 'challenge editions',
-  },
-  'enterprise-ai-sales-brief': {
-    name: 'Enterprise AI Sales Brief', history: 'Open sales briefing history', browse: 'Browse briefings',
-    search: 'Search sales briefing editions', editions: 'sales briefing editions',
-  },
-  'customer-engagement-brief': {
-    name: 'Customer Engagement Brief', history: 'Open edition history', browse: 'Browse briefings',
-    search: 'Search edition history', editions: 'customer engagement editions',
-  },
+  'enterprise-ai-challenge': { name: 'AI Challenge' },
+  'enterprise-ai-sales-brief': { name: 'Enterprise AI Sales Brief' },
+  'customer-engagement-brief': { name: 'Customer Engagement Brief' },
 };
 
 /** The feed's memo, or null for a feed read as a brief. */
@@ -127,31 +112,28 @@ export const barDate = (day: DayKey, time: string | null) =>
   `${format(day, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }).replace(',', '')}${time ? ` · ${time}` : ''}`;
 /** "Wed 11 Nov": a list's. */
 export const shortDate = (day: DayKey) => format(day, { weekday: 'short', day: 'numeric', month: 'short' }).replace(',', '');
-/** "November 2026": a month's heading in the history. */
+/** "November 2026": a month's heading in the index. */
 export const monthOf = (day: DayKey) => format(day, { month: 'long', year: 'numeric' });
+/** "2026-11": a month's key (the edition's Paris day, never shifted by a time zone). */
+export const monthKey = (day: DayKey) => day.slice(0, 7);
 
-/** The editions (newest first, as the feed keeps them) matching a search, by month. */
-export function historyGroups(editions: Edition[], query: string): { month: string; editions: Edition[] }[] {
+export interface MonthGroup { key: string; month: string; editions: Edition[] }
+
+/**
+ * The editions (newest first, as the feed keeps them) matching a search, by
+ * month: their title and their date as written or said ("2026-11-12", "Thu
+ * 12 Nov", "12 November 2026"), case and accents aside. A month with no
+ * edition has no group.
+ */
+export function indexGroups(editions: Edition[], query: string): MonthGroup[] {
   const q = fold(query.trim());
-  const groups: { month: string; editions: Edition[] }[] = [];
+  const groups: MonthGroup[] = [];
   for (const e of editions) {
-    const said = fold(`${e.title} ${e.editionDate} ${e.time ?? ''} ${shortDate(e.editionDate)} ${memoDate(e.editionDate)}`);
+    const said = fold(`${e.title} ${e.editionDate} ${shortDate(e.editionDate)} ${memoDate(e.editionDate)}`);
     if (q && !said.includes(q)) continue;
-    const month = monthOf(e.editionDate);
+    const key = monthKey(e.editionDate);
     const last = groups[groups.length - 1];
-    if (last?.month === month) last.editions.push(e); else groups.push({ month, editions: [e] });
+    if (last?.key === key) last.editions.push(e); else groups.push({ key, month: monthOf(e.editionDate), editions: [e] });
   }
   return groups;
-}
-
-/** "53 editions, from September to November 2026." */
-export function historyNote(editions: Edition[]): string {
-  const n = editions.length;
-  if (!n) return 'No editions yet.';
-  const count = `${n} edition${n === 1 ? '' : 's'}`;
-  const days = editions.map(e => e.editionDate).sort();
-  const first = days[0], last = days[days.length - 1];
-  if (monthOf(first) === monthOf(last)) return `${count}, ${monthOf(last)}.`;
-  const sameYear = first.slice(0, 4) === last.slice(0, 4);
-  return `${count}, from ${sameYear ? format(first, { month: 'long' }) : monthOf(first)} to ${monthOf(last)}.`;
 }

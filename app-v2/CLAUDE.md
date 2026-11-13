@@ -342,24 +342,20 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   fades at an edge with more, `useEdgeFade`). A brief, by orientation — landscape: edition rail +
   reader; iPad portrait: reader with an "Editions" drawer; phone (same query as the shell's
   More): list, then the edition with its actions in the top bar. All three feeds (AI Challenge,
-  Sales Brief, Customer Engagement) are executive memos at every size, their editions in the
-  memo's history drawer (below; `memoBrand` in `memo.ts` says which feeds, and their labels), so
-  that list, drawer and brief reader serve only a feed without a memo. It fills the shell like
+  Sales Brief, Customer Engagement) are executive memos at every size, in one workspace with
+  their paper index of editions (below, INT-53; `memoBrand` in `memo.ts` says which feeds, and
+  their names), so that list, drawer and brief reader serve only a feed without a memo. It fills the shell like
   Routine; in portrait the text runs under the pill and every list ends clear of it
   (`--intel-foot`). `useFeeds` shows the device's copy at once and refreshes on opening, on the
   button, and on return after 10 min. A feed opens on the edition chosen this session, else the
   newest unread one if newer than the last opened (`localStorage`), else the last opened;
   acting on an edition (scrolling, read, save) keeps it.
-- **The AI Challenge as an executive memo** (INT-50; `MemoArticle.tsx`, `MemoHistory.tsx`,
+- **The AI Challenge as an executive memo** (INT-50; `MemoArticle.tsx`,
   `memo.ts`, `styles/memo.css`), after the user's approved prototype
   (`SUPPORTING FILES/…/executive-memo-reference.html`, kept outside the repo: it holds real text).
   `EditionReader` draws it for the AI Challenge, sharing the reader's place, progress, resume,
-  selection-save and Takeaways (`EditionActionsContext`). A sticky 76px bar (`data-sticky`, which
-  `useReadingAnchor` reads like the briefs' index): history menu, "AI Challenge", the run's
-  date and time between two quiet chevrons to the older and newer edition (`adjacent`, from the
-  feed's newest-first order; faded at an end; the date hidden on a phone, the chevrons kept);
-  along its foot a 2px reading line, the same measure as `onPosition` (to the
-  briefing's own end) painted on scroll and on resize. Then the edition's own relevant topics,
+  selection-save and Takeaways (`EditionActionsContext`). Its bar and edition history are the
+  workspace's (INT-53, below). The memo: the edition's own relevant topics,
   three and "+n topics" (`memoTopics`: the document's line, else the header); the Challenge's
   bold sentence "In one sentence" (`challengeLead`), its rest section 01; every other section
   numbered in the margin, in its order, in the memo's forms (approaches, what to listen for,
@@ -368,14 +364,37 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   a second fold under it (all of `relatedTo`, 5 then "Show more"); the footer, then quiet tools
   (Mark as read, Save this edition, Open original). No save in the sections' margin (the user's
   choice, 12 Nov): a whole section is kept by selecting its text, or in the briefs.
-  The history (`MemoHistory`): shut by default, over the Intelligence area, every edition by
-  month with a search, the one read marked, "New" and problem labels (not "Imported", which the
-  memo's subline says), Feed status at its foot; Escape, its close button or a tap outside shut
-  it, focus going back (`useModalFocus`). Its CSS is the prototype's: Avenir Next and Georgia,
-  window-based sizes and breakpoints (760/430px), font sizes in --tpx, `:where()` resets so the
+  Its CSS is the prototype's: Avenir Next and Georgia,
+  window-based sizes, breakpoints (760/430px) on the reader's own width (`@container memo`, the
+  index beside it narrowing it), font sizes in --tpx, `:where()` resets so the
   app's heading and button rules do not reach it, no backdrop blur, light in both themes, small
   text darkened just enough for 4.5:1 (axe: no violations). `scripts/memo.check.test.tsx`
   (env `MEMO_DRIVE`) draws every real edition and checks every word is on screen.
+- **The memos' workspace: the paper index** (INT-53; `MemoWorkspace.tsx`, the workspace rules
+  in `styles/memo.css`), after the user's approved prototype
+  (`executive-memo-unified-paper-index.html`, outside the repo), one for the three feeds
+  (`IntelligenceScreen` draws it for any feed with a memo; the memos draw only the article). A
+  62px reading bar across it: "Hide editions" / "Show editions" (`aria-expanded`), the feed's
+  name, the run's date and time (Paris) between chevrons to the older and newer edition
+  (`adjacent`), and along its foot the 2px reading line, which `EditionReader` paints (`fill`)
+  from the memo's own scroll (to the briefing's end). Under it the paper index and the memo, side
+  by side, each scrolling on its own; one width token for the three feeds,
+  `--edition-index-width` (324px, 316 ≤1080, 290 ≤790, window-based as in the prototype). The
+  index (`MemoIndex`): the feed's name, "Edition history", "n editions in your archive", a search
+  (title and date as written or said, `indexGroups`; per feed, for the session,
+  `sessionStorage`), then the months newest first (`indexGroups`, the Paris day's month, none
+  without an edition), each a button with its count, open or shut on its own, kept per feed on
+  the device (`localStorage`); the month of the edition being read opens as the index is drawn
+  and as that edition changes (worked out while rendering); while searching every month with a
+  match shows (closing one lasts until the search changes), and clearing it brings the months
+  back. Each edition: its date without the time, its title, "New"/"Updated" and problem tags; the
+  one read marked (`aria-current="page"`) and kept in sight. Choosing one opens it beside the
+  index, which stays. The index keeps its own months and search, so neither redraws the memo.
+  Hidden, the index collapses (`inert`) and the memo takes the width, its place kept
+  (`useReadingAnchor`); one choice for the three feeds, kept on the device
+  (`my-planning-intel-index`). A phone (the shell's More query): the memo first; "Show editions"
+  lays the index over the whole width (the memo `inert` under it) with the focus on the edition
+  read; choosing goes back to the memo, the focus on the toggle. Feed status at the index's foot.
 - **Sections** (`EditionReader.tsx`, `present.ts`): a sticky index of chips, then each
   section in its order (the briefs). AI Challenge sections take a richer form (bold lead,
   numbered approaches, quotes, labelled questions, vocabulary terms and notes) **only when every
@@ -424,7 +443,7 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   `.memo--sales` rules in `styles/memo.css`), after the user's approved prototype
   (`enterprise-ai-sales-brief-executive-memo-demo.html`, outside the repo), in the AI Challenge
   memo's family: the bar, topics, Save, Related fold and end are shared (`MemoParts.tsx`), so is
-  the history drawer. `salesMemo` reads the sections in the document's order: each development is
+  the workspace (bar and index). `salesMemo` reads the sections in the document's order: each development is
   a chapter ("Development 01 / 03", "Back to contents ↑", its heading less a number the kicker
   gives, `chapterTitle`; "Next development →", the last "Executive takeaways →") of fields
   (`fieldsOf`: a label on its own line or a heading inside opens a field; where labels are mostly
@@ -690,7 +709,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (520 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (530 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris

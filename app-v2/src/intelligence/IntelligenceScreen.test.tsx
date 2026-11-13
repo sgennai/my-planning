@@ -56,11 +56,10 @@ const openChallenge = async () => {
   fireEvent.click(await screen.findByRole('tab', { name: /AI Challenge/ }));
   return screen.findByRole('heading', { level: 1, name: 'Agent Sprawl: Who Owns the Bots?' });
 };
-/** The AI Challenge memo's history drawer, opened from its bar. */
-const openHistory = () => {
-  fireEvent.click(screen.getByRole('button', { name: 'Open challenge history' }));
-  return screen.getByRole('dialog', { name: 'Edition history' });
-};
+/** The memo's edition index, beside it (INT-53), shown unless hidden on this device. */
+const editionIndex = () => screen.getByRole('complementary', { name: 'Edition history' });
+/** The edition being read, as the index marks it. */
+const marked = () => editionIndex().querySelector('[aria-current="page"]');
 /** A Sales Brief edition, read as its memo (INT-51). */
 const withSales = () => {
   otherFeeds['enterprise-ai-sales-brief'] = [{ ...SALES_FILE, createdTime: '2026-01-02T08:05:30.000Z', modifiedTime: '2026-01-02T08:05:32.000Z' }];
@@ -80,6 +79,7 @@ beforeEach(async () => {
   _closeLibrary();
   await new Promise<void>(res => { const r = indexedDB.deleteDatabase('my-planning-intel'); r.onsuccess = r.onerror = () => res(); });
   localStorage.clear();
+  sessionStorage.clear();
   docText = CHALLENGE_DOC;
   // Created well before now, so no grace period is running.
   files = [{ ...CHALLENGE_FILE, createdTime: '2026-01-02T07:20:30.000Z', modifiedTime: '2026-01-02T07:20:32.000Z' }];
@@ -105,32 +105,58 @@ describe('the Intelligence section', () => {
     expect(screen.getByRole('tab', { name: /AI Challenge/ })).toHaveAttribute('aria-selected', 'true');
   });
 
-  it('the AI Challenge opens as its memo, its history in a drawer listing the edition, new', async () => {
+  it('the AI Challenge opens as its memo, its editions in the paper index beside it, the one read marked', async () => {
     render(<App />);
     await openChallenge();
     expect(screen.queryByRole('complementary', { name: 'Editions' })).toBeNull();
-    const history = openHistory();
-    expect(within(history).getByText('1 edition, November 2026.')).toBeInTheDocument();
-    expect(within(history).getByText('November 2026')).toBeInTheDocument();
-    const listed = within(history).getByRole('button', { name: /Mon 2 Nov · 08:20/ });
+    expect(screen.queryByRole('dialog')).toBeNull();
+    const index = editionIndex();
+    expect(index).not.toHaveAttribute('inert');
+    expect(index.querySelector('.memo-editions-head')).toHaveTextContent('AI ChallengeEdition history1 edition in your archive');
+    expect(within(index).getByRole('button', { name: /^November 2026/ })).toHaveAttribute('aria-expanded', 'true');
+    const listed = within(index).getByRole('button', { name: /Mon 2 Nov/ });
     expect(listed).toHaveAttribute('aria-current', 'page');
-    expect(listed).toHaveAccessibleName(/^Mon 2 Nov · 08:20,\s*New\s*Agent Sprawl/);
+    expect(listed).toHaveAccessibleName(/^Mon 2 Nov,\s*New\s*Agent Sprawl/);
+    expect(document.querySelector('.memo-readbar')).toHaveTextContent('Hide editionsAI Challenge‹Mon 2 Nov 2026 · 08:20›');
   });
 
-  it('the Sales Brief opens as its memo too, its history in the drawer, its labels its own', async () => {
+  it('the three feeds share one workspace: the same bar, the same index, their own editions and name', async () => {
+    withSales();
+    withEngagement();
+    render(<App />);
+    const looks: string[][] = [];
+    for (const [tab, title] of [[/AI Challenge/, 'Agent Sprawl: Who Owns the Bots?'], [/Enterprise AI/, 'Outcome Pricing and Sovereign Capacity'], [/Customer Engagement/, 'Connected Agents and Headless CDPs']] as const) {
+      fireEvent.click(await screen.findByRole('tab', { name: tab }));
+      await screen.findByRole('heading', { level: 1, name: title });
+      const index = editionIndex();
+      expect(marked()).toHaveTextContent(title);
+      looks.push([index.className, index.id, document.querySelector('.memo-workspace')!.className, index.querySelector('.memo-editions-kicker')!.textContent!]);
+    }
+    expect(looks.map(l => l.slice(0, 3))).toEqual(Array(3).fill(['memo-editions', 'memo-editions', 'memo-workspace']));
+    expect(looks.map(l => l[3])).toEqual(['AI Challenge', 'Enterprise AI Sales Brief', 'Customer Engagement Brief']);
+  });
+
+  it('Hide editions gives the memo the width, for every feed, and Show brings the index back as it was', async () => {
     withSales();
     render(<App />);
-    fireEvent.click(await screen.findByRole('tab', { name: /Enterprise AI/ }));
-    expect(await screen.findByRole('heading', { level: 1, name: 'Outcome Pricing and Sovereign Capacity' })).toBeInTheDocument();
-    expect(screen.queryByRole('complementary', { name: 'Editions' })).toBeNull();
-    expect(screen.queryByRole('button', { name: /^Editions/ })).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: 'Open sales briefing history' }));
-    const history = screen.getByRole('dialog', { name: 'Edition history' });
-    expect(history).toHaveTextContent('Enterprise AI Sales Brief');
-    expect(within(history).getByRole('searchbox', { name: 'Search sales briefing editions' })).toBeInTheDocument();
-    expect(within(history).getByRole('navigation', { name: 'All 1 sales briefing editions' })).toBeInTheDocument();
-    fireEvent.keyDown(window, { key: 'Escape' });
-    expect(history).not.toHaveClass('is-open');
+    await openChallenge();
+    const workspace = document.querySelector('.memo-workspace')!;
+    fireEvent.change(within(editionIndex()).getByRole('searchbox', { name: 'Search edition history' }), { target: { value: 'sprawl' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Hide editions' }));
+    expect(workspace).toHaveClass('is-hidden');
+    expect(document.querySelector('.memo-editions')).toHaveAttribute('inert');
+    expect(screen.getByRole('heading', { level: 1, name: 'Agent Sprawl: Who Owns the Bots?' })).toBeInTheDocument();
+    // The same for the other feeds, and on this device the next time.
+    fireEvent.click(screen.getByRole('tab', { name: /Enterprise AI/ }));
+    await screen.findByRole('heading', { level: 1, name: 'Outcome Pricing and Sovereign Capacity' });
+    expect(document.querySelector('.memo-workspace')).toHaveClass('is-hidden');
+    expect(localStorage.getItem('my-planning-intel-index')).toBe('hidden');
+    fireEvent.click(screen.getByRole('tab', { name: /AI Challenge/ }));
+    await screen.findByRole('heading', { level: 1, name: 'Agent Sprawl: Who Owns the Bots?' });
+    fireEvent.click(screen.getByRole('button', { name: 'Show editions' }));
+    expect(document.querySelector('.memo-workspace')).not.toHaveClass('is-hidden');
+    expect(within(editionIndex()).getByRole('searchbox', { name: 'Search edition history' })).toHaveValue('sprawl');
+    expect(marked()).toHaveTextContent('Agent Sprawl');
   });
 
   it('the Sales memo keeps its best question once in Takeaways, whichever of its two Saves is used', async () => {
@@ -146,23 +172,18 @@ describe('the Intelligence section', () => {
     expect(screen.getByRole('button', { name: 'Save the best executive question' })).toHaveAttribute('aria-pressed', 'false');
   });
 
-  it('the Customer Engagement Brief opens as its memo, its history in the drawer, shut until asked', async () => {
+  it('the Customer Engagement Brief opens as its memo, its editions in the same index beside it', async () => {
     withEngagement();
     render(<App />);
     fireEvent.click(await screen.findByRole('tab', { name: /Customer Engagement/ }));
     expect(await screen.findByRole('heading', { level: 1, name: 'Connected Agents and Headless CDPs' })).toBeInTheDocument();
     expect(screen.queryByRole('complementary', { name: 'Editions' })).toBeNull();
-    const menu = screen.getByRole('button', { name: 'Open edition history' });
-    expect(menu).toHaveAttribute('aria-expanded', 'false');
-    fireEvent.click(menu);
-    const history = screen.getByRole('dialog', { name: 'Edition history' });
-    expect(history).toHaveTextContent('Customer Engagement Brief');
-    expect(within(history).getByRole('searchbox', { name: 'Search edition history' })).toBeInTheDocument();
-    const listed = within(history).getByRole('button', { name: /Mon 2 Nov · 08:00/ });
+    const index = editionIndex();
+    expect(index).toHaveTextContent('Customer Engagement Brief');
+    expect(within(index).getByRole('searchbox', { name: 'Search edition history' })).toBeInTheDocument();
+    const listed = within(index).getByRole('button', { name: /Mon 2 Nov/ });
     expect(listed).toHaveAttribute('aria-current', 'page');
-    expect(listed).toHaveAccessibleName(/^Mon 2 Nov · 08:00,\s*New\s*Connected Agents/);
-    fireEvent.keyDown(window, { key: 'Escape' });
-    expect(history).not.toHaveClass('is-open');
+    expect(listed).toHaveAccessibleName(/^Mon 2 Nov,\s*New\s*Connected Agents/);
   });
 
   it('the Engagement memo saves each of its questions to Takeaways, as the brief did', async () => {
@@ -185,7 +206,7 @@ describe('the Intelligence section', () => {
     await openChallenge();
     fireEvent.click(screen.getByRole('button', { name: 'Mark as read' }));
     expect(readingIndex(latest.progressLog).get(CHALLENGE_FILE.id)?.readAt).toBeTruthy();
-    expect(within(openHistory()).getByRole('button', { name: /Mon 2 Nov/ })).not.toHaveTextContent('New');
+    expect(within(editionIndex()).getByRole('button', { name: /Mon 2 Nov/ })).not.toHaveTextContent('New');
     fireEvent.keyDown(window, { key: 'Escape' });
     fireEvent.click(screen.getByRole('button', { name: 'Read · Mark as unread' }));
     expect(readingIndex(latest.progressLog).get(CHALLENGE_FILE.id)?.readAt).toBeNull();
@@ -283,17 +304,24 @@ describe('the Intelligence section', () => {
     expect(screen.getByText('Mon 2 Nov 2026 · 08:20')).toBeInTheDocument();
   });
 
-  it('on a phone, the AI Challenge is its memo, the tabs above it, its history a tap away', async () => {
+  it('on a phone, the memo first; the index takes the whole width when asked for, and choosing goes back to the memo', async () => {
     phone = true;
     render(<App />);
     fireEvent.click(screen.getByRole('tab', { name: /AI Challenge/ }));
     expect(await screen.findByRole('heading', { level: 1, name: 'Agent Sprawl: Who Owns the Bots?' })).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'Mark as read' })).toHaveLength(1);
     expect(screen.getByRole('tab', { name: 'Today' })).toBeInTheDocument();
-    const history = openHistory();
-    expect(history).toHaveClass('is-open');
-    fireEvent.click(within(history).getByRole('button', { name: /Mon 2 Nov · 08:20/ }));
-    expect(history).not.toHaveClass('is-open');
+    const workspace = document.querySelector('.memo-workspace')!;
+    expect(workspace).toHaveClass('memo-workspace--phone', 'is-hidden');
+    const toggle = screen.getByRole('button', { name: 'Show editions' });
+    fireEvent.click(toggle);
+    expect(workspace).not.toHaveClass('is-hidden');
+    expect(document.querySelector('.intel-reader--memo')).toHaveAttribute('inert');
+    expect(document.activeElement).toBe(marked());
+    fireEvent.click(within(editionIndex()).getByRole('button', { name: /Mon 2 Nov/ }));
+    expect(workspace).toHaveClass('is-hidden');
+    expect(document.querySelector('.intel-reader--memo')).not.toHaveAttribute('inert');
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Show editions' }));
   });
 
   it('on a phone, the Engagement memo opens at once, its history behind the menu, its actions at its end', async () => {
@@ -304,8 +332,8 @@ describe('the Intelligence section', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Connected Agents and Headless CDPs' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Back to editions' })).toBeNull();
     expect(screen.getAllByRole('button', { name: 'Mark as read' })).toHaveLength(1);
-    fireEvent.click(screen.getByRole('button', { name: 'Open edition history' }));
-    expect(screen.getByRole('dialog', { name: 'Edition history' })).toHaveClass('is-open');
+    fireEvent.click(screen.getByRole('button', { name: 'Show editions' }));
+    expect(document.querySelector('.memo-workspace')).not.toHaveClass('is-hidden');
   });
 });
 
@@ -321,8 +349,7 @@ describe('what the app says about the documents (conformance)', () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     await openFeed();
     expect(screen.getByRole('note')).toHaveTextContent("doesn't follow the publication format (no generated_at)");
-    expect(within(within(openHistory()).getByRole('button', { name: /Mon 2 Nov/ })).getByText('Format issue')).toBeInTheDocument();
-    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(within(within(editionIndex()).getByRole('button', { name: /Mon 2 Nov/ })).getByText('Format issue')).toBeInTheDocument();
     expect(screen.getByText('1 document in this feed needs a look.')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Details' }));
     const sheet = screen.getByRole('dialog', { name: 'Feed status' });
@@ -334,7 +361,7 @@ describe('what the app says about the documents (conformance)', () => {
   it('two documents with the same name: both kept, both labelled, a warning', async () => {
     files = [files[0], { ...files[0], id: '1SecondCopy00000000000000' }];
     await openFeed();
-    expect(within(openHistory()).getAllByText('Duplicate')).toHaveLength(2);
+    expect(within(editionIndex()).getAllByText('Duplicate')).toHaveLength(2);
     expect(screen.getByText('2 documents in this feed need a look.')).toBeInTheDocument();
     expect(screen.getAllByRole('note')[0]).toHaveTextContent('2 documents in this feed have the same name. All of them are kept.');
   });
@@ -349,7 +376,7 @@ describe('what the app says about the documents (conformance)', () => {
     expect(screen.queryByRole('note')).toBeNull();
     expect(screen.queryByText(/needs a look/)).toBeNull();
     expect(screen.getByText(/The executive memo/)).toHaveTextContent('Imported');
-    fireEvent.click(within(openHistory()).getByRole('button', { name: 'Feed status' }));
+    fireEvent.click(within(editionIndex()).getByRole('button', { name: 'Feed status' }));
     expect(within(screen.getByRole('dialog')).getByText('Mon 2 Nov · 08:20, imported')).toBeInTheDocument();
   });
 
@@ -358,14 +385,14 @@ describe('what the app says about the documents (conformance)', () => {
     docText = '';
     await openFeed();
     expect(screen.getByText('An edition is still being written. It is checked again on each refresh.')).toBeInTheDocument();
-    expect(within(openHistory()).getAllByText('Being written').length).toBeGreaterThan(0);
+    expect(within(editionIndex()).getAllByText('Being written').length).toBeGreaterThan(0);
     expect(screen.queryByText('Incomplete')).toBeNull();
   });
 
   it('once the grace period has passed, an empty document is incomplete', async () => {
     docText = '';
     await openFeed();
-    expect(within(openHistory()).getByText('Incomplete')).toBeInTheDocument();
+    expect(within(editionIndex()).getByText('Incomplete')).toBeInTheDocument();
     expect(screen.getAllByRole('note').map(n => n.textContent).join(' ')).toContain('has no briefing text');
   });
 
@@ -561,38 +588,19 @@ describe('with a keyboard and a screen reader (INT-33)', () => {
     expect(document.activeElement).toBe(opener);
   });
 
-  it('the memo\u2019s history opens on the edition being read, and gives focus back on Escape, its close button or a tap outside', async () => {
-    portrait = true;
-    render(<App />);
-    await openChallenge();
-    expect(screen.queryByRole('button', { name: 'Editions' })).toBeNull();
-    const opener = screen.getByRole('button', { name: 'Open challenge history' });
-    expect(opener).toHaveAttribute('aria-expanded', 'false');
-    opener.focus();
-    fireEvent.click(opener);
-    expect(opener).toHaveAttribute('aria-expanded', 'true');
-    expect(document.activeElement).toHaveAttribute('aria-current', 'page');
-    fireEvent.keyDown(window, { key: 'Escape' });
-    expect(document.activeElement).toBe(opener);
-    fireEvent.click(opener);
-    fireEvent.click(screen.getByRole('button', { name: 'Close history' }));
-    expect(document.activeElement).toBe(opener);
-    expect(opener).toHaveAttribute('aria-expanded', 'false');
-  });
-
-  it('on an iPad in portrait, the Engagement memo\u2019s history opens on the edition being read, and gives focus back', async () => {
+  it('on an iPad in portrait too, the index sits beside the memo, not over it; its toggle says what it does', async () => {
     portrait = true;
     withEngagement();
     render(<App />);
     fireEvent.click(await screen.findByRole('tab', { name: /Customer Engagement/ }));
     await screen.findByRole('heading', { level: 1, name: 'Connected Agents and Headless CDPs' });
     expect(screen.queryByRole('button', { name: 'Editions' })).toBeNull();
-    const opener = screen.getByRole('button', { name: 'Open edition history' });
-    opener.focus();
-    fireEvent.click(opener);
-    expect(document.activeElement).toHaveAttribute('aria-current', 'page');
-    fireEvent.keyDown(window, { key: 'Escape' });
-    expect(document.activeElement).toBe(opener);
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(document.querySelector('.memo-workspace')).not.toHaveClass('memo-workspace--phone');
+    const toggle = screen.getByRole('button', { name: 'Hide editions' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(toggle).toHaveAttribute('aria-controls', editionIndex().id);
+    expect(document.querySelector('.intel-reader--memo')).not.toHaveAttribute('inert');
   });
 
   it('Today says which edition each button is for', async () => {
@@ -768,11 +776,43 @@ describe('imported editions are the archive, never unread (INT-34)', () => {
     render(<App />);
     await openChallenge();
     expect(screen.getByRole('button', { name: 'Next edition: none' })).toBeDisabled();
+    const month = (name: RegExp) => within(editionIndex()).getByRole('button', { name });
+    expect(month(/^October 2026/)).toHaveAttribute('aria-expanded', 'false');
     fireEvent.click(screen.getByRole('button', { name: 'Previous edition: Thu 1 Oct, An Archived Challenge' }));
     expect(await screen.findByRole('heading', { level: 1, name: 'An Archived Challenge' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Previous edition: none' })).toBeDisabled();
+    // Its month opens in the index, the other stays as it was, the edition marked.
+    expect(month(/^October 2026/)).toHaveAttribute('aria-expanded', 'true');
+    expect(month(/^November 2026/)).toHaveAttribute('aria-expanded', 'true');
+    expect(marked()).toHaveTextContent('An Archived Challenge');
     fireEvent.click(screen.getByRole('button', { name: 'Next edition: Mon 2 Nov, Agent Sprawl: Who Owns the Bots?' }));
     expect(await screen.findByRole('heading', { level: 1, name: 'Agent Sprawl: Who Owns the Bots?' })).toBeInTheDocument();
+  });
+
+  it('each feed keeps its own months and search; a search finds without changing the memo', async () => {
+    withSales();
+    render(<App />);
+    await openChallenge();
+    const index = () => editionIndex();
+    fireEvent.click(within(index()).getByRole('button', { name: /^October 2026/ }));
+    fireEvent.click(within(index()).getByRole('button', { name: /^November 2026/ }));
+    fireEvent.change(within(index()).getByRole('searchbox', { name: 'Search edition history' }), { target: { value: 'archived' } });
+    // While searching: only the match, its month open; the memo is the one being read.
+    expect([...index().querySelectorAll('.memo-month-head')].map(b => [b.textContent, b.getAttribute('aria-expanded')])).toEqual([['October 2026, 1 edition', 'true']]);
+    expect(screen.getByRole('heading', { level: 1, name: 'Agent Sprawl: Who Owns the Bots?' })).toBeInTheDocument();
+    // Another feed: its own search and months.
+    fireEvent.click(screen.getByRole('tab', { name: /Enterprise AI/ }));
+    await screen.findByRole('heading', { level: 1, name: 'Outcome Pricing and Sovereign Capacity' });
+    expect(within(index()).getByRole('searchbox', { name: 'Search edition history' })).toHaveValue('');
+    expect(within(index()).getByRole('button', { name: /^November 2026/ })).toHaveAttribute('aria-expanded', 'true');
+    // Back: the search as it was; cleared, the months as they were.
+    fireEvent.click(screen.getByRole('tab', { name: /AI Challenge/ }));
+    await screen.findByRole('heading', { level: 1, name: 'Agent Sprawl: Who Owns the Bots?' });
+    const search = within(index()).getByRole('searchbox', { name: 'Search edition history' });
+    expect(search).toHaveValue('archived');
+    fireEvent.change(search, { target: { value: '' } });
+    expect([...index().querySelectorAll('.memo-month-head')].map(b => b.getAttribute('aria-expanded'))).toEqual(['true', 'true']);
+    expect(JSON.parse(localStorage.getItem('my-planning-intel-months:enterprise-ai-challenge')!)).toEqual(expect.arrayContaining(['2026-10', '2026-11']));
   });
 
   it('is listed and labelled, but counted in no unread list, count or dot', async () => {
@@ -784,15 +824,21 @@ describe('imported editions are the archive, never unread (INT-34)', () => {
     expect(within(panel).getByText('Unread').nextElementSibling).toHaveTextContent('AI Challenge 1');
 
     await openChallenge();
-    const history = openHistory();
+    const history = editionIndex();
     expect(within(history).getByRole('button', { name: /Mon 2 Nov/ })).toHaveTextContent('New');
+    // October is shut until opened; November, the month being read, is open.
+    expect(within(history).queryByRole('button', { name: /Thu 1 Oct/ })).toBeNull();
+    fireEvent.click(within(history).getByRole('button', { name: /^October 2026/ }));
     const archived = within(history).getByRole('button', { name: /Thu 1 Oct/ });
     expect(archived).not.toHaveTextContent(/New|Imported/);
     fireEvent.click(archived);
     expect(screen.getByRole('heading', { level: 1, name: 'An Archived Challenge' })).toBeInTheDocument();
     expect(screen.getByText(/The executive memo/)).toHaveTextContent('1 October 2026 / Imported');
+    // The index stayed, the choice marked, both months open.
+    expect(marked()).toHaveTextContent('An Archived Challenge');
+    expect([...editionIndex().querySelectorAll('.memo-month-head')].map(b => b.getAttribute('aria-expanded'))).toEqual(['true', 'true']);
     // Once the scheduled edition is read, nothing in the feed is new.
-    fireEvent.click(within(openHistory()).getByRole('button', { name: /Mon 2 Nov/ }));
+    fireEvent.click(within(editionIndex()).getByRole('button', { name: /Mon 2 Nov/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Mark as read' }));
     expect(screen.getByRole('tab', { name: /AI Challenge/ })).not.toHaveAccessibleName(/new/);
   });

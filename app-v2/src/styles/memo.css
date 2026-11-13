@@ -5,75 +5,42 @@
   `.memo--sales`, after `enterprise-ai-sales-brief-executive-memo-demo.html`;
   INT-52, `.memo--engagement`, after
   `customer-engagement-executive-memo-demo.html`, which builds on the Sales
-  prototype's rules and adds its own): its tokens, type,
-  spacing and proportions, kept as written there, with four changes for the
+  prototype's rules and adds its own); and their workspace, the reading bar
+  and paper index of editions beside the memo (INT-53, after
+  `executive-memo-unified-paper-index.html`): its tokens, type,
+  spacing and proportions, kept as written there, with these changes for the
   app. Font sizes are in --tpx, so they follow the iPad's Text Size; those
-  that grow with the window still do (vw), and its breakpoints are the
-  window's, as in the prototype. The app's own heading and button
-  styles are set aside here, at the lowest priority (:where), so that the
-  prototype's rules apply as written. No backdrop blur (the app's rule
-  for older iPads): the bar is a shade more opaque instead. And the history
-  drawer and its veil cover the Intelligence area, not the whole screen.
-  The memo is light, as designed, in both themes. Small text that fell short
+  that grow with the window still do (vw). The memo's breakpoints are its
+  reader's width (`@container memo`), which the index beside it narrows; the
+  workspace's are the window's, as in the prototype. The app's own heading
+  and button styles are set aside here, at the lowest priority (:where), so
+  that the prototype's rules apply as written. No backdrop blur (the app's
+  rule for older iPads). The memo is light, as designed, in both themes. Small text that fell short
   of the 4.5:1 contrast minimum is a shade darker, its hue kept (the
   separators "·" are drawn by CSS, decorative, in their own grey).
 */
-.memo {
+.memo, .memo-workspace {
   --memo-paper: #eef3f6;
   --memo-ink: #172f44;
   --memo-line: #c8d3db;
   --memo-serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
   --memo-sans: 'Avenir Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   color-scheme: light;
-  min-height: 100%;
-  background: var(--memo-paper);
   color: var(--memo-ink);
   font-family: var(--memo-sans);
   -webkit-font-smoothing: antialiased;
 }
-/* The paper runs to the reader's edges, at every size (over the other readers' padding). */
-.intel .intel-reader--memo { padding: 0; background: #eef3f6; }
-:where(.memo, .memo-drawer) :is(button, input) { font: inherit; }
-:where(.memo, .memo-drawer) :is(h1, h2, h3, h4) { font-family: inherit; font-weight: inherit; color: inherit; letter-spacing: normal; line-height: inherit; }
-:where(.memo) button { cursor: pointer; appearance: none; }
+.memo { min-height: 100%; background: var(--memo-paper); }
+/* The paper runs to the reader's edges, at every size (over the other readers' padding).
+   The memo is laid out for the reader's own width, which the edition index beside it narrows. */
+.intel .intel-reader--memo { padding: 0; background: #eef3f6; container: memo / inline-size; }
+:where(.memo, .memo-workspace) :is(button, input) { font: inherit; }
+:where(.memo, .memo-workspace) :is(h1, h2, h3, h4) { font-family: inherit; font-weight: inherit; color: inherit; letter-spacing: normal; line-height: inherit; }
+:where(.memo, .memo-workspace) button { cursor: pointer; appearance: none; }
 :where(.memo) a { color: inherit; }
-.memo :is(button, input, a, summary):focus-visible,
-.memo-drawer :is(button, input):focus-visible { outline: 3px solid #75abdc; outline-offset: 4px; }
+:is(.memo, .memo-workspace) :is(button, input, a, summary):focus-visible { outline: 3px solid #75abdc; outline-offset: 4px; }
 
-/* ── The bar ─────────────────────────────────────────────────────────────── */
-.memo-bar {
-  height: 76px;
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 clamp(24px, 5.7vw, 90px);
-  background: rgba(239, 244, 247, .97);
-  border-bottom: 1px solid rgba(38, 67, 88, .12);
-}
-.memo-brand { display: flex; align-items: center; gap: 14px; }
-.memo-brand-text { font-weight: 800; letter-spacing: 2px; font-size: calc(11 * var(--tpx)); line-height: 1.2; color: #315773; text-transform: uppercase; }
-.memo-hamburger {
-  width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center;
-  background: transparent; border: 1px solid transparent; color: #46637b; transition: background .16s, border .16s;
-  position: relative;
-}
-/* A 44px target round a 38px mark. */
-.memo-hamburger::after { content: ''; position: absolute; inset: -3px; }
-.memo-hamburger:hover { background: #e0eaf2; border-color: #c4d4e1; }
-.memo-hamburger svg { display: block; }
-.memo-bar-right { display: flex; align-items: center; gap: 6px; }
-/* The older and newer editions' chevrons, either side of the date: as quiet as the date. */
-.memo-step {
-  position: relative; width: 28px; height: 28px; display: grid; place-items: center; border: 0; border-radius: 8px;
-  background: transparent; color: #636f7c; transition: background .16s, color .16s, opacity .16s;
-}
-.memo-step::after { content: ''; position: absolute; inset: -8px; }
-.memo-step:hover:not(:disabled) { background: #e0eaf2; color: #275776; }
-.memo-step:disabled { opacity: .3; cursor: default; }
-.memo-bar-date { font-size: calc(10 * var(--tpx)); font-weight: 750; letter-spacing: 1.65px; color: #636f7c; white-space: nowrap; text-transform: uppercase; }
+/* ── The reading line, along the workspace bar's foot ──────────────────── */
 .memo-track { height: 2px; background: #dbe5ec; position: absolute; bottom: -1px; left: 0; right: 0; }
 .memo-fill { height: 100%; width: 0; background: linear-gradient(90deg, #7899b3, #355b7c); transition: width .12s linear; }
 
@@ -211,43 +178,6 @@
 }
 .memo-tools :is(button, a):hover { color: #275776; }
 
-/* ── The history ─────────────────────────────────────────────────────────── */
-.memo-veil { position: absolute; z-index: 250; inset: 0; background: #06121ecc; opacity: 0; pointer-events: none; transition: opacity .25s; }
-.memo-veil.is-open { opacity: 1; pointer-events: auto; }
-.memo-drawer {
-  position: absolute; top: 0; bottom: 0; left: 0; width: min(435px, 93%); z-index: 251;
-  background: #142b40; color: #e5eff6; box-shadow: 16px 0 48px #0005; transform: translateX(-103%);
-  transition: transform .27s cubic-bezier(.2, .7, .2, 1); display: flex; flex-direction: column;
-  font-family: 'Avenir Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color-scheme: dark;
-}
-.memo-drawer.is-open { transform: translateX(0); }
-.memo-drawer-top { padding: 29px 27px 19px; border-bottom: 1px solid #ffffff1b; }
-.memo-drawer-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
-.memo-drawer-top h2 { font-size: calc(22 * var(--tpx)); font-weight: 700; letter-spacing: -.7px; margin: 7px 0 5px; }
-.memo-drawer-label { font-weight: 760; color: #89a9c5; font-size: calc(10 * var(--tpx)); letter-spacing: 2px; text-transform: uppercase; }
-.memo-drawer-note { font-size: calc(12 * var(--tpx)); line-height: 1.65; color: #8ea7bd; margin: 8px 0 18px; }
-.memo-drawer-close { display: grid; place-items: center; background: #254056; border: 1px solid #3b5770; border-radius: 9px; color: #c4d5e4; width: 34px; height: 34px; position: relative; }
-.memo-drawer-close::after { content: ''; position: absolute; inset: -5px; }
-.memo-drawer-search { height: 44px; background: #0d2132; border: 1px solid #3d5870; display: flex; align-items: center; gap: 11px; border-radius: 11px; padding: 0 12px; color: #8fa8bd; }
-.memo-drawer-search input { width: 100%; min-width: 0; background: transparent; border: 0; outline: none; color: #f3f8fc; font-size: max(16px, calc(13 * var(--tpx))); }
-.memo-drawer-search input::placeholder { color: #92a7b7; }
-.memo-drawer-list { overflow: auto; overscroll-behavior: contain; flex: 1; padding: 12px 16px 24px; scrollbar-color: #4b6982 #142b40; scrollbar-width: thin; }
-.memo-month { font-size: calc(10 * var(--tpx)); letter-spacing: 1.9px; color: #8eabc5; font-weight: 750; margin: 19px 10px 9px; text-transform: uppercase; }
-.memo-edition { display: block; width: 100%; text-align: left; background: transparent; color: #c1d2df; border: 1px solid transparent; padding: 12px 12px 14px; border-radius: 11px; margin: 0 0 4px; font: inherit; cursor: pointer; }
-.memo-edition:hover { background: #24455f; }
-.memo-edition.is-current { background: #2c4f6c; border-color: #5b85a5; color: #fff; }
-.memo-edition.is-current .memo-edition-date { color: #aec1d1; }
-.memo-edition.is-current .memo-edition-tag:not(.is-alert) { color: #a5c2df; }
-.memo-edition-date { display: block; font-size: calc(11 * var(--tpx)); color: #95aec2; margin-bottom: 5px; }
-.memo-edition strong { display: block; font-size: calc(13 * var(--tpx)); line-height: 1.48; font-weight: 580; }
-.memo-edition.is-current strong { font-weight: 790; }
-.memo-edition-tag { margin-left: 9px; font-size: calc(10 * var(--tpx)); letter-spacing: 1px; text-transform: uppercase; font-weight: 750; color: #9cbcdc; }
-.memo-edition-tag.is-alert { color: #f2b8a2; }
-.memo-current-marker { display: inline-block; background: #9cbcdc; width: 5px; height: 5px; border-radius: 50%; vertical-align: middle; margin: 0 0 2px 7px; }
-.memo-empty { padding: 22px; color: #aabed0; font-size: calc(13 * var(--tpx)); }
-.memo-drawer-bottom { border-top: 1px solid #ffffff16; padding: 13px 27px calc(17px + var(--intel-foot, 0px) - var(--sp-12, 48px)); color: #8faabe; font-size: calc(11 * var(--tpx)); line-height: 1.5; }
-.memo-drawer-bottom button { border: 0; background: transparent; color: #a9c1d4; padding: 8px 0; font: inherit; text-decoration: underline; text-decoration-color: #4b6982; text-underline-offset: 3px; cursor: pointer; }
-
 /* Feedback, in the memo's colours. */
 .intel--memo .intel-note { background: #183b58; color: #f2f8fd; border: 1px solid #577f9b; border-radius: 12px; box-shadow: 0 15px 50px #0004; font-size: calc(12 * var(--tpx)); font-weight: 620; }
 
@@ -369,9 +299,110 @@
 .memo-watchlist li { margin-bottom: 15px; }
 .memo--engagement .memo-row .memo-index { gap: 8px; }
 
-/* ── Narrower ───────────────────────────────────────────────────────────── */
-@media (max-width: 760px) {
-  .memo-bar { padding: 0 22px; height: 68px; }
+/* ── The workspace (INT-53): bar, paper index and memo, one for the three feeds ──
+   After `executive-memo-unified-paper-index.html`. One width for the index,
+   whichever the feed (--edition-index-width); its breakpoints are the
+   window's, as in the prototype. Small grey text is a shade darker than
+   there, its hue kept, for 4.5:1. */
+.memo-workspace {
+  --edition-index-width: 324px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--memo-paper);
+}
+@media (max-width: 1080px) { .memo-workspace { --edition-index-width: 316px; } }
+@media (max-width: 790px) { .memo-workspace { --edition-index-width: 290px; } }
+
+.memo-readbar {
+  flex: 0 0 62px; height: 62px; display: flex; justify-content: space-between; align-items: center; gap: 20px;
+  padding: 0 clamp(20px, 3.1vw, 43px); border-bottom: 1px solid #d2dfe6; background: #f1f6f8; position: relative; z-index: 1;
+}
+.memo-readbar-left { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.memo-editions-toggle {
+  border: 1px solid #cbdce8; border-radius: 9px; background: #e6f0f6; color: #3b6a8b; padding: 9px 12px; min-height: 36px;
+  display: flex; align-items: center; gap: 9px; font-size: calc(11 * var(--tpx)); font-weight: 760; white-space: nowrap;
+}
+.memo-editions-toggle:hover { background: #d9e8f2; }
+.memo-editions-toggle svg { width: 14px; height: 14px; flex: none; }
+.memo-readbar-feed { font-size: calc(11 * var(--tpx)); letter-spacing: 2.1px; font-weight: 850; color: #426784; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; }
+.memo-readbar-right { display: flex; align-items: center; gap: 12px; color: #5d7385; }
+.memo-readbar-date { font-size: calc(10 * var(--tpx)); font-weight: 810; letter-spacing: 1.15px; white-space: nowrap; text-transform: uppercase; }
+.memo-step { position: relative; background: transparent; border: 0; color: #556c7f; border-radius: 6px; font-size: 25px; line-height: 1; padding: 0 6px 5px; }
+.memo-step::after { content: ''; position: absolute; inset: -8px -4px; }
+.memo-step:hover:not(:disabled) { background: #e0ebf2; }
+.memo-step:disabled { opacity: .3; cursor: default; }
+.memo-readbar .memo-track { bottom: 0; }
+
+.memo-columns { flex: 1; min-height: 0; display: flex; overflow: hidden; position: relative; }
+.memo-editions {
+  width: var(--edition-index-width); flex: 0 0 var(--edition-index-width); min-width: 0;
+  display: flex; flex-direction: column; overflow: hidden;
+  background: #eaf2f6; border-right: 1px solid #cbd9e3;
+  transition: width .25s ease, flex-basis .25s ease;
+}
+.memo-workspace.is-hidden .memo-editions { width: 0; flex-basis: 0; border: 0; visibility: hidden; }
+.memo-editions-head { padding: 28px 22px 17px; flex: none; }
+.memo-editions-kicker { font-size: calc(10 * var(--tpx)); letter-spacing: 1.8px; color: #567185; font-weight: 850; text-transform: uppercase; }
+.memo-editions-head h2 { font-family: var(--memo-serif); font-size: calc(27 * var(--tpx)); letter-spacing: -.6px; font-weight: normal; line-height: 1.2; margin: 6px 0 8px; color: #18354a; }
+.memo-editions-sub { font-size: calc(11 * var(--tpx)); color: #587182; line-height: 1.4; margin-bottom: 17px; }
+.memo-editions-search { height: 42px; border: 1px solid #bbcedb; border-radius: 9px; display: flex; align-items: center; gap: 9px; padding: 0 12px; background: #f4f8fa; color: #6c8aa0; }
+.memo-editions-search svg { width: 16px; height: 16px; flex: none; }
+/* 16px at least, so that iOS does not zoom into the field. */
+.memo-editions-search input { border: 0; background: transparent; outline: 0; color: #274b63; min-width: 0; width: 100%; font-size: max(16px, calc(12 * var(--tpx))); }
+.memo-editions-search input::placeholder { color: #91a8b8; }
+.memo-editions-search:focus-within { outline: 3px solid #75abdc; outline-offset: 2px; }
+/* The field shows the focus, not the input inside it. */
+.memo-editions-search input:focus-visible { outline: none; }
+.memo-months { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; scrollbar-width: thin; padding: 0 13px 28px; }
+.memo-month { border-bottom: 1px solid #d1dfe8; }
+.memo-month-head {
+  display: flex; align-items: center; gap: 9px; width: 100%; text-align: left; border: 0; background: transparent;
+  padding: 17px 8px 14px; font-size: calc(10 * var(--tpx)); letter-spacing: 1.5px; font-weight: 820; color: #567185; text-transform: uppercase;
+}
+.memo-month-count { font-size: calc(10 * var(--tpx)); letter-spacing: .15px; font-weight: 600; color: #557082; margin-left: auto; }
+.memo-month-chev { width: 12px; height: 12px; flex: none; color: #557082; transition: transform .18s; }
+.memo-month-head[aria-expanded="true"] .memo-month-chev { transform: rotate(90deg); }
+.memo-month-list { padding-bottom: 7px; }
+.memo-edition { display: block; width: 100%; text-align: left; border: 1px solid transparent; border-radius: 8px; background: transparent; color: #2b4d64; padding: 11px 12px 12px; margin: 1px 0 3px; }
+.memo-edition:hover { background: #e0ebf3; }
+.memo-edition[aria-current="page"] { background: #d5e6f0; border-color: #bcd3e2; }
+.memo-edition-date { display: block; font-size: calc(10 * var(--tpx)); letter-spacing: .15px; color: #4f6879; margin-bottom: 5px; }
+.memo-edition-tag { margin-left: 8px; font-size: calc(9 * var(--tpx)); letter-spacing: 1px; text-transform: uppercase; font-weight: 800; color: #355b7c; }
+.memo-edition-tag.is-alert { color: #a3482f; }
+.memo-edition-title { display: block; font-size: calc(12 * var(--tpx)); line-height: 1.44; font-weight: 650; overflow-wrap: anywhere; }
+.memo-edition[aria-current="page"] .memo-edition-title { font-weight: 820; color: #174665; }
+.memo-editions-empty { font-size: calc(13 * var(--tpx)); padding: 30px 12px; margin: 0; color: #587182; }
+/* The foot ends clear of the floating navigation (portrait), as every list does. */
+.memo-editions-foot {
+  flex: none; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  border-top: 1px solid #cbdbe5; font-size: calc(10 * var(--tpx)); color: #567181;
+  padding: 13px 22px calc(15px + var(--intel-foot, 0px) - var(--sp-12, 48px));
+}
+.memo-editions-foot button { border: 0; background: transparent; padding: 6px 0; color: inherit; font-size: inherit; text-decoration: underline; text-decoration-color: #b5c9d7; text-underline-offset: 3px; }
+
+@media (max-width: 790px) {
+  .memo-readbar { padding: 0 14px; }
+  .memo-editions-head { padding: 22px 15px 13px; }
+  .memo-months { padding: 0 8px 25px; }
+  .memo-edition-title { font-size: calc(11 * var(--tpx)); }
+}
+@media (max-width: 600px) {
+  .memo-readbar { height: 56px; flex-basis: 56px; }
+  .memo-readbar-feed { font-size: calc(9 * var(--tpx)); letter-spacing: 1.15px; }
+  .memo-readbar-date { display: none; }
+  .memo-editions-toggle-label { display: none; }
+  .memo-editions-toggle { padding: 10px; }
+  .memo-editions-head { padding: 22px; }
+  .memo-editions-head h2 { font-size: calc(28 * var(--tpx)); }
+}
+/* A phone: the index, when shown, takes the whole width, over the memo. */
+.memo-workspace--phone .memo-editions { position: absolute; inset: 0; z-index: 2; width: 100%; flex-basis: auto; border: 0; transition: none; }
+.memo-workspace--phone:not(.is-hidden) .intel-reader--memo { visibility: hidden; }
+
+/* ── Narrower: the reader's width (the edition index narrows it), not the window's ── */
+@container memo (max-width: 760px) {
   .memo-content { padding: 62px 26px calc(90px + var(--intel-foot, 0px)); }
   .memo-title { font-size: clamp(calc(35 * var(--tpx)), calc(7vw * var(--intel-scale, 1)), calc(49 * var(--tpx))); letter-spacing: -1.7px; }
   .memo-section { grid-template-columns: 1fr; gap: 14px; padding: 28px 0 34px; }
@@ -379,7 +410,6 @@
   .memo-body { font-size: calc(17 * var(--tpx)); }
   .memo-summary { margin-bottom: 44px; }
   .memo-topics { margin-bottom: 28px; }
-  .memo-bar-date { font-size: calc(9 * var(--tpx)); }
   .memo-listen li { font-size: calc(17 * var(--tpx)); }
   .memo-term-def { font-size: calc(15 * var(--tpx)); }
   :is(.memo--sales, .memo--engagement) .memo-content { padding-top: 60px; }
@@ -394,9 +424,7 @@
   .memo-summary--end { padding: 22px; }
   .memo-field--question .memo-question blockquote { font-size: calc(22 * var(--tpx)); }
 }
-@media (max-width: 430px) {
-  .memo-bar-date { display: none; }
-  .memo-bar-right { gap: 16px; }
+@container memo (max-width: 430px) {
   .memo-content { padding: 46px 20px calc(65px + var(--intel-foot, 0px)); }
   .memo-title { font-size: calc(35 * var(--tpx)); }
   .memo-summary { padding: 19px 18px; }
@@ -407,7 +435,6 @@
   .memo-term { grid-template-columns: 30px 1fr auto; }
   :is(.memo--sales, .memo--engagement) .memo-title { font-size: calc(36 * var(--tpx)); letter-spacing: -1.7px; }
   .memo--engagement .memo-title { font-size: calc(34 * var(--tpx)); }
-  .memo--engagement .memo-brand-text { letter-spacing: 1.5px; font-size: calc(10 * var(--tpx)); }
   .memo-take-text > p:last-child { font-size: calc(17 * var(--tpx)); }
   .memo--engagement .memo-summary--end { padding: 21px; }
   :is(.memo--sales, .memo--engagement) .memo-subline .memo-eyebrow:last-child { white-space: normal; }
@@ -419,5 +446,5 @@
   :is(.memo--sales, .memo--engagement) .memo-related-title { font-size: calc(14 * var(--tpx)); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .memo *, .memo-drawer, .memo-veil { transition: none !important; animation: none !important; }
+  .memo *, .memo-workspace * { transition: none !important; animation: none !important; }
 }

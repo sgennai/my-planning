@@ -1,6 +1,7 @@
 // The Enterprise AI Sales Brief as an executive memo (INT-51), after the
-// approved prototype, in the AI Challenge memo's family (`MemoParts`): the
-// quiet bar, the title and relevant topics, a folded table of contents, then
+// approved prototype, in the AI Challenge memo's family (`MemoParts`; its bar
+// and edition index are the workspace's): the title and relevant topics, a
+// folded table of contents, then
 // each development as a chapter ("Development 01 / 03", its heading, its
 // labelled parts in a margin column, "Next development"), the closing ("What
 // I should remember today", the best question, the contrarian insight, the
@@ -16,7 +17,7 @@ import { memoBrand, memoDate, questionInput, two, type Chapter, type Field } fro
 import { bestQuestion, takeawaysOf, type SalesMemo as SalesMemoModel } from './sales-memo';
 import { CANONICAL_TOPICS } from './topics';
 import type { SaveInput } from './saved';
-import { CONTENTS, MemoBar, MemoChapter, MemoContents, MemoEnd, MemoQuestion, RefFold, RelatedFold, Topics, type ChapterAsk } from './MemoParts';
+import { CONTENTS, MemoChapter, MemoContents, MemoEnd, MemoQuestion, RefFold, RelatedFold, Topics, type ChapterAsk } from './MemoParts';
 import type { MemoProps } from './MemoArticle';
 
 const TONES: Partial<Record<Field['tone'], string>> = {
@@ -53,8 +54,8 @@ function Row({ section, n, best, level }: { section: Section; n: number; best: S
 }
 
 export function SalesMemo({
-  memo, onGoTo, edition, minutes, barRef, fillRef, endRef, articleRef, onHistory, historyOpen = false,
-  adjacent, onOpenAdjacent, related, onOpenRelated, read, editionSaved, onToggleRead, onToggleEditionSave, notices, imported,
+  memo, onGoTo, edition, minutes, endRef, articleRef,
+  related, onOpenRelated, read, editionSaved, onToggleRead, onToggleEditionSave, notices, imported,
 }: Omit<MemoProps, 'sections' | 'presented'> & { memo: SalesMemoModel; onGoTo: (id: string) => void }) {
   const brand = memoBrand(edition.feedId)!;
   const [contents, setContents] = useState(false);
@@ -77,8 +78,6 @@ export function SalesMemo({
 
   return (
     <div className="memo memo--sales">
-      <MemoBar brand={brand} edition={edition} barRef={barRef} fillRef={fillRef} onHistory={onHistory} historyOpen={historyOpen} adjacent={adjacent} onOpenAdjacent={onOpenAdjacent} />
-
       <div className="memo-content">
         <article aria-labelledby={titleId} ref={articleRef}>
           <div className="memo-subline">

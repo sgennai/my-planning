@@ -1,11 +1,11 @@
 // The AI Challenge as an executive memo (INT-50), after the approved
-// prototype: a quiet bar (history, the run's date and time between the
-// older and newer editions' chevrons, a 2px reading line), the title, the edition's relevant topics, its one-sentence
+// prototype: the title, the edition's relevant topics, its one-sentence
 // challenge, then each section numbered in the margin, and at the end the
 // topic map and the related editions, both folded. Every word of the document
 // is here, in its order; only the topic map moves to the end (`memo.ts`).
-// Saving goes to Takeaways as before (`EditionActionsContext`). The bar,
-// topics, Save, folds and end are the Sales Brief memo's too (`MemoParts`).
+// Saving goes to Takeaways as before (`EditionActionsContext`). The topics,
+// Save, folds and end are the briefs' memos' too (`MemoParts`); the bar and
+// the edition index above and beside it, the workspace's (`MemoWorkspace`).
 import type { RefObject } from 'react';
 import { Markdown } from './Markdown';
 import type { Edition, Section } from './parse';
@@ -13,7 +13,7 @@ import type { Presentation, Labelled, Term } from './present';
 import type { Related } from './related';
 import { asideNote } from './artifacts';
 import { memoOrder, memoTopics, challengeLead, memoDate, memoBrand, two } from './memo';
-import { MemoBar, MemoEnd, MemoSave, RefFold, RelatedFold, Topics } from './MemoParts';
+import { MemoEnd, MemoSave, RefFold, RelatedFold, Topics } from './MemoParts';
 
 function Question({ item, section }: { item: Labelled; section: Section }) {
   return (
@@ -89,17 +89,9 @@ export interface MemoProps {
   sections: Section[];
   presented: Map<string, Presentation>;
   minutes: number;
-  /** The sticky bar, and the reading line along its foot. */
-  barRef: RefObject<HTMLElement | null>;
-  fillRef: RefObject<HTMLDivElement | null>;
   /** Where the briefing ends, before the reference at its foot. */
   endRef: RefObject<HTMLDivElement | null>;
   articleRef: RefObject<HTMLElement | null>;
-  onHistory?: () => void;
-  historyOpen?: boolean;
-  /** The editions either side of this one in the feed (newest first), for the bar's chevrons. */
-  adjacent?: { older: Edition | null; newer: Edition | null };
-  onOpenAdjacent?: (e: Edition) => void;
   related: Related[];
   onOpenRelated?: (e: Edition) => void;
   read: boolean;
@@ -111,8 +103,8 @@ export interface MemoProps {
 }
 
 export function MemoArticle({
-  edition, sections, presented, minutes, barRef, fillRef, endRef, articleRef, onHistory, historyOpen = false,
-  adjacent, onOpenAdjacent, related, onOpenRelated, read, editionSaved, onToggleRead, onToggleEditionSave, notices, imported,
+  edition, sections, presented, minutes, endRef, articleRef,
+  related, onOpenRelated, read, editionSaved, onToggleRead, onToggleEditionSave, notices, imported,
 }: MemoProps) {
   const brand = memoBrand(edition.feedId)!;
   const { body, map } = memoOrder(sections);
@@ -125,7 +117,6 @@ export function MemoArticle({
 
   return (
     <div className="memo">
-      <MemoBar brand={brand} edition={edition} barRef={barRef} fillRef={fillRef} onHistory={onHistory} historyOpen={historyOpen} adjacent={adjacent} onOpenAdjacent={onOpenAdjacent} />
 
       <div className="memo-content">
         <article aria-labelledby={titleId} ref={articleRef}>

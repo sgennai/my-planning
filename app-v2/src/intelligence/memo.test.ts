@@ -1,9 +1,9 @@
 // The memo's arrangement of an AI Challenge (INT-50): the topic map moved to
 // the end, the relevant topics under the title, the Challenge's opening
-// sentence as the summary; dates in the edition's own Paris day; the history
-// by month, searched. Made-up editions.
+// sentence as the summary; dates in the edition's own Paris day; the edition
+// index by month, searched (INT-53). Made-up editions.
 import { describe, it, expect } from 'vitest';
-import { memoOrder, memoTopics, challengeLead, memoDate, barDate, shortDate, historyGroups, historyNote, two } from './memo';
+import { memoOrder, memoTopics, challengeLead, memoDate, barDate, shortDate, indexGroups, monthKey, two } from './memo';
 import { parseEdition, splitSections, type Edition } from './parse';
 import { presentSection } from './present';
 import { CHALLENGE_DOC, CHALLENGE_FILE } from './test-fixtures';
@@ -44,26 +44,29 @@ describe('an edition as a memo', () => {
   });
 });
 
-describe('the history', () => {
+describe('the edition index', () => {
   const ed = (day: string, time: string, title: string) => ({ editionDate: day, time, title, driveFileId: day } as Edition);
-  const all = [ed('2026-11-11', '09:03', 'Accountable decisions'), ed('2026-11-02', '08:20', 'Unit économics'), ed('2026-10-31', '08:16', 'Defensible decisions'), ed('2026-09-05', '14:12', 'Ownership')];
+  const all = [ed('2026-11-11', '09:03', 'Accountable decisions'), ed('2026-11-02', '08:20', 'Unit économics'), ed('2026-10-31', '08:16', 'Defensible decisions'), ed('2026-08-05', '14:12', 'Ownership')];
 
-  it('groups the editions by month, newest first, as the feed keeps them', () => {
-    expect(historyGroups(all, '').map(g => [g.month, g.editions.length])).toEqual([['November 2026', 2], ['October 2026', 1], ['September 2026', 1]]);
+  it('groups the editions by month, newest first, as the feed keeps them; a month without one has no group', () => {
+    expect(indexGroups(all, '').map(g => [g.key, g.month, g.editions.length])).toEqual([
+      ['2026-11', 'November 2026', 2], ['2026-10', 'October 2026', 1], ['2026-08', 'August 2026', 1],
+    ]);
   });
 
-  it('finds by title, accents and case aside, or by date', () => {
-    expect(historyGroups(all, 'ECONOMICS').flatMap(g => g.editions.map(e => e.title))).toEqual(['Unit économics']);
-    expect(historyGroups(all, 'decisions').flatMap(g => g.editions.map(e => e.editionDate))).toEqual(['2026-11-11', '2026-10-31']);
-    expect(historyGroups(all, '31 Oct')).toHaveLength(1);
-    expect(historyGroups(all, '2026-09')).toHaveLength(1);
-    expect(historyGroups(all, 'nothing like this')).toEqual([]);
+  it('a month is the edition’s own Paris day’s, never shifted by a time zone', () => {
+    expect(monthKey('2026-11-01')).toBe('2026-11');
+    expect(indexGroups([ed('2026-10-31', '23:50', 'Late'), ed('2026-11-01', '00:05', 'Early')], '').map(g => g.month)).toEqual(['October 2026', 'November 2026']);
   });
 
-  it('says how many editions it holds and over which months', () => {
-    expect(historyNote(all)).toBe('4 editions, from September to November 2026.');
-    expect(historyNote(all.slice(0, 2))).toBe('2 editions, November 2026.');
-    expect(historyNote([ed('2026-12-31', '08:00', 'a'), ed('2027-01-02', '08:00', 'b')])).toBe('2 editions, from December 2026 to January 2027.');
-    expect(historyNote([])).toBe('No editions yet.');
+  it('finds by title, accents and case aside, or by date as written or said', () => {
+    expect(indexGroups(all, 'ECONOMICS').flatMap(g => g.editions.map(e => e.title))).toEqual(['Unit économics']);
+    expect(indexGroups(all, 'decisions').flatMap(g => g.editions.map(e => e.editionDate))).toEqual(['2026-11-11', '2026-10-31']);
+    expect(indexGroups(all, 'deci').flatMap(g => g.key)).toEqual(['2026-11', '2026-10']);
+    expect(indexGroups(all, '31 Oct')).toHaveLength(1);
+    expect(indexGroups(all, '2 November 2026').flatMap(g => g.editions.map(e => e.title))).toEqual(['Unit économics']);
+    expect(indexGroups(all, '2026-08')).toHaveLength(1);
+    expect(indexGroups(all, '08:20')).toEqual([]);
+    expect(indexGroups(all, 'nothing like this')).toEqual([]);
   });
 });

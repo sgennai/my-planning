@@ -32,9 +32,9 @@ describe('the memo', () => {
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Agent Sprawl: Who Owns the Bots?');
   });
 
-  it('dates itself by the run: the bar, the memo, its end', () => {
+  it('dates itself by the run: the memo, its end (the bar is the workspace’s, MemoWorkspace.test.tsx)', () => {
     const { container } = memo();
-    expect(container.querySelector('.memo-bar')).toHaveTextContent('AI ChallengeMon 2 Nov 2026 · 08:20');
+    expect(container.querySelector('.memo-bar, .memo-readbar')).toBeNull();
     expect(container.querySelector('.memo-subline')).toHaveTextContent('The executive memo / 2 November 2026');
     expect(container.querySelector('.memo-subline')).toHaveTextContent('01 min read');
     expect(container.querySelector('.memo-footer')).toHaveTextContent('AI Challenge · End of edition2 November 2026');
@@ -145,31 +145,10 @@ describe('saving from the memo', () => {
   });
 });
 
-describe('the memo’s history and related editions', () => {
+describe('the memo’s related editions', () => {
   const other = (n: number, feedId: Edition['feedId'] = 'enterprise-ai-challenge'): Related => ({
     edition: { driveFileId: `r${n}`, feedId, title: `Related ${n}`, editionDate: `2026-10-${String(10 + n).padStart(2, '0')}`, time: '08:30' } as Edition,
     shares: ['Governance', 'Agentic AI'],
-  });
-
-  it('the bar opens the history, and says whether it is open', () => {
-    const onHistory = vi.fn();
-    memo({ onHistory, historyOpen: true });
-    const button = screen.getByRole('button', { name: 'Open challenge history' });
-    expect(button).toHaveAttribute('aria-expanded', 'true');
-    fireEvent.click(button);
-    expect(onHistory).toHaveBeenCalled();
-  });
-
-  it('the chevrons either side of the date open the older and the newer edition; none, faded, at an end', () => {
-    const onOpenAdjacent = vi.fn();
-    const older = other(1).edition;
-    memo({ adjacent: { older, newer: null }, onOpenAdjacent });
-    const previous = screen.getByRole('button', { name: 'Previous edition: Sun 11 Oct, Related 1' });
-    fireEvent.click(previous);
-    expect(onOpenAdjacent).toHaveBeenCalledWith(older);
-    expect(screen.getByRole('button', { name: 'Next edition: none' })).toBeDisabled();
-    // The date sits between them.
-    expect([...document.querySelector('.memo-bar-right')!.children].map(c => c.className)).toEqual(['memo-step', 'memo-bar-date', 'memo-step']);
   });
 
   it('related editions are folded under the topic map, a few at a time, each opening its edition', () => {
