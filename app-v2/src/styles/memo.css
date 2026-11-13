@@ -1,8 +1,11 @@
 /*
   The AI Challenge as an executive memo (INT-50), after the approved
   prototype `ai-challenge-executive-memo-interactive.html`, and the Sales
-  Brief in the same family (INT-51, `.memo--sales`, after
-  `enterprise-ai-sales-brief-executive-memo-demo.html`): its tokens, type,
+  Brief and the Customer Engagement Brief in the same family (INT-51,
+  `.memo--sales`, after `enterprise-ai-sales-brief-executive-memo-demo.html`;
+  INT-52, `.memo--engagement`, after
+  `customer-engagement-executive-memo-demo.html`, which builds on the Sales
+  prototype's rules and adds its own): its tokens, type,
   spacing and proportions, kept as written there, with four changes for the
   app. Font sizes are in --tpx, so they follow the iPad's Text Size; those
   that grow with the window still do (vw), and its breakpoints are the
@@ -248,14 +251,14 @@
 /* Feedback, in the memo's colours. */
 .intel--memo .intel-note { background: #183b58; color: #f2f8fd; border: 1px solid #577f9b; border-radius: 12px; box-shadow: 0 15px 50px #0004; font-size: calc(12 * var(--tpx)); font-weight: 620; }
 
-/* ── The Sales Brief (INT-51): the prototype's own rules over the family's ── */
-.memo--sales .memo-content { max-width: 1100px; padding-top: clamp(60px, 7vw, 94px); }
-.memo--sales .memo-title {
+/* ── The briefs (INT-51, INT-52): the Sales prototype's own rules over the family's ── */
+:is(.memo--sales, .memo--engagement) .memo-content { max-width: 1100px; padding-top: clamp(60px, 7vw, 94px); }
+:is(.memo--sales, .memo--engagement) .memo-title {
   max-width: 970px; font-size: clamp(calc(41 * var(--tpx)), calc(4.7vw * var(--intel-scale, 1)), calc(62 * var(--tpx)));
   line-height: 1.13; margin-bottom: 25px;
 }
-.memo--sales .memo-topics { margin-bottom: 19px; }
-.memo--sales [tabindex="-1"]:focus { outline: none; }
+:is(.memo--sales, .memo--engagement) .memo-topics { margin-bottom: 19px; }
+:is(.memo--sales, .memo--engagement) [tabindex="-1"]:focus { outline: none; }
 .memo-lead { margin: 0 0 34px; max-width: 820px; }
 .memo-toc { padding: 16px 0 18px; margin-bottom: 55px; border-bottom: 1px solid var(--memo-line); font-size: calc(12 * var(--tpx)); color: #4f718a; }
 .memo-toc summary {
@@ -331,13 +334,40 @@
 .memo-refs { margin-top: 6px; border-top: 1px solid var(--memo-line); }
 .memo-refs .memo-ref { border-top: 0; border-bottom: 1px solid var(--memo-line); padding: 23px 0 24px; margin: 0; }
 .memo-refs .memo-ref:last-child { border-bottom: 0; }
-.memo--sales .memo-map { margin-top: 16px; max-width: 840px; }
+:is(.memo--sales, .memo--engagement) .memo-map { margin-top: 16px; max-width: 840px; }
 .memo-ref--related .memo-ref-note { text-transform: none; letter-spacing: 0; }
-.memo--sales .memo-related { max-width: 730px; }
-.memo--sales .memo-related-item { padding: 14px 0; }
-.memo--sales .memo-related-title { font-size: calc(15 * var(--tpx)); line-height: 1.5; font-weight: 720; color: #254d69; }
-.memo--sales .memo-related-meta { font-size: calc(12 * var(--tpx)); letter-spacing: 0; text-transform: none; font-weight: 500; color: #5b7080; margin-top: 5px; }
-.memo--sales .memo-related-shares { color: #536f86; margin-top: 5px; }
+:is(.memo--sales, .memo--engagement) .memo-related { max-width: 730px; }
+:is(.memo--sales, .memo--engagement) .memo-related-item { padding: 14px 0; }
+:is(.memo--sales, .memo--engagement) .memo-related-title { font-size: calc(15 * var(--tpx)); line-height: 1.5; font-weight: 720; color: #254d69; }
+:is(.memo--sales, .memo--engagement) .memo-related-meta { font-size: calc(12 * var(--tpx)); letter-spacing: 0; text-transform: none; font-weight: 500; color: #5b7080; margin-top: 5px; }
+:is(.memo--sales, .memo--engagement) .memo-related-shares { color: #536f86; margin-top: 5px; }
+
+/* ── The Customer Engagement Brief (INT-52): its prototype's rules over the Sales Brief's ── */
+.memo--engagement .memo-title { font-size: clamp(calc(41 * var(--tpx)), calc(4.5vw * var(--intel-scale, 1)), calc(61 * var(--tpx))); }
+.memo-coverage { color: #5d6e7c; font-size: calc(12 * var(--tpx)); font-weight: 650; letter-spacing: .25px; line-height: 1.6; margin: -14px 0 16px; }
+.memo-take { padding: 29px 0 37px; border-top: 1px solid var(--memo-line); margin-bottom: 12px; }
+.memo-take-heading { display: flex; align-items: center; gap: 22px; margin-bottom: 20px; }
+.memo-take-heading h2 { margin: 0; }
+.memo-take-rule { height: 1px; flex: 1; background: #c5d3dc; }
+.memo-take-text { font-size: calc(17 * var(--tpx)); line-height: 1.8; }
+.memo-take-text > p:first-child:not(:last-child) { font-size: calc(13 * var(--tpx)); color: #587085; font-weight: 760; letter-spacing: .1px; }
+/* The take's points, numbered 01, 02, … however many there are. */
+.memo-take-text > ul { margin: 12px 0 22px; padding-left: 25px; list-style: none; counter-reset: take; }
+.memo-take-text > ul li { position: relative; padding-left: 12px; margin: 0 0 12px; font-size: calc(17 * var(--tpx)); line-height: 1.65; color: #28465c; counter-increment: take; }
+.memo-take-text > ul li::before { content: counter(take, decimal-leading-zero); position: absolute; left: -24px; color: #5e83a0; font-size: calc(10 * var(--tpx)); font-weight: 800; letter-spacing: .5px; top: 5px; }
+.memo-take-text > p:last-child { background: #dce8f0; border-left: 3px solid #416e96; padding: 21px 25px; font-size: calc(18 * var(--tpx)); color: #23435a; font-weight: 520; line-height: 1.7; }
+.memo--engagement .memo-take + .memo-toc { margin-bottom: 61px; }
+.memo--engagement .memo-dev-title { max-width: 900px; }
+.memo--engagement .memo-field--question .memo-question blockquote { font-size: clamp(calc(20 * var(--tpx)), calc(2.2vw * var(--intel-scale, 1)), calc(24 * var(--tpx))); }
+.memo--engagement .memo-field-label { overflow-wrap: break-word; }
+.memo-customer-question { margin-bottom: 21px; padding-bottom: 23px; border-bottom: 1px solid var(--memo-line); }
+.memo-customer-question:last-child { margin-bottom: 0; padding-bottom: 0; border: 0; }
+.memo-customer-question .memo-question { border: 0; padding: 0; }
+.memo--engagement .memo-summary--end { padding: 23px 30px; }
+.memo--engagement .memo-summary--end li { margin-bottom: 12px; padding-left: 22px; }
+.memo-watchlist ul { padding-left: 21px; margin: 0; }
+.memo-watchlist li { margin-bottom: 15px; }
+.memo--engagement .memo-row .memo-index { gap: 8px; }
 
 /* ── Narrower ───────────────────────────────────────────────────────────── */
 @media (max-width: 760px) {
@@ -352,7 +382,10 @@
   .memo-bar-date { font-size: calc(9 * var(--tpx)); }
   .memo-listen li { font-size: calc(17 * var(--tpx)); }
   .memo-term-def { font-size: calc(15 * var(--tpx)); }
-  .memo--sales .memo-content { padding-top: 60px; }
+  :is(.memo--sales, .memo--engagement) .memo-content { padding-top: 60px; }
+  .memo-take { padding: 23px 0 30px; }
+  .memo-take-text > p:last-child { padding: 20px; }
+  .memo-take-text > ul li { font-size: calc(16 * var(--tpx)); }
   .memo-dev-title { font-size: calc(30 * var(--tpx)); }
   .memo-field, .memo-row { grid-template-columns: 1fr; gap: 11px; padding: 22px 0; }
   .memo-field-label { padding: 0; }
@@ -372,14 +405,18 @@
   .memo-footer { flex-direction: column; }
   .memo-question-top { align-items: flex-start; }
   .memo-term { grid-template-columns: 30px 1fr auto; }
-  .memo--sales .memo-title { font-size: calc(36 * var(--tpx)); letter-spacing: -1.7px; }
-  .memo--sales .memo-subline .memo-eyebrow:last-child { white-space: normal; }
+  :is(.memo--sales, .memo--engagement) .memo-title { font-size: calc(36 * var(--tpx)); letter-spacing: -1.7px; }
+  .memo--engagement .memo-title { font-size: calc(34 * var(--tpx)); }
+  .memo--engagement .memo-brand-text { letter-spacing: 1.5px; font-size: calc(10 * var(--tpx)); }
+  .memo-take-text > p:last-child { font-size: calc(17 * var(--tpx)); }
+  .memo--engagement .memo-summary--end { padding: 21px; }
+  :is(.memo--sales, .memo--engagement) .memo-subline .memo-eyebrow:last-child { white-space: normal; }
   .memo-dev-title { font-size: calc(28 * var(--tpx)); }
   .memo-prose { font-size: calc(16 * var(--tpx)); }
   .memo-chapter-nav { padding-top: 15px; }
   .memo-summary--end li { font-size: calc(16 * var(--tpx)); }
   .memo-dev-kicker .memo-minor { display: none; }
-  .memo--sales .memo-related-title { font-size: calc(14 * var(--tpx)); }
+  :is(.memo--sales, .memo--engagement) .memo-related-title { font-size: calc(14 * var(--tpx)); }
 }
 @media (prefers-reduced-motion: reduce) {
   .memo *, .memo-drawer, .memo-veil { transition: none !important; animation: none !important; }

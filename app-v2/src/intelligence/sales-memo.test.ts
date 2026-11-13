@@ -6,7 +6,8 @@
 import { describe, it, expect } from 'vitest';
 import { splitSections } from './parse';
 import { laidOut } from './layout';
-import { fieldsOf, salesMemo, chapterTitle, takeawaysOf, bestQuestion, questionInput } from './sales-memo';
+import { fieldsOf, salesMemo, takeawaysOf, bestQuestion } from './sales-memo';
+import { chapterTitle, questionInput } from './memo';
 import { SALES_BODY } from './test-fixtures';
 
 const memoOf = (body: string) => salesMemo(splitSections(laidOut('enterprise-ai-sales-brief', body)));

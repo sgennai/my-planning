@@ -1,14 +1,17 @@
-// What the executive memos share (INT-50, INT-51): the quiet bar (history,
-// the feed's name, the run's date and time between the older and newer
-// editions' chevrons, a 2px reading line), the relevant topics, Save, the
+// What the executive memos share (INT-50, INT-51, INT-52): the quiet bar
+// (history, the feed's name, the run's date and time between the older and
+// newer editions' chevrons, a 2px reading line), the relevant topics, Save, a
+// question to ask, the briefs' folded contents and their chapters, the
 // related editions' fold, and the end (footer, then quiet tools).
-import { useState, type ReactNode, type RefObject } from 'react';
+import { useState, type MouseEvent, type ReactNode, type RefObject } from 'react';
+import { Markdown } from './Markdown';
 import type { Edition } from './parse';
 import type { Related } from './related';
 import type { SaveInput } from './saved';
+import type { PartTone } from './briefs';
 import { feedById } from './feeds';
 import { useEditionActions } from './context';
-import { barDate, memoDate, shortDate, TOPICS_SHOWN, type MemoBrand } from './memo';
+import { barDate, chapterTitle, memoDate, shortDate, two, TOPICS_SHOWN, type Chapter, type Field, type MemoBrand } from './memo';
 
 /** Related editions shown before "Show more", and how many more each time. */
 const RELATED_FIRST = 5;
@@ -44,6 +47,116 @@ export function MemoSave({ input, also = [], name, quiet = false }: { input: Sav
   };
   if (quiet) return <button className="memo-mark" {...props}><Bookmark /></button>;
   return <button className="memo-save" {...props}><Bookmark /><span>{saved ? 'Saved' : 'Save'}</span></button>;
+}
+
+/** A question to ask, in the memo's quotation type, with its label and Save. */
+export function MemoQuestion({ label, markdown, input, also, name }: { label: string; markdown: string; input: SaveInput; also: SaveInput[]; name: string }) {
+  return (
+    <div className="memo-question">
+      <div className="memo-question-top">
+        <span className="memo-question-label">{label}</span>
+        <MemoSave input={input} also={also} name={name} />
+      </div>
+      <blockquote><Markdown>{markdown}</Markdown></blockquote>
+    </div>
+  );
+}
+
+/** The briefs' table of contents' place (`intel-memo-contents`). */
+export const CONTENTS = 'memo-contents';
+
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
+
+/**
+ * "In this edition · n developments", folded: each development's heading,
+ * numbered, its link scrolling to it (`go`); then, where a memo has one, the
+ * way to its closing (`after`).
+ */
+export function MemoContents({ chapters, open, onToggle, go, after }: {
+  chapters: Chapter[];
+  open: boolean;
+  onToggle: (open: boolean) => void;
+  go: (id: string) => (e: MouseEvent) => void;
+  after?: { id: string; label: string } | null;
+}) {
+  return (
+    <details className="memo-toc" id={`intel-${CONTENTS}`} open={open} onToggle={e => onToggle(e.currentTarget.open)} tabIndex={-1}>
+      <summary><Chevron /> In this edition <span className="memo-toc-count">· {plural(chapters.length, 'development')}</span></summary>
+      <ol className="memo-toc-list">
+        {chapters.map((c, i) => (
+          <li key={c.id}>
+            <span className="memo-toc-n" aria-hidden>{two(i + 1)}</span>
+            <a href={`#intel-${c.id}`} onClick={go(c.id)}><Markdown inline heading>{chapterTitle(c.title, i + 1)}</Markdown></a>
+          </li>
+        ))}
+        {after && (
+          <li>
+            <span className="memo-toc-n" aria-hidden>{two(chapters.length + 1)}</span>
+            <a href={`#intel-${after.id}`} onClick={go(after.id)}>{after.label}</a>
+          </li>
+        )}
+      </ol>
+    </details>
+  );
+}
+
+/** A question field's block: its label, the records its Save reads and writes, and its name for Save. */
+export interface ChapterAsk { label: string; input: SaveInput; also: SaveInput[]; name: string }
+
+interface ChapterProps {
+  chapter: Chapter;
+  n: number;
+  total: number;
+  /** Where "Next development →" (or the way to the closing) goes. */
+  next: { id: string; label: string } | null;
+  /** Each field's look, by its tone ("memo-field--sources"). */
+  tones: Partial<Record<PartTone, string>>;
+  /** A field to show as a question to ask, with Save; null shows it as its words. */
+  ask: (field: Field) => ChapterAsk | null;
+  go: (id: string) => (e: MouseEvent) => void;
+  toContents: (e: MouseEvent) => void;
+}
+
+/**
+ * A development as a chapter: "Development 01 / 03" and "Back to contents ↑",
+ * its heading less the number the kicker gives, its labelled fields in a
+ * margin column (or its words as written, when it has none), and the way on.
+ */
+export function MemoChapter({ chapter, n, total, next, tones, ask, go, toContents }: ChapterProps) {
+  const titleId = `memo-dev-${chapter.id}`;
+  return (
+    <section className="memo-dev" id={`intel-${chapter.id}`} data-section={chapter.id} aria-labelledby={titleId} tabIndex={-1}>
+      <div className="memo-dev-kicker">
+        <span>Development {two(n)} / {two(total)}</span>
+        <a href={`#intel-${CONTENTS}`} className="memo-minor" onClick={toContents}>Back to contents <span aria-hidden>↑</span></a>
+      </div>
+      <h2 className="memo-dev-title" id={titleId}><Markdown inline heading>{chapterTitle(chapter.title, n)}</Markdown></h2>
+      {chapter.fields ? (
+        <div className="memo-fields">
+          {chapter.fields.map((f, i) => {
+            const asked = ask(f);
+            return (
+              <div key={i} className={`memo-field${tones[f.tone] ? ` ${tones[f.tone]}` : ''}`}>
+                {f.label ? <h3 className="memo-field-label"><Markdown inline>{f.label}</Markdown></h3> : <span className="memo-field-label" />}
+                <div className="memo-field-content">
+                  {asked
+                    ? <MemoQuestion label={asked.label} markdown={f.markdown} input={asked.input} also={asked.also} name={asked.name} />
+                    : <div className="memo-prose"><Markdown>{f.markdown}</Markdown></div>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="memo-prose memo-dev-text"><Markdown>{chapter.markdown}</Markdown></div>
+      )}
+      {next && (
+        <div className="memo-chapter-nav">
+          <a href={`#intel-${next.id}`} className="memo-next" onClick={go(next.id)}>{next.label} <span aria-hidden>→</span></a>
+        </div>
+      )}
+    </section>
+  );
 }
 
 /** The bar's chevron to the older or the newer edition; faded where there is none. */

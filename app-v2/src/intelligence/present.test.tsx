@@ -4,6 +4,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { parseEdition, splitSections } from './parse';
+import type { FeedId } from './feeds';
 import { presentSection, shortTitle, copyText, readingMinutes, blocksOf, previewOf, plainText } from './present';
 import { EditionReader } from './EditionReader';
 import { CHALLENGE_BODY, CHALLENGE_FILE, ENGAGEMENT_DOC, ENGAGEMENT_FILE } from './test-fixtures';
@@ -125,8 +126,9 @@ describe('the edition on screen', () => {
     const writeText = vi.fn(() => Promise.resolve());
     Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
     const onNote = vi.fn();
-    const engagement = parseEdition('customer-engagement-brief', ENGAGEMENT_FILE, ENGAGEMENT_DOC);
-    render(<EditionReader edition={engagement} scroller={scroller} onNote={onNote} />);
+    // A feed read as a brief, not a memo (the memos ask and save, without Copy).
+    const brief = { ...parseEdition('customer-engagement-brief', ENGAGEMENT_FILE, ENGAGEMENT_DOC), feedId: 'a-brief' as FeedId };
+    render(<EditionReader edition={brief} scroller={scroller} onNote={onNote} />);
     fireEvent.click(screen.getAllByRole('button', { name: 'Copy: Three customer questions worth asking' })[0]);
     expect(writeText).toHaveBeenCalledWith('Which workflows could run headless?');
     await vi.waitFor(() => expect(onNote).toHaveBeenCalledWith('Copied'));

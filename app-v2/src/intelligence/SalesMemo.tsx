@@ -12,84 +12,28 @@ import { useState, type MouseEvent } from 'react';
 import { Markdown } from './Markdown';
 import type { Section } from './parse';
 import { asideNote } from './artifacts';
-import { memoBrand, memoDate, two } from './memo';
-import { bestQuestion, chapterTitle, questionInput, takeawaysOf, type Chapter, type Field, type SalesMemo as SalesMemoModel } from './sales-memo';
+import { memoBrand, memoDate, questionInput, two, type Chapter, type Field } from './memo';
+import { bestQuestion, takeawaysOf, type SalesMemo as SalesMemoModel } from './sales-memo';
 import { CANONICAL_TOPICS } from './topics';
 import type { SaveInput } from './saved';
-import { Chevron, MemoBar, MemoEnd, MemoSave, RefFold, RelatedFold, Topics } from './MemoParts';
+import { CONTENTS, MemoBar, MemoChapter, MemoContents, MemoEnd, MemoQuestion, RefFold, RelatedFold, Topics, type ChapterAsk } from './MemoParts';
 import type { MemoProps } from './MemoArticle';
 
-/** The table of contents' place (`intel-memo-contents`). */
-export const CONTENTS = 'memo-contents';
-
-const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
-
 const TONES: Partial<Record<Field['tone'], string>> = {
-  fact: ' memo-field--sources', question: ' memo-field--question', response: ' memo-field--response', quote: ' memo-field--linkedin',
+  fact: 'memo-field--sources', question: 'memo-field--question', response: 'memo-field--response', quote: 'memo-field--linkedin',
 };
 
-function Question({ label, markdown, input, also, name }: { label: string; markdown: string; input: SaveInput; also: SaveInput[]; name: string }) {
-  return (
-    <div className="memo-question">
-      <div className="memo-question-top">
-        <span className="memo-question-label">{label}</span>
-        <MemoSave input={input} also={also} name={name} />
-      </div>
-      <blockquote><Markdown>{markdown}</Markdown></blockquote>
-    </div>
-  );
-}
-
-interface ChapterProps {
-  chapter: Chapter;
-  n: number;
-  total: number;
-  /** Where "Next development →" (or "Executive takeaways →") goes. */
-  next: { id: string; label: string } | null;
-  /** The best question's records, when it repeats one of this chapter's questions. */
-  best: SaveInput[] | null;
-  go: (id: string) => (e: MouseEvent) => void;
-  toContents: (e: MouseEvent) => void;
-}
-
-function Development({ chapter, n, total, next, best, go, toContents }: ChapterProps) {
-  const titleId = `memo-dev-${chapter.id}`;
-  return (
-    <section className="memo-dev" id={`intel-${chapter.id}`} data-section={chapter.id} aria-labelledby={titleId} tabIndex={-1}>
-      <div className="memo-dev-kicker">
-        <span>Development {two(n)} / {two(total)}</span>
-        <a href={`#intel-${CONTENTS}`} className="memo-minor" onClick={toContents}>Back to contents <span aria-hidden>↑</span></a>
-      </div>
-      <h2 className="memo-dev-title" id={titleId}><Markdown inline heading>{chapterTitle(chapter.title, n)}</Markdown></h2>
-      {chapter.fields ? (
-        <div className="memo-fields">
-          {chapter.fields.map((f, i) => {
-            const asks = f.tone === 'question' && f.label && f.markdown;
-            const input = asks ? questionInput(chapter, f) : null;
-            const shared = input && best && best.length > 1 && best[0].sectionId === input.sectionId && best[0].text === input.text;
-            return (
-              <div key={i} className={`memo-field${TONES[f.tone] ?? ''}`}>
-                {f.label ? <h3 className="memo-field-label"><Markdown inline>{f.label}</Markdown></h3> : <span className="memo-field-label" />}
-                <div className="memo-field-content">
-                  {input
-                    ? <Question label={`Development ${two(n)} · ${f.label}`} markdown={f.markdown} input={input} also={shared ? best.slice(1) : []} name={`the ${f.label!.toLowerCase()} of development ${n}`} />
-                    : <div className="memo-prose"><Markdown>{f.markdown}</Markdown></div>}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="memo-prose memo-dev-text"><Markdown>{chapter.markdown}</Markdown></div>
-      )}
-      {next && (
-        <div className="memo-chapter-nav">
-          <a href={`#intel-${next.id}`} className="memo-next" onClick={go(next.id)}>{next.label} <span aria-hidden>→</span></a>
-        </div>
-      )}
-    </section>
-  );
-}
+/**
+ * A development's question, with Save: "Development 01 · Executive question",
+ * kept as the briefs kept it; when the best question repeats it, its Save
+ * also reads the best question's record (`best`).
+ */
+const askOf = (chapter: Chapter, n: number, best: SaveInput[] | null) => (f: Field): ChapterAsk | null => {
+  if (f.tone !== 'question' || !f.label || !f.markdown) return null;
+  const input = questionInput(chapter, f);
+  const shared = best && best.length > 1 && best[0].sectionId === input.sectionId && best[0].text === input.text;
+  return { label: `Development ${two(n)} · ${f.label}`, input, also: shared ? best.slice(1) : [], name: `the ${f.label.toLowerCase()} of development ${n}` };
+};
 
 function Row({ section, n, best, level }: { section: Section; n: number; best: SaveInput[] | null; level: 2 | 3 }) {
   const Label = level === 2 ? 'h2' : 'h3';
@@ -101,7 +45,7 @@ function Row({ section, n, best, level }: { section: Section; n: number; best: S
       </div>
       <div className="memo-body">
         {best
-          ? <Question label="The question to remember" markdown={section.markdown} input={best[0]} also={best.slice(1)} name="the best executive question" />
+          ? <MemoQuestion label="The question to remember" markdown={section.markdown} input={best[0]} also={best.slice(1)} name="the best executive question" />
           : <div className="memo-prose"><Markdown>{section.markdown}</Markdown></div>}
       </div>
     </section>
@@ -147,19 +91,7 @@ export function SalesMemo({
           {edition.setAside.filter(a => a.where === 'start').map(a => <p key={a.kind} className="memo-aside" role="note">{asideNote(a)}</p>)}
           {memo.lead && <div className="memo-prose memo-lead"><Markdown>{memo.lead}</Markdown></div>}
 
-          {total > 0 && (
-            <details className="memo-toc" id={`intel-${CONTENTS}`} open={contents} onToggle={e => setContents(e.currentTarget.open)} tabIndex={-1}>
-              <summary><Chevron /> In this edition <span className="memo-toc-count">· {plural(total, 'development')}</span></summary>
-              <ol className="memo-toc-list">
-                {memo.chapters.map((c, i) => (
-                  <li key={c.id}>
-                    <span className="memo-toc-n" aria-hidden>{two(i + 1)}</span>
-                    <a href={`#intel-${c.id}`} onClick={go(c.id)}><Markdown inline heading>{chapterTitle(c.title, i + 1)}</Markdown></a>
-                  </li>
-                ))}
-              </ol>
-            </details>
-          )}
+          {total > 0 && <MemoContents chapters={memo.chapters} open={contents} onToggle={setContents} go={go} />}
 
           {memo.flow.map(item => {
             if (item.kind === 'part') {
@@ -171,7 +103,7 @@ export function SalesMemo({
               );
             }
             const i = memo.chapters.indexOf(item.chapter);
-            return <Development key={item.chapter.id} chapter={item.chapter} n={i + 1} total={total} next={nextOf(i)} best={best?.inputs ?? null} go={go} toContents={toContents} />;
+            return <MemoChapter key={item.chapter.id} chapter={item.chapter} n={i + 1} total={total} next={nextOf(i)} tones={TONES} ask={askOf(item.chapter, i + 1, best?.inputs ?? null)} go={go} toContents={toContents} />;
           })}
 
           {(memo.remember || memo.rows.length > 0) && (

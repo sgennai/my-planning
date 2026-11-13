@@ -1,9 +1,9 @@
 // One edition at reading size: the run's feed, date and time (Paris), its
 // title and topics, an index of its sections that stays at the top of the
 // reader, then every section of the document in its order and its words.
-// The AI Challenge and the Sales Brief read as executive memos instead
-// (`MemoArticle`, `SalesMemo`), with the same reading place, progress and
-// Takeaways.
+// The AI Challenge, the Sales Brief and the Customer Engagement Brief read
+// as executive memos instead (`MemoArticle`, `SalesMemo`, `EngagementMemo`),
+// with the same reading place, progress and Takeaways.
 //
 // What you do with it is yours and syncs: how far you have read (reported
 // as you scroll), Mark as read, and Takeaways, where a section, a question,
@@ -25,6 +25,8 @@ import { MemoArticle } from './MemoArticle';
 import { memoOrder } from './memo';
 import { SalesMemo } from './SalesMemo';
 import { salesMemo } from './sales-memo';
+import { EngagementMemo } from './EngagementMemo';
+import { engagementMemo } from './engagement-memo';
 import { formatDayAnchor, dayNameShort, formatDayCompact } from '../routine/dates';
 import { IconExternal, IconCopy, IconCheck, IconBookmark, IconChevronDown } from '../ui/icons';
 
@@ -293,23 +295,22 @@ function Reader({
   const endRef = useRef<HTMLDivElement>(null);
   const sections = useMemo(() => splitSections(edition.markdownBody), [edition.markdownBody]);
   const sales = useMemo(() => (edition.feedId === 'enterprise-ai-sales-brief' ? salesMemo(sections) : null), [edition.feedId, sections]);
+  const engagement = useMemo(() => (edition.feedId === 'customer-engagement-brief' ? engagementMemo(sections) : null), [edition.feedId, sections]);
   const presented = useMemo(
     () => new Map(sections.map(s => [s.id, presentSection(edition.feedId, s)])),
     [edition.feedId, sections],
   );
   // The index: every titled section; in the AI Challenge's memo, in its
   // order, the topic map last; in the Sales Brief's, its developments, then
-  // its closing.
+  // its closing; in the Customer Engagement Brief's, its Executive take, its
+  // developments, then its closing.
   const indexed = useMemo(() => {
-    if (sales) {
-      return [
-        ...sales.chapters.map(c => ({ id: c.id, label: shortTitle(c.title) })),
-        ...[sales.remember, ...sales.rows].filter(s => !!s).map(s => ({ id: s.id, label: shortTitle(s.title) })),
-      ];
-    }
+    const of = (s: { id: string; title: string }) => ({ id: s.id, label: shortTitle(s.title) });
+    if (sales) return [...sales.chapters, ...[sales.remember, ...sales.rows].filter(s => !!s)].map(of);
+    if (engagement) return [...[engagement.take].filter(s => !!s), ...engagement.chapters, ...[engagement.essentials, ...engagement.rows].filter(s => !!s)].map(of);
     const { body, map } = memo ? memoOrder(sections) : { body: sections, map: null };
-    return [...body, ...(map ? [map] : [])].filter(s => s.title && s.role !== 'title').map(s => ({ id: s.id, label: shortTitle(s.title) }));
-  }, [sales, memo, sections]);
+    return [...body, ...(map ? [map] : [])].filter(s => s.title && s.role !== 'title').map(of);
+  }, [sales, engagement, memo, sections]);
   const [folded, setFolded] = useState<Set<string>>(() => new Set());
   const folds = useMemo<Folds>(() => ({
     isOpen: id => !folded.has(id),
@@ -341,7 +342,7 @@ function Reader({
     const node = document.getElementById(`intel-${id}`);
     if (!el || !node) return null;
     return node.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop
-      - (indexRef.current?.offsetHeight ?? 0) - (memo || sales ? MEMO_GAP : 0);
+      - (indexRef.current?.offsetHeight ?? 0) - (memo || sales || engagement ? MEMO_GAP : 0);
   };
 
   // Opens at its top, or where you are sent (the section you were reading).
@@ -422,7 +423,7 @@ function Reader({
       window.clearTimeout(hide);
       if (text.length >= 3 && el && articleRef.current?.contains(el) && !el.closest('button')) {
         const id = el.closest('[data-section]')?.getAttribute('data-section') ?? null;
-        const section = sections.find(s => s.id === id) ?? sales?.chapters.find(c => c.id === id);
+        const section = sections.find(s => s.id === id) ?? (sales ?? engagement)?.chapters.find(c => c.id === id);
         setSelection({ kind: 'passage', sectionId: section?.id ?? null, sectionTitle: section?.title || null, text });
       } else {
         hide = window.setTimeout(() => setSelection(null), 600);
@@ -430,7 +431,7 @@ function Reader({
     };
     document.addEventListener('selectionchange', onChange);
     return () => { document.removeEventListener('selectionchange', onChange); window.clearTimeout(hide); };
-  }, [sections, sales]);
+  }, [sections, sales, engagement]);
 
   const savePassage = () => {
     if (!selection) return;
@@ -470,31 +471,33 @@ function Reader({
     ><IconBookmark />Save to Takeaways</button>
   );
 
-  if (sales) {
+  // What both briefs' memos are given, besides their reading of the edition.
+  const brief = {
+    onGoTo: goTo,
+    edition,
+    minutes: readingMinutes(edition.markdownBody),
+    barRef: indexRef,
+    fillRef,
+    endRef,
+    articleRef,
+    onHistory,
+    historyOpen,
+    adjacent,
+    onOpenAdjacent,
+    related,
+    onOpenRelated,
+    read: !!record?.readAt,
+    editionSaved: !!findSaved(saved, edition, editionInput),
+    onToggleRead,
+    onToggleEditionSave: onToggleSave && (() => onToggleSave(editionInput)),
+    notices,
+    imported,
+  };
+
+  if (sales || engagement) {
     return (
       <EditionActionsContext.Provider value={actions}>
-        <SalesMemo
-          memo={sales}
-          onGoTo={goTo}
-          edition={edition}
-          minutes={readingMinutes(edition.markdownBody)}
-          barRef={indexRef}
-          fillRef={fillRef}
-          endRef={endRef}
-          articleRef={articleRef}
-          onHistory={onHistory}
-          historyOpen={historyOpen}
-          adjacent={adjacent}
-          onOpenAdjacent={onOpenAdjacent}
-          related={related}
-          onOpenRelated={onOpenRelated}
-          read={!!record?.readAt}
-          editionSaved={!!findSaved(saved, edition, editionInput)}
-          onToggleRead={onToggleRead}
-          onToggleEditionSave={onToggleSave && (() => onToggleSave(editionInput))}
-          notices={notices}
-          imported={imported}
-        />
+        {sales ? <SalesMemo memo={sales} {...brief} /> : <EngagementMemo memo={engagement!} {...brief} />}
         {selectionSave}
       </EditionActionsContext.Provider>
     );

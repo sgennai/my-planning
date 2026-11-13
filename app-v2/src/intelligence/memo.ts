@@ -1,7 +1,7 @@
-// The executive memo (INT-50, the AI Challenge; INT-51, the Sales Brief): what
-// the memo reader needs from an edition, worked out apart from how it is
-// drawn. Nothing here changes or drops a word; it only says where each part
-// goes. The AI Challenge:
+// The executive memo (INT-50, the AI Challenge; INT-51, the Sales Brief;
+// INT-52, the Customer Engagement Brief): what the memo reader needs from an
+// edition, worked out apart from how it is drawn. Nothing here changes or
+// drops a word; it only says where each part goes. The AI Challenge:
 //
 //   - the topic map, the document's first section, becomes a disclosure at
 //     the memo's end, its "Relevant to today's challenge" line the topic line
@@ -9,9 +9,14 @@
 //   - the Challenge's bold opening sentence becomes the summary block, the
 //     rest of the Challenge its first section (`challengeLead`);
 //   - every other section keeps its place and its words.
+//
+// The two briefs read their developments as chapters of labelled fields
+// (`Chapter`, `sales-memo.ts`, `engagement-memo.ts`).
 import type { Edition, Section } from './parse';
 import type { FeedId } from './feeds';
 import type { Presentation } from './present';
+import type { PartTone } from './briefs';
+import type { SaveInput } from './saved';
 import { fold, keyOf } from './blocks';
 import type { DayKey } from '../routine/dates';
 
@@ -35,10 +40,51 @@ const BRANDS: Partial<Record<FeedId, MemoBrand>> = {
     name: 'Enterprise AI Sales Brief', history: 'Open sales briefing history', browse: 'Browse briefings',
     search: 'Search sales briefing editions', editions: 'sales briefing editions',
   },
+  'customer-engagement-brief': {
+    name: 'Customer Engagement Brief', history: 'Open edition history', browse: 'Browse briefings',
+    search: 'Search edition history', editions: 'customer engagement editions',
+  },
 };
 
 /** The feed's memo, or null for a feed read as a brief. */
 export const memoBrand = (feedId: string | null | undefined): MemoBrand | null => (feedId && BRANDS[feedId as FeedId]) || null;
+
+/** One of a development's labelled parts, its words as written. */
+export interface Field { label: string | null; tone: PartTone; markdown: string }
+
+export interface Chapter {
+  /** Unique within the edition; the element is `intel-<id>`. */
+  id: string;
+  /** The heading as written. */
+  title: string;
+  /** Its labelled parts; null when it has none, and is shown as its Markdown. */
+  fields: Field[] | null;
+  markdown: string;
+}
+
+/** The body in its order: what a section says before its developments, and the developments. */
+export type Flow =
+  /** A section holding developments: its title (none for the Sales Brief's themes, which go to the fold) and its own words. */
+  | { kind: 'part'; id: string; title: string | null; markdown: string }
+  | { kind: 'chapter'; chapter: Chapter };
+
+/** A development's heading without the number the chapter's kicker already gives ("1. …" for the first). */
+export function chapterTitle(title: string, n: number): string {
+  const m = /^(\d+)[.)][ \t]+(\S[\s\S]*)$/.exec(title);
+  return m && Number(m[1]) === n ? m[2] : title;
+}
+
+const WORDS = ['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
+
+/** "Three takeaways", "Two talking points": a list's length, in words. */
+export const countLabel = (n: number, noun: string) => `${WORDS[n - 1] ?? n} ${noun}${n === 1 ? '' : 's'}`;
+
+/** The same question, whatever its quotes, punctuation, case or spacing. */
+export const questionWords = (text: string) => fold(text).replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+
+/** A development's question as the briefs reader saved it, so what was kept there shows as kept here. */
+export const questionInput = (chapter: Chapter, field: Field): SaveInput =>
+  ({ kind: 'labelled', sectionId: chapter.id, sectionTitle: chapter.title, label: field.label ?? '', text: field.markdown });
 
 export interface MemoTopics {
   /** The document's own label ("Relevant to today's challenge"), else "Topics". */

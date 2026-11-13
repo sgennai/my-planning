@@ -18,30 +18,11 @@
 // sections), which the briefs of 6 to 12 November write in bold lines
 // (`layout.ts` reads those as the earlier editions wrote them).
 import type { Section } from './parse';
-import { blocksOf, fold, keyOf, unlabel } from './blocks';
+import { blocksOf, keyOf, unlabel } from './blocks';
 import { shortTitle } from './present';
 import { developments, listItems, toneOf, LABEL_INLINE, LABEL_ONLY, RULE, type PartTone } from './briefs';
-import { isTopicMap } from './memo';
+import { countLabel, isTopicMap, questionInput, questionWords, type Chapter, type Field, type Flow } from './memo';
 import type { SaveInput } from './saved';
-
-/** One of a development's labelled parts, its words as written (an inline label stays in them). */
-export interface Field { label: string | null; tone: PartTone; markdown: string }
-
-export interface Chapter {
-  /** Unique within the edition; the element is `intel-<id>`. */
-  id: string;
-  /** The heading as written. */
-  title: string;
-  /** Its labelled parts; null when it has none, and is shown as its Markdown. */
-  fields: Field[] | null;
-  markdown: string;
-}
-
-/** The body in its order: what a section says before its developments, and the developments. */
-export type Flow =
-  /** A section holding developments: its title (none for the themes, which go to the fold) and its own words. */
-  | { kind: 'part'; id: string; title: string | null; markdown: string }
-  | { kind: 'chapter'; chapter: Chapter };
 
 export interface SalesMemo {
   /** The document's own title line ("Daily Enterprise AI Sales Brief — 12 November 2026"). */
@@ -171,28 +152,11 @@ export function salesMemo(sections: Section[]): SalesMemo {
   return memo;
 }
 
-/** A development's heading without the number the chapter's kicker already gives ("1. …" for the first). */
-export function chapterTitle(title: string, n: number): string {
-  const m = /^(\d+)[.)][ \t]+(\S[\s\S]*)$/.exec(title);
-  return m && Number(m[1]) === n ? m[2] : title;
-}
-
-const WORDS = ['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
-
 /** "Three takeaways": what to remember, when it is one list, by its length; else null. */
 export function takeawaysOf(section: Section): { label: string; items: string[] } | null {
   const items = listItems(section.markdown);
-  if (!items) return null;
-  const n = items.length;
-  return { label: `${WORDS[n - 1] ?? n} takeaway${n === 1 ? '' : 's'}`, items };
+  return items ? { label: countLabel(items.length, 'takeaway'), items } : null;
 }
-
-/** The same question, whatever its quotes, punctuation, case or spacing. */
-const wordsOf = (text: string) => fold(text).replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
-
-/** A development's question as the briefs reader saved it, so what was kept there shows as kept here. */
-export const questionInput = (chapter: Chapter, field: Field): SaveInput =>
-  ({ kind: 'labelled', sectionId: chapter.id, sectionTitle: chapter.title, label: field.label ?? '', text: field.markdown });
 
 /**
  * The best question and the Takeaways records its Save reads and writes: its
@@ -204,9 +168,9 @@ export function bestQuestion(memo: SalesMemo): { section: Section; inputs: SaveI
   const section = memo.rows.find(s => /^best executive question/.test(keyOf(s.title)));
   if (!section || !section.markdown.trim()) return null;
   const own: SaveInput = { kind: 'labelled', sectionId: section.id, sectionTitle: section.title, label: shortTitle(section.title), text: section.markdown };
-  const words = wordsOf(section.markdown);
+  const words = questionWords(section.markdown);
   for (const c of memo.chapters) {
-    const f = c.fields?.find(f => f.tone === 'question' && f.label && f.markdown && wordsOf(f.markdown) === words);
+    const f = c.fields?.find(f => f.tone === 'question' && f.label && f.markdown && questionWords(f.markdown) === words);
     if (f) return { section, inputs: [questionInput(c, f), own] };
   }
   return { section, inputs: [own] };

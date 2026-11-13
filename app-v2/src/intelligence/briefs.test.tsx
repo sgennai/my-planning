@@ -2,11 +2,13 @@
 // The Enterprise AI Sales Brief and the Customer Engagement Brief: their
 // developments as labelled parts, their other sections in their forms,
 // developments that fold and come back when sent to, and the promise behind
-// all of it: every word on screen. The Sales Brief is drawn as its memo
-// (`SalesMemo.test.tsx`).
+// all of it: every word on screen. Both are drawn as their memos
+// (`SalesMemo.test.tsx`, `EngagementMemo.test.tsx`); a feed without a memo
+// keeps this reader, shown here with the Engagement Brief's text.
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { parseEdition, splitSections } from './parse';
+import type { FeedId } from './feeds';
 import { presentSection } from './present';
 import { partsOf, toneOf } from './briefs';
 import { EditionReader } from './EditionReader';
@@ -16,7 +18,8 @@ vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} });
 Element.prototype.scrollTo = function scrollTo() {};
 afterEach(cleanup);
 
-const engagement = parseEdition('customer-engagement-brief', ENGAGEMENT_FILE, ENGAGEMENT_DOC);
+/** The Engagement Brief's text in a feed that has no memo. */
+const brief = { ...parseEdition('customer-engagement-brief', ENGAGEMENT_FILE, ENGAGEMENT_DOC), feedId: 'a-brief' as FeedId };
 const sectionOf = (body: string, title: string) => splitSections(body).find(s => s.title.startsWith(title))!;
 const show = (e: ReturnType<typeof parseEdition>) =>
   render(<EditionReader edition={e} scroller={{ current: document.createElement('div') }} onNote={() => {}} onToggleSave={() => {}} />).container;
@@ -98,8 +101,8 @@ describe('the Customer Engagement Brief', () => {
     expect(presentSection('customer-engagement-brief', loose).kind).toBe('markdown');
   });
 
-  it('on screen: every word, the coverage line under its title, each development folding', () => {
-    const c = show(engagement);
+  it('read as a brief: every word, the coverage line under its title, each development folding', () => {
+    const c = show(brief);
     const text = c.textContent!;
     for (const word of wordsOf(ENGAGEMENT_BODY)) expect(text).toContain(word);
     expect(c.querySelector('.intel-doc-title')).toHaveTextContent('Enterprise Customer Engagement BriefCoverage: 26 October – 2 November 2026');

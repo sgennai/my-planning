@@ -341,9 +341,10 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   Takeaways (a dot on a feed with something new, the count on Takeaways; the row scrolls and
   fades at an edge with more, `useEdgeFade`). A brief, by orientation — landscape: edition rail +
   reader; iPad portrait: reader with an "Editions" drawer; phone (same query as the shell's
-  More): list, then the edition with its actions in the top bar. The AI Challenge and the Sales
-  Brief are executive memos at every size, their editions in the memo's history drawer (below;
-  `memoBrand` in `memo.ts` says which feeds, and their labels). It fills the shell like
+  More): list, then the edition with its actions in the top bar. All three feeds (AI Challenge,
+  Sales Brief, Customer Engagement) are executive memos at every size, their editions in the
+  memo's history drawer (below; `memoBrand` in `memo.ts` says which feeds, and their labels), so
+  that list, drawer and brief reader serve only a feed without a memo. It fills the shell like
   Routine; in portrait the text runs under the pill and every list ends clear of it
   (`--intel-foot`). `useFeeds` shows the device's copy at once and refreshes on opening, on the
   button, and on return after 10 min. A feed opens on the edition chosen this session, else the
@@ -444,7 +445,32 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   (`bestQuestion`), so the two buttons are one record and an older separate save still shows on
   both. `scripts/sales-memo.check.test.tsx` (env `SALES_DRIVE`, optional `SALES_SOURCE`) draws
   every real edition and checks every word and link is on screen.
-- **Engagement Brief** (`briefs.ts`, whose Sales presentation feeds the Sales memo): a single opening `# Title` is the document's
+- **The Customer Engagement Brief as an executive memo** (INT-52; `EngagementMemo.tsx`,
+  `engagement-memo.ts`, the `.memo--engagement` rules in `styles/memo.css`), after the user's
+  approved prototype (`customer-engagement-executive-memo-demo.html`, outside the repo), which
+  builds on the Sales prototype: the two briefs share their rules (`:is(.memo--sales,
+  .memo--engagement)`) and, with the AI Challenge, the parts in `MemoParts.tsx` (bar, topics,
+  Save, `MemoQuestion`, `MemoContents`, `MemoChapter`, folds, end); `Chapter`, `Field`, `Flow`,
+  `chapterTitle`, `questionInput` live in `memo.ts`. `engagementMemo` reads the sections in the
+  document's order: the `#` line goes to the fold ("Original briefing heading"), the bold line
+  under it is the coverage line under the title (its words, not a computed range), anything else
+  there the opening; "Executive take" opens the memo before the contents (its first paragraph
+  small, its list numbered 01…, its last paragraph the card, by CSS on the Markdown as written);
+  each development a chapter whose every labelled part is a field (`partsOf`: a paragraph without
+  a label stays in the field before, as 13 Nov's second Confirmed paragraph); the weekly brief's
+  "Weekly executive briefing" a part over its `###` chapters. A numbered heading is always a
+  development; from the first closing heading (talking points, customer questions, watchlist,
+  contrarian, development to monitor) everything is the closing, in its order: the talking
+  points as "The essentials" ("Three talking points"), the rest numbered on, the customer
+  questions each "Question 01" with Save. The contents end with "Executive talking points &
+  conclusions"; a chapter's question is "Ask the executive". Save writes the records the brief
+  reader wrote (a development's question by its section; a customer question by "Three customer
+  questions worth asking"), so earlier saves show; a question asked twice is one record
+  (`questionSaves`: the first place's, both show it, either removes it). No Copy in the memos.
+  `scripts/engagement-memo.check.test.tsx` (env `ENGAGEMENT_DRIVE`, optional
+  `ENGAGEMENT_SOURCE`) draws every real edition and checks every word and link, and a Save on
+  every question.
+- **Engagement Brief** (`briefs.ts`, whose presentations feed the two briefs' memos; the brief reader below now serves only a feed without a memo): a single opening `# Title` is the document's
   title (`Section.role = 'title'`, shown under the header with its text) and sections cut at the
   next level. Developments are labelled parts (`partsOf`: a `**Label**` line, or a paragraph
   opening `**Label:**`), each with a tone from its label (fact, interpretation, question,
@@ -664,7 +690,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (498 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (520 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris
