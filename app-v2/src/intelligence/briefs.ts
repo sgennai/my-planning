@@ -37,9 +37,9 @@ export type BriefPresentation =
   | { kind: 'points'; items: { lead: string; text: string }[] }
   | { kind: 'watchlist'; items: { name: string; text: string }[] };
 
-const LABEL_ONLY = /^\*\*((?:(?!\*\*)[^\n]){1,80}?)\*\*:?$/;
-const LABEL_INLINE = /^\*\*((?:(?!\*\*)[^\n]){1,80}?)(?::\*\*|\*\*:)\s+([\s\S]+)$/;
-const RULE = /^(?:-{3,}|\*{3,}|_{3,})$/;
+export const LABEL_ONLY = /^\*\*((?:(?!\*\*)[^\n]){1,80}?)\*\*:?$/;
+export const LABEL_INLINE = /^\*\*((?:(?!\*\*)[^\n]){1,80}?)(?::\*\*|\*\*:)\s+([\s\S]+)$/;
+export const RULE = /^(?:-{3,}|\*{3,}|_{3,})$/;
 const HEADING = /^(#{2,6})[ \t]+(.+?)[ \t]*#*[ \t]*$/;
 const QUOTED = /^["“«]/;
 
@@ -85,7 +85,7 @@ export function partsOf(markdown: string): Part[] {
 }
 
 /** The items of a section that is one list and nothing else, or null. */
-function listItems(markdown: string): string[] | null {
+export function listItems(markdown: string): string[] | null {
   const blocks = blocksOf(markdown);
   if (blocks.length !== 1) return null;
   const items: string[] = [];
@@ -112,7 +112,7 @@ function labelledItems(markdown: string): { lead: string; text: string }[] | nul
 }
 
 /** A section holding its developments under deeper headings, or null. */
-function developments(section: Section): BriefPresentation | null {
+export function developments(section: Section): BriefPresentation | null {
   const lines = section.markdown.split('\n');
   const heads = lines.map((l, i) => ({ i, m: HEADING.exec(l) })).filter(h => h.m);
   if (!heads.length) return null;

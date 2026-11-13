@@ -11,7 +11,7 @@ import { IntelligenceScreen } from './IntelligenceScreen';
 import { _closeLibrary } from './library';
 import { savedOf } from './saved';
 import { readingIndex } from './reading';
-import { CHALLENGE_DOC, CHALLENGE_FILE, ENGAGEMENT_DOC, ENGAGEMENT_FILE } from './test-fixtures';
+import { CHALLENGE_DOC, CHALLENGE_FILE, ENGAGEMENT_DOC, ENGAGEMENT_FILE, SALES_DOC, SALES_FILE } from './test-fixtures';
 
 let docText: string;
 let files: (typeof CHALLENGE_FILE)[];
@@ -60,6 +60,11 @@ const openChallenge = async () => {
 const openHistory = () => {
   fireEvent.click(screen.getByRole('button', { name: 'Open challenge history' }));
   return screen.getByRole('dialog', { name: 'Edition history' });
+};
+/** A Sales Brief edition, read as its memo (INT-51). */
+const withSales = () => {
+  otherFeeds['enterprise-ai-sales-brief'] = [{ ...SALES_FILE, createdTime: '2026-01-02T08:05:30.000Z', modifiedTime: '2026-01-02T08:05:32.000Z' }];
+  texts[SALES_FILE.id] = SALES_DOC;
 };
 /** A Customer Engagement edition, for the list and drawer the briefs keep. */
 const withEngagement = () => {
@@ -110,6 +115,35 @@ describe('the Intelligence section', () => {
     const listed = within(history).getByRole('button', { name: /Mon 2 Nov · 08:20/ });
     expect(listed).toHaveAttribute('aria-current', 'page');
     expect(listed).toHaveAccessibleName(/^Mon 2 Nov · 08:20,\s*New\s*Agent Sprawl/);
+  });
+
+  it('the Sales Brief opens as its memo too, its history in the drawer, its labels its own', async () => {
+    withSales();
+    render(<App />);
+    fireEvent.click(await screen.findByRole('tab', { name: /Enterprise AI/ }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Outcome Pricing and Sovereign Capacity' })).toBeInTheDocument();
+    expect(screen.queryByRole('complementary', { name: 'Editions' })).toBeNull();
+    expect(screen.queryByRole('button', { name: /^Editions/ })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Open sales briefing history' }));
+    const history = screen.getByRole('dialog', { name: 'Edition history' });
+    expect(history).toHaveTextContent('Enterprise AI Sales Brief');
+    expect(within(history).getByRole('searchbox', { name: 'Search sales briefing editions' })).toBeInTheDocument();
+    expect(within(history).getByRole('navigation', { name: 'All 1 sales briefing editions' })).toBeInTheDocument();
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(history).not.toHaveClass('is-open');
+  });
+
+  it('the Sales memo keeps its best question once in Takeaways, whichever of its two Saves is used', async () => {
+    withSales();
+    render(<App />);
+    fireEvent.click(await screen.findByRole('tab', { name: /Enterprise AI/ }));
+    await screen.findByRole('heading', { level: 1, name: 'Outcome Pricing and Sovereign Capacity' });
+    fireEvent.click(screen.getByRole('button', { name: 'Save the best executive question' }));
+    expect(savedOf(latest.content).map(s => [s.sectionTitle, s.label])).toEqual([['Agent pricing moves to outcomes', 'Executive question']]);
+    expect(screen.getByRole('button', { name: /the executive question of development 1/ })).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(screen.getByRole('button', { name: 'Remove saved the executive question of development 1' }));
+    expect(savedOf(latest.content)).toEqual([]);
+    expect(screen.getByRole('button', { name: 'Save the best executive question' })).toHaveAttribute('aria-pressed', 'false');
   });
 
   it('a brief keeps its list of editions, unread marked', async () => {

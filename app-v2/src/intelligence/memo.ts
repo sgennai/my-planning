@@ -1,6 +1,7 @@
-// The AI Challenge as an executive memo (INT-50): what the memo reader needs
-// from an edition, worked out apart from how it is drawn. Nothing here
-// changes or drops a word; it only says where each part goes.
+// The executive memo (INT-50, the AI Challenge; INT-51, the Sales Brief): what
+// the memo reader needs from an edition, worked out apart from how it is
+// drawn. Nothing here changes or drops a word; it only says where each part
+// goes. The AI Challenge:
 //
 //   - the topic map, the document's first section, becomes a disclosure at
 //     the memo's end, its "Relevant to today's challenge" line the topic line
@@ -9,9 +10,35 @@
 //     rest of the Challenge its first section (`challengeLead`);
 //   - every other section keeps its place and its words.
 import type { Edition, Section } from './parse';
+import type { FeedId } from './feeds';
 import type { Presentation } from './present';
 import { fold, keyOf } from './blocks';
 import type { DayKey } from '../routine/dates';
+
+/** The feeds read as a memo, and what their memo calls itself. */
+export interface MemoBrand {
+  name: string;
+  /** The history menu's name and hint. */
+  history: string;
+  browse: string;
+  /** The history search's name, and its list's ("All 53 challenge editions"). */
+  search: string;
+  editions: string;
+}
+
+const BRANDS: Partial<Record<FeedId, MemoBrand>> = {
+  'enterprise-ai-challenge': {
+    name: 'AI Challenge', history: 'Open challenge history', browse: 'Browse all challenges',
+    search: 'Search challenge editions', editions: 'challenge editions',
+  },
+  'enterprise-ai-sales-brief': {
+    name: 'Enterprise AI Sales Brief', history: 'Open sales briefing history', browse: 'Browse briefings',
+    search: 'Search sales briefing editions', editions: 'sales briefing editions',
+  },
+};
+
+/** The feed's memo, or null for a feed read as a brief. */
+export const memoBrand = (feedId: string | null | undefined): MemoBrand | null => (feedId && BRANDS[feedId as FeedId]) || null;
 
 export interface MemoTopics {
   /** The document's own label ("Relevant to today's challenge"), else "Topics". */

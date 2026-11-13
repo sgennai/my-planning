@@ -25,19 +25,6 @@ export interface Labelled { label: string; text: string }
 export interface Term { n: string | null; term: string; definition: string }
 
 
-/**
- * The order sections are shown in: the document's, except that the Sales
- * Brief leads with "What I should remember today", as its brief asks.
- */
-export function displayOrder(feedId: FeedId, sections: Section[]): Section[] {
-  if (feedId !== 'enterprise-ai-sales-brief') return sections;
-  const remember = sections.find(s => /what i should remember/.test(keyOf(s.title)));
-  if (!remember) return sections;
-  const rest = sections.filter(s => s !== remember);
-  const at = rest.findIndex(s => s.role !== 'title');
-  return at === -1 ? sections : [...rest.slice(0, at), remember, ...rest.slice(at)];
-}
-
 /** A short name for the section index: the title up to a dash or colon. */
 export function shortTitle(title: string): string {
   return title.split(/\s+[—–]\s+|:\s/)[0].trim() || title;

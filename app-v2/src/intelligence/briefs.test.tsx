@@ -1,24 +1,24 @@
 // @vitest-environment jsdom
 // The Enterprise AI Sales Brief and the Customer Engagement Brief: their
-// developments as labelled parts, their other sections in their forms, the
-// Sales Brief leading with what to remember, developments that fold and come
-// back when sent to, and the promise behind all of it: every word on screen.
+// developments as labelled parts, their other sections in their forms,
+// developments that fold and come back when sent to, and the promise behind
+// all of it: every word on screen. The Sales Brief is drawn as its memo
+// (`SalesMemo.test.tsx`).
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { render, screen, fireEvent, cleanup, within } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { parseEdition, splitSections } from './parse';
-import { presentSection, displayOrder } from './present';
+import { presentSection } from './present';
 import { partsOf, toneOf } from './briefs';
 import { EditionReader } from './EditionReader';
-import { SALES_DOC, SALES_FILE, SALES_BODY, ENGAGEMENT_DOC, ENGAGEMENT_FILE, ENGAGEMENT_BODY, wordsOf } from './test-fixtures';
+import { SALES_BODY, ENGAGEMENT_DOC, ENGAGEMENT_FILE, ENGAGEMENT_BODY, wordsOf } from './test-fixtures';
 
 vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} });
 Element.prototype.scrollTo = function scrollTo() {};
 afterEach(cleanup);
 
-const sales = parseEdition('enterprise-ai-sales-brief', SALES_FILE, SALES_DOC);
 const engagement = parseEdition('customer-engagement-brief', ENGAGEMENT_FILE, ENGAGEMENT_DOC);
 const sectionOf = (body: string, title: string) => splitSections(body).find(s => s.title.startsWith(title))!;
-const show = (e: typeof sales) =>
+const show = (e: ReturnType<typeof parseEdition>) =>
   render(<EditionReader edition={e} scroller={{ current: document.createElement('div') }} onNote={() => {}} onToggleSave={() => {}} />).container;
 
 describe('labelled parts', () => {
@@ -60,38 +60,6 @@ describe('the Sales Brief', () => {
       'Executive question', 'How I can respond', 'Banking use case', 'Expected business outcome and KPIs', 'Unica+ interpretation', 'LinkedIn angle',
     ]);
     expect(p.items[0].id).toBe('relevant-executive-themes-today--agent-pricing-moves-to-outcomes');
-  });
-
-  it('leads with what to remember, then keeps the document order', () => {
-    expect(displayOrder('enterprise-ai-sales-brief', splitSections(SALES_BODY)).map(s => s.title)).toEqual([
-      'Enterprise AI Sales Brief — 3 November 2026', 'What I should remember today', 'Relevant executive themes today',
-      'Best executive question today', 'Contrarian or non-obvious insight', 'Development to watch',
-    ]);
-  });
-
-  it('on screen: every word, the developments in the index, questions to copy and keep', () => {
-    const c = show(sales);
-    const text = c.textContent!;
-    for (const word of wordsOf(SALES_BODY)) expect(text).toContain(word);
-    expect([...c.querySelectorAll('.intel-index button')].map(b => [b.textContent, b.className])).toEqual([
-      ['What I should remember today', ''], ['Relevant executive themes today', ''],
-      ['Agent pricing moves to outcomes', 'is-sub'], ['Sovereign clouds add capacity', 'is-sub'],
-      ['Best executive question today', ''], ['Contrarian or non-obvious insight', ''], ['Development to watch', ''],
-    ]);
-    expect(c.querySelector('.intel-sec .intel-summary')).toHaveTextContent('Outcome pricing is arriving.');
-    expect(screen.getByRole('button', { name: 'Save Executive question to Takeaways' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Copy: How I can respond' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Copy: LinkedIn angle' })).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: 'Copy: Best executive question today' })).toHaveLength(1);
-  });
-
-  it('a development folds, and its chip opens it again', async () => {
-    const c = show(sales);
-    const dev = c.querySelector('#intel-relevant-executive-themes-today--agent-pricing-moves-to-outcomes')!;
-    fireEvent.click(within(dev as HTMLElement).getByRole('button', { name: 'Fold Agent pricing moves to outcomes' }));
-    expect(dev.textContent).not.toContain('A bank prices its service agent');
-    fireEvent.click(screen.getByRole('button', { name: 'Agent pricing moves to outcomes' }));
-    expect(dev.textContent).toContain('A bank prices its service agent');
   });
 });
 

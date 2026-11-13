@@ -6,7 +6,7 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { parseEdition, splitSections } from './parse';
 import { presentSection, shortTitle, copyText, readingMinutes, blocksOf, previewOf, plainText } from './present';
 import { EditionReader } from './EditionReader';
-import { CHALLENGE_BODY, CHALLENGE_FILE, SALES_DOC, SALES_FILE } from './test-fixtures';
+import { CHALLENGE_BODY, CHALLENGE_FILE, ENGAGEMENT_DOC, ENGAGEMENT_FILE } from './test-fixtures';
 
 const sections = splitSections(CHALLENGE_BODY);
 const section = (title: string) => sections.find(s => s.title.startsWith(title))!;
@@ -125,10 +125,10 @@ describe('the edition on screen', () => {
     const writeText = vi.fn(() => Promise.resolve());
     Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
     const onNote = vi.fn();
-    const sales = parseEdition('enterprise-ai-sales-brief', SALES_FILE, SALES_DOC);
-    render(<EditionReader edition={sales} scroller={scroller} onNote={onNote} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Copy: Best executive question today' }));
-    expect(writeText).toHaveBeenCalledWith('Which outcomes would you be willing to pay for?');
+    const engagement = parseEdition('customer-engagement-brief', ENGAGEMENT_FILE, ENGAGEMENT_DOC);
+    render(<EditionReader edition={engagement} scroller={scroller} onNote={onNote} />);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Copy: Three customer questions worth asking' })[0]);
+    expect(writeText).toHaveBeenCalledWith('Which workflows could run headless?');
     await vi.waitFor(() => expect(onNote).toHaveBeenCalledWith('Copied'));
   });
 

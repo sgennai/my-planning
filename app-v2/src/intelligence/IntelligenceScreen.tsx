@@ -5,8 +5,9 @@
 // feed, iPad landscape and desktop show the editions on the left and the
 // reader beside them; iPad portrait gives the reader the width and slides the
 // list in from "Editions"; a phone shows one pane at a time. The AI Challenge
-// is an executive memo at every size, its editions in a history drawer that
-// its bar opens (INT-50, `MemoArticle`, `MemoHistory`).
+// and the Sales Brief are executive memos at every size, their editions in a
+// history drawer that the memo's bar opens (INT-50, `MemoArticle`; INT-51,
+// `SalesMemo`; `MemoHistory`).
 //
 // The documents stay Google's (cached per device by `library.ts`); what you
 // do with them (how far you read, what you keep) is yours and syncs, in
@@ -23,6 +24,7 @@ import { useReadingAnchor } from './useReadingAnchor';
 import { topicIndex, relatedTo } from './related';
 import { EditionReader, EditionTools } from './EditionReader';
 import { MemoHistory } from './MemoHistory';
+import { memoBrand } from './memo';
 import { TodayView } from './TodayView';
 import { FeedStatus } from './FeedStatus';
 import { conformanceOf, labelOf, NEEDS_A_LOOK, type FeedConformance } from './conformance';
@@ -181,7 +183,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   // Where an edition opened from Today or Takeaways should start.
   const [jump, setJump] = useState<{ driveFileId: string; sectionId: string | null } | null>(null);
   const [drawer, setDrawer] = useState(false);
-  // The AI Challenge memo's history drawer.
+  // A memo's history drawer (AI Challenge, Sales Brief).
   const [history, setHistory] = useState(false);
   const [pane, setPane] = useState<'list' | 'reader'>('list');
   const [note, setNote] = useState<{ text: string; at: number } | null>(null);
@@ -239,7 +241,8 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     if (unread && (!last || unread.sortKey > last.sortKey)) return unread;
     return last ?? editions[0];
   }, [feedId, editions, chosen, remembered, readingAtOpen]);
-  const memo = feedId === 'enterprise-ai-challenge';
+  const brand = memoBrand(feedId);
+  const memo = !!brand;
   // The memo lists every related edition, a few at a time; the other readers the first few.
   const related = useMemo(() => (edition ? relatedTo(edition, topics, memo ? Infinity : undefined) : []), [edition, topics, memo]);
   // The memo's chevrons: the editions either side of this one, newest first as the feed keeps them.
@@ -526,8 +529,10 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
       onOpenAdjacent={e => choose(e)}
     />
   );
-  const memoHistory = memo && editions.length > 0 && (
+  const memoHistory = brand && editions.length > 0 && (
     <MemoHistory
+      key={feedId}
+      brand={brand}
       open={historyOpen}
       editions={editions}
       current={edition}

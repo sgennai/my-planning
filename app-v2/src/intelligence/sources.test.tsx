@@ -18,7 +18,8 @@ afterEach(cleanup);
 
 const show = (e: ReturnType<typeof parseEdition>) =>
   render(<EditionReader edition={e} scroller={{ current: document.createElement('div') }} onNote={() => {}} />).container;
-const hrefsIn = (c: HTMLElement) => [...c.querySelectorAll('.intel-col a[href]')].map(a => a.getAttribute('href'));
+// The edition's links; a memo's own in-page links (contents, next development) aside.
+const hrefsIn = (c: HTMLElement) => [...c.querySelectorAll('article a[href]:not([href^="#"])')].map(a => a.getAttribute('href'));
 
 describe('source links', () => {
   for (const [name, feed, file, doc] of [

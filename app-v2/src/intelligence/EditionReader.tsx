@@ -1,8 +1,9 @@
 // One edition at reading size: the run's feed, date and time (Paris), its
 // title and topics, an index of its sections that stays at the top of the
 // reader, then every section of the document in its order and its words.
-// The AI Challenge reads as an executive memo instead (`MemoArticle`), with
-// the same reading place, progress and Takeaways.
+// The AI Challenge and the Sales Brief read as executive memos instead
+// (`MemoArticle`, `SalesMemo`), with the same reading place, progress and
+// Takeaways.
 //
 // What you do with it is yours and syncs: how far you have read (reported
 // as you scroll), Mark as read, and Takeaways, where a section, a question,
@@ -10,8 +11,8 @@
 import { Component, createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { Markdown } from './Markdown';
 import { splitSections, type Edition, type Section } from './parse';
-import { presentSection, displayOrder, shortTitle, copyText, readingMinutes, type Presentation } from './present';
-import type { Development, Part } from './briefs';
+import { presentSection, shortTitle, copyText, readingMinutes, type Presentation } from './present';
+import type { Part } from './briefs';
 import { feedById } from './feeds';
 import { EditionActionsContext, useEditionActions, type EditionActions } from './context';
 import { useEdgeFade } from './useEdgeFade';
@@ -22,10 +23,15 @@ import type { Related } from './related';
 import { asideNote } from './artifacts';
 import { MemoArticle } from './MemoArticle';
 import { memoOrder } from './memo';
+import { SalesMemo } from './SalesMemo';
+import { salesMemo } from './sales-memo';
 import { formatDayAnchor, dayNameShort, formatDayCompact } from '../routine/dates';
 import { IconExternal, IconCopy, IconCheck, IconBookmark, IconChevronDown } from '../ui/icons';
 
 type Note = (text: string) => void;
+
+/** How far below a memo's bar an in-page jump or a resumed place lands. */
+const MEMO_GAP = 26;
 
 function copy(markdown: string, onNote: Note) {
   const text = copyText(markdown);
@@ -145,35 +151,6 @@ function Parts({ parts, sectionId, sectionTitle, level }: { parts: Part[]; secti
   );
 }
 
-/** One of the Sales Brief's developments, as a card that folds. */
-function DevelopmentCard({ dev }: { dev: Development }) {
-  const { isOpen } = useContext(FoldsContext);
-  const { savedItem, toggleSave } = useEditionActions();
-  const input: SaveInput = { kind: 'section', sectionId: dev.id, sectionTitle: dev.title, text: dev.markdown };
-  const saved = !!savedItem(input);
-  const name = shortTitle(dev.title);
-  return (
-    <article className="intel-dev" id={`intel-${dev.id}`}>
-      <div className="intel-dev-head">
-        <h3><Markdown inline heading>{dev.title}</Markdown></h3>
-        <button
-          type="button"
-          className={`intel-sec-save${saved ? ' on' : ''}`}
-          aria-pressed={saved}
-          aria-label={saved ? `${name}: saved to Takeaways. Remove` : `Save the development ${name} to Takeaways`}
-          onClick={() => toggleSave(input)}
-        ><IconBookmark /></button>
-        <FoldButton id={dev.id} name={name} />
-      </div>
-      {isOpen(dev.id) && (
-        <div id={`intel-body-${dev.id}`}>
-          <Parts parts={dev.parts} sectionId={dev.id} sectionTitle={dev.title} level={4} />
-        </div>
-      )}
-    </article>
-  );
-}
-
 function Asked({ markdown, label, section }: { markdown: string; label: string; section: Section }) {
   return (
     <div className="intel-question">
@@ -218,16 +195,8 @@ function SectionBody({ p, section }: { p: Presentation; section: Section }) {
       );
     case 'development':
       return <Parts parts={p.parts} sectionId={section.id} sectionTitle={section.title} level={3} />;
-    case 'developments':
-      return (
-        <>
-          {p.themes && <ul className="intel-topics" aria-label="Themes">{p.themes.map((t, i) => <li key={`${i}-${t}`}>{t}</li>)}</ul>}
-          {p.intro && <div className="intel-md"><Markdown>{p.intro}</Markdown></div>}
-          <div className="intel-devs">{p.items.map(d => <DevelopmentCard key={d.id} dev={d} />)}</div>
-        </>
-      );
     default:
-      // The AI Challenge's own forms are the memo's (`MemoArticle`).
+      // The AI Challenge's and the Sales Brief's own forms are their memos'.
       return <div className="intel-md"><Markdown>{section.markdown}</Markdown></div>;
   }
 }
@@ -285,7 +254,7 @@ interface Props {
   /** Other editions sharing a topic (`related.ts`), shown after the last section. */
   related?: Related[];
   onOpenRelated?: (edition: Edition) => void;
-  /** The memo's history (AI Challenge): opens it, and whether it is open. */
+  /** The memo's history (AI Challenge, Sales Brief): opens it, and whether it is open. */
   onHistory?: () => void;
   historyOpen?: boolean;
   /** The memo's chevrons: the editions either side of this one. */
@@ -323,23 +292,24 @@ function Reader({
   // Where the briefing ends, before what follows it (Related): reading to here is reading it all.
   const endRef = useRef<HTMLDivElement>(null);
   const sections = useMemo(() => splitSections(edition.markdownBody), [edition.markdownBody]);
-  const displayed = useMemo(() => displayOrder(edition.feedId, sections), [edition.feedId, sections]);
+  const sales = useMemo(() => (edition.feedId === 'enterprise-ai-sales-brief' ? salesMemo(sections) : null), [edition.feedId, sections]);
   const presented = useMemo(
-    () => new Map(displayed.map(s => [s.id, presentSection(edition.feedId, s)])),
-    [edition.feedId, displayed],
+    () => new Map(sections.map(s => [s.id, presentSection(edition.feedId, s)])),
+    [edition.feedId, sections],
   );
-  // The index: every titled section, and the developments inside one; in the
-  // memo, in its order, the topic map last.
-  const ordered = useMemo(() => {
-    if (!memo) return displayed;
-    const { body, map } = memoOrder(displayed);
-    return map ? [...body, map] : body;
-  }, [memo, displayed]);
-  const indexed = useMemo(() => ordered.filter(s => s.title && s.role !== 'title').flatMap(s => {
-    const own = { id: s.id, label: shortTitle(s.title), sub: false };
-    const p = presented.get(s.id);
-    return p?.kind === 'developments' ? [own, ...p.items.map(d => ({ id: d.id, label: shortTitle(d.title), sub: true }))] : [own];
-  }), [ordered, presented]);
+  // The index: every titled section; in the AI Challenge's memo, in its
+  // order, the topic map last; in the Sales Brief's, its developments, then
+  // its closing.
+  const indexed = useMemo(() => {
+    if (sales) {
+      return [
+        ...sales.chapters.map(c => ({ id: c.id, label: shortTitle(c.title) })),
+        ...[sales.remember, ...sales.rows].filter(s => !!s).map(s => ({ id: s.id, label: shortTitle(s.title) })),
+      ];
+    }
+    const { body, map } = memo ? memoOrder(sections) : { body: sections, map: null };
+    return [...body, ...(map ? [map] : [])].filter(s => s.title && s.role !== 'title').map(s => ({ id: s.id, label: shortTitle(s.title) }));
+  }, [sales, memo, sections]);
   const [folded, setFolded] = useState<Set<string>>(() => new Set());
   const folds = useMemo<Folds>(() => ({
     isOpen: id => !folded.has(id),
@@ -365,11 +335,13 @@ function Reader({
     note: onNote,
   }), [saved, edition, onToggleSave, onNote]);
 
+  // A memo's place sits a little below its bar, as the prototype's anchors do.
   const offsetOf = (id: string) => {
     const el = scroller.current;
     const node = document.getElementById(`intel-${id}`);
     if (!el || !node) return null;
-    return node.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop - (indexRef.current?.offsetHeight ?? 0);
+    return node.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop
+      - (indexRef.current?.offsetHeight ?? 0) - (memo || sales ? MEMO_GAP : 0);
   };
 
   // Opens at its top, or where you are sent (the section you were reading).
@@ -450,7 +422,7 @@ function Reader({
       window.clearTimeout(hide);
       if (text.length >= 3 && el && articleRef.current?.contains(el) && !el.closest('button')) {
         const id = el.closest('[data-section]')?.getAttribute('data-section') ?? null;
-        const section = sections.find(s => s.id === id);
+        const section = sections.find(s => s.id === id) ?? sales?.chapters.find(c => c.id === id);
         setSelection({ kind: 'passage', sectionId: section?.id ?? null, sectionTitle: section?.title || null, text });
       } else {
         hide = window.setTimeout(() => setSelection(null), 600);
@@ -458,7 +430,7 @@ function Reader({
     };
     document.addEventListener('selectionchange', onChange);
     return () => { document.removeEventListener('selectionchange', onChange); window.clearTimeout(hide); };
-  }, [sections]);
+  }, [sections, sales]);
 
   const savePassage = () => {
     if (!selection) return;
@@ -498,12 +470,42 @@ function Reader({
     ><IconBookmark />Save to Takeaways</button>
   );
 
+  if (sales) {
+    return (
+      <EditionActionsContext.Provider value={actions}>
+        <SalesMemo
+          memo={sales}
+          onGoTo={goTo}
+          edition={edition}
+          minutes={readingMinutes(edition.markdownBody)}
+          barRef={indexRef}
+          fillRef={fillRef}
+          endRef={endRef}
+          articleRef={articleRef}
+          onHistory={onHistory}
+          historyOpen={historyOpen}
+          adjacent={adjacent}
+          onOpenAdjacent={onOpenAdjacent}
+          related={related}
+          onOpenRelated={onOpenRelated}
+          read={!!record?.readAt}
+          editionSaved={!!findSaved(saved, edition, editionInput)}
+          onToggleRead={onToggleRead}
+          onToggleEditionSave={onToggleSave && (() => onToggleSave(editionInput))}
+          notices={notices}
+          imported={imported}
+        />
+        {selectionSave}
+      </EditionActionsContext.Provider>
+    );
+  }
+
   if (memo) {
     return (
       <EditionActionsContext.Provider value={actions}>
         <MemoArticle
           edition={edition}
-          sections={displayed}
+          sections={sections}
           presented={presented}
           minutes={readingMinutes(edition.markdownBody)}
           barRef={indexRef}
@@ -575,7 +577,6 @@ function Reader({
                   key={a.id}
                   type="button"
                   data-id={a.id}
-                  className={a.sub ? 'is-sub' : undefined}
                   aria-current={active === a.id ? 'true' : undefined}
                   onClick={() => goTo(a.id)}
                 >{a.label}</button>
@@ -585,7 +586,7 @@ function Reader({
         )}
 
         <FoldsContext.Provider value={folds}>
-        {displayed.map(s => s.role === 'title' ? (
+        {sections.map(s => s.role === 'title' ? (
           // The document's own title line, and what it says before its first section.
           <div key={s.id} id={`intel-${s.id}`} className="intel-doc-title">
             <p className="intel-doc-title-text"><Markdown inline heading>{s.title}</Markdown></p>

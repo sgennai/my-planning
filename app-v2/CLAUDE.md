@@ -341,8 +341,9 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   Takeaways (a dot on a feed with something new, the count on Takeaways; the row scrolls and
   fades at an edge with more, `useEdgeFade`). A brief, by orientation — landscape: edition rail +
   reader; iPad portrait: reader with an "Editions" drawer; phone (same query as the shell's
-  More): list, then the edition with its actions in the top bar. The AI Challenge is its
-  executive memo at every size, its editions in the memo's history drawer (below). It fills the shell like
+  More): list, then the edition with its actions in the top bar. The AI Challenge and the Sales
+  Brief are executive memos at every size, their editions in the memo's history drawer (below;
+  `memoBrand` in `memo.ts` says which feeds, and their labels). It fills the shell like
   Routine; in portrait the text runs under the pill and every list ends clear of it
   (`--intel-foot`). `useFeeds` shows the device's copy at once and refreshes on opening, on the
   button, and on return after 10 min. A feed opens on the edition chosen this session, else the
@@ -418,14 +419,38 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   Missing vs late runs is for feed health (INT-30), which needs the schedules.
 - **Topic map:** today's topics first under the document's label; "All topics (n)" unfolds the
   whole map with today's still lit.
-- **Sales and Engagement Briefs** (`briefs.ts`): a single opening `# Title` is the document's
+- **The Sales Brief as an executive memo** (INT-51; `SalesMemo.tsx`, `sales-memo.ts`, the
+  `.memo--sales` rules in `styles/memo.css`), after the user's approved prototype
+  (`enterprise-ai-sales-brief-executive-memo-demo.html`, outside the repo), in the AI Challenge
+  memo's family: the bar, topics, Save, Related fold and end are shared (`MemoParts.tsx`), so is
+  the history drawer. `salesMemo` reads the sections in the document's order: each development is
+  a chapter ("Development 01 / 03", "Back to contents ↑", its heading less a number the kicker
+  gives, `chapterTitle`; "Next development →", the last "Executive takeaways →") of fields
+  (`fieldsOf`: a label on its own line or a heading inside opens a field; where labels are mostly
+  on their own lines an inline label stays in its field as written, as "**Interpretation:**"
+  under What happened; where mostly inline (August–September) each opens one, a fact keeping
+  its interpretation). A section holding developments (the themes, an addendum's "Material update
+  since yesterday") gives them in order, its title over them (the themes' none) and its own words
+  as a note; a "HCL Unica+ customer conversation" `###` right after a development is that
+  development's. The closing: "What I should remember today" ("The essentials", its list as
+  "Three takeaways") and the other closing sections numbered on (best question, contrarian, to
+  watch, the older talking points and discovery questions). The document's `#` line, its
+  executive themes (list, or words as written) and its own topic map go to the topic-map fold
+  (else the 27 canonical topics, "All 27 topics"); "Related by topic · n editions" under it. The
+  h1 is the header's title, the topic line its topics. A folded "In this edition · n
+  developments" whose links scroll under the bar (`goTo`, 26px gap, no smooth scroll with reduced
+  motion) and take the focus. Save: a development's executive question as the briefs saved it;
+  the best question, when it repeats one word for word, reads and writes that record first
+  (`bestQuestion`), so the two buttons are one record and an older separate save still shows on
+  both. `scripts/sales-memo.check.test.tsx` (env `SALES_DRIVE`, optional `SALES_SOURCE`) draws
+  every real edition and checks every word and link is on screen.
+- **Engagement Brief** (`briefs.ts`, whose Sales presentation feeds the Sales memo): a single opening `# Title` is the document's
   title (`Section.role = 'title'`, shown under the header with its text) and sections cut at the
   next level. Developments are labelled parts (`partsOf`: a `**Label**` line, or a paragraph
   opening `**Label:**`), each with a tone from its label (fact, interpretation, question,
   response, quote, banks, usecase, unica, implication, prep, plain); questions, responses and the
-  LinkedIn angle get Copy and Save. Sales: themes → `developments` (`###` cards with their own
-  index chips, `is-sub`), and the brief leads with "What I should remember today"
-  (`displayOrder`). Engagement: numbered `##` sections → `development` cards; talking points,
+  LinkedIn angle get Copy and Save. Sales: themes → `developments` (`###` inside the themes
+  section, read by its memo). Engagement: numbered `##` sections → `development` cards; talking points,
   customer questions and the competitive watchlist take their forms. Developments fold
   (`FoldsContext`, all open by default; a chip opens before scrolling). Any section that does not
   fit is Markdown as written; `briefs.test.tsx` checks every word on screen.
@@ -639,7 +664,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (478 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (498 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris

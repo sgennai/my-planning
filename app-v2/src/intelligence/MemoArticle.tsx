@@ -4,98 +4,16 @@
 // challenge, then each section numbered in the margin, and at the end the
 // topic map and the related editions, both folded. Every word of the document
 // is here, in its order; only the topic map moves to the end (`memo.ts`).
-// Saving goes to Takeaways as before (`EditionActionsContext`).
-import { useState, type RefObject } from 'react';
+// Saving goes to Takeaways as before (`EditionActionsContext`). The bar,
+// topics, Save, folds and end are the Sales Brief memo's too (`MemoParts`).
+import type { RefObject } from 'react';
 import { Markdown } from './Markdown';
 import type { Edition, Section } from './parse';
 import type { Presentation, Labelled, Term } from './present';
 import type { Related } from './related';
-import type { SaveInput } from './saved';
-import { feedById } from './feeds';
-import { useEditionActions } from './context';
 import { asideNote } from './artifacts';
-import { memoOrder, memoTopics, challengeLead, memoDate, barDate, shortDate, two, TOPICS_SHOWN } from './memo';
-
-/** Related editions shown before "Show more", and how many more each time. */
-const RELATED_FIRST = 5;
-const RELATED_MORE = 10;
-
-const Bookmark = () => (
-  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinejoin="round" aria-hidden>
-    <path d="M6 4.75A1.75 1.75 0 0 1 7.75 3h8.5A1.75 1.75 0 0 1 18 4.75V21l-6-4-6 4z" />
-  </svg>
-);
-const Chevron = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden>
-    <path d="M9 6l6 6-6 6" />
-  </svg>
-);
-
-/** Save to Takeaways, and Saved: one per question or line; a term's, the mark alone. */
-function MemoSave({ input, name, quiet = false }: { input: SaveInput; name: string; quiet?: boolean }) {
-  const { savedItem, toggleSave } = useEditionActions();
-  const saved = !!savedItem(input);
-  if (quiet) {
-    return (
-      <button
-        type="button"
-        className="memo-mark"
-        aria-pressed={saved}
-        aria-label={saved ? `Remove saved ${name}` : `Save ${name}`}
-        title={saved ? 'Saved to Takeaways' : 'Save to Takeaways'}
-        onClick={() => toggleSave(input)}
-      ><Bookmark /></button>
-    );
-  }
-  return (
-    <button
-      type="button"
-      className="memo-save"
-      aria-pressed={saved}
-      aria-label={saved ? `Remove saved ${name}` : `Save ${name}`}
-      title={saved ? 'Saved to Takeaways' : 'Save to Takeaways'}
-      onClick={() => toggleSave(input)}
-    ><Bookmark /><span>{saved ? 'Saved' : 'Save'}</span></button>
-  );
-}
-
-/** The bar's chevron to the older or the newer edition; faded where there is none. */
-function Step({ to, newer, onOpen }: { to: Edition | null; newer: boolean; onOpen?: (e: Edition) => void }) {
-  const which = newer ? 'Next edition' : 'Previous edition';
-  return (
-    <button
-      type="button"
-      className="memo-step"
-      disabled={!to}
-      aria-label={to ? `${which}: ${shortDate(to.editionDate)}, ${to.title}` : `${which}: none`}
-      title={to ? `${which}: ${shortDate(to.editionDate)}` : undefined}
-      onClick={() => to && onOpen?.(to)}
-    >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <path d={newer ? 'M9 6l6 6-6 6' : 'M15 6l-6 6 6 6'} />
-      </svg>
-    </button>
-  );
-}
-
-function Topics({ label, topics }: { label: string; topics: string[] }) {
-  const [all, setAll] = useState(false);
-  const shown = topics.slice(0, TOPICS_SHOWN), more = topics.slice(TOPICS_SHOWN);
-  return (
-    <div className="memo-topics" id="memo-topics">
-      <span className="memo-topics-head">{label}</span>
-      <span className="memo-topics-list">
-        {shown.map((t, i) => <span key={`${i}-${t}`}>{i > 0 && <span className="memo-dot" aria-hidden />}<b>{t}</b></span>)}
-        {all && more.map((t, i) => <span key={`m${i}-${t}`}><span className="memo-dot" aria-hidden />{t}</span>)}
-      </span>
-      {more.length > 0 && (
-        <button type="button" className="memo-more-topics" aria-expanded={all} aria-controls="memo-topics" onClick={() => setAll(a => !a)}>
-          {all ? 'Show less' : `+${more.length} topic${more.length === 1 ? '' : 's'}`}
-        </button>
-      )}
-    </div>
-  );
-}
+import { memoOrder, memoTopics, challengeLead, memoDate, memoBrand, two } from './memo';
+import { MemoBar, MemoEnd, MemoSave, RefFold, RelatedFold, Topics } from './MemoParts';
 
 function Question({ item, section }: { item: Labelled; section: Section }) {
   return (
@@ -165,6 +83,7 @@ function Body({ section, p, markdown }: { section: Section; p: Presentation | un
   }
 }
 
+/** What both memos are given (`EditionReader`). */
 export interface MemoProps {
   edition: Edition;
   sections: Section[];
@@ -195,41 +114,18 @@ export function MemoArticle({
   edition, sections, presented, minutes, barRef, fillRef, endRef, articleRef, onHistory, historyOpen = false,
   adjacent, onOpenAdjacent, related, onOpenRelated, read, editionSaved, onToggleRead, onToggleEditionSave, notices, imported,
 }: MemoProps) {
+  const brand = memoBrand(edition.feedId)!;
   const { body, map } = memoOrder(sections);
   const mapForm = map ? presented.get(map.id) : undefined;
   const topics = memoTopics(edition, mapForm);
   const challenge = body.find(s => challengeLead(s, presented.get(s.id)));
   const lead = challenge ? challengeLead(challenge, presented.get(challenge.id)) : null;
-  const [relatedShown, setRelatedShown] = useState(RELATED_FIRST);
   const titleId = `intel-title-${edition.driveFileId}`;
   let n = 0;
 
   return (
     <div className="memo">
-      <header className="memo-bar" ref={barRef} data-sticky>
-        <div className="memo-brand">
-          {onHistory && (
-            <button
-              type="button"
-              className="memo-hamburger"
-              aria-label="Open challenge history"
-              aria-controls="memo-history"
-              aria-expanded={historyOpen}
-              title="Browse all challenges"
-              onClick={onHistory}
-            >
-              <svg width="21" height="21" viewBox="0 0 24 24" stroke="currentColor" fill="none" strokeWidth="1.7" strokeLinecap="round" aria-hidden><path d="M4 7h16M4 12h16M4 17h16" /></svg>
-            </button>
-          )}
-          <span className="memo-brand-text">AI Challenge</span>
-        </div>
-        <div className="memo-bar-right">
-          {adjacent && <Step to={adjacent.older} newer={false} onOpen={onOpenAdjacent} />}
-          <span className="memo-bar-date">{barDate(edition.editionDate, edition.time)}</span>
-          {adjacent && <Step to={adjacent.newer} newer onOpen={onOpenAdjacent} />}
-        </div>
-        <div className="memo-track" aria-hidden><div className="memo-fill" ref={fillRef} /></div>
-      </header>
+      <MemoBar brand={brand} edition={edition} barRef={barRef} fillRef={fillRef} onHistory={onHistory} historyOpen={historyOpen} adjacent={adjacent} onOpenAdjacent={onOpenAdjacent} />
 
       <div className="memo-content">
         <article aria-labelledby={titleId} ref={articleRef}>
@@ -267,50 +163,19 @@ export function MemoArticle({
           {edition.setAside.filter(a => a.where === 'end').map(a => <p key={a.kind} className="memo-aside" role="note">{asideNote(a)}</p>)}
 
           {map && (
-            <details className="memo-ref" id={`intel-${map.id}`} data-section={map.id}>
-              <summary>
-                <Chevron />
-                <span><Markdown inline heading>{map.title}</Markdown>{mapForm?.kind === 'topics' && <span className="memo-ref-note"> · All {mapForm.topics.length} topics</span>}</span>
-              </summary>
+            <RefFold
+              id={`intel-${map.id}`}
+              section={map.id}
+              summary={<><Markdown inline heading>{map.title}</Markdown>{mapForm?.kind === 'topics' && <span className="memo-ref-note"> · All {mapForm.topics.length} topics</span>}</>}
+            >
               <div className="memo-map">
                 {mapForm?.kind === 'topics' ? <p>{mapForm.topics.join(' • ')}</p> : <Markdown>{map.markdown}</Markdown>}
               </div>
-            </details>
+            </RefFold>
           )}
-          {related.length > 0 && (
-            <details className="memo-ref memo-ref--related">
-              <summary><Chevron /><span>Related by topic</span></summary>
-              <ol className="memo-related">
-                {related.slice(0, relatedShown).map(({ edition: e, shares }) => (
-                  <li key={e.driveFileId}>
-                    <button type="button" className="memo-related-item" onClick={() => onOpenRelated?.(e)}>
-                      <span className="memo-related-title">{e.title}</span>
-                      <span className="memo-related-meta">
-                        {shortDate(e.editionDate)} {e.editionDate.slice(0, 4)}{e.time && ` · ${e.time}`}
-                        {e.feedId !== edition.feedId && ` · ${feedById(e.feedId)?.name ?? e.feedId}`}
-                      </span>
-                      <span className="memo-related-shares">Shared: {shares.join(' · ')}</span>
-                    </button>
-                  </li>
-                ))}
-              </ol>
-              {related.length > relatedShown && (
-                <button type="button" className="memo-related-more" onClick={() => setRelatedShown(c => c + RELATED_MORE)}>
-                  Show more ({related.length - relatedShown})
-                </button>
-              )}
-            </details>
-          )}
+          <RelatedFold edition={edition} related={related} onOpen={onOpenRelated} />
 
-          <footer className="memo-footer">
-            <span>AI Challenge · End of edition</span>
-            <span>{memoDate(edition.editionDate)}</span>
-          </footer>
-          <div className="memo-tools">
-            {onToggleRead && <button type="button" aria-pressed={read} onClick={onToggleRead}>{read ? 'Read · Mark as unread' : 'Mark as read'}</button>}
-            {onToggleEditionSave && <button type="button" aria-pressed={editionSaved} onClick={onToggleEditionSave}>{editionSaved ? 'Edition saved to Takeaways' : 'Save this edition'}</button>}
-            <a href={edition.sourceUrl} target="_blank" rel="noopener noreferrer">Open original in Google Docs</a>
-          </div>
+          <MemoEnd brand={brand} edition={edition} read={read} editionSaved={editionSaved} onToggleRead={onToggleRead} onToggleEditionSave={onToggleEditionSave} />
         </article>
       </div>
     </div>
