@@ -337,9 +337,20 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   under it stands apart, as in the AI Challenge's imported editions of 5 Sep – 6 Oct). Drive stores the 8–11 Nov Sales Briefs as one paragraph with soft breaks; the plain-text
   export the server reads turns them into lines.
 - **The section** (`IntelligenceScreen.tsx`, lazy-loaded with its own CSS chunk,
-  `styles/intelligence.css`): tabs Today · Enterprise AI · AI Challenge · Customer Engagement ·
-  Takeaways (a dot on a feed with something new, the count on Takeaways; the row scrolls and
-  fades at an edge with more, `useEdgeFade`). A brief, by orientation — landscape: edition rail +
+  `styles/intelligence.css`): one top navigation for every view (INT-54, `IntelligenceNav.tsx`,
+  after the user's approved prototype `intelligence-mist-gradient-selected-ink.html`, outside the
+  repo): a mist band (gradient) with folder tabs, Enterprise AI · AI Challenge · Customer
+  Engagement on the left, Today · Takeaways smaller and apart on the right, then Search and
+  Refresh as round buttons. Words only (no dot for something new; the count on Takeaways). The
+  selected tab is the colour of what it opens (`--intel-nav-sheet`: the memo's band #eef4f7, else
+  the page's canvas), with no line between them, and alone carries the ink edge (an inset 3px
+  line along its top); Search open selects no tab. Tokens `--intel-nav-*` on `.intel`; the memo
+  views keep the light band in both themes (the memo is light), the dark theme has its own mist
+  over Today, Takeaways and Search. Sizes follow the window as in the prototype (smaller at
+  ≤1120px; at ≤850px tabs 48/44px, the prototype's 43/40 raised to the touch minimum); one row
+  at every size (the prototype's two rows at ≤850px would part the selected tab from its band),
+  scrolling sideways when it cannot fit (a phone, large text), fading at an edge with more and
+  keeping the selected tab in view (`useEdgeFade`). A brief, by orientation — landscape: edition rail +
   reader; iPad portrait: reader with an "Editions" drawer; phone (same query as the shell's
   More): list, then the edition with its actions in the top bar. All three feeds (AI Challenge,
   Sales Brief, Customer Engagement) are executive memos at every size, in one workspace with
@@ -370,12 +381,13 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   app's heading and button rules do not reach it, no backdrop blur, light in both themes, small
   text darkened just enough for 4.5:1 (axe: no violations). `scripts/memo.check.test.tsx`
   (env `MEMO_DRIVE`) draws every real edition and checks every word is on screen.
-- **The memos' workspace: the paper index** (INT-53; `MemoWorkspace.tsx`, the workspace rules
+- **The memos' workspace: the paper index** (INT-53; a feed's status line sits under its bar; `MemoWorkspace.tsx`, the workspace rules
   in `styles/memo.css`), after the user's approved prototype
   (`executive-memo-unified-paper-index.html`, outside the repo), one for the three feeds
   (`IntelligenceScreen` draws it for any feed with a memo; the memos draw only the article). A
-  62px reading bar across it: "Hide editions" / "Show editions" (`aria-expanded`), the feed's
-  name, the run's date and time (Paris) between chevrons to the older and newer edition
+  reading bar across it, the band the selected tab runs into (INT-54: 80px, 67 ≤850, 56 on a
+  phone; the app's sans): "Hide editions" / "Show editions" (`aria-expanded`), no feed name
+  (the tab says it), the run's date and time (Paris) between chevrons to the older and newer edition
   (`adjacent`), and along its foot the 2px reading line, which `EditionReader` paints (`fill`)
   from the memo's own scroll (to the briefing's end). Under it the paper index and the memo, side
   by side, each scrolling on its own; one width token for the three feeds,
@@ -604,7 +616,7 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   WebKit. Each view has one `h1` (hidden "Today", "Takeaways", "Search"; the edition's title; the
   feed's name over a phone's list); part labels are headings (`h4` in a development card, `h3` in
   an Engagement section and for the AI Challenge's labelled blocks). States are words, not labels
-  on dots or bars: `.intel-vh` text ("Unread,", "something saved", "n% read", ", new" on a tab;
+  on dots or bars: `.intel-vh` text ("Unread,", "something saved", "n% read";
   `aria-label` on a `span` or `i` is not reliably read). Tabs: one Tab stop, arrows / Home / End
   move, Enter opens, and the content is their `tabpanel`. Feed status and the portrait Editions
   drawer take focus, keep it and give it back (`useModalFocus`); the drawer makes the rest inert.
@@ -709,7 +721,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (530 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (531 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris

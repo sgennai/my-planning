@@ -117,7 +117,8 @@ describe('the Intelligence section', () => {
     const listed = within(index).getByRole('button', { name: /Mon 2 Nov/ });
     expect(listed).toHaveAttribute('aria-current', 'page');
     expect(listed).toHaveAccessibleName(/^Mon 2 Nov,\s*New\s*Agent Sprawl/);
-    expect(document.querySelector('.memo-readbar')).toHaveTextContent('Hide editionsAI Challenge‹Mon 2 Nov 2026 · 08:20›');
+    // The feed is named by its tab, not again in the bar.
+    expect(document.querySelector('.memo-readbar')).toHaveTextContent(/^Hide editions‹Mon 2 Nov 2026 · 08:20›$/);
   });
 
   it('the three feeds share one workspace: the same bar, the same index, their own editions and name', async () => {
@@ -554,22 +555,49 @@ describe('with a keyboard and a screen reader (INT-33)', () => {
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
   });
 
+  it('the top navigation: the three feeds, then Today and Takeaways apart, then the tools; words only', async () => {
+    render(<App />);
+    await screen.findByRole('heading', { level: 1, name: 'Today' });
+    const tablist = screen.getByRole('tablist', { name: 'Intelligence' });
+    expect([...tablist.children].map(group => [...group.children].map(t => t.textContent))).toEqual([
+      ['Enterprise AI', 'AI Challenge', 'Customer Engagement'], ['Today', 'Takeaways'],
+    ]);
+    expect([...tablist.children].map(group => group.className)).toEqual(['intel-nav-feeds', 'intel-nav-more']);
+    // The AI Challenge has a new edition: its tab still says only its name.
+    expect(screen.getByRole('tab', { name: 'AI Challenge' })).toBeInTheDocument();
+    expect(tablist.querySelectorAll('i, svg')).toHaveLength(0);
+    const nav = tablist.parentElement!;
+    expect(within(nav.querySelector('.intel-nav-tools') as HTMLElement).getAllByRole('button').map(b => b.getAttribute('aria-label')))
+      .toEqual(['Search every edition', expect.stringMatching(/^Refresh(ing)? from Google Drive$/)]);
+    // Takeaways counts what is kept.
+    await openChallenge();
+    fireEvent.click(screen.getByRole('button', { name: 'Save opening question' }));
+    expect(screen.getByRole('tab', { name: /^Takeaways,\s*1$/ })).toHaveTextContent(/^Takeaways,\s*1$/);
+  });
+
   it('the tabs: one stop for Tab, arrows between them, Enter to open; the panel is named by its tab', async () => {
     render(<App />);
     await screen.findByRole('heading', { level: 1, name: 'Today' });
     const tabs = screen.getAllByRole('tab');
-    expect(tabs.map(t => t.tabIndex)).toEqual([0, -1, -1, -1, -1]);
-    tabs[0].focus();
-    fireEvent.keyDown(tabs[0], { key: 'ArrowRight' });
-    expect(document.activeElement).toBe(tabs[1]);
-    fireEvent.keyDown(tabs[1], { key: 'End' });
+    expect(tabs.map(t => t.textContent)).toEqual(['Enterprise AI', 'AI Challenge', 'Customer Engagement', 'Today', 'Takeaways']);
+    expect(tabs.map(t => t.tabIndex)).toEqual([-1, -1, -1, 0, -1]);
+    tabs[3].focus();
+    fireEvent.keyDown(tabs[3], { key: 'ArrowRight' });
     expect(document.activeElement).toBe(tabs[4]);
     fireEvent.keyDown(tabs[4], { key: 'ArrowRight' });
+    expect(document.activeElement).toBe(tabs[0]);
+    fireEvent.keyDown(tabs[0], { key: 'End' });
+    expect(document.activeElement).toBe(tabs[4]);
+    fireEvent.keyDown(tabs[4], { key: 'Home' });
     expect(document.activeElement).toBe(tabs[0]);
     expect(screen.getByRole('tabpanel', { name: 'Today' })).toBeInTheDocument();
     fireEvent.click(tabs[4]);
     expect(screen.getByRole('tabpanel', { name: /Takeaways/ })).toBeInTheDocument();
     expect(screen.getAllByRole('tab').map(t => t.tabIndex)).toEqual([-1, -1, -1, -1, 0]);
+    // Searching, no tab is open: the first is the stop.
+    fireEvent.click(screen.getByRole('button', { name: 'Search every edition' }));
+    expect(screen.getAllByRole('tab').map(t => t.getAttribute('aria-selected'))).toEqual(['false', 'false', 'false', 'false', 'false']);
+    expect(screen.getAllByRole('tab').map(t => t.tabIndex)).toEqual([0, -1, -1, -1, -1]);
   });
 
   it('Feed status takes focus, keeps it, and gives it back', async () => {
@@ -815,7 +843,7 @@ describe('imported editions are the archive, never unread (INT-34)', () => {
     expect(JSON.parse(localStorage.getItem('my-planning-intel-months:enterprise-ai-challenge')!)).toEqual(expect.arrayContaining(['2026-10', '2026-11']));
   });
 
-  it('is listed and labelled, but counted in no unread list, count or dot', async () => {
+  it('is listed and labelled, but counted in no unread list or count', async () => {
     render(<App />);
     await screen.findByRole('heading', { level: 2, name: 'Agent Sprawl: Who Owns the Bots?' });
     expect(screen.queryByRole('region', { name: /Still unread/ })).toBeNull();
@@ -840,6 +868,6 @@ describe('imported editions are the archive, never unread (INT-34)', () => {
     // Once the scheduled edition is read, nothing in the feed is new.
     fireEvent.click(within(editionIndex()).getByRole('button', { name: /Mon 2 Nov/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Mark as read' }));
-    expect(screen.getByRole('tab', { name: /AI Challenge/ })).not.toHaveAccessibleName(/new/);
+    expect(within(editionIndex()).getByRole('button', { name: /Mon 2 Nov/ })).not.toHaveTextContent('New');
   });
 });

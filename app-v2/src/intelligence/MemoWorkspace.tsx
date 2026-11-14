@@ -1,8 +1,8 @@
 // The executive memos' workspace (INT-53), after the approved prototype
 // `executive-memo-unified-paper-index.html`, one for the three feeds: a
-// reading bar across it (Hide or Show editions, the feed's name, the run's
-// date and time between the older and newer editions' chevrons, the 2px
-// reading line), then the paper index of editions beside the memo, each
+// reading bar across it (Hide or Show editions, the run's date and time
+// between the older and newer editions' chevrons, the 2px reading line; the
+// feed's name is the selected tab's above it, INT-54), then the paper index of editions beside the memo, each
 // scrolling on its own. The index lists the feed's editions by month, newest
 // first, each month opening and closing on its own, with a search; choosing an
 // edition opens it beside the index, which stays (on a phone, where the index
@@ -54,7 +54,6 @@ function Step({ to, newer, onOpen }: { to: Edition | null; newer: boolean; onOpe
 }
 
 interface BarProps {
-  brand: MemoBrand;
   /** The edition being read; none before the feed has one. */
   edition: Edition | null;
   /** Whether the index shows, and the toggle that shows or hides it. */
@@ -68,7 +67,7 @@ interface BarProps {
   fillRef: RefObject<HTMLDivElement | null>;
 }
 
-export function MemoReadbar({ brand, edition, shown, onToggle, toggleRef, adjacent, onOpenAdjacent, fillRef }: BarProps) {
+export function MemoReadbar({ edition, shown, onToggle, toggleRef, adjacent, onOpenAdjacent, fillRef }: BarProps) {
   const label = shown ? 'Hide editions' : 'Show editions';
   return (
     <header className="memo-readbar">
@@ -85,7 +84,6 @@ export function MemoReadbar({ brand, edition, shown, onToggle, toggleRef, adjace
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden><path d="M4 5h16M4 12h16M4 19h16" /></svg>
           <span className="memo-editions-toggle-label" aria-hidden>{label}</span>
         </button>
-        <span className="memo-readbar-feed">{brand.name}</span>
       </div>
       {edition && (
         <div className="memo-readbar-right">

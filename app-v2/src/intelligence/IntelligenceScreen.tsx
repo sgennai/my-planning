@@ -1,8 +1,10 @@
 // The Intelligence section: the ChatGPT briefings, read from private Google
 // Docs in Drive through /api/intel, newest first, at reading size.
 //
-// Views: Today (the newest of each feed), one per feed, and Takeaways. The
-// three feeds are executive memos (INT-50, `MemoArticle`; INT-51,
+// Views: one per feed, Today (the newest of each feed) and Takeaways, under
+// one top navigation (INT-54, `IntelligenceNav`): the feeds' folder tabs on
+// the left, Today and Takeaways apart on the right, the selected tab running
+// into what it opens. The three feeds are executive memos (INT-50, `MemoArticle`; INT-51,
 // `SalesMemo`; INT-52, `EngagementMemo`) in one workspace (INT-53,
 // `MemoWorkspace`): a reading bar across it, the paper index of the feed's
 // editions by month beside the memo, both scrolling on their own, the index
@@ -18,7 +20,7 @@
 // `progressLog` and `content`.
 import '../styles/intelligence.css';
 import '../styles/memo.css';
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react';
 import { FEEDS, feedById, type FeedId } from './feeds';
 import { useFeeds } from './useFeeds';
 import { useEdgeFade } from './useEdgeFade';
@@ -28,6 +30,7 @@ import { useReadingAnchor } from './useReadingAnchor';
 import { topicIndex, relatedTo } from './related';
 import { EditionReader, EditionTools } from './EditionReader';
 import { MemoIndex, MemoReadbar } from './MemoWorkspace';
+import { IntelligenceNav } from './IntelligenceNav';
 import { memoBrand } from './memo';
 import { TodayView } from './TodayView';
 import { FeedStatus } from './FeedStatus';
@@ -50,9 +53,10 @@ import { IconRefresh, IconList, IconX, IconChevronLeft, IconBookmark, IconPulse,
 
 type View = 'today' | FeedId | 'saved' | 'search' | 'review';
 
-/** The tabs, in the brief's order. */
+/** The feeds' tabs, in the brief's order, then Today and Takeaways. */
 const FEED_TABS: FeedId[] = ['enterprise-ai-sales-brief', 'enterprise-ai-challenge', 'customer-engagement-brief'];
-const VIEWS: View[] = ['today', ...FEED_TABS, 'saved'];
+const MORE_TABS: View[] = ['today', 'saved'];
+const VIEWS: View[] = [...FEED_TABS, ...MORE_TABS];
 const PHONE = '(orientation: portrait) and (max-width: 600px), (orientation: landscape) and (max-height: 520px)';
 const PORTRAIT = '(orientation: portrait)';
 const VIEW_KEY = 'my-planning-intel-view';
@@ -66,16 +70,6 @@ const isFeed = (v: View): v is FeedId => (FEED_TABS as View[]).includes(v);
 const tabId = (v: View) => `intel-tab-${v}`;
 const PANEL = 'intel-panel';
 
-/** Arrow keys, Home and End move between the tabs; Enter or Space opens one. */
-function moveAmongTabs(e: ReactKeyboardEvent<HTMLDivElement>) {
-  const step = { ArrowRight: 1, ArrowLeft: -1, Home: 0, End: 0 }[e.key];
-  if (step === undefined) return;
-  const tabs = [...e.currentTarget.querySelectorAll<HTMLElement>('[role="tab"]')];
-  const at = tabs.indexOf(document.activeElement as HTMLElement);
-  const next = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : (at + step + tabs.length) % tabs.length;
-  e.preventDefault();
-  tabs[next]?.focus();
-}
 const tabLabel = (v: View) => (v === 'today' ? 'Today' : v === 'saved' ? 'Takeaways' : feedById(v)!.label);
 
 function useMatches(query: string) {
@@ -423,39 +417,28 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   };
 
   // ── Pieces ──────────────────────────────────────────────────────────────
-  const hasNew = (id: FeedId) => (states[id]?.editions ?? []).some(e => {
-    const s = readingState(e, reading);
-    return !isArchive(e) && (s === 'new' || s === 'updated');
-  });
-  // One tab is in the Tab order: the open one, else the first.
-  const tabStop = VIEWS.includes(view) ? view : VIEWS[0];
-  const tabs = (
-    <div className={`ds-segment intel-tabs${tabsFade}`} role="tablist" aria-label="Intelligence" ref={tabsRef} onKeyDown={moveAmongTabs}>
-      {VIEWS.map(v => (
-        <button
-          key={v}
-          id={tabId(v)}
-          type="button"
-          role="tab"
-          data-id={v}
-          aria-selected={v === view}
-          aria-controls={v === view ? PANEL : undefined}
-          tabIndex={v === tabStop ? 0 : -1}
-          onClick={() => switchView(v)}
-        >
-          {tabLabel(v)}
-          {isFeed(v) && hasNew(v) && <><i className="intel-tab-dot" aria-hidden /><span className="intel-vh">, new</span></>}
-          {v === 'saved' && saved.length > 0 && <span className="intel-tab-count"><span className="intel-vh">, </span>{saved.length}</span>}
-        </button>
-      ))}
-    </div>
+  const navTab = (v: View) => ({ id: v, label: tabLabel(v), count: v === 'saved' ? saved.length : undefined });
+  const nav = (tools: ReactNode, lead?: ReactNode, inert?: boolean) => (
+    <IntelligenceNav
+      feeds={FEED_TABS.map(navTab)}
+      more={MORE_TABS.map(navTab)}
+      view={view}
+      onOpen={switchView}
+      tabId={tabId}
+      panel={PANEL}
+      tabsRef={tabsRef}
+      fade={tabsFade}
+      lead={lead}
+      tools={tools}
+      inert={inert}
+    />
   );
   // What the open tab shows, named by it.
   const panel = VIEWS.includes(view) ? { id: PANEL, role: 'tabpanel', 'aria-labelledby': tabId(view) } : {};
   const searchButton = (
     <button
       type="button"
-      className={`ds-icon-btn intel-search-btn${view === 'search' ? ' on' : ''}`}
+      className={`intel-nav-icon intel-search-btn${view === 'search' ? ' on' : ''}`}
       onClick={() => switchView('search')}
       aria-label="Search every edition"
       aria-pressed={view === 'search'}
@@ -464,7 +447,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   const refreshButton = (
     <button
       type="button"
-      className={`ds-icon-btn intel-refresh${refreshing ? ' is-busy' : ''}`}
+      className={`intel-nav-icon intel-refresh${refreshing ? ' is-busy' : ''}`}
       onClick={refresh}
       aria-label={refreshing ? 'Refreshing from Google Drive' : 'Refresh from Google Drive'}
       aria-busy={refreshing}
@@ -563,7 +546,6 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   const workspace = brand && feedId && (
     <div className={`memo-workspace${shown ? '' : ' is-hidden'}${phone ? ' memo-workspace--phone' : ''}`} {...panel}>
       <MemoReadbar
-        brand={brand}
         edition={edition}
         shown={shown}
         onToggle={toggleIndex}
@@ -572,6 +554,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
         onOpenAdjacent={e => choose(e)}
         fillRef={fillRef}
       />
+      {statusLine}
       <div className="memo-columns">
         <MemoIndex
           key={feedId}
@@ -677,13 +660,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   if (workspace) {
     return (
       <div className={`intel intel--${mode} intel--memo`} style={rootStyle}>
-        <div className="intel-head">
-          {tabs}
-          {mode !== 'single' && <span className="intel-grow" />}
-          {searchButton}
-          {mode !== 'single' && refreshButton}
-        </div>
-        {statusLine}
+        {nav(<>{searchButton}{mode !== 'single' && refreshButton}</>)}
         {workspace}
         {noteLine}
         {statusSheetView}
@@ -717,7 +694,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     }
     return (
       <div className="intel intel--single" style={rootStyle}>
-        <div className="intel-head">{tabs}{searchButton}</div>
+        {nav(searchButton)}
         {statusLine}
         <div className="intel-list" {...panel}>
           {page ?? (
@@ -735,17 +712,15 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
 
   return (
     <div className={`intel intel--${mode}${drawerOpen ? ' is-drawer-open' : ''}`} style={rootStyle}>
-      <div className="intel-head" inert={drawerOpen || undefined}>
-        {mode === 'drawer' && feedId && (
+      {nav(
+        <>{searchButton}{refreshButton}</>,
+        mode === 'drawer' && feedId && (
           <button type="button" className="ds-btn intel-editions" onClick={() => setDrawer(true)} aria-expanded={drawerOpen}>
             <IconList />Editions
           </button>
-        )}
-        {tabs}
-        <span className="intel-grow" />
-        {searchButton}
-        {refreshButton}
-      </div>
+        ),
+        drawerOpen,
+      )}
       {statusLine}
       <div className="intel-body" inert={drawerOpen || undefined} {...panel}>
         {mode === 'rail' && feedId && <aside className="intel-rail" aria-label="Editions">{list(null)}</aside>}

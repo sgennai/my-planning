@@ -1,8 +1,9 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    INTELLIGENCE — the briefing reader (src/intelligence/)
    ---------------------------------------------------------------------------
-   Fills the shell as Routine does: a header with the feed tabs, then the
-   edition list and the reader, each scrolling on its own. The reading column
+   Fills the shell as Routine does: the top navigation (the feeds' folder
+   tabs on a mist band, Today and Takeaways apart), then the edition list and
+   the reader, each scrolling on its own. The reading column
    keeps a comfortable measure at any width. Loaded with the section only.
    ═══════════════════════════════════════════════════════════════════════════ */
 
@@ -68,21 +69,178 @@
 
 .intel-grow { flex: 1; }
 
-/* ── Header ───────────────────────────────────────────────────────────── */
-.intel-head {
+/* ── The top navigation (INT-54, IntelligenceNav.tsx) ─────────────────────
+   After the approved prototype `intelligence-mist-gradient-selected-ink.html`:
+   a mist band, the feeds' folder tabs on the left, Today and Takeaways smaller
+   and apart on the right with the round tools. The selected tab is the colour
+   of what it opens (--intel-nav-sheet: the memo's band, else the page), with
+   no line between them, and only it carries the ink edge. Its sizes follow the
+   window as the prototype's do; the row scrolls sideways when it cannot fit.
+   The memo's band is light in both themes, so its navigation is too; over
+   Today, Takeaways and Search the dark theme has its own mist. */
+.intel {
+  --intel-nav-mist-top: #dceaf3;
+  --intel-nav-mist-bottom: #e8f0f5;
+  --intel-nav-sheet: var(--canvas);
+  --intel-nav-tab: #d2e2ed;
+  --intel-nav-tab-more: #d7e5ee;
+  --intel-nav-tab-hover: #e8f1f5;
+  --intel-nav-tab-line: #aebfca80;
+  --intel-nav-ink: #4a667a;
+  --intel-nav-ink-hover: #26455b;
+  --intel-nav-ink-on: #15374f;
+  --intel-nav-ink-edge: #537fa2;
+  --intel-nav-count: #c9d9e6;
+  --intel-nav-count-ink: #3f6078;
+  --intel-nav-icon: #e6eff5;
+  --intel-nav-icon-line: #bbccda;
+  --intel-nav-focus: #5598cf;
+  --intel-nav-radius: 15px;
+  --intel-nav-radius-more: 12px;
+  --intel-nav-gap: 7px;
+  --intel-nav-gap-more: 9px;
+  --intel-nav-cluster-gap: var(--sp-8);
+  --intel-nav-side: 22px;
+}
+.intel--memo { --intel-nav-sheet: #eef4f7; }
+:root[data-theme="dark"] .intel:not(.intel--memo) {
+  --intel-nav-mist-top: #1a2631;
+  --intel-nav-mist-bottom: #141c24;
+  --intel-nav-tab: #1f2b36;
+  --intel-nav-tab-more: #1c2731;
+  --intel-nav-tab-hover: #26343f;
+  --intel-nav-tab-line: #3a4b5980;
+  --intel-nav-ink: #a8bccb;
+  --intel-nav-ink-hover: #d6e3ec;
+  --intel-nav-ink-on: #e8f0f6;
+  --intel-nav-ink-edge: #6f9bc0;
+  --intel-nav-count: #2a3a47;
+  --intel-nav-count-ink: #b9cddb;
+  --intel-nav-icon: #1c2731;
+  --intel-nav-icon-line: #3a4b59;
+}
+/* The band starts at the top of the screen, behind the status bar. */
+.intel:has(> .intel-nav) { padding-top: 0; }
+.intel-nav {
   flex: none;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: var(--sp-3);
-  padding: 0 var(--sp-8) var(--sp-3) var(--sp-6);
+  padding: max(var(--sp-5), calc(env(safe-area-inset-top) + var(--sp-2))) var(--intel-nav-side) 0;
+  background: linear-gradient(180deg, var(--intel-nav-mist-top), var(--intel-nav-mist-bottom));
 }
-.intel-tabs { position: relative; min-width: 0; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
-.intel-tabs::-webkit-scrollbar { display: none; }
-.intel-tabs button { flex: none; white-space: nowrap; padding: 0 var(--sp-3); }
+.intel--memo .intel-nav { color-scheme: light; }
+.intel-nav-tabs {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--intel-nav-cluster-gap);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.intel-nav-tabs::-webkit-scrollbar { display: none; }
+.intel-nav-feeds, .intel-nav-more { flex: none; display: flex; align-items: flex-end; gap: var(--intel-nav-gap); }
+.intel-nav-more { margin-left: auto; gap: var(--intel-nav-gap-more); }
+.intel-nav-tab {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  min-height: 52px;
+  padding: 13px 17px 14px;
+  border: 1px solid var(--intel-nav-tab-line);
+  border-bottom: 0;
+  border-radius: var(--intel-nav-radius) var(--intel-nav-radius) 0 0;
+  background: var(--intel-nav-tab);
+  color: var(--intel-nav-ink);
+  font: inherit;
+  font-size: calc(14 * var(--tpx));
+  font-weight: 730;
+  line-height: 1.1;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background .18s, color .18s, border-color .18s;
+}
+.intel-nav-tab--more {
+  min-height: 45px;
+  padding: 10px 13px 11px;
+  border-radius: var(--intel-nav-radius-more) var(--intel-nav-radius-more) 0 0;
+  background: var(--intel-nav-tab-more);
+  font-size: calc(13 * var(--tpx));
+}
+@media (hover: hover) {
+  .intel-nav-tab:hover:not([aria-selected="true"]) { background: var(--intel-nav-tab-hover); color: var(--intel-nav-ink-hover); }
+}
+/* The selected tab: the sheet's colour, running into it, and the ink edge. */
+.intel-nav-tab[aria-selected="true"] {
+  z-index: 1;
+  background: var(--intel-nav-sheet);
+  border-color: transparent;
+  color: var(--intel-nav-ink-on);
+  box-shadow: inset 0 3px 0 var(--intel-nav-ink-edge);
+}
+/* Inside, so the row's scrolling cannot clip it; the tab keeps its shape. */
+.intel-nav-tab:focus-visible { outline: 3px solid var(--intel-nav-focus); outline-offset: -3px; border-radius: var(--intel-nav-radius) var(--intel-nav-radius) 0 0; }
+.intel-nav-tab--more:focus-visible { border-radius: var(--intel-nav-radius-more) var(--intel-nav-radius-more) 0 0; }
+.intel-nav-count {
+  margin-left: 7px;
+  padding: 2px 7px;
+  border-radius: var(--r-pill);
+  background: var(--intel-nav-count);
+  color: var(--intel-nav-count-ink);
+  font-size: calc(11 * var(--tpx));
+  font-variant-numeric: tabular-nums;
+}
+.intel-nav-tools { flex: none; display: flex; align-items: center; gap: var(--intel-nav-gap-more); margin-bottom: 6px; }
+.intel-nav .intel-editions { flex: none; margin-bottom: 4px; }
+/* Round, quiet; the touch area is the app's 44px. */
+.intel-nav-icon {
+  position: relative;
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--intel-nav-icon-line);
+  background: var(--intel-nav-icon);
+  color: var(--intel-nav-ink);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background .18s, color .18s, border-color .18s;
+}
+.intel-nav-icon::after { content: ""; position: absolute; inset: -3px; border-radius: 50%; }
+.intel-nav-icon svg { width: 17px; height: 17px; }
+@media (hover: hover) { .intel-nav-icon:hover { background: var(--intel-nav-tab-hover); color: var(--intel-nav-ink-hover); } }
+.intel-nav-icon:focus-visible { outline: 3px solid var(--intel-nav-focus); outline-offset: 2px; border-radius: 50%; }
+/* Search open: the button stands in for the tab. */
+.intel-nav-icon.on { background: var(--intel-nav-sheet); border-color: var(--intel-nav-ink-edge); color: var(--intel-nav-ink-on); }
 .intel-editions svg { width: 18px; height: 18px; }
-.intel-refresh { flex: none; }
 .intel-refresh.is-busy svg { animation: intel-spin 900ms linear infinite; }
 @keyframes intel-spin { to { transform: rotate(360deg); } }
+/* Under a tab, what it opens begins with some air. */
+.intel-nav + .intel-body > .intel-reader, .intel--single .intel-nav ~ .intel-list { padding-top: var(--sp-6); }
+
+/* Narrower windows, as in the prototype: smaller tabs, the feeds' still the larger. */
+@media (max-width: 1120px) {
+  .intel { --intel-nav-side: 12px; --intel-nav-cluster-gap: var(--sp-6); }
+  .intel-nav-tab { padding-left: 12px; padding-right: 12px; font-size: calc(13 * var(--tpx)); }
+  .intel-nav-tab--more { padding-left: 10px; padding-right: 10px; font-size: calc(12 * var(--tpx)); }
+  .intel-nav-icon { width: 34px; height: 34px; }
+  .intel-nav-icon::after { inset: -5px; }
+}
+/* The prototype's 43 and 40px here, raised to the app's 44px touch minimum. */
+@media (max-width: 850px) {
+  .intel-nav-tab { min-height: 48px; }
+  .intel-nav-tab--more { min-height: 44px; }
+  .intel-nav-tools { margin-bottom: 5px; }
+}
 
 .intel-status {
   flex: none;
@@ -180,11 +338,6 @@
 .intel-ed-bar { display: block; height: 3px; margin-top: 6px; border-radius: 3px; background: var(--surface-sunken); overflow: hidden; }
 .intel-ed-bar i { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
 .intel-ed.is-read .intel-ed-bar i { background: var(--ink-4); }
-
-/* Tabs: a dot on a feed with something new, the count on Takeaways. */
-.intel-tabs button { position: relative; display: inline-flex; align-items: center; gap: 6px; }
-.intel-tab-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
-.intel-tab-count { font-size: calc(11 * var(--tpx)); font-weight: 600; color: var(--ink-3); font-variant-numeric: tabular-nums; }
 
 /* ── Portrait: the list slides in over the reader ─────────────────────── */
 .intel-scrim {
@@ -304,15 +457,15 @@
 }
 .intel-index-row::-webkit-scrollbar { display: none; }
 /* A row that scrolls sideways fades where there is more of it (useEdgeFade). */
-.intel-index-row.fade-after, .intel-tabs.fade-after {
+.intel-index-row.fade-after, .intel-nav-tabs.fade-after {
   -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent);
   mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent);
 }
-.intel-index-row.fade-before, .intel-tabs.fade-before {
+.intel-index-row.fade-before, .intel-nav-tabs.fade-before {
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 40px);
   mask-image: linear-gradient(90deg, transparent, #000 40px);
 }
-.intel-index-row.fade-before.fade-after, .intel-tabs.fade-before.fade-after {
+.intel-index-row.fade-before.fade-after, .intel-nav-tabs.fade-before.fade-after {
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 40px, #000 calc(100% - 40px), transparent);
   mask-image: linear-gradient(90deg, transparent, #000 40px, #000 calc(100% - 40px), transparent);
 }
@@ -744,9 +897,8 @@
 .intel--drawer .intel-reader { padding-left: var(--sp-10); padding-right: var(--sp-10); }
 
 /* ── Phone: one pane at a time ────────────────────────────────────────── */
-.intel--single .intel-head { padding: 0 var(--sp-4) var(--sp-3); }
-.intel--single .intel-tabs { flex: 1; }
-.intel--single .intel-tabs button { flex: 1 0 auto; padding: 0 10px; }
+.intel--single { --intel-nav-cluster-gap: var(--sp-5); }
+.intel--single .intel-nav { gap: var(--sp-2); padding-top: max(var(--sp-3), calc(env(safe-area-inset-top) + var(--sp-2))); }
 .intel--single .intel-status { margin: 0 var(--sp-4) var(--sp-3); }
 .intel--single .intel-list { flex: 1; min-height: 0; padding: 0 var(--sp-3) var(--intel-foot); }
 .intel--single .intel-rail-head { padding-left: var(--sp-3); padding-right: 0; }
@@ -1012,8 +1164,6 @@
 .intel-health-help code { font-size: calc(12 * var(--tpx)); }
 
 /* ── Search (search.ts, SearchView.tsx) ───────────────────────────────── */
-.intel-search-btn { flex: none; }
-.intel-search-btn.on { background: var(--accent-tint); border-color: var(--accent-line); color: var(--accent); }
 .intel-search-view { display: flex; flex-direction: column; gap: var(--sp-3); padding-top: var(--sp-2); }
 .intel-filters { display: flex; flex-direction: column; gap: var(--sp-2); }
 .intel-filter-topics { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); }

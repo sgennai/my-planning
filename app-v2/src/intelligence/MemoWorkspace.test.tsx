@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 // The memos' workspace (INT-53): the reading bar (Hide or Show editions, the
-// feed, the run's date and time between the chevrons) and the paper index
+// run's date and time between the chevrons; the feed is named by its tab
+// above, INT-54) and the paper index
 // (the feed's editions by month, newest first, each month opening on its own,
 // a search over titles and dates, the edition read marked, no times). Made-up
 // editions.
@@ -24,10 +25,10 @@ const brand = { name: 'AI Challenge' };
 
 describe('the reading bar', () => {
   const bar = (props: Partial<Parameters<typeof MemoReadbar>[0]> = {}) => render(
-    <MemoReadbar brand={brand} edition={EDITIONS[1]} shown onToggle={() => {}} toggleRef={createRef()} fillRef={createRef()} {...props} />,
+    <MemoReadbar edition={EDITIONS[1]} shown onToggle={() => {}} toggleRef={createRef()} fillRef={createRef()} {...props} />,
   );
 
-  it('shows or hides the editions, says which, and names the feed', () => {
+  it('shows or hides the editions and says which; the feed is not named again', () => {
     const onToggle = vi.fn();
     const { rerender } = bar({ onToggle });
     const toggle = screen.getByRole('button', { name: 'Hide editions' });
@@ -35,9 +36,10 @@ describe('the reading bar', () => {
     expect(toggle).toHaveAttribute('aria-controls', 'memo-editions');
     fireEvent.click(toggle);
     expect(onToggle).toHaveBeenCalled();
-    rerender(<MemoReadbar brand={brand} edition={EDITIONS[1]} shown={false} onToggle={onToggle} toggleRef={createRef()} fillRef={createRef()} />);
+    rerender(<MemoReadbar edition={EDITIONS[1]} shown={false} onToggle={onToggle} toggleRef={createRef()} fillRef={createRef()} />);
     expect(screen.getByRole('button', { name: 'Show editions' })).toHaveAttribute('aria-expanded', 'false');
-    expect(document.querySelector('.memo-readbar-feed')).toHaveTextContent('AI Challenge');
+    expect(document.querySelector('.memo-readbar')).not.toHaveTextContent('AI Challenge');
+    expect(document.querySelector('.memo-readbar-left')!.children).toHaveLength(1);
   });
 
   it('the run’s date and time between the chevrons to the older and newer edition; none, faded, at an end', () => {
@@ -51,7 +53,7 @@ describe('the reading bar', () => {
     ]);
   });
 
-  it('before a feed has an edition: the toggle and the feed, no date', () => {
+  it('before a feed has an edition: the toggle, no date', () => {
     bar({ edition: null });
     expect(document.querySelector('.memo-readbar-right')).toBeNull();
     expect(screen.getByRole('button', { name: 'Hide editions' })).toBeInTheDocument();
