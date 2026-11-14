@@ -278,16 +278,19 @@ describe('the Intelligence section', () => {
     expect(item).toMatchObject({ kind: 'labelled', label: 'Opening question', editionTitle: 'Agent Sprawl: Who Owns the Bots?' });
 
     fireEvent.click(screen.getByRole('tab', { name: /Takeaways/ }));
-    expect(screen.getByText('"How many AI agents are running in your organisation today?"')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Note and tags for Opening question' }));
-    fireEvent.change(screen.getByLabelText('Note'), { target: { value: 'Ask the CIO' } });
-    fireEvent.change(screen.getByLabelText('Tags, separated by commas'), { target: { value: 'banking, agents' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-    expect(savedOf(latest.content)[0]).toMatchObject({ note: 'Ask the CIO', tags: ['banking', 'agents'] });
-    fireEvent.change(screen.getByRole('searchbox', { name: 'Search Takeaways' }), { target: { value: 'cio' } });
-    expect(screen.getByText('Ask the CIO')).toBeInTheDocument();
-    fireEvent.change(screen.getByRole('searchbox', { name: 'Search Takeaways' }), { target: { value: 'nothing like it' } });
-    expect(screen.getByText(/Nothing in Takeaways matches/)).toBeInTheDocument();
+    const notebook = screen.getByRole('article', { name: '"How many AI agents are running in your organisation today?"' });
+    expect(notebook).toHaveTextContent('Question · Executive discovery questions · Saved from AI Challenge');
+    expect(notebook).toHaveTextContent('Topics of the edition · Governance, Agentic AI, Operating models');
+    fireEvent.change(within(notebook).getByLabelText('My personal note'), { target: { value: 'Ask the CIO' } });
+    fireEvent.blur(within(notebook).getByLabelText('My personal note'));
+    fireEvent.click(within(notebook).getByRole('button', { name: 'Add tags' }));
+    fireEvent.change(within(notebook).getByLabelText('Tags, separated by commas'), { target: { value: 'banking, agents' } });
+    fireEvent.click(within(notebook).getByRole('button', { name: 'Save tags' }));
+    expect(savedOf(latest.content)[0]).toMatchObject({ note: 'Ask the CIO', tags: ['banking', 'agents'], text: '"How many AI agents are running in your organisation today?"' });
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Search saved knowledge' }), { target: { value: 'cio' } });
+    expect(screen.getByText('1 item')).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Search saved knowledge' }), { target: { value: 'nothing like it' } });
+    expect(screen.getByText('No saved item matches “nothing like it”.')).toBeInTheDocument();
   });
 
   it('removing from Takeaways asks first', async () => {
@@ -296,13 +299,13 @@ describe('the Intelligence section', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Save this edition' }));
     fireEvent.click(screen.getByRole('tab', { name: /Takeaways/ }));
     confirmAnswer = false;
-    fireEvent.click(screen.getByRole('button', { name: 'Remove Agent Sprawl: Who Owns the Bots? from Takeaways' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Remove from Takeaways: Agent Sprawl: Who Owns the Bots?' }));
     expect(window.confirm).toHaveBeenLastCalledWith('Remove “Agent Sprawl: Who Owns the Bots?” from Takeaways?');
     expect(savedOf(latest.content)).toHaveLength(1);
     confirmAnswer = true;
-    fireEvent.click(screen.getByRole('button', { name: 'Remove Agent Sprawl: Who Owns the Bots? from Takeaways' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Remove from Takeaways: Agent Sprawl: Who Owns the Bots?' }));
     expect(savedOf(latest.content)).toHaveLength(0);
-    expect(screen.getByText('Nothing kept yet')).toBeInTheDocument();
+    expect(screen.getByText('Nothing kept yet.')).toBeInTheDocument();
   });
 
   it('a saved item leads back to its edition', async () => {
@@ -310,7 +313,8 @@ describe('the Intelligence section', () => {
     await openChallenge();
     fireEvent.click(screen.getByRole('button', { name: 'Save the term Agent sprawl' }));
     fireEvent.click(screen.getByRole('tab', { name: /Takeaways/ }));
-    fireEvent.click(screen.getByRole('button', { name: /AI Challenge · Mon 2 Nov · Agent Sprawl/ }));
+    expect(screen.getByRole('link', { name: /Original in Google Docs/ })).toHaveAttribute('href', CHALLENGE_FILE.webViewLink);
+    fireEvent.click(screen.getByRole('button', { name: 'Open the edition' }));
     expect(screen.getByRole('heading', { level: 1, name: 'Agent Sprawl: Who Owns the Bots?' })).toBeInTheDocument();
   });
 
@@ -663,7 +667,7 @@ describe('with a keyboard and a screen reader (INT-33)', () => {
     render(<App />);
     expect(await screen.findByRole('heading', { level: 1, name: 'A clearer next step' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('tab', { name: /Takeaways/ }));
-    expect(screen.getAllByRole('heading', { level: 1 }).map(h => h.textContent)).toEqual(['Takeaways']);
+    expect(screen.getAllByRole('heading', { level: 1 }).map(h => h.textContent)).toEqual(['Your executive notebook.']);
     fireEvent.click(screen.getByRole('button', { name: 'Search every edition' }));
     expect(screen.getAllByRole('heading', { level: 1 }).map(h => h.textContent)).toEqual(['Search']);
     await openChallenge();
@@ -708,7 +712,7 @@ describe('with a keyboard and a screen reader (INT-33)', () => {
     expect(screen.getByRole('tabpanel', { name: 'Today' })).toBeInTheDocument();
     fireEvent.click(tabs[4]);
     expect(screen.getByRole('tabpanel', { name: /Takeaways/ })).toBeInTheDocument();
-    expect(screen.getAllByRole('tab').map(t => t.tabIndex)).toEqual([-1, -1, -1, -1, 0]);
+    expect(within(screen.getByRole('tablist', { name: 'Intelligence' })).getAllByRole('tab').map(t => t.tabIndex)).toEqual([-1, -1, -1, -1, 0]);
     // Searching, no tab is open: the first is the stop.
     fireEvent.click(screen.getByRole('button', { name: 'Search every edition' }));
     expect(screen.getAllByRole('tab').map(t => t.getAttribute('aria-selected'))).toEqual(['false', 'false', 'false', 'false', 'false']);
@@ -801,28 +805,50 @@ describe('Takeaways back for review (INT-40)', () => {
   it('Takeaways says where each one stands; a section can be added, and a card taken out', async () => {
     render(<App initial={{ progressLog: [], content: [question, section] }} />);
     fireEvent.click(await screen.findByRole('tab', { name: /Takeaways/ }));
-    const bar = screen.getByRole('region', { name: 'Review' });
-    expect(bar).toHaveTextContent('1 to review today');
-    expect(bar).toHaveTextContent('1 of 2 takeaways in review');
-    expect(screen.getByText('Due for review today')).toBeInTheDocument();
+    const library = screen.getByRole('region', { name: 'Saved knowledge' });
+    expect(within(library).getByText('1 to review today')).toBeInTheDocument();
+    expect(within(library).getAllByRole('listitem').map(li => li.querySelector('.tk-status')?.textContent)).toEqual(['Not in review', 'To review']);
+    // The newest first: the section, not in review.
+    expect(screen.getByText('Not in review', { selector: '.tk-review span' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Add to review' }));
     expect(reviewOf('is:s')).toMatchObject({ on: true, due: '2026-11-03' });
     expect(screen.getByText('In review · next tomorrow')).toBeInTheDocument();
+    fireEvent.click(within(library).getByRole('button', { name: /Which processes would be hard to move/ }));
+    expect(screen.getByText('Due for review today')).toBeInTheDocument();
+    fireEvent.click(within(library).getByRole('button', { name: 'To review' }));
+    expect(within(library).getAllByRole('listitem')).toHaveLength(1);
 
-    fireEvent.click(within(bar).getByRole('button', { name: 'Start review' }));
+    fireEvent.click(within(library).getByRole('button', { name: 'Start review' }));
     fireEvent.click(screen.getByRole('button', { name: 'Stop reviewing this one' }));
     expect(reviewOf('is:q')).toMatchObject({ on: false });
     expect(screen.getByText(/1 takeaway taken out of review/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Back to Takeaways' }));
-    expect(screen.getAllByText('Not in review')).toHaveLength(1);
-    expect(screen.getByRole('region', { name: 'Review' })).toHaveTextContent('Nothing to review today');
+    // Back where it was: the filter, and the question chosen, now out of review.
+    expect(within(screen.getByRole('region', { name: 'Saved knowledge' })).getByRole('button', { name: 'To review' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText('Nothing is due for review today. The next comes back tomorrow.')).toBeInTheDocument();
+    expect(screen.getByText('Not in review', { selector: '.tk-review span' })).toBeInTheDocument();
+  });
+
+  it('Review now reviews the one chosen, with the same ratings', async () => {
+    render(<App initial={{ progressLog: [], content: [question, term] }} />);
+    fireEvent.click(await screen.findByRole('tab', { name: /Takeaways/ }));
+    fireEvent.click(within(screen.getByRole('region', { name: 'Saved knowledge' })).getByRole('button', { name: /Which processes would be hard to move/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Review now' }));
+    expect(screen.getByText('1 of 1')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Show what you kept' }));
+    fireEvent.click(screen.getByRole('button', { name: /Well/ }));
+    expect(reviewOf('is:q')).toMatchObject({ on: true, confidence: 4, count: 1 });
+    expect(reviewOf('is:t')).toBeUndefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Back to Takeaways' }));
+    expect(screen.getByText(/^In review · next .* · last time: well$/)).toBeInTheDocument();
   });
 
   it('a takeaway removed takes its review with it', async () => {
     render(<App initial={{ progressLog: [{ id: 'rv:is:q', type: 'intel-review', refId: 'is:q', at: '2026-11-01T12:00:00Z', value: { on: true, due: '2026-11-05', confidence: 2, count: 1, lastAt: '2026-11-01T12:00:00Z' } }], content: [question] }} />);
     fireEvent.click(await screen.findByRole('tab', { name: /Takeaways/ }));
     expect(screen.getByText('In review · next Thu 5 Nov · last time: a little')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /^Remove .* from Takeaways$/ }));
+    expect(screen.getByText('Reviewed', { selector: '.tk-status' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /^Remove from Takeaways: / }));
     expect(reviewOf('is:q')).toBeUndefined();
   });
 });
@@ -852,12 +878,283 @@ describe('Takeaways exported as a file (INT-43)', () => {
     expect(all).toContain('> Which processes would be hard to move?');
     expect(all).toContain('**Note:** Ask the CIO');
 
-    fireEvent.change(screen.getByRole('searchbox', { name: 'Search Takeaways' }), { target: { value: 'cio' } });
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Search saved knowledge' }), { target: { value: 'cio' } });
     fireEvent.click(screen.getByRole('button', { name: 'Export' }));
     expect(await screen.findByText('Exported 1 takeaway')).toBeInTheDocument();
     const narrowed = await file!.text();
     expect(narrowed).toContain('1 takeaway, newest first, only those matching “cio”.');
     expect(narrowed).not.toContain('LinkedIn angle');
+  });
+});
+
+describe('Takeaways as the executive notebook (INT-56)', () => {
+  const kept = (id: string, patch: Record<string, unknown> = {}) => ({
+    id, type: 'intel-saved', kind: 'labelled', feedId: 'enterprise-ai-sales-brief', driveFileId: '1Kept000000000000000000000',
+    editionTitle: 'Model Pricing After the Funding Reset', editionDate: '2026-11-01', editionTime: '09:30',
+    sourceUrl: 'https://docs.google.com/document/d/1Kept/edit', sectionId: 'capital', sectionTitle: 'Capital availability',
+    label: 'Executive question', text: 'Which processes would be hard to move?', note: '', tags: [] as string[], savedAt: '2026-11-01T09:00:00Z',
+    ...patch,
+  });
+  const question = kept('is:q', { tags: ['banking'] });
+  const line = kept('is:l', { label: 'Sentence to rehearse', text: 'Cheap models can still make costly processes.', driveFileId: '1Other00000000000000000000', savedAt: '2026-11-01T10:00:00Z' });
+  const term = kept('is:t', { kind: 'term', label: 'Unit economics', text: 'What one outcome costs, all in.', driveFileId: '1Third00000000000000000000', tags: ['Banking'], savedAt: '2026-11-01T11:00:00Z' });
+  const library = () => screen.getByRole('region', { name: 'Saved knowledge' });
+  const entries = () => within(library()).getAllByRole('listitem');
+  const choose = (name: RegExp) => fireEvent.click(within(library()).getByRole('button', { name }));
+  const viewTab = (name: RegExp) => within(screen.getByRole('tablist', { name: 'Takeaways view' })).getByRole('tab', { name });
+  const kitRecords = () => (latest.content as { id: string }[]).filter(r => /^(km|kr|mk):/.test(r.id));
+  let copied: string[];
+  let clipboardFails: boolean;
+
+  beforeEach(() => {
+    copied = [];
+    clipboardFails = false;
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: vi.fn(async (t: string) => { if (clipboardFails) throw new Error('denied'); copied.push(t); }) },
+    });
+  });
+
+  it('the library on the left, the one chosen on the right in its exact words; filters and search keep the choice', async () => {
+    render(<App initial={{ progressLog: [], content: [question, line, term] }} />);
+    fireEvent.click(await screen.findByRole('tab', { name: /Takeaways/ }));
+    expect(screen.getByRole('heading', { level: 1, name: 'Your executive notebook.' })).toBeInTheDocument();
+    expect(screen.getByText('Takeaways', { selector: '.tk-metric span' }).previousSibling).toHaveTextContent('3');
+    expect(screen.getByText('In meeting kit', { selector: '.tk-metric span' }).previousSibling).toHaveTextContent('0');
+    expect(within(library()).getByText('3 items')).toBeInTheDocument();
+    // Newest first, each a Question or an Insight, where it stands, and where it came from.
+    expect(entries().map(li => li.textContent)).toEqual([
+      'InsightTo reviewUnit economics — What one outcome costs, all in.Enterprise AI · 1 Nov 2026',
+      'InsightTo reviewCheap models can still make costly processes.Enterprise AI · 1 Nov 2026',
+      'QuestionTo reviewWhich processes would be hard to move?Enterprise AI · 1 Nov 2026',
+    ]);
+    expect(within(entries()[0]).getByRole('button')).toHaveAttribute('aria-current', 'true');
+    expect(screen.getByRole('article', { name: 'Unit economics' })).toHaveTextContent('Insight · Capital availability · Saved from Enterprise AI');
+
+    choose(/Which processes/);
+    const notebook = screen.getByRole('article', { name: 'Which processes would be hard to move?' });
+    expect(within(notebook).getByRole('heading', { level: 2 })).toHaveTextContent('Which processes would be hard to move?');
+    expect(notebook).toHaveTextContent('Original source · Enterprise AI, Sun 1 Nov 2026, 09:30 · Model Pricing After the Funding Reset · Capital availability. The saved wording is preserved exactly.');
+
+    fireEvent.click(within(library()).getByRole('button', { name: 'Insights' }));
+    expect(entries()).toHaveLength(2);
+    // The one chosen stays chosen, whatever the list shows.
+    expect(screen.getByRole('article', { name: 'Which processes would be hard to move?' })).toBeInTheDocument();
+    fireEvent.click(within(library()).getByRole('button', { name: 'Questions' }));
+    expect(entries()).toHaveLength(1);
+    fireEvent.click(within(library()).getByRole('button', { name: 'All' }));
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Search saved knowledge' }), { target: { value: 'COSTLY' } });
+    expect(entries()).toHaveLength(1);
+    choose(/Cheap models/);
+    expect(screen.getByRole('searchbox', { name: 'Search saved knowledge' })).toHaveValue('COSTLY');
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Search saved knowledge' }), { target: { value: '' } });
+
+    // Your tags filter it too: from the Tags pill, or a tag on the one chosen.
+    fireEvent.click(within(library()).getByRole('button', { name: 'Tags' }));
+    fireEvent.click(within(within(library()).getByRole('group', { name: 'Tags' })).getByRole('button', { name: 'Banking 2' }));
+    expect(entries()).toHaveLength(2);
+    expect(within(library()).getByRole('button', { name: 'Tag: Banking' })).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(within(within(library()).getByRole('group', { name: 'Tags' })).getByRole('button', { name: 'Any tag' }));
+    expect(entries()).toHaveLength(3);
+    expect(latest.content).toEqual([question, line, term]);
+  });
+
+  it('a note is saved as it is written, and nothing else of the takeaway changes', async () => {
+    render(<App initial={{ progressLog: [], content: [question] }} />);
+    fireEvent.click(await screen.findByRole('tab', { name: /Takeaways/ }));
+    const field = screen.getByLabelText('My personal note');
+    fireEvent.change(field, { target: { value: 'For the CFO, on the second call ' } });
+    expect(savedOf(latest.content)[0].note).toBe('');
+    fireEvent.blur(field);
+    expect(savedOf(latest.content)[0]).toEqual({ ...question, note: 'For the CFO, on the second call' });
+    expect(screen.getByText('Saved', { selector: '.tk-saved' })).toBeInTheDocument();
+    expect(latest.progressLog).toEqual([]);
+  });
+
+  it('Use in conversation: a role suggested, then chosen and kept, never touching the takeaway or its review', async () => {
+    render(<App initial={{ progressLog: [], content: [question, line] }} />);
+    fireEvent.click(await screen.findByRole('tab', { name: /Takeaways/ }));
+    choose(/Which processes/);
+    fireEvent.click(screen.getByRole('button', { name: 'Use in a conversation' }));
+    expect(viewTab(/Use in conversation/)).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tabpanel', { name: 'Use in conversation' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Make this usable in the room.' })).toBeInTheDocument();
+    const roles = screen.getByRole('group', { name: /Conversation role/ });
+    expect(roles).toHaveAccessibleName('Conversation role · suggested, yours to change');
+    expect(within(roles).getAllByRole('button').map(b => [b.textContent, b.getAttribute('aria-pressed')])).toEqual([
+      ['Opening', 'true'], ['Challenge', 'false'], ['Follow-up', 'false'], ['Argument', 'false'],
+    ]);
+    expect(screen.getByText('A question that starts the conversation.')).toBeInTheDocument();
+    expect(screen.getByText('Exact original question').nextSibling).toHaveTextContent('“Which processes would be hard to move?”');
+    fireEvent.click(within(roles).getByRole('button', { name: 'Challenge' }));
+    expect(kitRecords()).toEqual([expect.objectContaining({ id: 'kr:main:is:q', type: 'intel-kit-role', role: 'challenge' })]);
+    expect(screen.getByRole('group', { name: /Conversation role/ })).toHaveAccessibleName('Conversation role · editable');
+    expect(screen.getByRole('figure')).toHaveTextContent('Enterprise AI · 1 Nov 2026 · Capital availability · Challenge');
+    // The other view and back: the role is kept; the takeaway and its review are as they were.
+    fireEvent.click(viewTab(/My notebook/));
+    fireEvent.click(viewTab(/Use in conversation/));
+    expect(within(screen.getByRole('group', { name: /Conversation role/ })).getByRole('button', { name: 'Challenge' })).toHaveAttribute('aria-pressed', 'true');
+    expect(savedOf(latest.content).find(s => s.id === 'is:q')).toEqual(question);
+    expect(latest.progressLog).toEqual([]);
+    // An insight is offered as an Argument.
+    choose(/Cheap models/);
+    fireEvent.click(viewTab(/Use in conversation/));
+    expect(within(screen.getByRole('group', { name: /Conversation role/ })).getByRole('button', { name: 'Argument' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText('Exact original insight')).toBeInTheDocument();
+  });
+
+  it('Copy exact wording copies the words as kept, and says when it could not', async () => {
+    render(<App initial={{ progressLog: [], content: [kept('is:x', { text: '"Who **owns** the agents?"' })] }} />);
+    fireEvent.click(await screen.findByRole('tab', { name: /Takeaways/ }));
+    fireEvent.click(viewTab(/Use in conversation/));
+    fireEvent.click(screen.getByRole('button', { name: 'Copy exact wording' }));
+    expect(await screen.findByText('Copied the exact wording')).toBeInTheDocument();
+    expect(copied).toEqual(['Who owns the agents?']);
+    clipboardFails = true;
+    fireEvent.click(screen.getByRole('button', { name: 'Copy exact wording' }));
+    expect(await screen.findByText("Couldn't copy")).toBeInTheDocument();
+  });
+
+  it('offers as support only the saved items sharing a tag, the edition or a topic, and opens one', async () => {
+    const alone = kept('is:a', { text: 'Who signs off a new agent?', driveFileId: '1Alone00000000000000000000', savedAt: '2026-11-01T12:00:00Z' });
+    render(<App initial={{ progressLog: [], content: [question, line, term, alone] }} />);
+    fireEvent.click(await screen.findByRole('tab', { name: /Takeaways/ }));
+    choose(/Which processes/);
+    fireEvent.click(viewTab(/Use in conversation/));
+    const support = screen.getByRole('region', { name: 'Possible supporting material' });
+    expect(within(support).getAllByRole('listitem').map(li => li.textContent)).toEqual([
+      'Unit economics — What one outcome costs, all in.Tagged banking · Enterprise AI · 1 Nov 2026',
+    ]);
+    fireEvent.click(within(support).getByRole('button', { name: /Unit economics/ }));
+    expect(screen.getByText('Exact original term')).toBeInTheDocument();
+    choose(/Who signs off/);
+    fireEvent.click(viewTab(/Use in conversation/));
+    expect(screen.getByRole('region', { name: 'Possible supporting material' })).toHaveTextContent('No other takeaway shares a tag, an edition or a topic with this one yet.');
+    expect(screen.getByRole('region', { name: 'Why I saved this' })).toHaveTextContent('Add a personal note in My notebook');
+    fireEvent.click(screen.getByRole('button', { name: 'Write a note' }));
+    expect(document.activeElement).toBe(screen.getByLabelText('My personal note'));
+  });
+
+  it('the meeting kit: each item once, under its role, named, copied, and taken out of the kit only', async () => {
+    const review = { id: 'rv:is:q', type: 'intel-review', refId: 'is:q', at: '2026-11-01T12:00:00Z', value: { on: true, due: '2026-11-05', confidence: 2, count: 1, lastAt: '2026-11-01T12:00:00Z' } };
+    render(<App initial={{ progressLog: [review], content: [question, line, term] }} />);
+    fireEvent.click(await screen.findByRole('tab', { name: /Takeaways/ }));
+    choose(/Which processes/);
+    fireEvent.click(viewTab(/Use in conversation/));
+    fireEvent.click(screen.getByRole('button', { name: '+ Add to meeting kit' }));
+    expect(await screen.findByText('Added to the meeting kit')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '✓ Added to meeting kit: take it out' })).toBeInTheDocument();
+    expect(viewTab(/Meeting kit/)).toHaveTextContent('Meeting kit · 1 item');
+    expect(screen.getByText('In meeting kit', { selector: '.tk-metric span' }).previousSibling).toHaveTextContent('1');
+    choose(/Unit economics/);
+    fireEvent.click(viewTab(/Use in conversation/));
+    fireEvent.click(within(screen.getByRole('group', { name: /Conversation role/ })).getByRole('button', { name: 'Follow-up' }));
+    fireEvent.click(screen.getByRole('button', { name: '+ Add to meeting kit' }));
+    expect(kitRecords().map(r => r.id).sort()).toEqual(['km:main:is:q', 'km:main:is:t', 'kr:main:is:q', 'kr:main:is:t']);
+
+    fireEvent.click(viewTab(/Meeting kit/));
+    expect(screen.getByRole('tabpanel', { name: /Meeting kit/ })).toBeInTheDocument();
+    expect(screen.getAllByRole('heading', { level: 3 }).map(h => h.textContent)).toEqual([
+      'Open the discussion · 1', 'Test an assumption · 0', 'Go deeper · 1', 'Share a perspective · 0',
+    ]);
+    expect(screen.getByRole('region', { name: 'Open the discussion' })).toHaveTextContent('Which processes would be hard to move?Enterprise AI · 1 Nov 2026 · Change role');
+    expect(screen.getAllByText('No item selected for this moment yet.')).toHaveLength(2);
+    const name = screen.getByLabelText('Meeting / customer');
+    fireEvent.change(name, { target: { value: 'Harbour bank board' } });
+    fireEvent.blur(name);
+    expect(kitRecords().find(r => r.id === 'mk:main')).toMatchObject({ type: 'intel-kit', label: 'Harbour bank board' });
+    fireEvent.click(screen.getByRole('button', { name: 'Copy meeting kit' }));
+    expect(await screen.findByText('Meeting kit copied')).toBeInTheDocument();
+    expect(copied[0]).toBe([
+      '# Executive meeting kit · Harbour bank board', '', '## Open the discussion', '',
+      '- Which processes would be hard to move?', '  (Enterprise AI, Sun 1 Nov 2026)', '', '## Go deeper', '',
+      '- Unit economics — What one outcome costs, all in.', '  (Enterprise AI, Sun 1 Nov 2026)', '',
+    ].join('\n'));
+
+    // Remove asks, and takes it out of the kit only.
+    confirmAnswer = false;
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Which processes would be hard to move? from the meeting kit' }));
+    expect(window.confirm).toHaveBeenLastCalledWith('Take “Which processes would be hard to move?” out of the meeting kit? It stays in Takeaways.');
+    expect(viewTab(/Meeting kit/)).toHaveTextContent('Meeting kit · 2 items');
+    confirmAnswer = true;
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Which processes would be hard to move? from the meeting kit' }));
+    expect(viewTab(/Meeting kit/)).toHaveTextContent('Meeting kit · 1 item');
+    expect(await screen.findByText('Taken out of the meeting kit. It stays in Takeaways.')).toBeInTheDocument();
+    expect(savedOf(latest.content)).toHaveLength(3);
+    expect(savedOf(latest.content).find(s => s.id === 'is:q')).toEqual(question);
+    expect(latest.progressLog).toEqual([review]);
+
+    // Change role goes to where roles are chosen.
+    fireEvent.click(screen.getByRole('button', { name: 'Change role: Unit economics' }));
+    expect(viewTab(/Use in conversation/)).toHaveAttribute('aria-selected', 'true');
+    expect(within(screen.getByRole('group', { name: /Conversation role/ })).getByRole('button', { name: 'Follow-up' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('an empty kit says how to fill it, and has nothing to copy', async () => {
+    render(<App initial={{ progressLog: [], content: [question] }} />);
+    fireEvent.click(await screen.findByRole('tab', { name: /Takeaways/ }));
+    fireEvent.click(viewTab(/Meeting kit/));
+    expect(screen.getByText('The kit is empty.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Copy meeting kit' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Back to notebook' }));
+    expect(viewTab(/My notebook/)).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('a takeaway removed from Takeaways leaves nothing of it in the kit', async () => {
+    render(<App initial={{ progressLog: [], content: [question, line] }} />);
+    fireEvent.click(await screen.findByRole('tab', { name: /Takeaways/ }));
+    choose(/Which processes/);
+    fireEvent.click(viewTab(/Use in conversation/));
+    fireEvent.click(screen.getByRole('button', { name: '+ Add to meeting kit' }));
+    fireEvent.click(viewTab(/My notebook/));
+    fireEvent.click(screen.getByRole('button', { name: 'Remove from Takeaways: Which processes would be hard to move?' }));
+    expect(savedOf(latest.content).map(s => s.id)).toEqual(['is:l']);
+    expect(kitRecords()).toEqual([]);
+    expect(viewTab(/Meeting kit/)).toHaveTextContent('Meeting kit · 0 items');
+  });
+
+  it('says what is missing: nothing kept, no question, nothing due', async () => {
+    render(<App initial={{ progressLog: [], content: [kept('is:n', { kind: 'passage', label: null, text: 'Kept today.', savedAt: '2026-11-02T05:00:00Z' })] }} />);
+    fireEvent.click(await screen.findByRole('tab', { name: /Takeaways/ }));
+    fireEvent.click(within(library()).getByRole('button', { name: 'Questions' }));
+    expect(within(library()).getByText(/No question saved yet/)).toBeInTheDocument();
+    fireEvent.click(within(library()).getByRole('button', { name: 'To review' }));
+    expect(within(library()).getByText('Nothing is due for review today. The next comes back tomorrow.')).toBeInTheDocument();
+    cleanup();
+    render(<App />);
+    fireEvent.click(await screen.findByRole('tab', { name: /Takeaways/ }));
+    expect(screen.getByText('Nothing kept yet.')).toBeInTheDocument();
+    expect(screen.getByText(/Save something while reading and it opens here/)).toBeInTheDocument();
+  });
+
+  it('the views are tabs: arrows between them, and the panel is named by the one open', async () => {
+    render(<App initial={{ progressLog: [], content: [question] }} />);
+    fireEvent.click(await screen.findByRole('tab', { name: /Takeaways/ }));
+    const tabs = within(screen.getByRole('tablist', { name: 'Takeaways view' })).getAllByRole('tab');
+    expect(tabs.map(t => [t.textContent, t.tabIndex])).toEqual([['My notebook', 0], ['Use in conversation', -1], ['Meeting kit · 0 items', -1]]);
+    tabs[0].focus();
+    fireEvent.keyDown(tabs[0], { key: 'ArrowRight' });
+    expect(document.activeElement).toBe(tabs[1]);
+    expect(screen.getByRole('tabpanel', { name: 'Use in conversation' })).toBeInTheDocument();
+    fireEvent.keyDown(tabs[1], { key: 'End' });
+    expect(document.activeElement).toBe(tabs[2]);
+    fireEvent.keyDown(tabs[2], { key: 'ArrowRight' });
+    expect(document.activeElement).toBe(tabs[0]);
+    expect(within(library()).getAllByRole('button', { name: /Which processes/ })[0]).toHaveAttribute('aria-controls', screen.getByRole('tabpanel', { name: 'My notebook' }).id);
+  });
+
+  it('what the notebook shows is still there after opening an edition and coming back', async () => {
+    render(<App />);
+    await openChallenge();
+    fireEvent.click(screen.getByRole('button', { name: 'Save opening question' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save the term Agent sprawl' }));
+    fireEvent.click(screen.getByRole('tab', { name: /Takeaways/ }));
+    fireEvent.click(within(library()).getByRole('button', { name: 'Questions' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Open the edition' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Agent Sprawl: Who Owns the Bots?' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: /Takeaways/ }));
+    expect(within(library()).getByRole('button', { name: 'Questions' })).toHaveAttribute('aria-pressed', 'true');
+    expect(entries()).toHaveLength(1);
   });
 });
 

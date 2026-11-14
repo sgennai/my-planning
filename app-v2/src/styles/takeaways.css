@@ -1,0 +1,437 @@
+/*
+  Takeaways as the executive notebook (INT-56, SavedView.tsx, MeetingKit.tsx),
+  after the approved prototype `takeaways-notebook-conversation-kit-demo.html`:
+  its tokens, type, spacing and proportions, kept as written there, with these
+  changes for the app. Font sizes are in --tpx, so they follow the iPad's Text
+  Size; the heading and the quotation still grow with the window (vw), as
+  there. The breakpoints are the window's, as in the prototype: the library is
+  35% of the workspace (at least 295px), 36% (245px) at 1120px wide or less
+  and (220px) at 850px or less, and the two stack at 620px or less, the list
+  then scrolling sideways. Like the memos and Today, the notebook is light in
+  both themes; the selected Takeaways tab is its page (`--intel-nav-sheet`,
+  intelligence.css). Small text that fell short of the 4.5:1 contrast minimum
+  is a shade darker, its hue kept. Small buttons reach 44px through an
+  invisible margin. Its fields (search, note, the meeting's name) keep the
+  app's 16px minimum, under which iOS zooms the page on focus.
+*/
+.intel.intel--saved,
+.intel.intel--saved .intel-reader,
+.intel.intel--saved .intel-list { background: #fafcfd; }
+.intel.intel--saved .intel-reader,
+.intel.intel--saved .intel-list { padding: 33px clamp(20px, 3vw, 54px) max(70px, var(--intel-foot)); }
+
+.tk {
+  --tk-ink: #18374c;
+  --tk-ink-2: #406076;
+  --tk-serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+  --tk-line: #d6e2e9;
+  --tk-caps: #556d80;
+  --tk-meta: #556d80;
+  --tk-focus: #457da9;
+  max-width: 1480px;
+  margin: 0 auto;
+  color-scheme: light;
+  color: var(--tk-ink);
+  font-family: var(--font-ui);
+}
+.tk :is(button, input, textarea, select) { font: inherit; }
+.tk button { cursor: pointer; }
+.tk :focus-visible { outline: 3px solid var(--tk-focus); outline-offset: 2px; }
+:where(.tk) p { margin: 0; }
+
+/* ── The introduction ─────────────────────────────────────────────────── */
+.tk-hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 25px; flex-wrap: wrap; margin: 0 0 26px; }
+.tk-eyebrow { font-size: calc(11 * var(--tpx)); font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: var(--tk-caps); }
+.tk .tk-title {
+  margin: 11px 0;
+  font-family: var(--tk-serif);
+  font-size: clamp(calc(34 * var(--tpx)), calc(3.2vw * var(--intel-scale, 1)), calc(52 * var(--tpx)));
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -.035em;
+  color: #18384e;
+}
+.tk-lede { max-width: 740px; font-size: calc(15 * var(--tpx)); line-height: 1.6; color: #587286; }
+.tk-metrics { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.tk-metric { min-width: 110px; line-height: normal; padding: 12px 16px; border: 1px solid var(--tk-line); border-radius: 12px; background: #f1f6f9; }
+.tk-metric strong { display: block; font-family: var(--tk-serif); font-size: calc(25 * var(--tpx)); color: var(--tk-ink); }
+.tk-metric span { font-size: calc(10 * var(--tpx)); font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--tk-caps); }
+
+/* ── The workspace: the library, and the one chosen ───────────────────── */
+.tk-workspace {
+  display: grid;
+  grid-template-columns: minmax(295px, 35%) minmax(0, 1fr);
+  min-height: 690px;
+  border: 1px solid var(--tk-line);
+  border-radius: 20px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 16px 36px rgba(21, 57, 78, .045);
+}
+
+.tk-left { min-width: 0; display: flex; flex-direction: column; border-right: 1px solid var(--tk-line); background: #eff5f8; }
+.tk-panel-head { padding: 23px 24px 14px; border-bottom: 1px solid #dce7ee; }
+.tk-panel-title { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.tk .tk-panel-title h2 { margin: 0 0 6px; font-family: var(--tk-serif); font-size: calc(24 * var(--tpx)); font-weight: 700; letter-spacing: -.02em; color: var(--tk-ink); }
+.tk-tiny { font-size: calc(12 * var(--tpx)); color: var(--tk-meta); white-space: nowrap; }
+.tk-search {
+  width: 100%;
+  height: 45px;
+  margin-top: 15px;
+  padding: 0 14px;
+  border: 1px solid #cedce5;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--tk-ink);
+  font-size: max(16px, calc(13 * var(--tpx)));
+}
+.tk-search::placeholder { color: #6f8494; }
+.tk-filters { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; }
+.tk .tk-filter {
+  position: relative;
+  padding: 7px 10px;
+  border: 1px solid #d0dee7;
+  border-radius: 999px;
+  background: transparent;
+  color: #556d80;
+  font-size: calc(11 * var(--tpx));
+  font-weight: 750;
+  line-height: 1.2;
+}
+.tk .tk-filter::after { content: ""; position: absolute; inset: -8px -3px; }
+.tk .tk-filter[aria-pressed="true"] { background: var(--tk-ink); border-color: var(--tk-ink); color: #fff; }
+.tk .tk-tagpick { display: inline-flex; align-items: center; gap: 3px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tk .tk-tagpick svg { flex: none; width: 13px; height: 13px; transition: transform .15s; }
+.tk .tk-tagpick[aria-expanded="true"] svg { transform: rotate(180deg); }
+.tk-tagrow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.tk-tagrow[hidden] { display: none; }
+.tk .tk-tagrow .tk-tag[aria-pressed="true"] { background: #2e536d; color: #fff; }
+.tk-tag span { font-weight: 500; opacity: .8; }
+.tk-tools { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; min-height: 29px; }
+.tk-dueline { margin-top: 10px; font-size: calc(12 * var(--tpx)); font-weight: 650; color: #8a5f33; }
+.tk-dueline .tk-thin { margin-left: 6px; }
+.tk .tk-export { display: inline-flex; align-items: center; gap: 5px; }
+.tk .tk-export svg { width: 15px; height: 15px; }
+.tk .tk-export:disabled { opacity: .5; cursor: default; }
+
+.tk-list {
+  flex: 1;
+  margin: 0;
+  padding: 12px 13px 20px;
+  list-style: none;
+  overflow: auto;
+  max-height: min(660px, calc(100dvh - 140px));
+  scrollbar-color: #c6d9e6 transparent;
+  overscroll-behavior: contain;
+}
+.tk .tk-entry {
+  display: block;
+  width: 100%;
+  margin-bottom: 6px;
+  padding: 15px 13px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  background: transparent;
+  color: var(--tk-ink);
+  text-align: left;
+  transition: background .15s;
+}
+.tk .tk-entry.is-on { background: #fff; border-color: #cbdce7; box-shadow: 0 3px 10px rgba(23, 59, 81, .045); }
+.tk .tk-entry:focus-visible { border-radius: 13px; }
+@media (hover: hover) {
+  .tk .tk-entry:not(.is-on):hover { background: #e6eff5; }
+}
+.tk-entry-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.tk-chip { display: inline-block; padding: 5px 9px; border-radius: 999px; background: #e3edf4; color: #3f6279; font-size: calc(10 * var(--tpx)); font-weight: 750; }
+.tk-status { font-size: calc(10 * var(--tpx)); color: var(--tk-meta); }
+.tk-status.is-due { color: #8a5f33; font-weight: 650; }
+.tk-status.is-reviewed { color: #3f6b5b; }
+.tk-entry strong { display: block; margin: 10px 0 7px; font-size: calc(13 * var(--tpx)); font-weight: 720; line-height: 1.45; overflow-wrap: anywhere; }
+.tk-entry strong.is-long { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 6; overflow: hidden; }
+.tk-entry small { display: block; font-size: calc(11 * var(--tpx)); color: var(--tk-meta); }
+.tk-list-empty { padding: 14px 13px 20px; }
+
+/* ── The right: its views, and the one shown ──────────────────────────── */
+.tk-right { min-width: 0; display: flex; flex-direction: column; background: #fff; }
+.tk-right-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 17px clamp(22px, 3vw, 39px);
+  border-bottom: 1px solid var(--tk-line);
+}
+.tk-viewtabs { display: flex; gap: 5px; padding: 4px; border-radius: 13px; background: #edf4f8; }
+.tk .tk-viewtab {
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #57708a;
+  font-size: calc(12 * var(--tpx));
+  font-weight: 750;
+  line-height: 1.2;
+}
+.tk .tk-viewtab[aria-selected="true"] { background: #fff; color: #1e4967; box-shadow: 0 2px 8px rgba(12, 38, 62, .07); }
+.tk .tk-kitbtn {
+  padding: 10px 13px;
+  border: 1px solid #c7d9e5;
+  border-radius: 12px;
+  background: #f1f7fa;
+  color: #305875;
+  font-size: calc(12 * var(--tpx));
+  font-weight: 750;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.tk .tk-kitbtn[aria-selected="true"] { background: #244f6e; border-color: #244f6e; color: #fff; }
+.tk-right-body { flex: 1; padding: 30px clamp(22px, 3vw, 43px) 38px; }
+/* Stacked, a chosen item scrolls to the top of the right, not under the navigation. */
+.tk-right { scroll-margin-top: 16px; }
+
+.tk-label { font-size: calc(11 * var(--tpx)); font-weight: 800; letter-spacing: .15em; text-transform: uppercase; color: var(--tk-caps); }
+.tk-label-note { font-weight: 500; letter-spacing: 0; text-transform: none; }
+.tk-label-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.tk-saved { font-size: calc(11 * var(--tpx)); color: #3f6b5b; }
+.tk .tk-quote {
+  margin: 18px 0 20px;
+  font-family: var(--tk-serif);
+  font-size: clamp(calc(24 * var(--tpx)), calc(2.2vw * var(--intel-scale, 1)), calc(36 * var(--tpx)));
+  font-weight: 700;
+  line-height: 1.29;
+  letter-spacing: -.021em;
+  color: #173950;
+  overflow-wrap: anywhere;
+}
+.tk-quote a, .tk-longtext a { color: inherit; }
+.tk-longtext { margin: 16px 0 18px; font-family: var(--tk-serif); font-size: calc(19 * var(--tpx)); line-height: 1.55; color: #173950; }
+.tk-longtext :is(p, ul, ol) { margin: 0 0 .7em; }
+.tk-longtext :is(ul, ol) { padding-left: 1.3em; }
+.tk-divider { height: 1px; margin: 23px 0; background: var(--tk-line); }
+.tk-meta { font-size: calc(12 * var(--tpx)); line-height: 1.6; color: var(--tk-meta); }
+.tk-meta + .tk-meta { margin-top: 4px; }
+.tk-meta cite { font-style: italic; }
+
+.tk-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin: 13px 0; }
+.tk .tk-tag {
+  position: relative;
+  padding: 5px 9px;
+  border: 0;
+  border-radius: 999px;
+  background: #e3edf4;
+  color: #3f6279;
+  font-size: calc(10 * var(--tpx));
+  font-weight: 750;
+  line-height: 1.2;
+}
+.tk .tk-tag::after { content: ""; position: absolute; inset: -10px -2px; }
+.tk-tagedit { display: flex; flex-direction: column; gap: 8px; margin: 13px 0; }
+.tk-tagedit .tk-actions { margin-top: 4px; }
+.tk-input {
+  height: 42px;
+  padding: 0 13px;
+  border: 1px solid #cddde6;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--tk-ink);
+  font-size: max(16px, calc(13 * var(--tpx)));
+}
+.tk-input::placeholder { color: #6f8494; }
+
+.tk-sources { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 10px; }
+.tk .tk-source {
+  position: relative;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid #b7cedd;
+  background: none;
+  color: #3a6a8e;
+  font-size: calc(12 * var(--tpx));
+  font-weight: 650;
+  line-height: 1.5;
+  text-decoration: none;
+}
+.tk .tk-source::after { content: ""; position: absolute; inset: -12px -6px; }
+
+.tk-notefield { margin-top: 2px; }
+.tk .tk-note {
+  display: block;
+  width: 100%;
+  min-height: 100px;
+  margin-top: 9px;
+  padding: 14px;
+  border: 1px solid #cfdee7;
+  border-radius: 13px;
+  background: #f7fafc;
+  color: var(--tk-ink);
+  font-size: max(16px, calc(13 * var(--tpx)));
+  line-height: 1.6;
+  resize: vertical;
+}
+.tk-note::placeholder { color: #6f8494; }
+
+.tk-review { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; margin-top: 18px; font-size: calc(12 * var(--tpx)); color: var(--tk-ink-2); }
+.tk-review > i { flex: none; width: 8px; height: 8px; border-radius: 50%; background: #a9bccb; }
+.tk-review.is-on > i { background: #527c6d; }
+.tk-review.is-due { color: #8a5f33; font-weight: 650; }
+.tk-review.is-due > i { background: #b07a45; }
+.tk-review .tk-thin { margin-left: auto; }
+
+.tk-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; margin-top: 20px; }
+.tk .tk-btn {
+  padding: 11px 14px;
+  border: 1px solid #c8d9e5;
+  border-radius: 11px;
+  background: #f3f8fb;
+  color: #355d7a;
+  font-size: calc(12 * var(--tpx));
+  font-weight: 750;
+  line-height: 1.2;
+}
+.tk .tk-btn.is-primary { background: #254f6c; border-color: #254f6c; color: #fff; }
+.tk .tk-btn.is-soft { background: #e9f0ec; border-color: #c9dbcf; color: #3f6b5b; }
+.tk .tk-btn:disabled { opacity: .5; cursor: not-allowed; }
+.tk .tk-btn { position: relative; }
+.tk .tk-btn::after { content: ""; position: absolute; inset: -3px; }
+.tk .tk-thin {
+  position: relative;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid #9ab7cb;
+  background: none;
+  color: #3d6683;
+  font-size: calc(12 * var(--tpx));
+  font-weight: 700;
+  line-height: 1.4;
+}
+.tk .tk-thin::after { content: ""; position: absolute; inset: -12px -8px; }
+.tk .tk-quiet { position: relative; padding: 0; border: 0; background: none; color: var(--tk-meta); font-size: calc(12 * var(--tpx)); text-decoration: underline; text-decoration-color: #b7c8d4; text-underline-offset: 3px; }
+.tk .tk-quiet::after { content: ""; position: absolute; inset: -12px -6px; }
+.tk-removerow { display: flex; justify-content: flex-end; margin-top: 30px; }
+@media (hover: hover) {
+  .tk .tk-btn:not(:disabled):not(.is-primary):hover { background: #e9f2f8; }
+  .tk .tk-btn.is-primary:not(:disabled):hover { background: #1d4560; }
+  .tk :is(.tk-thin, .tk-source):hover { color: #1e4967; border-color: #6f97b3; }
+  .tk .tk-viewtab:not([aria-selected="true"]):hover { color: #1e4967; }
+}
+
+/* ── Use in conversation ──────────────────────────────────────────────── */
+.tk .tk-h { margin: 15px 0 7px; font-family: var(--tk-serif); font-size: calc(22 * var(--tpx)); font-weight: 600; color: var(--tk-ink); }
+.tk-purpose { font-size: calc(12 * var(--tpx)); line-height: 1.6; color: var(--tk-meta); }
+.tk-roles { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+.tk .tk-role {
+  position: relative;
+  padding: 8px 11px;
+  border: 1px solid #d2e0e8;
+  border-radius: 999px;
+  background: #f3f7f9;
+  color: #536f84;
+  font-size: calc(11 * var(--tpx));
+  font-weight: 750;
+  line-height: 1.2;
+}
+.tk .tk-role::after { content: ""; position: absolute; inset: -6px -2px; }
+.tk .tk-role[aria-pressed="true"] { background: #2e536d; border-color: #2e536d; color: #fff; }
+.tk-role-purpose { margin-top: 9px; font-size: calc(12 * var(--tpx)); color: var(--tk-meta); }
+.tk-card { margin: 18px 0 0; padding: 19px 21px; border: 1px solid #d5e2ea; border-radius: 16px; background: #f3f7fa; }
+.tk-card-quote {
+  margin: 13px 0;
+  font-family: var(--tk-serif);
+  font-size: calc(23 * var(--tpx));
+  line-height: 1.45;
+  letter-spacing: -.014em;
+  color: #173950;
+  overflow-wrap: anywhere;
+}
+.tk-card-long { margin: 13px 0; font-family: var(--tk-serif); font-size: calc(18 * var(--tpx)); line-height: 1.55; color: #173950; }
+.tk-card-long :is(p, ul, ol) { margin: 0 0 .7em; }
+.tk-card-long :is(ul, ol) { padding-left: 1.3em; }
+.tk-context { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 13px; }
+.tk-mini { min-width: 0; padding: 16px; border: 1px solid #e0e8ed; border-radius: 13px; background: #f7f9fa; }
+.tk .tk-mini h3 { margin: 8px 0; font-size: calc(12 * var(--tpx)); font-weight: 700; color: #21465f; }
+.tk-mini p { font-size: calc(12 * var(--tpx)); line-height: 1.6; color: #546e82; }
+.tk-mini-note { white-space: pre-wrap; }
+.tk-supporting { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.tk .tk-support {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #546e82;
+  font-size: calc(12 * var(--tpx));
+  line-height: 1.6;
+  text-align: left;
+}
+.tk-supporting small { display: block; margin-top: 4px; font-size: calc(11 * var(--tpx)); color: var(--tk-meta); }
+@media (hover: hover) {
+  .tk .tk-support:hover { color: var(--tk-ink); text-decoration: underline; text-decoration-color: #b7c8d4; }
+}
+.tk-hint { margin: 12px 0; font-size: calc(11 * var(--tpx)); line-height: 1.5; color: var(--tk-meta); }
+
+/* ── The meeting kit ──────────────────────────────────────────────────── */
+.tk-kit { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.tk-kit-context {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 20px 21px;
+  border: 1px solid var(--tk-line);
+  border-radius: 15px;
+  background: #f4f8fa;
+}
+.tk .tk-kit-title { margin: 8px 0; font-family: var(--tk-serif); font-size: calc(27 * var(--tpx)); font-weight: 700; color: var(--tk-ink); }
+.tk-kit-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.tk-kit-field .tk-input { min-width: 200px; max-width: 100%; }
+.tk-kit-group { padding: 14px 0 5px; border-bottom: 1px solid var(--tk-line); }
+.tk .tk-kit-group h3 { margin: 4px 0 11px; font-size: calc(11 * var(--tpx)); font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--tk-caps); }
+.tk-kit-group ul { margin: 0; padding: 0; list-style: none; }
+.tk-kit-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; padding: 11px 0; border-top: 1px solid #eef2f5; }
+.tk-kit-item:first-child { border-top: 0; }
+.tk-kit-item > div { min-width: 0; }
+.tk-kit-item p, .tk-kit-long { margin: 4px 0; font-family: var(--tk-serif); font-size: calc(18 * var(--tpx)); line-height: 1.4; color: #1b4059; overflow-wrap: anywhere; }
+.tk-kit-long :is(p, ul, ol) { margin: 0 0 .5em; }
+.tk-kit-long :is(ul, ol) { padding-left: 1.3em; }
+.tk-kit-item small { display: block; margin-top: 2px; font-size: calc(11 * var(--tpx)); color: var(--tk-meta); }
+.tk-kit-item small .tk-quiet { font-size: inherit; }
+.tk .tk-remove { position: relative; flex: none; padding: 6px; border: 0; background: transparent; color: var(--tk-meta); font-size: calc(12 * var(--tpx)); }
+.tk .tk-remove::after { content: ""; position: absolute; inset: -6px; }
+.tk-kit-none { padding: 7px 0 14px; }
+.tk-empty { padding: 28px; border: 1px dashed #c9dce7; border-radius: 14px; background: #f3f8fa; color: #587286; font-size: calc(13 * var(--tpx)); line-height: 1.7; }
+.tk-empty b { color: var(--tk-ink); }
+
+/* ── Narrower windows: the prototype's breakpoints ────────────────────── */
+@media (max-width: 1120px) {
+  .tk-workspace { grid-template-columns: minmax(245px, 36%) minmax(0, 1fr); }
+  .tk-panel-head { padding: 18px 16px 13px; }
+  .tk-right-body { padding: 26px 24px; }
+  .tk-right-top { padding: 13px 20px; }
+}
+@media (max-width: 850px) {
+  .intel.intel--saved .intel-reader,
+  .intel.intel--saved .intel-list { padding: 24px 16px max(60px, var(--intel-foot)); }
+  .tk .tk-title { font-size: calc(37 * var(--tpx)); }
+  .tk-workspace { grid-template-columns: minmax(220px, 36%) minmax(0, 1fr); }
+}
+@media (max-width: 620px) {
+  .tk-workspace { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+  .tk-left { border-right: 0; border-bottom: 1px solid var(--tk-line); }
+  .tk-list { display: flex; gap: 8px; padding: 10px; overflow-x: auto; max-height: none; scroll-snap-type: x proximity; }
+  .tk-list > li { flex: 0 0 230px; scroll-snap-align: start; }
+  .tk .tk-entry { display: flex; flex-direction: column; justify-content: flex-start; height: 100%; margin: 0; }
+  .tk-panel-head { padding: 16px; }
+  .tk-right-body { padding: 24px 20px; }
+  .tk-right-top { padding: 13px 14px; }
+  .tk .tk-title { font-size: calc(33 * var(--tpx)); }
+  .tk-metrics { display: none; }
+  .tk-context { grid-template-columns: minmax(0, 1fr); }
+  .tk-kit-field .tk-input { min-width: 160px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tk * { transition: none !important; scroll-behavior: auto !important; }
+}

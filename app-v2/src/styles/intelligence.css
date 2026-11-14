@@ -76,9 +76,9 @@
    of what it opens (--intel-nav-sheet: the memo's band, else the page), with
    no line between them, and only it carries the ink edge. Its sizes follow the
    window as the prototype's do; the row scrolls sideways when it cannot fit.
-   The memo's band and Today's page (INT-55, today.css) are light in both
-   themes, so their navigation is too; over Takeaways and Search the dark
-   theme has its own mist. */
+   The memo's band, Today's page (INT-55, today.css) and Takeaways' notebook
+   (INT-56, takeaways.css) are light in both themes, so their navigation is
+   too; over Search the dark theme has its own mist. */
 .intel {
   --intel-nav-mist-top: #dceaf3;
   --intel-nav-mist-bottom: #e8f0f5;
@@ -105,7 +105,8 @@
 }
 .intel--memo { --intel-nav-sheet: #eef4f7; }
 .intel--today { --intel-nav-sheet: #f9fbfc; }
-:root[data-theme="dark"] .intel:not(.intel--memo, .intel--today) {
+.intel--saved { --intel-nav-sheet: #fafcfd; }
+:root[data-theme="dark"] .intel:not(.intel--memo, .intel--today, .intel--saved) {
   --intel-nav-mist-top: #1a2631;
   --intel-nav-mist-bottom: #141c24;
   --intel-nav-tab: #1f2b36;
@@ -131,7 +132,7 @@
   padding: max(var(--sp-5), calc(env(safe-area-inset-top) + var(--sp-2))) var(--intel-nav-side) 0;
   background: linear-gradient(180deg, var(--intel-nav-mist-top), var(--intel-nav-mist-bottom));
 }
-.intel:is(.intel--memo, .intel--today) .intel-nav { color-scheme: light; }
+.intel:is(.intel--memo, .intel--today, .intel--saved) .intel-nav { color-scheme: light; }
 .intel-nav-tabs {
   position: relative;
   flex: 1;
@@ -727,13 +728,9 @@
 
 /* Today is the Reading Queue (INT-55), in today.css. */
 
-/* ── Takeaways ────────────────────────────────────────────────────────── */
-.intel-saved-view { display: flex; flex-direction: column; gap: var(--sp-3); padding-top: var(--sp-2); }
+/* ── Takeaways is the executive notebook (INT-56), in takeaways.css. ───── */
+/* Search's field and tags, shared with the edition reader's icon buttons. */
 .intel-search { position: relative; display: block; }
-.intel-saved-tools { display: flex; align-items: center; gap: var(--sp-2); }
-.intel-saved-tools .intel-search { flex: 1; min-width: 0; }
-.intel-export { flex: none; gap: 6px; }
-.intel-export svg { width: 18px; height: 18px; }
 .intel-search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--ink-3); pointer-events: none; }
 .intel-search .ds-input { width: 100%; box-sizing: border-box; padding-left: 42px; border-radius: var(--r-pill); }
 .intel-tagbar { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -755,17 +752,6 @@
 .intel-tagbar button span { font-size: calc(11 * var(--tpx)); color: var(--ink-3); font-variant-numeric: tabular-nums; }
 .intel-tagbar button[aria-pressed="true"] { color: var(--accent); border-color: var(--accent-line); background: var(--accent-tint); }
 
-.intel-saved {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: var(--sp-4) var(--sp-5) var(--sp-3);
-  border: 1px solid var(--hairline);
-  border-radius: var(--r-md);
-  background: var(--surface);
-}
-.intel-saved-top { display: flex; align-items: center; gap: 2px; min-height: 36px; margin-right: -8px; }
-.intel-saved-top .intel-eyebrow { flex: 0 1 auto; }
 .intel-iconbtn {
   position: relative;
   flex: none;
@@ -781,16 +767,6 @@
 .intel-iconbtn::after { content: ""; position: absolute; inset: -4px; }
 .intel-iconbtn svg { width: 17px; height: 17px; }
 .intel-iconbtn:active { background: var(--surface-press); color: var(--ink); }
-.intel-saved-title { font-size: calc(20 * var(--tpx)); line-height: 1.25; font-weight: 700; letter-spacing: -0.015em; }
-.intel-saved-term { margin: 0; font-size: calc(17 * var(--tpx)); line-height: 1.5; color: var(--ink); }
-.intel-saved-passage { margin: 0; padding-left: 14px; border-left: 3px solid var(--accent-line); font-size: calc(17 * var(--tpx)); line-height: 1.55; color: var(--ink); white-space: pre-wrap; }
-.intel-saved-text { font-size: calc(16 * var(--tpx)); }
-.intel-saved-text.is-folded {
-  max-height: 10.5em;
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(#000 60%, transparent);
-  mask-image: linear-gradient(#000 60%, transparent);
-}
 .intel-linkbtn {
   position: relative;
   align-self: flex-start;
@@ -802,28 +778,6 @@
   font-weight: 600;
 }
 .intel-linkbtn::after { content: ""; position: absolute; inset: -12px -6px; }
-.intel-saved-note { margin: 0; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-sm); background: var(--surface-sunken); font-size: calc(15 * var(--tpx)); line-height: 1.5; color: var(--ink-2); white-space: pre-wrap; }
-.intel-saved-tags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
-.intel-saved-tags li { padding: 2px 9px; border-radius: var(--r-pill); background: var(--accent-tint); color: var(--accent); font-size: calc(12 * var(--tpx)); font-weight: 600; }
-.intel-saved-edit { display: flex; flex-direction: column; gap: var(--sp-3); }
-.intel-saved-edit-actions { display: flex; justify-content: flex-end; gap: var(--sp-2); }
-.intel-saved-foot { display: flex; align-items: center; gap: var(--sp-2); margin-right: -8px; padding-top: var(--sp-2); border-top: 1px solid var(--hairline-faint); }
-.intel-saved-source {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: var(--sp-1);
-  min-height: var(--tap-min);
-  padding: 0;
-  border: none;
-  background: none;
-  color: var(--ink-3);
-  font-size: var(--t-meta);
-  text-align: left;
-}
-.intel-saved-source span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.intel-saved-source svg { flex: none; width: 15px; height: 15px; }
 
 /* ── Empty and failed states ──────────────────────────────────────────── */
 .intel-empty {
@@ -890,7 +844,6 @@
 .intel--single .intel-question-text, .intel--single .intel-rehearse-text { font-size: calc(17 * var(--tpx)); }
 .intel--single .intel-terms { grid-template-columns: 1fr; }
 .intel--single .intel-term { min-height: 0; }
-.intel--single .intel-saved { padding: var(--sp-3) var(--sp-4) var(--sp-2); }
 
 /* ── Conformance: labels, notices, feed status (conformance.ts) ───────── */
 .intel-tag {
@@ -1151,35 +1104,8 @@
 /* ── Review (INT-40, review.ts, ReviewView.tsx) ──────────────────────────
    Takeaways come back one card at a time: a cue, then what was kept and
    five ratings, each saying when it brings the card back. Today shows what
-   is waiting after its backlog (today.css); Takeaways, where each one stands. */
-
-.intel-review-bar-saved {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  padding: var(--sp-3) var(--sp-4) var(--sp-3) var(--sp-5);
-  border: 1px solid var(--accent-line);
-  border-radius: var(--r-md);
-  background: var(--surface-done);
-}
-.intel-review-bar-saved > svg { flex: none; width: 22px; height: 22px; color: var(--accent); }
-.intel-review-bar-saved > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.intel-review-bar-saved b { font-size: var(--t-card); font-weight: 600; }
-.intel-review-bar-saved span { font-size: var(--t-meta); color: var(--ink-2); }
-
-.intel-saved-review {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  min-height: 36px;
-  font-size: var(--t-meta);
-  color: var(--ink-2);
-}
-.intel-saved-review > i { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--ink-4); }
-.intel-saved-review.is-on > i { background: var(--accent); opacity: .45; }
-.intel-saved-review.is-due { color: var(--accent); font-weight: 600; }
-.intel-saved-review.is-due > i { background: var(--accent); }
-.intel-saved-review .intel-linkbtn { align-self: center; margin-left: auto; }
+   is waiting after its backlog (today.css); Takeaways, where each one stands
+   (takeaways.css). */
 
 .intel--review { padding-left: var(--sp-5); padding-right: var(--sp-5); }
 .intel-review-bar { display: flex; align-items: center; gap: var(--sp-3); }

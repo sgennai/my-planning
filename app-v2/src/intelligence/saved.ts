@@ -106,13 +106,19 @@ export function parseTags(input: string): string[] {
 }
 
 
-/** Items matching every word of the query (in any field) and carrying the tag, if one is chosen. */
-export function searchSaved(saved: SavedInsight[], query: string, tag: string | null, feedLabel: (id: FeedId) => string): SavedInsight[] {
+/**
+ * Items matching every word of the query (in any field, the edition's topics
+ * too when they are known) and carrying the tag, if one is chosen.
+ */
+export function searchSaved(
+  saved: SavedInsight[], query: string, tag: string | null, feedLabel: (id: FeedId) => string,
+  topicsOf: (item: SavedInsight) => string[] = () => [],
+): SavedInsight[] {
   const words = fold(query).split(/\s+/).filter(Boolean);
   return saved.filter(s => {
     if (tag && !s.tags.some(t => t.toLowerCase() === tag.toLowerCase())) return false;
     if (!words.length) return true;
-    const hay = fold([s.text, s.label, s.note, s.sectionTitle, s.editionTitle, feedLabel(s.feedId), ...s.tags].join(' '));
+    const hay = fold([s.text, s.label, s.note, s.sectionTitle, s.editionTitle, feedLabel(s.feedId), ...s.tags, ...topicsOf(s)].join(' '));
     return words.every(w => hay.includes(w));
   });
 }

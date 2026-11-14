@@ -15,7 +15,8 @@ import type { RoutineActivity } from '../routine/model';
 import { readingIndex, withPosition, withRead } from '../intelligence/reading';
 import { reviewIndex, withRating } from '../intelligence/review';
 import type { Edition } from '../intelligence/parse';
-import type { SavedInsight } from '../intelligence/saved';
+import { savedOf, removeInsight, type SavedInsight } from '../intelligence/saved';
+import { kitOf, roleOf, withRole, withMembership, withKitLabel, withoutKit } from '../intelligence/kit';
 
 // ── Stand-in Worker: last-write-wins by updatedAt, listed by arrival ─────────
 let clock = Date.parse('2026-10-29T08:00:00.000Z');
@@ -266,6 +267,85 @@ describe('two devices reading the same edition (INT-14, D11)', () => {
     ipad = await as(ipad, async () => { tick(); await sync(); });
     await as(iphone, async () => { tick(); await sync(); expect(reviewIndex((await read()).progressLog).get('is:q')).toMatchObject({ confidence: 1, count: 3 }); });
     await as(ipad, async () => { tick(); await sync(); expect(reviewIndex((await read()).progressLog).get('is:q')).toMatchObject({ confidence: 1, count: 3 }); });
+  });
+});
+
+describe('the meeting kit on two devices (INT-56)', () => {
+  const kept = (id: string, text: string): SavedInsight => ({
+    id, type: 'intel-saved', kind: 'labelled', feedId: 'enterprise-ai-challenge', driveFileId: '1Doc',
+    editionTitle: 'Lanterns at the Harbour', editionDate: '2026-10-28', editionTime: '08:20', sourceUrl: 'https://docs.google.com/document/d/1Doc/edit',
+    sectionId: 'questions', sectionTitle: 'Executive questions', label: 'Executive question', text, note: '', tags: [], savedAt: '2026-10-28T09:00:00Z',
+  });
+  const q = kept('is:q', 'Which lantern would you light first?');
+  const r = kept('is:r', 'Who keeps the harbour lit?');
+  /** Changes this device's content at the clock's next second. */
+  const change = async (f: (content: unknown[]) => unknown[]) => {
+    const d = await read();
+    vi.setSystemTime(tick());
+    await save({ ...d, content: f((d.content as unknown[]) || []) });
+  };
+  const kitHere = async () => { const d = await read(); return { kit: kitOf(d.content as unknown[]), saved: savedOf(d.content as unknown[]), log: d.progressLog }; };
+
+  it('a role changed offline on one and the item taken out on the other: both stand, and the takeaways do not change', async () => {
+    let [ipad, iphone] = await twoDevices();
+    ipad = await as(ipad, async () => { await change(c => withMembership([...c, q, r], q, true, new Date(clock))); tick(); await sync(); });
+    iphone = await as(iphone, async () => { tick(); await sync(); });
+    online.value = false;
+    ipad = await as(ipad, async () => { await change(c => withRole(c, q, 'challenge')); await sync(); });
+    iphone = await as(iphone, async () => {
+      await change(c => withMembership(c, q, false, new Date(clock)));
+      await change(c => withMembership(c, r, true, new Date(clock)));
+      await sync();
+    });
+    online.value = true;
+    ipad = await as(ipad, async () => { tick(); await sync(); });
+    iphone = await as(iphone, async () => { tick(); await sync(); });
+    ipad = await as(ipad, async () => { tick(); await sync(); });
+    for (const device of [ipad, iphone]) {
+      await as(device, async () => {
+        const { kit, saved, log } = await kitHere();
+        expect(roleOf(kit, q)).toEqual({ role: 'challenge', chosen: true });
+        expect([...kit.members.keys()]).toEqual(['is:r']);
+        expect(saved.map(s => s.text).sort()).toEqual([q.text, r.text].sort());
+        expect(log.filter(x => (x as { type?: string }).type === 'intel-review')).toEqual([]);
+      });
+    }
+  });
+
+  it('the same item added on both is in the kit once; the meeting\'s name typed later stands', async () => {
+    let [ipad, iphone] = await twoDevices();
+    ipad = await as(ipad, async () => { await change(c => [...c, q]); tick(); await sync(); });
+    iphone = await as(iphone, async () => { tick(); await sync(); });
+    online.value = false;
+    ipad = await as(ipad, async () => { await change(c => withKitLabel(withMembership(c, q, true, new Date(clock)), 'Harbour board')); await sync(); });
+    iphone = await as(iphone, async () => { await change(c => withKitLabel(withMembership(c, q, true, new Date(clock)), 'Port authority')); await sync(); });
+    online.value = true;
+    ipad = await as(ipad, async () => { tick(); await sync(); });
+    iphone = await as(iphone, async () => { tick(); await sync(); });
+    ipad = await as(ipad, async () => { tick(); await sync(); });
+    for (const device of [ipad, iphone]) {
+      await as(device, async () => {
+        const { kit } = await kitHere();
+        expect([...kit.members.keys()]).toEqual(['is:q']);
+        expect(kit.label).toBe('Port authority');
+        expect((await read()).content as unknown[]).toHaveLength(4);
+      });
+    }
+  });
+
+  it('a takeaway removed on one device leaves the kit on the other with nothing of it', async () => {
+    const [first, iphone] = await twoDevices();
+    let ipad = first;
+    ipad = await as(ipad, async () => { await change(c => withMembership(withRole([...c, q, r], q, 'follow-up'), q, true, new Date(clock))); tick(); await sync(); });
+    await as(iphone, async () => { tick(); await sync(); await change(c => withoutKit(removeInsight(c, 'is:q'), 'is:q')); tick(); await sync(); });
+    await as(ipad, async () => {
+      tick();
+      await sync();
+      const { kit, saved } = await kitHere();
+      expect(saved.map(s => s.id)).toEqual(['is:r']);
+      expect(kit.members.size).toBe(0);
+      expect(kit.roles.size).toBe(0);
+    });
   });
 });
 

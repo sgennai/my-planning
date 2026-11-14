@@ -343,10 +343,10 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   Engagement on the left, Today · Takeaways smaller and apart on the right, then Search and
   Refresh as round buttons. Words only (no dot for something new; the count on Takeaways). The
   selected tab is the colour of what it opens (`--intel-nav-sheet`: the memo's band #eef4f7, Today's
-  page #f9fbfc, else the page's canvas), with no line between them, and alone carries the ink edge (an inset 3px
+  page #f9fbfc, Takeaways' #fafcfd, else the page's canvas), with no line between them, and alone carries the ink edge (an inset 3px
   line along its top); Search open selects no tab. Tokens `--intel-nav-*` on `.intel`; the memo
-  views and Today keep the light band in both themes (both are light), the dark theme has its own
-  mist over Takeaways and Search. Sizes follow the window as in the prototype (smaller at
+  views, Today and Takeaways keep the light band in both themes (all are light), the dark theme has its own
+  mist over Search. Sizes follow the window as in the prototype (smaller at
   ≤1120px; at ≤850px tabs 48/44px, the prototype's 43/40 raised to the touch minimum); one row
   at every size (the prototype's two rows at ≤850px would part the selected tab from its band),
   scrolling sideways when it cannot fit (a phone, large text), fading at an edge with more and
@@ -424,13 +424,37 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   (`mergeReading`, D11, INT-14): the furthest progress, read if either read it, the later write's
   section; after a Mark as unread, only what came after it counts. A device that had not caught
   up used to make an edition read elsewhere unread, its progress lower.
-- **Takeaways** (the brief's "À retenir"; `saved.ts`, `SavedView.tsx`): synced `content` records `is:<uuid>`, type
+- **Takeaways** (the brief's "À retenir"; `saved.ts`): synced `content` records `is:<uuid>`, type
   `intel-saved`, kinds edition / section / labelled (a question or the rehearse line) / term /
   passage (selected text, via a button at the foot because iOS gives web apps no selection
   menu). Each keeps the words as written plus the edition's title, date, time and link, so it
   shows on a device that never fetched the edition. Note, tags (comma-separated), search
-  (every word, any field, accents and case ignored), tag filter, a way back to the section.
-  Every save button toggles; taking something out asks first (`window.confirm`). **Export**
+  (every word, any field, the edition's topics too, accents and case ignored), tag filter, a way back to the section.
+  Every save button toggles; taking something out asks first (`window.confirm`). **The executive
+  notebook** (INT-56; `SavedView.tsx`, `MeetingKit.tsx`, `notebook.ts`, `kit.ts`, `useDraft.ts`,
+  `styles/takeaways.css`), after the user's approved prototype
+  `takeaways-notebook-conversation-kit-demo.html` (outside the repo): "Your executive notebook.",
+  two metrics (takeaways, in the meeting kit), then one workspace. Left, Saved knowledge: the
+  list newest first, each a Question (a labelled line whose label says question, as review
+  counts them) or an Insight (everything else), its review standing in words (To review /
+  Reviewed / New / Not in review), feed and date; search; filters All / Questions / Insights /
+  To review; a Tags pill opening the tag chips; Export; "n to review today · Start review". Right,
+  three tabs (arrows move): My notebook (the words large when one short paragraph, else at text
+  size; tags, the edition's topics, the source and both ways back to it, the note saved as you
+  write, review status with Add to / Take out of review, Review now for one due, Remove from
+  Takeaways), Use in conversation (role Opening / Challenge / Follow-up / Argument, suggested from
+  the kind until chosen; the exact words; your note; up to two saved items sharing a tag, the
+  edition or a canonical topic, saying which; Add to meeting kit; Copy exact wording), and the
+  Meeting kit (the meeting's name, the kit by role in the conversation's order, each Remove
+  asking and taking it out of the kit only, Change role, Copy meeting kit as Markdown, Export as
+  `meeting-kit-<day>.md`). What it shows (item, view, filter, search, tag) is kept by the screen
+  (`notebook`). The kit is records in `content` with fixed ids, each last-write-wins on its own:
+  `mk:main` (type `intel-kit`, the name), `kr:main:<takeaway>` (`intel-kit-role`),
+  `km:main:<takeaway>` (`intel-kit-member`, `inKit`, `addedAt`); a role belongs to the kit, so a
+  later second kit can give a takeaway another; a takeaway removed takes its kit records with it
+  (`withoutKit`), and a record without its takeaway is never shown. No D1 or schema change.
+  Light in both themes; the library is 35% (≥295px), 36% at ≤1120px, stacked at ≤620px with the
+  list scrolling sideways. **Export**
   (INT-43, D15; `export.ts`): what the list shows, newest first, as Markdown: each item's kind,
   feed, date, edition and section, the words quoted line by line as kept, note, tags, the Google
   Doc's link. On a touch device through the share sheet (`navigator.share` with a file), else a
@@ -575,7 +599,7 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   `rv:<takeaway id>`, type `intel-review`, value `{ on, due (DayKey), confidence, count, lastAt }`,
   removed with its takeaway. Due today, least known first, at most 10 a review (`SESSION_SIZE`),
   then "Review n more". Today shows a box after its backlog when something is due;
-  Takeaways a bar and each item's status. The review is view `review` (not a tab, never
+  Takeaways a line in its library, each item's standing, and Review now for the one chosen. The review is view `review` (not a tab, never
   remembered as the view to reopen): a cue per kind (`cueOf`), then what was kept with its note
   and a way to the edition, then the ratings, each saying when it brings the card back; each
   rating is saved as given, so leaving part-way loses nothing. Two devices' copies merge
@@ -627,7 +651,7 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   changes size with no tap or key in the 0.7 s before (a fold, a reveal, a jump are on purpose),
   it scrolls back to it. Keyed by view, edition and phone pane.
 - **Accessibility** (INT-33): axe-core finds nothing in any view, light or dark, in Chromium or
-  WebKit. Each view has one `h1` (Today's "A clearer next step"; hidden "Takeaways", "Search"; the edition's title; the
+  WebKit. Each view has one `h1` (Today's "A clearer next step"; Takeaways' "Your executive notebook."; hidden "Search"; the edition's title; the
   feed's name over a phone's list); part labels are headings (`h4` in a development card, `h3` in
   an Engagement section and for the AI Challenge's labelled blocks). States are words, not labels
   on dots or bars: `.intel-vh` text ("Unread,", "something saved", "n% read";
@@ -735,7 +759,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (533 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (562 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris

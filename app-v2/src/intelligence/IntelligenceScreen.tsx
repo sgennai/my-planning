@@ -2,7 +2,8 @@
 // Docs in Drive through /api/intel, newest first, at reading size.
 //
 // Views: one per feed, Today (the Reading Queue, INT-55, `TodayView`: the
-// newest of each feed, one previewed beside them) and Takeaways, under
+// newest of each feed, one previewed beside them) and Takeaways (the
+// executive notebook and its meeting kit, INT-56, `SavedView`), under
 // one top navigation (INT-54, `IntelligenceNav`): the feeds' folder tabs on
 // the left, Today and Takeaways apart on the right, the selected tab running
 // into what it opens. The three feeds are executive memos (INT-50, `MemoArticle`; INT-51,
@@ -22,6 +23,7 @@
 import '../styles/intelligence.css';
 import '../styles/memo.css';
 import '../styles/today.css';
+import '../styles/takeaways.css';
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react';
 import { FEEDS, feedById, type FeedId } from './feeds';
 import { useFeeds } from './useFeeds';
@@ -50,6 +52,8 @@ import { readingIndex, readingState, withPosition, withRead, isArchive } from '.
 import {
   savedOf, saveInsight, removeInsight, updateInsight, findSaved, nameOf, type SaveInput, type SavedInsight,
 } from './saved';
+import { kitOf, withRole, withMembership, withKitLabel, withoutKit, type Role } from './kit';
+import { wordsOf, NOTEBOOK_START, type NotebookState } from './notebook';
 import { dayNameShort, formatDayCompact, dayKeyOf, addDaysKey } from '../routine/dates';
 import { IconRefresh, IconList, IconX, IconChevronLeft, IconBookmark, IconPulse, IconSearch } from '../ui/icons';
 
@@ -156,6 +160,14 @@ interface IntelData {
   content?: unknown[];
 }
 
+/** A takeaway removed takes its review and its place in the meeting kit with it. */
+const unsave = (d: IntelData & Record<string, unknown>, id: string) => ({
+  ...d,
+  content: withoutKit(removeInsight(d.content, id), id),
+  progressLog: withoutReview(d.progressLog, id),
+  lastModified: new Date().toISOString(),
+});
+
 interface Props {
   data: IntelData | null;
   onPersist: (mutator: (current: IntelData & Record<string, unknown>) => IntelData & Record<string, unknown>) => void;
@@ -185,6 +197,9 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   // Today's queue: the feed previewed (first, the AI Challenge) and whether the backlog is open, as left.
   const [todayFeed, setTodayFeed] = useState<FeedId>(FEEDS[0].id);
   const [backlogOpen, setBacklogOpen] = useState(false);
+  // Takeaways' notebook: the item chosen, its view, the list's search and filters, as left.
+  const [notebook, setNotebook] = useState<NotebookState>(NOTEBOOK_START);
+  const onNotebook = useCallback((patch: Partial<NotebookState>) => setNotebook(n => ({ ...n, ...patch })), []);
   // Where an edition opened from Today or Takeaways should start.
   const [jump, setJump] = useState<{ driveFileId: string; sectionId: string | null } | null>(null);
   const [drawer, setDrawer] = useState(false);
@@ -203,6 +218,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   const [readingAtOpen] = useState(() => readingIndex(data?.progressLog));
   const saved = useMemo(() => savedOf(data?.content), [data?.content]);
   const reviews = useMemo(() => reviewIndex(data?.progressLog), [data?.progressLog]);
+  const kit = useMemo(() => kitOf(data?.content), [data?.content]);
   // What each feed's documents look like, judged again every minute so that
   // one still being written gets its grace period and no more.
   const now = useClock(60_000);
@@ -222,6 +238,12 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     return out;
   }, [states, conformance, now]);
   const savedFiles = useMemo(() => new Set(saved.map(s => s.driveFileId)), [saved]);
+  // The topics a takeaway's edition lists, when the edition is on this device.
+  const editionTopics = useMemo(
+    () => new Map(FEEDS.flatMap(f => (states[f.id]?.editions ?? []).map(e => [e.driveFileId, e.topics] as const))),
+    [states],
+  );
+  const topicsOf = useCallback((item: SavedInsight) => editionTopics.get(item.driveFileId) ?? [], [editionTopics]);
   // Every edition under its topics, for an edition's related ones.
   const topics = useMemo(() => topicIndex(FEEDS.flatMap(f => states[f.id]?.editions ?? [])), [states]);
   // Takeaways due for review today, and how many tomorrow.
@@ -368,8 +390,8 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   };
 
   const remove = (item: SavedInsight) => {
-    if (!window.confirm(`Remove “${nameOf(item)}” from Takeaways?`)) return;
-    onPersist(d => ({ ...d, content: removeInsight(d.content, item.id), progressLog: withoutReview(d.progressLog, item.id), lastModified: stamp() }));
+    if (!window.confirm(`Remove “${wordsOf(item)}” from Takeaways?`)) return;
+    onPersist(d => unsave(d, item.id));
     onNote('Removed from Takeaways');
   };
   const rate = (item: SavedInsight, confidence: number) =>
@@ -384,13 +406,24 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     const existing = findSaved(saved, e, input);
     if (existing) {
       if (!window.confirm(`Remove “${nameOf(existing)}” from Takeaways?`)) return;
-      onPersist(d => ({ ...d, content: removeInsight(d.content, existing.id), progressLog: withoutReview(d.progressLog, existing.id), lastModified: stamp() }));
+      onPersist(d => unsave(d, existing.id));
       onNote('Removed from Takeaways');
     } else {
       onPersist(d => ({ ...d, content: saveInsight(d.content, e, input), lastModified: stamp() }));
       onNote('Saved to Takeaways');
     }
   }, [saved, onPersist, onNote, keep]);
+  // The meeting kit: a takeaway's role and place in it, and the meeting's name (kit.ts).
+  const content = (f: (c: unknown[] | undefined) => unknown[]) =>
+    onPersist(d => { const next = f(d.content); return next === d.content ? d : { ...d, content: next, lastModified: stamp() }; });
+  const setRole = (item: SavedInsight, role: Role) => content(c => withRole(c, item, role));
+  const setInKit = (item: SavedInsight, inKit: boolean) => {
+    if (!inKit && !window.confirm(`Take “${wordsOf(item)}” out of the meeting kit? It stays in Takeaways.`)) return;
+    content(c => withMembership(c, item, inKit));
+    onNote(inKit ? 'Added to the meeting kit' : 'Taken out of the meeting kit. It stays in Takeaways.');
+  };
+  const setKitLabel = (label: string) => content(c => withKitLabel(c, label));
+
   const toggleSaveHere = useCallback((input: SaveInput) => { if (edition) toggleSave(edition, input); }, [edition, toggleSave]);
 
   // ── Navigation ──────────────────────────────────────────────────────────
@@ -409,8 +442,8 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     choose(e, sectionId);
   };
   // A review is not remembered as the view to reopen on: it is a moment's.
-  const startReview = (from: View) => {
-    setSession({ items: due.slice(0, SESSION_SIZE), from, key: Date.now() });
+  const startReview = (from: View, items = due.slice(0, SESSION_SIZE)) => {
+    setSession({ items, from, key: Date.now() });
     setView('review');
     setDrawer(false);
   };
@@ -480,8 +513,8 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     />
   );
   const noteLine = note && <div key={note.at} className="intel-note" role="status">{note.text}</div>;
-  // Today is the memos' paper, light in both themes (today.css).
-  const todayClass = view === 'today' ? ' intel--today' : '';
+  // Today and Takeaways are the memos' paper, light in both themes (today.css, takeaways.css).
+  const pageClass = view === 'today' ? ' intel--today' : view === 'saved' ? ' intel--saved' : '';
 
   const list = (head: ReactNode) => (
     <>
@@ -635,19 +668,23 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
       ? (
         <SavedView
           saved={saved}
-          onOpen={openSaved}
-          onUpdate={(item, patch) => {
-            onPersist(d => ({ ...d, content: updateInsight(d.content, item.id, patch), lastModified: stamp() }));
-            onNote('Saved');
-          }}
-          onRemove={remove}
-          onNote={onNote}
           reviews={reviews}
           today={today}
           due={due}
-          dueTomorrow={dueTomorrow}
+          kit={kit}
+          topicsOf={topicsOf}
+          state={notebook}
+          onState={onNotebook}
+          onOpen={openSaved}
+          onPatch={(item, patch) => content(c => updateInsight(c, item.id, patch))}
+          onRemove={remove}
+          onNote={onNote}
           onReview={() => startReview('saved')}
+          onReviewOne={item => startReview('saved', [item])}
           onReviewing={setReviewing}
+          onRole={setRole}
+          onKit={setInKit}
+          onKitLabel={setKitLabel}
         />
       )
       : null;
@@ -708,7 +745,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
       );
     }
     return (
-      <div className={`intel intel--single${todayClass}`} style={rootStyle}>
+      <div className={`intel intel--single${pageClass}`} style={rootStyle}>
         {nav(searchButton)}
         {statusLine}
         <div className="intel-list" {...panel}>
@@ -726,7 +763,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   }
 
   return (
-    <div className={`intel intel--${mode}${todayClass}${drawerOpen ? ' is-drawer-open' : ''}`} style={rootStyle}>
+    <div className={`intel intel--${mode}${pageClass}${drawerOpen ? ' is-drawer-open' : ''}`} style={rootStyle}>
       {nav(
         <>{searchButton}{refreshButton}</>,
         mode === 'drawer' && feedId && (
