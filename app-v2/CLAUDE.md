@@ -342,11 +342,11 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   repo): a mist band (gradient) with folder tabs, Enterprise AI · AI Challenge · Customer
   Engagement on the left, Today · Takeaways smaller and apart on the right, then Search and
   Refresh as round buttons. Words only (no dot for something new; the count on Takeaways). The
-  selected tab is the colour of what it opens (`--intel-nav-sheet`: the memo's band #eef4f7, else
-  the page's canvas), with no line between them, and alone carries the ink edge (an inset 3px
+  selected tab is the colour of what it opens (`--intel-nav-sheet`: the memo's band #eef4f7, Today's
+  page #f9fbfc, else the page's canvas), with no line between them, and alone carries the ink edge (an inset 3px
   line along its top); Search open selects no tab. Tokens `--intel-nav-*` on `.intel`; the memo
-  views keep the light band in both themes (the memo is light), the dark theme has its own mist
-  over Today, Takeaways and Search. Sizes follow the window as in the prototype (smaller at
+  views and Today keep the light band in both themes (both are light), the dark theme has its own
+  mist over Takeaways and Search. Sizes follow the window as in the prototype (smaller at
   ≤1120px; at ≤850px tabs 48/44px, the prototype's 43/40 raised to the touch minimum); one row
   at every size (the prototype's two rows at ≤850px would part the selected tab from its band),
   scrolling sideways when it cannot fit (a phone, large text), fading at an edge with more and
@@ -435,12 +435,26 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   feed, date, edition and section, the words quoted line by line as kept, note, tags, the Google
   Doc's link. On a touch device through the share sheet (`navigator.share` with a file), else a
   download; the file is `takeaways-<Paris day>.md`. The JSON backup in Settings is unchanged.
-- **Today** (`TodayView.tsx`): the newest edition of each feed in `FEEDS` order (AI Challenge,
-  sales brief, customer engagement) with its age (Today / Yesterday / date · n days ago),
-  New / Updated / n % read / Read, a preview taken from its own first lines (`previewOf`), and
-  Read / Continue · section / Read again, plus "k older unread" (opens the feed). Below, "Still
-  unread": every other unread edition across feeds, newest first, folded after five. "n unread"
-  beside the date. "No edition yet" names only feeds Drive has answered for.
+- **Today** (INT-55, `TodayView.tsx`, `styles/today.css`): the Reading Queue, after Option 02 of
+  the user's approved prototype `today-10-executive-memo.html` (outside the repo). "The reading
+  queue / <Paris day>", "A clearer next step"; then one container: on the left the three feeds in
+  `FEEDS` order (01 AI Challenge, 02 Enterprise AI, 03 Customer Engagement), each its newest
+  edition's title, short date and where you are in it in words (Unread / n% read / Read / Updated
+  since read / From the archive), buttons with `aria-pressed`; on the right the one chosen
+  (first the AI Challenge; kept by the screen, `todayFeed`, so coming back finds it): feed, a pill
+  (Latest edition, or "Latest · Fri 13 Nov" when not today's — Customer Engagement on a weekend
+  is not missing — or ✓ Read), date · time, title (Georgia), a preview in the edition's own words
+  (`previewOf`: "What I should remember today"; else the Executive take's conclusion after its
+  list; else the Challenge's bold opening and the paragraph after it; whole sentences up to 440
+  characters, verbatim on all 128 archived editions), three topics, Open edition (that edition, in
+  its memo) and Mark read / Mark unread (`withRead`, synced, without changing which edition a feed
+  opens on). Choosing reads nothing and stays on Today; on a phone (≤660px, stacked) it scrolls
+  the preview into view and the copy says "above". Below: "Still unread" (every other unread
+  edition, newest first; folded until Expand, kept open by the screen; five then "Show all n";
+  each row Open), takeaways due for review, Your reading, Publishing. Light in both themes, like
+  the memos; the Today tab is its page (#f9fbfc). Feeds column 370px, 300px at ≤1200px, stacked
+  at ≤660px (the window's, as the prototype). "No edition yet" only for feeds Drive has answered
+  for.
 - **Conformance** (`conformance.ts`, `FeedStatus.tsx`): per edition — header problems
   (`issues`), duplicate filenames (all kept, labelled), empty bodies ("Incomplete" after a
   30-min grace from Drive's `createdTime`, "Being written" before; judged on a 1-min clock),
@@ -560,7 +574,7 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   one" takes it out (it stays in Takeaways). One synced `progressLog` record per takeaway,
   `rv:<takeaway id>`, type `intel-review`, value `{ on, due (DayKey), confidence, count, lastAt }`,
   removed with its takeaway. Due today, least known first, at most 10 a review (`SESSION_SIZE`),
-  then "Review n more". Today shows a card after the newest editions when something is due;
+  then "Review n more". Today shows a box after its backlog when something is due;
   Takeaways a bar and each item's status. The review is view `review` (not a tab, never
   remembered as the view to reopen): a cue per kind (`cueOf`), then what was kept with its note
   and a way to the edition, then the ratings, each saying when it brings the card back; each
@@ -569,7 +583,7 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   keeps the higher.
 - **Backfill and the archive** (INT-34): imported editions (`origin: "backfill"`) are the
   archive: `isArchive` / `countsAsUnread` (`reading.ts`) keep them out of every unread list, count
-  and dot (Today's "Still unread" and "n unread", "Your reading", a feed tab's dot, the edition
+  and dot (Today's queue and "Still unread", "Your reading", a feed tab's dot, the edition
   list's unread mark, the edition a feed opens on), while they stay listed ("Imported"),
   searchable, related and readable. History comes from the scheduled task's ChatGPT page:
   `SUPPORTING FILES/backfill/extract-chatgpt-task.js` (a console script, read-only, reads each
@@ -613,7 +627,7 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   changes size with no tap or key in the 0.7 s before (a fold, a reveal, a jump are on purpose),
   it scrolls back to it. Keyed by view, edition and phone pane.
 - **Accessibility** (INT-33): axe-core finds nothing in any view, light or dark, in Chromium or
-  WebKit. Each view has one `h1` (hidden "Today", "Takeaways", "Search"; the edition's title; the
+  WebKit. Each view has one `h1` (Today's "A clearer next step"; hidden "Takeaways", "Search"; the edition's title; the
   feed's name over a phone's list); part labels are headings (`h4` in a development card, `h3` in
   an Engagement section and for the AI Challenge's labelled blocks). States are words, not labels
   on dots or bars: `.intel-vh` text ("Unread,", "something saved", "n% read";
@@ -721,7 +735,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (531 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (533 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris

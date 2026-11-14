@@ -1,7 +1,8 @@
 // The Intelligence section: the ChatGPT briefings, read from private Google
 // Docs in Drive through /api/intel, newest first, at reading size.
 //
-// Views: one per feed, Today (the newest of each feed) and Takeaways, under
+// Views: one per feed, Today (the Reading Queue, INT-55, `TodayView`: the
+// newest of each feed, one previewed beside them) and Takeaways, under
 // one top navigation (INT-54, `IntelligenceNav`): the feeds' folder tabs on
 // the left, Today and Takeaways apart on the right, the selected tab running
 // into what it opens. The three feeds are executive memos (INT-50, `MemoArticle`; INT-51,
@@ -20,6 +21,7 @@
 // `progressLog` and `content`.
 import '../styles/intelligence.css';
 import '../styles/memo.css';
+import '../styles/today.css';
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react';
 import { FEEDS, feedById, type FeedId } from './feeds';
 import { useFeeds } from './useFeeds';
@@ -180,6 +182,9 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   });
   // …and the ones chosen since.
   const [chosen, setChosen] = useState<Partial<Record<FeedId, string>>>({});
+  // Today's queue: the feed previewed (first, the AI Challenge) and whether the backlog is open, as left.
+  const [todayFeed, setTodayFeed] = useState<FeedId>(FEEDS[0].id);
+  const [backlogOpen, setBacklogOpen] = useState(false);
   // Where an edition opened from Today or Takeaways should start.
   const [jump, setJump] = useState<{ driveFileId: string; sectionId: string | null } | null>(null);
   const [drawer, setDrawer] = useState(false);
@@ -350,12 +355,16 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   // Today and Takeaways open at their top; an edition places itself.
   useEffect(() => { if (!isFeed(view)) readerRef.current?.scrollTo({ top: 0 }); }, [view]);
 
-  const toggleRead = (e: Edition) => {
+  // From Today, which edition a feed opens on stays as it was.
+  const markRead = (e: Edition) => {
     const read = !reading.get(e.driveFileId)?.readAt;
-    keep(e);
     flushPosition();
     onPersist(d => ({ ...d, progressLog: withRead(d.progressLog, e, read), lastModified: stamp() }));
     onNote(read ? 'Marked as read' : 'Marked as unread');
+  };
+  const toggleRead = (e: Edition) => {
+    keep(e);
+    markRead(e);
   };
 
   const remove = (item: SavedInsight) => {
@@ -471,6 +480,8 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     />
   );
   const noteLine = note && <div key={note.at} className="intel-note" role="status">{note.text}</div>;
+  // Today is the memos' paper, light in both themes (today.css).
+  const todayClass = view === 'today' ? ' intel--today' : '';
 
   const list = (head: ReactNode) => (
     <>
@@ -608,12 +619,16 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
         now={now}
         health={health}
         onOpen={e => openEdition(e)}
-        onOpenFeed={switchView}
+        onToggleRead={markRead}
         labelOf={e => labelOf(conformance[e.feedId]?.flags.get(e.driveFileId))}
         onStatus={() => setStatusSheet(FEEDS.map(f => f.id))}
         review={{ due, tomorrow: dueTomorrow }}
         onReview={() => startReview('today')}
         reviews={reviews}
+        focus={todayFeed}
+        onFocus={setTodayFeed}
+        backlogOpen={backlogOpen}
+        onBacklog={setBacklogOpen}
       />
     )
     : view === 'saved'
@@ -693,7 +708,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
       );
     }
     return (
-      <div className="intel intel--single" style={rootStyle}>
+      <div className={`intel intel--single${todayClass}`} style={rootStyle}>
         {nav(searchButton)}
         {statusLine}
         <div className="intel-list" {...panel}>
@@ -711,7 +726,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   }
 
   return (
-    <div className={`intel intel--${mode}${drawerOpen ? ' is-drawer-open' : ''}`} style={rootStyle}>
+    <div className={`intel intel--${mode}${todayClass}${drawerOpen ? ' is-drawer-open' : ''}`} style={rootStyle}>
       {nav(
         <>{searchButton}{refreshButton}</>,
         mode === 'drawer' && feedId && (

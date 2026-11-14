@@ -93,16 +93,72 @@ beforeEach(async () => {
 afterEach(() => { cleanup(); vi.useRealTimers(); });
 
 describe('the Intelligence section', () => {
-  it('opens on Today: the newest edition of each feed, with a few of its own words', async () => {
+  it('opens on Today, the reading queue: the three feeds, the first previewed in its own words', async () => {
     render(<App />);
-    expect(await screen.findByRole('heading', { level: 2, name: 'Agent Sprawl: Who Owns the Bots?' })).toBeInTheDocument();
+    const preview = await screen.findByRole('region', { name: 'Preview' });
+    expect(await within(preview).findByRole('heading', { level: 2, name: 'Agent Sprawl: Who Owns the Bots?' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Today' })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByText('Teams are deploying AI agents faster than anyone can list them.')).toBeInTheDocument();
-    expect(screen.getByText('New')).toBeInTheDocument();
-    expect(await screen.findByText('No edition yet: Enterprise AI, Customer Engagement.')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Read' }));
+    expect(screen.getByRole('heading', { level: 1, name: 'A clearer next step' })).toBeInTheDocument();
+    // The Paris day, not a date written in.
+    expect(screen.getByText('The reading queue / 2 November')).toBeInTheDocument();
+    // The Challenge's opening and the paragraph after it, as written.
+    expect(within(preview).getByText('Teams are deploying AI agents faster than anyone can list them. Each department builds its own agents to automate requests, and nobody keeps an inventory.')).toBeInTheDocument();
+    expect(preview).toHaveTextContent(/^AI Challenge•Latest editionMon 2 Nov · 08:20Agent Sprawl/);
+    expect(within(within(preview).getByRole('list', { name: 'Topics' })).getAllByRole('listitem').map(li => li.textContent)).toEqual(['Governance', 'Agentic AI', 'Operating models']);
+    // The three feeds in reading order, the first pressed; a feed with no edition says so.
+    const feeds = screen.getByRole('group', { name: 'Your three feeds' });
+    await within(feeds).findAllByText('No edition yet');
+    expect(within(feeds).getAllByRole('button').map(b => [b.textContent, b.getAttribute('aria-pressed')])).toEqual([
+      ['01 · AI ChallengeAgent Sprawl: Who Owns the Bots?Mon 2 Nov · Unread', 'true'],
+      ['02 · Enterprise AINo edition yet', 'false'],
+      ['03 · Customer EngagementNo edition yet', 'false'],
+    ]);
+    fireEvent.click(within(preview).getByRole('button', { name: 'Open edition' }));
     expect(screen.getByRole('heading', { level: 1, name: 'Agent Sprawl: Who Owns the Bots?' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /AI Challenge/ })).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('choosing a feed previews its newest edition in place: nothing is read by it, and the choice is still there on coming back', async () => {
+    withSales();
+    withEngagement();
+    render(<App />);
+    const preview = await screen.findByRole('region', { name: 'Preview' });
+    const feeds = screen.getByRole('group', { name: 'Your three feeds' });
+    const item = (n: string) => within(feeds).getByRole('button', { name: new RegExp(`^${n} · `) });
+    await within(feeds).findByRole('button', { name: /Connected Agents/ });
+    await within(feeds).findByRole('button', { name: /Outcome Pricing/ });
+
+    fireEvent.click(item('02'));
+    expect(item('02')).toHaveAttribute('aria-pressed', 'true');
+    expect(item('01')).toHaveAttribute('aria-pressed', 'false');
+    expect(within(preview).getByRole('heading', { level: 2 })).toHaveTextContent('Outcome Pricing and Sovereign Capacity');
+    // What to remember, as the brief says it; dated, as its latest, when it is not today's.
+    expect(within(preview).getByText('Outcome pricing is arriving. Sovereign capacity is growing.')).toBeInTheDocument();
+    expect(within(preview).getByText(/Latest · Tue 3 Nov/)).toBeInTheDocument();
+    fireEvent.click(item('03'));
+    expect(within(preview).getByRole('heading', { level: 2 })).toHaveTextContent('Connected Agents and Headless CDPs');
+    expect(within(preview).getByText('A vendor connected its agents end to end. Another exposed its CDP to assistants.')).toBeInTheDocument();
+    // Still on Today, and previewing read nothing.
+    expect(screen.getByRole('tab', { name: 'Today' })).toHaveAttribute('aria-selected', 'true');
+    expect(latest.progressLog).toEqual([]);
+
+    // Mark read: the row, the preview and the synced data say so; the feed still opens where it would.
+    fireEvent.click(within(preview).getByRole('button', { name: 'Mark read' }));
+    expect(readingIndex(latest.progressLog).get(ENGAGEMENT_FILE.id)?.readAt).toBeTruthy();
+    expect(item('03')).toHaveTextContent(/Mon 2 Nov · Read$/);
+    expect(preview.querySelector('.today-pill')).toHaveTextContent('✓Read');
+    expect(screen.getByText('Marked as read')).toBeInTheDocument();
+    expect(localStorage.getItem('my-planning-intel-edition:customer-engagement-brief')).toBeNull();
+    fireEvent.click(within(preview).getByRole('button', { name: 'Mark unread' }));
+    expect(readingIndex(latest.progressLog).get(ENGAGEMENT_FILE.id)?.readAt).toBeNull();
+    expect(item('03')).toHaveTextContent(/Mon 2 Nov · Unread$/);
+
+    // Open edition reads that edition in its memo; back on Today, the same feed is previewed.
+    fireEvent.click(within(preview).getByRole('button', { name: 'Open edition' }));
+    expect(screen.getByRole('heading', { level: 1, name: 'Connected Agents and Headless CDPs' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'Today' }));
+    expect(item('03')).toHaveAttribute('aria-pressed', 'true');
+    expect(within(screen.getByRole('region', { name: 'Preview' })).getByRole('heading', { level: 2 })).toHaveTextContent('Connected Agents and Headless CDPs');
   });
 
   it('the AI Challenge opens as its memo, its editions in the paper index beside it, the one read marked', async () => {
@@ -370,8 +426,11 @@ describe('what the app says about the documents (conformance)', () => {
   it('an imported edition says so, quietly, and is no problem', async () => {
     docText = CHALLENGE_DOC.replace('schema_version: 1', 'schema_version: 1\norigin: "backfill"');
     render(<App />);
-    const card = (await screen.findByRole('heading', { level: 2, name: 'Agent Sprawl: Who Owns the Bots?' })).closest('article')!;
-    expect(within(card).getByText('Imported')).toBeInTheDocument();
+    const preview = await screen.findByRole('region', { name: 'Preview' });
+    await within(preview).findByRole('heading', { level: 2, name: 'Agent Sprawl: Who Owns the Bots?' });
+    expect(within(preview).getByText('Imported')).toBeInTheDocument();
+    // The archive's, never unread.
+    expect(screen.getByRole('button', { name: /^01 · AI Challenge/ })).toHaveTextContent(/Mon 2 Nov · From the archive$/);
     fireEvent.click(screen.getByRole('tab', { name: /AI Challenge/ }));
     await screen.findByRole('heading', { level: 1 });
     expect(screen.queryByRole('note')).toBeNull();
@@ -429,39 +488,95 @@ describe('Today when editions pile up over several days', () => {
   });
   afterEach(() => vi.useRealTimers());
 
-  it('says how old each edition is, how many are unread, and lists the older ones newest first', async () => {
+  it('the newest is previewed; the older ones wait, folded, under Still unread, newest first', async () => {
     render(<App />);
     // The newest show first; the rest follow as they download.
-    const card = (await screen.findByRole('heading', { level: 2, name: 'Challenge of 2026-11-04' })).closest('article')!;
-    const list = await screen.findByRole('region', { name: 'Still unread · 7' });
-    expect(card).toHaveTextContent('AI Challenge · Today · 08:12');
-    expect(screen.getByText(/Wednesday 4 November/)).toHaveTextContent('Wednesday 4 November · 8 unread');
-    expect(within(card).getByRole('button', { name: '7 older unread' })).toBeInTheDocument();
+    const preview = await screen.findByRole('region', { name: 'Preview' });
+    await within(preview).findByRole('heading', { level: 2, name: 'Challenge of 2026-11-04' });
+    expect(preview).toHaveTextContent('Wed 4 Nov · 08:12');
+    const backlog = await screen.findByRole('region', { name: 'Still unread · 7 older editions' });
+    // Folded until opened.
+    expect(within(backlog).queryAllByRole('listitem')).toHaveLength(0);
+    fireEvent.click(within(backlog).getByRole('button', { name: 'Expand' }));
+    expect(within(backlog).getByRole('button', { name: 'Collapse' })).toHaveAttribute('aria-expanded', 'true');
 
-    const rows = () => within(list).getAllByRole('button', { name: /Challenge of/ }).map(b => b.textContent);
+    const rows = () => within(backlog).getAllByRole('listitem').map(li => li.textContent);
     expect(rows()).toHaveLength(5);
-    expect(rows()[0]).toContain('AI Challenge · Yesterday · 08:12');
-    expect(rows()[1]).toContain('Mon 2 Nov · 08:12 · 2 days ago');
-    fireEvent.click(within(list).getByRole('button', { name: 'Show all 7' }));
+    expect(rows()[0]).toBe('AI Challenge · Tue 3 NovChallenge of 2026-11-03Open ↗');
+    expect(rows()[1]).toContain('AI Challenge · Mon 2 Nov');
+    fireEvent.click(within(backlog).getByRole('button', { name: 'Show all 7' }));
     expect(rows()).toHaveLength(7);
-    expect(rows()[6]).toContain('Wed 28 Oct · 08:12 · 7 days ago');
+    expect(rows()[6]).toContain('Wed 28 Oct');
   });
 
-  it('an older edition opens from the list, and once read it leaves it', async () => {
+  it('an older edition opens from the backlog, and once read it leaves it', async () => {
     render(<App />);
-    const list = await screen.findByRole('region', { name: 'Still unread · 7' });
-    fireEvent.click(within(list).getByRole('button', { name: /Challenge of 2026-11-02/ }));
+    const backlog = await screen.findByRole('region', { name: 'Still unread · 7 older editions' });
+    fireEvent.click(within(backlog).getByRole('button', { name: 'Expand' }));
+    fireEvent.click(within(backlog).getByRole('button', { name: 'Open', description: 'Challenge of 2026-11-02' }));
     expect(screen.getByRole('heading', { level: 1, name: 'Challenge of 2026-11-02' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Mark as read' }));
     fireEvent.click(screen.getByRole('tab', { name: 'Today' }));
-    expect(screen.getByRole('region', { name: 'Still unread · 6' })).toBeInTheDocument();
-    expect(screen.getByText(/Wednesday 4 November/)).toHaveTextContent('7 unread');
+    // Still open, one fewer.
+    const after = screen.getByRole('region', { name: 'Still unread · 6 older editions' });
+    expect(within(after).getByRole('button', { name: 'Collapse' })).toBeInTheDocument();
+    expect(within(after).queryByText('Challenge of 2026-11-02')).toBeNull();
   });
 
-  it('"older unread" goes to the feed', async () => {
+  it('Open edition opens the edition previewed, whichever one its feed showed last', async () => {
     render(<App />);
-    fireEvent.click(await screen.findByRole('button', { name: '7 older unread' }));
-    expect(screen.getByRole('tab', { name: /AI Challenge/ })).toHaveAttribute('aria-selected', 'true');
+    const backlog = await screen.findByRole('region', { name: 'Still unread · 7 older editions' });
+    fireEvent.click(within(backlog).getByRole('button', { name: 'Expand' }));
+    fireEvent.click(within(backlog).getByRole('button', { name: 'Open', description: 'Challenge of 2026-10-30' }));
+    expect(screen.getByRole('heading', { level: 1, name: 'Challenge of 2026-10-30' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'Today' }));
+    fireEvent.click(within(screen.getByRole('region', { name: 'Preview' })).getByRole('button', { name: 'Open edition' }));
+    expect(screen.getByRole('heading', { level: 1, name: 'Challenge of 2026-11-04' })).toBeInTheDocument();
+  });
+});
+
+describe('Today on a Saturday, when Customer Engagement does not publish', () => {
+  // Saturday 7 November, 11:00 in Paris: the two daily feeds published every
+  // day; Customer Engagement last on Friday, as scheduled (Mon, Wed, Fri).
+  const editions = (base: typeof CHALLENGE_FILE, doc: string, from: string, tag: string, feed: string, hm: string, days: string[]) =>
+    days.map(d => {
+      const f = {
+        ...base, id: `1${tag}${d.replace(/-/g, '')}0000000000000`, name: `${d}_${hm.replace(':', '')}__${feed}`,
+        createdTime: `${d}T07:00:00.000Z`, modifiedTime: `${d}T07:00:05.000Z`,
+      };
+      texts[f.id] = doc.replace(`edition_date: "${from}"`, `edition_date: "${d}"`)
+        .replace(/generated_at: "[^"]+"/, `generated_at: "${d}T${hm}:00+01:00"`)
+        .replace(/title: "([^"]+)"/, `title: "$1 (${d})"`);
+      return f;
+    });
+  beforeEach(() => {
+    vi.setSystemTime(new Date('2026-11-07T10:00:00Z'));
+    texts = {};
+    const daily = ['2026-11-07', '2026-11-06', '2026-11-05'];
+    files = editions(CHALLENGE_FILE, CHALLENGE_DOC, '2026-11-02', 'C', 'enterprise-ai-challenge', '08:15', daily);
+    otherFeeds['enterprise-ai-sales-brief'] = editions(SALES_FILE, SALES_DOC, '2026-11-03', 'S', 'enterprise-ai-sales-brief', '09:05', daily);
+    otherFeeds['customer-engagement-brief'] = editions(ENGAGEMENT_FILE, ENGAGEMENT_DOC, '2026-11-02', 'E', 'customer-engagement-brief', '08:00', ['2026-11-06', '2026-11-04']);
+  });
+
+  it("shows Friday's Customer Engagement Brief as its latest, dated, and nothing as missing", async () => {
+    render(<App />);
+    const feeds = await screen.findByRole('group', { name: 'Your three feeds' });
+    await within(feeds).findByRole('button', { name: /Connected Agents and Headless CDPs \(2026-11-06\)/ });
+    await within(feeds).findByRole('button', { name: /Outcome Pricing and Sovereign Capacity \(2026-11-07\)/ });
+    await within(feeds).findByRole('button', { name: /Agent Sprawl: Who Owns the Bots\? \(2026-11-07\)/ });
+    expect(within(feeds).getAllByRole('button').map(b => b.querySelector('.today-meta')?.textContent)).toEqual([
+      'Sat 7 Nov · Unread', 'Sat 7 Nov · Unread', 'Fri 6 Nov · Unread',
+    ]);
+    fireEvent.click(within(feeds).getByRole('button', { name: /^03 · / }));
+    const preview = screen.getByRole('region', { name: 'Preview' });
+    expect(within(preview).getByText(/Latest · Fri 6 Nov/)).toBeInTheDocument();
+    expect(preview).toHaveTextContent('Fri 6 Nov · 08:00');
+    // No run was due today: nothing is late or missing, and the next run is Monday.
+    const publishing = await screen.findByRole('region', { name: 'Publishing' });
+    await vi.waitFor(() => expect(within(publishing).getByText('No run today · next Mon 9 Nov')).toBeInTheDocument());
+    expect(screen.queryByText(/didn't publish as scheduled/)).toBeNull();
+    // The older editions wait in the backlog, not in the queue.
+    expect(screen.getByRole('region', { name: 'Still unread · 5 older editions' })).toBeInTheDocument();
   });
 });
 
@@ -546,7 +661,7 @@ describe('searching every edition', () => {
 describe('with a keyboard and a screen reader (INT-33)', () => {
   it('each view is named by its one level-one heading', async () => {
     render(<App />);
-    expect(await screen.findByRole('heading', { level: 1, name: 'Today' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'A clearer next step' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('tab', { name: /Takeaways/ }));
     expect(screen.getAllByRole('heading', { level: 1 }).map(h => h.textContent)).toEqual(['Takeaways']);
     fireEvent.click(screen.getByRole('button', { name: 'Search every edition' }));
@@ -557,7 +672,7 @@ describe('with a keyboard and a screen reader (INT-33)', () => {
 
   it('the top navigation: the three feeds, then Today and Takeaways apart, then the tools; words only', async () => {
     render(<App />);
-    await screen.findByRole('heading', { level: 1, name: 'Today' });
+    await screen.findByRole('heading', { level: 1, name: 'A clearer next step' });
     const tablist = screen.getByRole('tablist', { name: 'Intelligence' });
     expect([...tablist.children].map(group => [...group.children].map(t => t.textContent))).toEqual([
       ['Enterprise AI', 'AI Challenge', 'Customer Engagement'], ['Today', 'Takeaways'],
@@ -577,7 +692,7 @@ describe('with a keyboard and a screen reader (INT-33)', () => {
 
   it('the tabs: one stop for Tab, arrows between them, Enter to open; the panel is named by its tab', async () => {
     render(<App />);
-    await screen.findByRole('heading', { level: 1, name: 'Today' });
+    await screen.findByRole('heading', { level: 1, name: 'A clearer next step' });
     const tabs = screen.getAllByRole('tab');
     expect(tabs.map(t => t.textContent)).toEqual(['Enterprise AI', 'AI Challenge', 'Customer Engagement', 'Today', 'Takeaways']);
     expect(tabs.map(t => t.tabIndex)).toEqual([-1, -1, -1, 0, -1]);
@@ -631,10 +746,13 @@ describe('with a keyboard and a screen reader (INT-33)', () => {
     expect(document.querySelector('.intel-reader--memo')).not.toHaveAttribute('inert');
   });
 
-  it('Today says which edition each button is for', async () => {
+  it('Today says which edition each button is for, and whether the backlog is open', async () => {
     render(<App />);
-    const read = await screen.findByRole('button', { name: 'Read' });
-    expect(read).toHaveAccessibleDescription('Agent Sprawl: Who Owns the Bots?');
+    const open = await screen.findByRole('button', { name: 'Open edition' });
+    expect(open).toHaveAccessibleDescription('Agent Sprawl: Who Owns the Bots?');
+    expect(screen.getByRole('button', { name: 'Mark read' })).toHaveAccessibleDescription('Agent Sprawl: Who Owns the Bots?');
+    // Each feed: its name, its edition, where you are in it; the one previewed pressed.
+    expect(screen.getByRole('button', { pressed: true, name: /^01 · AI Challenge/ })).toHaveAttribute('aria-controls', screen.getByRole('region', { name: 'Preview' }).id);
   });
 });
 
@@ -676,7 +794,7 @@ describe('Takeaways back for review (INT-40)', () => {
     const back = screen.getByRole('region', { name: 'Coming back' });
     expect(within(back).getAllByRole('listitem').map(li => li.textContent)).toEqual(['1Mon 9 Nov', '1Wed 2 Dec']);
     fireEvent.click(screen.getByRole('button', { name: 'Back to Today' }));
-    expect(await screen.findByRole('heading', { level: 1, name: 'Today' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'A clearer next step' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: /to review/ })).toBeNull();
   });
 
@@ -764,7 +882,7 @@ describe('Related by topic (INT-42)', () => {
     otherFeeds['customer-engagement-brief'] = [{ ...ENGAGEMENT_FILE, createdTime: '2026-01-02T07:00:00.000Z', modifiedTime: '2026-01-02T07:00:05.000Z' }];
     texts[ENGAGEMENT_FILE.id] = ENGAGEMENT_DOC;
     render(<App />);
-    await screen.findByRole('heading', { level: 2, name: 'Connected Agents and Headless CDPs' });
+    await screen.findByRole('button', { name: /^03 · Customer Engagement\s*Connected Agents and Headless CDPs/ });
     await openChallenge();
     // In the memo: a folded row under the topic map.
     const fold = screen.getByText('Related by topic').closest('details')!;
@@ -846,8 +964,8 @@ describe('imported editions are the archive, never unread (INT-34)', () => {
   it('is listed and labelled, but counted in no unread list or count', async () => {
     render(<App />);
     await screen.findByRole('heading', { level: 2, name: 'Agent Sprawl: Who Owns the Bots?' });
-    expect(screen.queryByRole('region', { name: /Still unread/ })).toBeNull();
-    expect(screen.getByText(/Monday 2 November/)).toHaveTextContent('Monday 2 November · 1 unread');
+    expect(await screen.findByRole('region', { name: 'Still unread · nothing older' })).toBeInTheDocument();
+    expect(screen.getByText('No earlier edition is waiting: the queue above is all there is to read.')).toBeInTheDocument();
     const panel = screen.getByRole('region', { name: 'Your reading' });
     expect(within(panel).getByText('Unread').nextElementSibling).toHaveTextContent('AI Challenge 1');
 

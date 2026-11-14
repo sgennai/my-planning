@@ -76,8 +76,9 @@
    of what it opens (--intel-nav-sheet: the memo's band, else the page), with
    no line between them, and only it carries the ink edge. Its sizes follow the
    window as the prototype's do; the row scrolls sideways when it cannot fit.
-   The memo's band is light in both themes, so its navigation is too; over
-   Today, Takeaways and Search the dark theme has its own mist. */
+   The memo's band and Today's page (INT-55, today.css) are light in both
+   themes, so their navigation is too; over Takeaways and Search the dark
+   theme has its own mist. */
 .intel {
   --intel-nav-mist-top: #dceaf3;
   --intel-nav-mist-bottom: #e8f0f5;
@@ -103,7 +104,8 @@
   --intel-nav-side: 22px;
 }
 .intel--memo { --intel-nav-sheet: #eef4f7; }
-:root[data-theme="dark"] .intel:not(.intel--memo) {
+.intel--today { --intel-nav-sheet: #f9fbfc; }
+:root[data-theme="dark"] .intel:not(.intel--memo, .intel--today) {
   --intel-nav-mist-top: #1a2631;
   --intel-nav-mist-bottom: #141c24;
   --intel-nav-tab: #1f2b36;
@@ -129,7 +131,7 @@
   padding: max(var(--sp-5), calc(env(safe-area-inset-top) + var(--sp-2))) var(--intel-nav-side) 0;
   background: linear-gradient(180deg, var(--intel-nav-mist-top), var(--intel-nav-mist-bottom));
 }
-.intel--memo .intel-nav { color-scheme: light; }
+.intel:is(.intel--memo, .intel--today) .intel-nav { color-scheme: light; }
 .intel-nav-tabs {
   position: relative;
   flex: 1;
@@ -723,36 +725,7 @@
   .intel-selsave { bottom: calc(max(var(--sp-4), calc(env(safe-area-inset-bottom) + var(--sp-2))) + var(--nav-h) + 12px + 56px); }
 }
 
-/* ── Today ────────────────────────────────────────────────────────────── */
-.intel-today { display: flex; flex-direction: column; gap: var(--sp-4); padding-top: var(--sp-2); }
-.intel-today-date { margin: 0; color: var(--ink-3); }
-.intel-today-card {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: var(--sp-5) var(--sp-6) var(--sp-5);
-  border: 1px solid var(--hairline);
-  border-radius: var(--r-lg);
-  background: var(--surface);
-  box-shadow: var(--shadow-1);
-}
-.intel-today-top { display: flex; align-items: center; gap: var(--sp-3); }
-.intel-badge {
-  flex: none;
-  padding: 3px 10px;
-  border-radius: var(--r-pill);
-  background: var(--surface-sunken);
-  color: var(--ink-2);
-  font-size: calc(12 * var(--tpx));
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-.intel-badge.is-new, .intel-badge.is-updated { background: var(--accent-tint); color: var(--accent); }
-.intel-today-title { font-size: calc(24 * var(--tpx)); line-height: 1.18; letter-spacing: -0.02em; font-weight: 700; text-wrap: balance; }
-.intel-today-preview { margin: 0; font-size: calc(16 * var(--tpx)); line-height: 1.55; color: var(--ink-2); text-wrap: pretty; }
-.intel-today-actions { display: flex; gap: var(--sp-3); margin-top: var(--sp-1); }
-.intel-today-card.is-read .intel-today-title { color: var(--ink-2); }
-.intel-today-none { margin: 0; font-size: var(--t-meta); color: var(--ink-3); }
+/* Today is the Reading Queue (INT-55), in today.css. */
 
 /* ── Takeaways ────────────────────────────────────────────────────────── */
 .intel-saved-view { display: flex; flex-direction: column; gap: var(--sp-3); padding-top: var(--sp-2); }
@@ -917,8 +890,6 @@
 .intel--single .intel-question-text, .intel--single .intel-rehearse-text { font-size: calc(17 * var(--tpx)); }
 .intel--single .intel-terms { grid-template-columns: 1fr; }
 .intel--single .intel-term { min-height: 0; }
-.intel--single .intel-today-card { padding: var(--sp-4) 18px; }
-.intel--single .intel-today-title { font-size: calc(21 * var(--tpx)); }
 .intel--single .intel-saved { padding: var(--sp-3) var(--sp-4) var(--sp-2); }
 
 /* ── Conformance: labels, notices, feed status (conformance.ts) ───────── */
@@ -937,7 +908,6 @@
   white-space: nowrap;
 }
 .intel-tag.is-alert { background: var(--alert-tint); color: var(--alert); }
-.intel-today-top .intel-tag { flex: none; margin-left: 0; }
 .intel-notice {
   margin: 0;
   padding: var(--sp-2) var(--sp-3);
@@ -947,7 +917,6 @@
   font-size: var(--t-meta);
   line-height: var(--lh-snug);
 }
-.intel-today-status { align-self: flex-start; color: var(--ink-3); }
 /* ChatGPT's own message, left out of the edition (artifacts.ts). */
 .intel-aside { margin: var(--sp-4) 0 0; color: var(--ink-3); font-size: var(--t-meta); font-style: italic; line-height: var(--lh-snug); }
 .intel-hero .intel-aside { margin: 0; }
@@ -964,14 +933,6 @@
 .intel-health-list li { padding: var(--sp-3); border-radius: var(--r-sm); background: var(--alert-tint); }
 .intel-health-list b, .intel-health-list .intel-linkbtn { font-size: var(--t-meta); text-align: left; }
 .intel-health-list p { margin: 4px 0 0; font-size: var(--t-meta); line-height: var(--lh-snug); color: var(--ink-2); }
-
-/* ── Today: age and catching up ───────────────────────────────────────── */
-.intel-age { color: var(--ink-3); }
-.intel-today-actions { align-items: center; flex-wrap: wrap; }
-.intel-catchup { display: flex; flex-direction: column; gap: var(--sp-2); margin-top: var(--sp-2); }
-.intel-catchup h2 { color: var(--ink-3); }
-.intel-catchup .intel-ed { background: var(--surface); border-color: var(--hairline); }
-.intel-today-actions .intel-linkbtn { align-self: center; }
 
 /* The document's own title line ("# Enterprise AI Sales Brief — 1 November"). */
 .intel-doc-title { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-5) 0 0; }
@@ -1190,12 +1151,7 @@
 /* ── Review (INT-40, review.ts, ReviewView.tsx) ──────────────────────────
    Takeaways come back one card at a time: a cue, then what was kept and
    five ratings, each saying when it brings the card back. Today shows what
-   is waiting after the day's editions; Takeaways, where each one stands. */
-.intel-review-waiting { border-color: var(--accent-line); background: var(--surface-done); }
-.intel-review-eyebrow { display: inline-flex; align-items: center; gap: var(--sp-2); color: var(--accent); }
-.intel-review-eyebrow svg { width: calc(18 * var(--tpx)); height: calc(18 * var(--tpx)); }
-.intel-review-waiting .intel-topics li { background: var(--surface); }
-.intel-review-later { font-size: var(--t-meta); color: var(--ink-3); }
+   is waiting after its backlog (today.css); Takeaways, where each one stands. */
 
 .intel-review-bar-saved {
   display: flex;

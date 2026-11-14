@@ -144,8 +144,10 @@ export function plainText(markdown: string): string {
     .trim();
 }
 
-const PREVIEW_MAX = 220;
+const PREVIEW_MAX = 440;
 const LIST_BLOCK = /^\s*(?:[-*+]|\d+[.)])\s/;
+/** A sentence: up to a full stop, question or exclamation mark (and any closing quote) before a space or the end. */
+const SENTENCE = /.+?(?:[.!?…]["'”’)\]]*(?=\s|$)|$)\s*/gs;
 
 /**
  * A section in a line or two, in its own words: its first paragraph or, when
@@ -161,21 +163,52 @@ function gistOf(section: Section): string | null {
   return prose ? plainText(prose) : null;
 }
 
+/** The Challenge's bold opening sentence and the paragraph that explains it. */
+function challengeGist(section: Section): string | null {
+  const blocks = blocksOf(section.markdown);
+  const bold = blocks.length ? BOLD_ONLY.exec(blocks[0].trim()) : null;
+  if (!bold) return gistOf(section);
+  const next = blocks[1] && !LIST_BLOCK.test(blocks[1]) ? plainText(blocks[1]) : '';
+  return `${plainText(bold[1])}${next && ` ${next}`}`;
+}
+
+/** The Executive take's own conclusion, the paragraph after its list of developments; else its gist. */
+function takeGist(section: Section): string | null {
+  const blocks = blocksOf(section.markdown);
+  const list = blocks.findIndex(b => LIST_BLOCK.test(b));
+  const after = list === -1 ? undefined : blocks.slice(list + 1).find(b => !LIST_BLOCK.test(b) && !SEPARATOR.test(b));
+  return after ? plainText(after) : gistOf(section);
+}
+
+/** Whole sentences, as many as fit; a first sentence longer than that is cut at a word, with an ellipsis. */
+function fitted(text: string): string {
+  if (text.length <= PREVIEW_MAX) return text;
+  let out = '';
+  for (const sentence of text.match(SENTENCE) ?? []) {
+    if ((out + sentence).trimEnd().length > PREVIEW_MAX) break;
+    out += sentence;
+  }
+  if (out.trim()) return out.trim();
+  return `${text.slice(0, text.lastIndexOf(' ', PREVIEW_MAX - 1)).replace(/[,;:.\s]+$/, '')}…`;
+}
+
 /**
- * A few lines to know an edition by, taken from its own words: "What I
- * should remember today", else the "Executive take", else the Challenge,
- * else the first section that says something. Cut at a word, with an ellipsis.
+ * A few lines to know an edition by, in its own words (Today's preview,
+ * INT-55): "What I should remember today" (the Sales Brief), else the
+ * Executive take's conclusion (Customer Engagement), else the Challenge's
+ * opening and the paragraph after it (the AI Challenge), else the first
+ * section that says something. Whole sentences while they fit.
  */
 export function previewOf(sections: Section[]): string | null {
   const body = sections.filter(s => s.role !== 'title' && s.title);
-  const pick = body.find(s => /what i should remember/.test(keyOf(s.title)))
-    ?? body.find(s => keyOf(s.title) === 'executive take')
-    ?? body.find(s => keyOf(s.title) === 'challenge')
-    ?? body.find(s => gistOf(s));
-  const text = pick && gistOf(pick);
-  if (!text) return null;
-  if (text.length <= PREVIEW_MAX) return text;
-  return `${text.slice(0, text.lastIndexOf(' ', PREVIEW_MAX - 1)).replace(/[,;:.\s]+$/, '')}…`;
+  const remember = body.find(s => /what i should remember/.test(keyOf(s.title)));
+  const take = body.find(s => keyOf(s.title) === 'executive take');
+  const challenge = body.find(s => keyOf(s.title) === 'challenge');
+  const text = (remember && gistOf(remember))
+    || (take && takeGist(take))
+    || (challenge && challengeGist(challenge))
+    || body.map(gistOf).find(Boolean);
+  return text ? fitted(text) : null;
 }
 
 /** Minutes to read, at 220 words a minute; never under one. */

@@ -98,13 +98,21 @@ describe('small things', () => {
   });
 
   it("Today's preview is the edition's own words: what to remember, the executive take, else the challenge", () => {
-    expect(previewOf(sections)).toBe('Teams are deploying AI agents faster than anyone can list them.');
+    // The Challenge's opening sentence and the paragraph explaining it.
+    expect(previewOf(sections)).toBe('Teams are deploying AI agents faster than anyone can list them. Each department builds its own agents to automate requests, and nobody keeps an inventory.');
     const brief = splitSections('# Brief — 1 Nov\n\n## Themes\n\nBanks buy.\n\n## What I should remember today\n\n- One **thing**.\n- Another, [linked](https://x.y).');
     expect(previewOf(brief)).toBe('One thing. Another, linked.');
     const engagement = splitSections('# Engagement Brief\n\n**Coverage: last week**\n\n## Executive take\n\nTwo things cleared the bar:\n\n- First thing.\n- Second thing.\n\n## 1. Vendor news\n\nText.');
     expect(previewOf(engagement)).toBe('First thing. Second thing.');
-    const long = splitSections(`## Note\n\n${'word '.repeat(80)}`);
-    expect(previewOf(long)!.length).toBeLessThanOrEqual(221);
+    // The take's own conclusion, when it draws one after its list.
+    const concluded = splitSections('## Executive take\n\nTwo things cleared the bar:\n\n- First thing.\n- Second thing.\n\nThe **common thread** is plain: both move fast.\n\n## 1. Vendor news\n\nText.');
+    expect(previewOf(concluded)).toBe('The common thread is plain: both move fast.');
+    // Whole sentences while they fit; a sentence too long alone is cut at a word.
+    const sentences = splitSections(`## Note\n\nA short one, 3.5% of it. ${'More words here. '.repeat(30)}`);
+    expect(previewOf(sentences)).toMatch(/^A short one, 3\.5% of it\.( More words here\.)+$/);
+    expect(previewOf(sentences)!.length).toBeLessThanOrEqual(440);
+    const long = splitSections(`## Note\n\n${'word '.repeat(120)}`);
+    expect(previewOf(long)!.length).toBeLessThanOrEqual(441);
     expect(previewOf(long)).toMatch(/word…$/);
     expect(previewOf(splitSections('## List only\n\n- a\n- b'))).toBe('a b');
     expect(previewOf(splitSections('Just a line, no sections.'))).toBeNull();

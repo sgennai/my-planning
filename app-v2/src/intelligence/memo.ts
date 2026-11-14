@@ -112,6 +112,8 @@ export const barDate = (day: DayKey, time: string | null) =>
   `${format(day, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }).replace(',', '')}${time ? ` · ${time}` : ''}`;
 /** "Wed 11 Nov": a list's. */
 export const shortDate = (day: DayKey) => format(day, { weekday: 'short', day: 'numeric', month: 'short' }).replace(',', '');
+/** "14 November": Today's queue (INT-55). */
+export const dayMonth = (day: DayKey) => format(day, { day: 'numeric', month: 'long' });
 /** "November 2026": a month's heading in the index. */
 export const monthOf = (day: DayKey) => format(day, { month: 'long', year: 'numeric' });
 /** "2026-11": a month's key (the edition's Paris day, never shifted by a time zone). */
