@@ -184,7 +184,7 @@ describe('the Intelligence section', () => {
     expect(listed).not.toHaveClass('is-read');
     expect(screen.getByRole('button', { name: 'Mark edition as read' })).toHaveAttribute('aria-pressed', 'false');
     // The feed is named by its tab, not again in the bar.
-    expect(document.querySelector('.memo-readbar')).toHaveTextContent(/^Hide editions‹Mon 2 Nov 2026 · 08:20›$/);
+    expect(document.querySelector('.memo-readbar')).toHaveTextContent(/^Hide editions‹2 Nov 2026›$/);
   });
 
   it('the three feeds share one workspace: the same bar, the same index, their own editions and name', async () => {
@@ -199,10 +199,12 @@ describe('the Intelligence section', () => {
       expect(marked()).toHaveTextContent(title);
       // The index names no feed (its tab does); the reader's header does.
       expect(index.querySelector('.memo-editions-head')).not.toHaveTextContent(/AI Challenge|Sales Brief|Engagement Brief/);
-      looks.push([index.className, index.id, document.querySelector('.memo-workspace')!.className, document.querySelector('.memo-head-meta')!.firstChild!.textContent!]);
+      // Nor does the reader (INT-58): above the title, only the read button.
+      expect(document.querySelector('.memo-head')!.textContent).toBe('');
+      looks.push([index.className, index.id, document.querySelector('.memo-workspace')!.className, document.querySelector('.memo')!.className]);
     }
     expect(looks.map(l => l.slice(0, 3))).toEqual(Array(3).fill(['memo-editions', 'memo-editions', 'memo-workspace']));
-    expect(looks.map(l => l[3])).toEqual(['AI Challenge', 'Enterprise AI Sales Brief', 'Customer Engagement Brief']);
+    expect(looks.map(l => l[3])).toEqual(['memo', 'memo memo--sales', 'memo memo--engagement']);
   });
 
   it('Hide editions gives the memo the width, for every feed, and Show brings the index back as it was', async () => {
@@ -248,7 +250,7 @@ describe('the Intelligence section', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Connected Agents and Headless CDPs' })).toBeInTheDocument();
     expect(screen.queryByRole('complementary', { name: 'Editions' })).toBeNull();
     const index = editionIndex();
-    expect(document.querySelector('.memo-head-meta')).toHaveTextContent(/^Customer Engagement Brief/);
+    expect(document.querySelector('.memo-head')!.textContent).toBe('');
     expect(within(index).getByRole('searchbox', { name: 'Search edition history' })).toBeInTheDocument();
     const listed = within(index).getByRole('button', { name: /Mon 2 Nov/ });
     expect(listed).toHaveAttribute('aria-current', 'page');
@@ -394,7 +396,7 @@ describe('the Intelligence section', () => {
     fireEvent.click(screen.getByRole('tab', { name: /AI Challenge/ }));
     expect(await screen.findByRole('heading', { level: 1, name: 'Enterprise AI Challenge' })).toBeInTheDocument();
     expect(screen.getByText('The header went missing.')).toBeInTheDocument();
-    expect(screen.getByText('Mon 2 Nov 2026 · 08:20')).toBeInTheDocument();
+    expect(document.querySelector('.memo-readbar-date')).toHaveTextContent(/^2 Nov 2026$/);
   });
 
   it('on a phone, the memo first; the index takes the whole width when asked for, and choosing goes back to the memo', async () => {
@@ -471,7 +473,8 @@ describe('what the app says about the documents (conformance)', () => {
     await screen.findByRole('heading', { level: 1 });
     expect(screen.queryByRole('note')).toBeNull();
     expect(screen.queryByText(/needs a look/)).toBeNull();
-    expect(document.querySelector('.memo-head-meta')).toHaveTextContent('AI Challenge, 2 Nov 2026, Imported');
+    // Said in Today and the feed's status; the reader stays clean (INT-58).
+    expect(document.querySelector('.memo-head')!.textContent).toBe('');
     fireEvent.click(within(editionIndex()).getByRole('button', { name: 'Feed status' }));
     expect(within(screen.getByRole('dialog')).getByText('Mon 2 Nov · 08:20, imported')).toBeInTheDocument();
   });
@@ -1309,7 +1312,7 @@ describe('imported editions are the archive, never unread (INT-34)', () => {
     expect(archived).not.toHaveTextContent(/Imported/);
     fireEvent.click(archived);
     expect(screen.getByRole('heading', { level: 1, name: 'An Archived Challenge' })).toBeInTheDocument();
-    expect(document.querySelector('.memo-head-meta')).toHaveTextContent('1 Oct 2026, Imported');
+    expect(document.querySelector('.memo-readbar-date')).toHaveTextContent(/^1 Oct 2026$/);
     // The index stayed, the choice marked, both months open.
     expect(marked()).toHaveTextContent('An Archived Challenge');
     expect([...editionIndex().querySelectorAll('.memo-month-head')].map(b => b.getAttribute('aria-expanded'))).toEqual(['true', 'true']);

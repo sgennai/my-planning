@@ -35,10 +35,14 @@ describe('the memo', () => {
   it('dates itself by the run: the memo, its end (the bar is the workspace’s, MemoWorkspace.test.tsx)', () => {
     const { container } = memo();
     expect(container.querySelector('.memo-bar, .memo-readbar')).toBeNull();
-    // The reader's header (INT-57): across the reader, not in the text column.
+    // The clean reader (INT-58): the read button's corner holds nothing else; the
+    // title comes first, the reading time under it; no name, date or count above.
     const head = container.querySelector('.memo > .memo-head')!;
-    expect(head.querySelector('.memo-head-meta')).toHaveTextContent('AI Challenge, 2 Nov 2026, 01 min read');
+    expect(head.textContent).toBe('');
+    expect(head.children).toHaveLength(1);
     expect(container.querySelector('.memo-content .memo-head')).toBeNull();
+    expect(container.querySelector('.memo-content article')!.firstElementChild).toHaveClass('memo-title');
+    expect(container.querySelector('.memo-title + .memo-readtime')).toHaveTextContent('01 min read');
     expect(container.querySelector('.memo-footer')).toHaveTextContent('AI Challenge · End of edition2 November 2026');
   });
 

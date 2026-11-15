@@ -107,10 +107,7 @@ const format = (day: DayKey, options: Intl.DateTimeFormatOptions) => at(day).toL
 
 /** "11 November 2026": the memo's own date (the edition's Paris day). */
 export const memoDate = (day: DayKey) => format(day, { day: 'numeric', month: 'long', year: 'numeric' });
-/** "Wed 11 Nov 2026 · 09:03": the bar's. */
-export const barDate = (day: DayKey, time: string | null) =>
-  `${format(day, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }).replace(',', '')}${time ? ` · ${time}` : ''}`;
-/** "11 Nov 2026": the reader's header (INT-57). */
+/** "11 Nov 2026": the reading bar's, between its chevrons (INT-58). */
 export const headDate = (day: DayKey) => format(day, { day: 'numeric', month: 'short', year: 'numeric' });
 /** "Wed 11 Nov": a list's. */
 export const shortDate = (day: DayKey) => format(day, { weekday: 'short', day: 'numeric', month: 'short' }).replace(',', '');

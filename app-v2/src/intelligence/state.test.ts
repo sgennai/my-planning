@@ -65,6 +65,21 @@ describe('reading state', () => {
     expect(isRead(edition, readingIndex(log))).toBe(true);
   });
 
+  it('keeps your place in a section, for the edition to reopen at; a small move writes nothing (INT-58)', () => {
+    let log = withPosition([], edition, 0.3, 'challenge', { section: 'challenge', within: 0.4 });
+    expect(readingIndex(log).get(edition.driveFileId)?.place).toEqual({ section: 'challenge', within: 0.4 });
+    // Back up a little in the same section, no further than before: still worth noting.
+    log = withPosition(log, edition, 0.25, 'challenge', { section: 'challenge', within: 0.2 });
+    expect(readingIndex(log).get(edition.driveFileId)).toMatchObject({ progress: 0.3, place: { section: 'challenge', within: 0.2 } });
+    expect(withPosition(log, edition, 0.25, 'challenge', { section: 'challenge', within: 0.21 })).toBe(log);
+    // Before the first section (the title and what follows it) is a place too.
+    log = withPosition(log, edition, 0.3, 'challenge', { section: null, within: 0.5 });
+    expect(readingIndex(log).get(edition.driveFileId)?.place).toEqual({ section: null, within: 0.5 });
+    // Marking it read leaves the place as it is.
+    log = withReadMark(log, edition, true);
+    expect(readingIndex(log).get(edition.driveFileId)?.place).toEqual({ section: null, within: 0.5 });
+  });
+
   it('an edition marked read from Today, never opened, is read and has no reading', () => {
     const log = withReadMark([], other, true);
     expect(readingIndex(log).get(other.driveFileId)).toEqual({ feedId: 'enterprise-ai-challenge', progress: 0, section: null, readAt: null, mark: { read: true, at: expect.any(String) } });
@@ -125,6 +140,14 @@ describe('two devices\' copies of one edition\'s reading (D11)', () => {
     // Read again after starting over: read.
     const again = copy('2026-11-03T12:00:00Z', { progress: 1, section: 'vocabulary', readAt: '2026-11-03T12:00:00Z', resetAt: '2026-11-03T10:00:00Z' });
     expect(both(unread, again)).toMatchObject({ progress: 1, readAt: '2026-11-03T12:00:00Z' });
+  });
+
+  it('your place is where you were last, on whichever device; a later copy without one (an older app) leaves it to its section', () => {
+    const ipad = copy('2026-11-03T09:00:00Z', { progress: 0.6, section: 'approaches', place: { section: 'approaches', within: 0.5 } });
+    const iphone = copy('2026-11-03T09:05:00Z', { progress: 0.3, section: 'challenge', place: { section: 'challenge', within: 0.7 } });
+    expect(both(ipad, iphone)).toMatchObject({ progress: 0.6, section: 'challenge', place: { section: 'challenge', within: 0.7 } });
+    const old = copy('2026-11-03T09:10:00Z', { progress: 0.3, section: 'challenge' });
+    expect(mergeReading(iphone, old).value.place).toBeUndefined();
   });
 
   it('neither read: the furthest progress and the later section', () => {

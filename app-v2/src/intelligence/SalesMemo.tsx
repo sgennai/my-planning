@@ -17,7 +17,7 @@ import { memoBrand, questionInput, two, type Chapter, type Field } from './memo'
 import { bestQuestion, takeawaysOf, type SalesMemo as SalesMemoModel } from './sales-memo';
 import { CANONICAL_TOPICS } from './topics';
 import type { SaveInput } from './saved';
-import { CONTENTS, MemoChapter, MemoContents, MemoEnd, MemoHead, MemoQuestion, RefFold, RelatedFold, Topics, type ChapterAsk } from './MemoParts';
+import { CONTENTS, MemoChapter, MemoContents, MemoEnd, MemoHead, MemoReadTime, MemoQuestion, RefFold, RelatedFold, Topics, type ChapterAsk } from './MemoParts';
 import type { MemoProps } from './MemoArticle';
 
 const TONES: Partial<Record<Field['tone'], string>> = {
@@ -55,7 +55,7 @@ function Row({ section, n, best, level }: { section: Section; n: number; best: S
 
 export function SalesMemo({
   memo, onGoTo, edition, minutes, endRef, articleRef,
-  related, onOpenRelated, read, editionSaved, onToggleRead, onToggleEditionSave, notices, imported,
+  related, onOpenRelated, read, editionSaved, onToggleRead, onToggleEditionSave, notices,
 }: Omit<MemoProps, 'sections' | 'presented'> & { memo: SalesMemoModel; onGoTo: (id: string) => void }) {
   const brand = memoBrand(edition.feedId)!;
   const [contents, setContents] = useState(false);
@@ -78,10 +78,11 @@ export function SalesMemo({
 
   return (
     <div className="memo memo--sales">
-      <MemoHead brand={brand} edition={edition} imported={imported} details={[...(total > 0 ? [`${two(total)} ${total === 1 ? 'development' : 'developments'}`] : []), `${two(minutes)} min read`]} read={read} onToggleRead={onToggleRead} />
+      <MemoHead read={read} onToggleRead={onToggleRead} />
       <div className="memo-content">
         <article aria-labelledby={titleId} ref={articleRef}>
           <h1 className="memo-title" id={titleId}>{edition.title}</h1>
+          <MemoReadTime minutes={minutes} />
           {edition.topics.length > 0 && <Topics label="Relevant topics" topics={edition.topics} />}
           {notices.map(t => <p key={t} className="memo-aside is-alert" role="note">{t}</p>)}
           {edition.setAside.filter(a => a.where === 'start').map(a => <p key={a.kind} className="memo-aside" role="note">{asideNote(a)}</p>)}

@@ -48,7 +48,7 @@ import { reviewIndex, dueOf, dueOn, withRating, withReviewing, withoutReview, SE
 import { NO_FILTERS, type SearchFilters } from './search';
 import type { Edition } from './parse';
 import type { FeedState } from './library';
-import { readingIndex, readingState, withPosition, withReadMark, isRead, isArchive, countsAsUnread } from './reading';
+import { readingIndex, readingState, withPosition, withReadMark, isRead, isArchive, countsAsUnread, type Place } from './reading';
 import {
   savedOf, saveInsight, removeInsight, updateInsight, findSaved, nameOf, type SaveInput, type SavedInsight,
 } from './saved';
@@ -286,8 +286,12 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   const shown = phone ? phoneIndex : indexShown;
   const status = feedId ? statusOf(state, conformance[feedId], health[feedId]) : null;
   const record = edition ? reading.get(edition.driveFileId) : undefined;
-  const startAt = edition && jump?.driveFileId === edition.driveFileId ? jump.sectionId
-    : record && !record.readAt ? record.section : null;
+  // An edition opens where you are sent (a takeaway, a search result), else
+  // at your place in it (INT-58), whether or not you read it to the end; a
+  // record from before INT-58 knows only its section.
+  const sent = !!edition && jump?.driveFileId === edition.driveFileId;
+  const startAt = sent ? jump!.sectionId : null;
+  const resume = sent || !record ? null : record.place ?? (record.section ? { section: record.section, within: 0 } : null);
 
   useEffect(() => {
     if (!note) return;
@@ -341,7 +345,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
 
   // Scrolling reports often; the position is written when it rests, when the
   // edition changes, and when the section closes.
-  const pending = useRef<{ edition: Edition; progress: number; section: string | null } | null>(null);
+  const pending = useRef<{ edition: Edition; progress: number; section: string | null; place: Place } | null>(null);
   const restTimer = useRef(0);
   const flushPosition = useCallback(() => {
     window.clearTimeout(restTimer.current);
@@ -350,7 +354,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     if (!p) return;
     onPersist(d => {
       const log = d.progressLog || [];
-      const next = withPosition(log, p.edition, p.progress, p.section);
+      const next = withPosition(log, p.edition, p.progress, p.section, p.place);
       return next === log ? d : { ...d, progressLog: next, lastModified: stamp() };
     });
   }, [onPersist]);
@@ -359,11 +363,11 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     setChosen(prev => (prev[e.feedId] === e.driveFileId ? prev : { ...prev, [e.feedId]: e.driveFileId }));
     remember(editionKey(e.feedId), e.driveFileId);
   }, []);
-  const onPosition = useCallback((progress: number, section: string | null) => {
+  const onPosition = useCallback((progress: number, section: string | null, place: Place) => {
     if (!edition) return;
     keep(edition);
     if (pending.current && pending.current.edition !== edition) flushPosition();
-    pending.current = { edition, progress, section };
+    pending.current = { edition, progress, section, place };
     window.clearTimeout(restTimer.current);
     restTimer.current = window.setTimeout(flushPosition, POSITION_REST_MS);
   }, [edition, flushPosition, keep]);
@@ -582,6 +586,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
       onToggleSave={toggleSaveHere}
       onPosition={onPosition}
       startAt={startAt}
+      resume={resume}
       flags={conformance[edition.feedId]?.flags.get(edition.driveFileId)}
       related={related}
       onOpenRelated={e => openEdition(e)}

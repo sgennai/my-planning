@@ -17,7 +17,7 @@ import { feedById } from './feeds';
 import { EditionActionsContext, useEditionActions, type EditionActions } from './context';
 import { useEdgeFade } from './useEdgeFade';
 import { findSaved, type SaveInput, type SavedInsight } from './saved';
-import type { ReadingIndex } from './reading';
+import type { Place, ReadingIndex } from './reading';
 import { noticeOf, type EditionFlag } from './conformance';
 import type { Related } from './related';
 import { asideNote } from './artifacts';
@@ -247,10 +247,12 @@ interface Props {
   saved?: SavedInsight[];
   onToggleRead?: () => void;
   onToggleSave?: (input: SaveInput) => void;
-  /** How far down (0–1) and in which section, as you scroll. */
-  onPosition?: (progress: number, section: string | null) => void;
-  /** Open at this section rather than the top. */
+  /** How far down (0–1), in which section, and the place to reopen at, as you scroll. */
+  onPosition?: (progress: number, section: string | null, place: Place) => void;
+  /** Open at this section rather than the top (sent there: a takeaway, a search result). */
   startAt?: string | null;
+  /** Else, open at the place you left it (INT-58). */
+  resume?: Place | null;
   /** What conformance says about this document (`conformance.ts`). */
   flags?: EditionFlag[];
   /** Other editions sharing a topic (`related.ts`), shown after the last section. */
@@ -282,8 +284,47 @@ function RelatedEditions({ items, onOpen }: { items: Related[]; onOpen?: (e: Edi
   );
 }
 
+/** Where a section starts in the reader: what it scrolls to, clear of what sticks at the top (`stuck`). */
+function sectionTop(el: HTMLElement, id: string, stuck: number): number | null {
+  const node = document.getElementById(`intel-${id}`);
+  if (!node) return null;
+  return node.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop - stuck;
+}
+
+/** The sections' starts in order, after the top (no section: the title and what follows it), and the end. */
+function spansIn(el: HTMLElement, ids: string[], stuck: number) {
+  const tops = ids.map(id => ({ id: id as string | null, top: sectionTop(el, id, stuck) }))
+    .filter((t): t is { id: string; top: number } => t.top !== null)
+    .sort((a, b) => a.top - b.top);
+  return { tops: [{ id: null as string | null, top: 0 }, ...tops], end: Math.max(0, el.scrollHeight - el.clientHeight) };
+}
+
+/**
+ * Your place (INT-58): the section whose start the reader's top has passed
+ * (none before the first), and how far through it, from its start to the
+ * next one's (or to the end). A fraction of the section rather than pixels,
+ * so that it lands on the same words when the reader is wider or narrower
+ * than when it was left.
+ */
+function placeIn(el: HTMLElement, ids: string[], stuck: number): Place {
+  const { tops, end } = spansIn(el, ids, stuck);
+  let i = 0;
+  tops.forEach((t, k) => { if (t.top <= el.scrollTop + 1) i = k; });
+  const from = tops[i].top, to = tops[i + 1]?.top ?? end;
+  return { section: tops[i].id, within: to > from ? Math.min(1, Math.max(0, (el.scrollTop - from) / (to - from))) : 0 };
+}
+
+/** Where to scroll to be back at a place; null if its section is not in this edition. */
+function topOfPlace(el: HTMLElement, ids: string[], stuck: number, p: Place): number | null {
+  const { tops, end } = spansIn(el, ids, stuck);
+  const i = tops.findIndex(t => t.id === p.section);
+  if (i < 0) return null;
+  const from = tops[i].top, to = tops[i + 1]?.top ?? end;
+  return from + Math.min(1, Math.max(0, p.within)) * Math.max(0, to - from);
+}
+
 function Reader({
-  edition, scroller, onNote, heroActions = true, reading, saved = [], onToggleRead, onToggleSave, onPosition, startAt, flags = [],
+  edition, scroller, onNote, heroActions = true, reading, saved = [], onToggleRead, onToggleSave, onPosition, startAt, resume, flags = [],
   related = [], onOpenRelated, fill,
 }: Props) {
   const memo = edition.feedId === 'enterprise-ai-challenge';
@@ -334,23 +375,26 @@ function Reader({
   }), [saved, edition, onToggleSave, onNote]);
 
   // A memo's place sits a little below its bar, as the prototype's anchors do.
-  const offsetOf = (id: string) => {
-    const el = scroller.current;
-    const node = document.getElementById(`intel-${id}`);
-    if (!el || !node) return null;
-    return node.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop
-      - (indexRef.current?.offsetHeight ?? 0) - (memo || sales || engagement ? MEMO_GAP : 0);
-  };
+  const memoGap = memo || !!sales || !!engagement ? MEMO_GAP : 0;
+  /** What sticks at the reader's top and the gap under it, which a section's start sits below. */
+  const stuck = () => (indexRef.current?.offsetHeight ?? 0) + memoGap;
+  const offsetOf = (id: string) => (scroller.current ? sectionTop(scroller.current, id, stuck()) : null);
+  const ids = useMemo(() => indexed.map(s => s.id), [indexed]);
+  // The scroll that puts you back is not a move of yours: it is not reported.
+  const restored = useRef<number | null>(null);
 
-  // Opens at its top, or where you are sent (the section you were reading).
-  // On a phone the scrolling pane appears with the edition, and is only
-  // attached once this has run: then it waits a frame, still before paint.
+  // Opens where you are sent (a takeaway's section), else at your place, else
+  // at its top. On a phone the scrolling pane appears with the edition, and
+  // is only attached once this has run: then it waits a frame, still before
+  // paint. Text and fonts are laid out by then; a later change of size keeps
+  // the place (`useReadingAnchor`).
   useLayoutEffect(() => {
     const place = () => {
       const el = scroller.current;
       if (!el) return;
-      const top = startAt ? offsetOf(startAt) : null;
+      const top = startAt ? offsetOf(startAt) : resume ? topOfPlace(el, ids, stuck(), resume) : null;
       el.scrollTo({ top: top ?? 0 });
+      if (top) restored.current = el.scrollTop;
     };
     if (scroller.current) { place(); return; }
     const frame = requestAnimationFrame(place);
@@ -395,7 +439,10 @@ function Reader({
       if (atEnd && indexed.length) current = indexed[indexed.length - 1].id;
       setActive(current);
       paint(value);
-      if (room > 0) onPosition?.(value, current);
+      const back = restored.current;
+      restored.current = null;
+      if (back !== null && Math.abs(el.scrollTop - back) < 2) return;
+      if (room > 0) onPosition?.(value, current, placeIn(el, ids, (indexRef.current?.offsetHeight ?? 0) + memoGap));
     };
     const onScroll = () => { if (!frame) frame = requestAnimationFrame(measure); };
     el.addEventListener('scroll', onScroll, { passive: true });
@@ -404,7 +451,7 @@ function Reader({
     if (el.firstElementChild) resized?.observe(el.firstElementChild);
     paint();
     return () => { el.removeEventListener('scroll', onScroll); cancelAnimationFrame(frame); resized?.disconnect(); };
-  }, [scroller, indexed, onPosition, fillRef]);
+  }, [scroller, indexed, ids, memoGap, onPosition, fillRef]);
 
   // Text selected in the edition can be saved: iOS lets a web app add nothing
   // to its own selection menu, so a button appears at the foot instead. It
@@ -485,7 +532,6 @@ function Reader({
     onToggleRead,
     onToggleEditionSave: onToggleSave && (() => onToggleSave(editionInput)),
     notices,
-    imported,
   };
 
   if (sales || engagement) {
@@ -514,7 +560,6 @@ function Reader({
           onToggleRead={onToggleRead}
           onToggleEditionSave={onToggleSave && (() => onToggleSave(editionInput))}
           notices={notices}
-          imported={imported}
         />
         {selectionSave}
       </EditionActionsContext.Provider>

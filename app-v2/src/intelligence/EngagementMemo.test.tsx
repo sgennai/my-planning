@@ -41,9 +41,11 @@ describe('the Customer Engagement memo', () => {
   it('the reader\'s header, the title, the coverage line and the relevant topics', () => {
     const { container } = memo();
     expect(container.querySelector('.memo')).toHaveClass('memo--engagement');
-    expect(container.querySelector('.memo > .memo-head .memo-head-meta')).toHaveTextContent('Customer Engagement Brief, 2 Nov 2026, 02 developments, 01 min read');
+    expect(container.querySelector('.memo > .memo-head')!.textContent).toBe('');
+    expect(container.querySelector('.memo-content article')!.firstElementChild).toHaveClass('memo-title');
+    expect(container.querySelector('.memo-title + .memo-readtime')).toHaveTextContent('01 min read');
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Connected Agents and Headless CDPs');
-    expect(container.querySelector('.memo-title + .memo-coverage')).toHaveTextContent('Coverage: 26 October – 2 November 2026 — new since Friday');
+    expect(container.querySelector('.memo-readtime + .memo-coverage')).toHaveTextContent('Coverage: 26 October – 2 November 2026 — new since Friday');
     expect(container.querySelector('.memo-topics')).toHaveTextContent('Relevant topicsAgentic AIHeadless CDP');
     expect(container.querySelector('.memo-more-topics')).toBeNull();
     expect(container.querySelector('.memo-footer')).toHaveTextContent('Customer Engagement Brief · End of edition2 November 2026');

@@ -3,7 +3,7 @@
 // sentence as the summary; dates in the edition's own Paris day; the edition
 // index by month, searched (INT-53). Made-up editions.
 import { describe, it, expect } from 'vitest';
-import { memoOrder, memoTopics, challengeLead, memoDate, barDate, shortDate, indexGroups, monthKey, two } from './memo';
+import { memoOrder, memoTopics, challengeLead, memoDate, headDate, shortDate, indexGroups, monthKey, two } from './memo';
 import { parseEdition, splitSections, type Edition } from './parse';
 import { presentSection } from './present';
 import { CHALLENGE_DOC, CHALLENGE_FILE } from './test-fixtures';
@@ -37,8 +37,9 @@ describe('an edition as a memo', () => {
 
   it('dates the memo by its own day, never by the device’s clock', () => {
     expect(memoDate('2026-11-11')).toBe('11 November 2026');
-    expect(barDate('2026-11-11', '09:03')).toBe('Wed 11 Nov 2026 · 09:03');
-    expect(barDate('2026-03-29', null)).toBe('Sun 29 Mar 2026');
+    // The bar's: the edition's date, without the run's time (INT-58).
+    expect(headDate('2026-11-11')).toBe('11 Nov 2026');
+    expect(headDate('2026-03-29')).toBe('29 Mar 2026');
     expect(shortDate('2026-11-11')).toBe('Wed 11 Nov');
     expect(two(3)).toBe('03');
   });

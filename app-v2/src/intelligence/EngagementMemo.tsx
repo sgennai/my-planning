@@ -20,7 +20,7 @@ import { countLabel, memoBrand, questionInput, two, type Chapter, type Field } f
 import { closingQuestionInput, questionSaves, questionsOf, type EngagementMemo as EngagementMemoModel } from './engagement-memo';
 import { CANONICAL_TOPICS } from './topics';
 import type { SaveInput } from './saved';
-import { CONTENTS, MemoChapter, MemoContents, MemoEnd, MemoHead, MemoQuestion, RefFold, RelatedFold, Topics, type ChapterAsk } from './MemoParts';
+import { CONTENTS, MemoChapter, MemoContents, MemoEnd, MemoHead, MemoReadTime, MemoQuestion, RefFold, RelatedFold, Topics, type ChapterAsk } from './MemoParts';
 import type { MemoProps } from './MemoArticle';
 
 type Saves = (own: SaveInput) => { input: SaveInput; also: SaveInput[] };
@@ -78,7 +78,7 @@ function Row({ section, n, saves, level }: { section: Section; n: number; saves:
 
 export function EngagementMemo({
   memo, onGoTo, edition, minutes, endRef, articleRef,
-  related, onOpenRelated, read, editionSaved, onToggleRead, onToggleEditionSave, notices, imported,
+  related, onOpenRelated, read, editionSaved, onToggleRead, onToggleEditionSave, notices,
 }: Omit<MemoProps, 'sections' | 'presented'> & { memo: EngagementMemoModel; onGoTo: (id: string) => void }) {
   const brand = memoBrand(edition.feedId)!;
   const [contents, setContents] = useState(false);
@@ -101,10 +101,11 @@ export function EngagementMemo({
 
   return (
     <div className="memo memo--engagement">
-      <MemoHead brand={brand} edition={edition} imported={imported} details={[...(total > 0 ? [`${two(total)} ${total === 1 ? 'development' : 'developments'}`] : []), `${two(minutes)} min read`]} read={read} onToggleRead={onToggleRead} />
+      <MemoHead read={read} onToggleRead={onToggleRead} />
       <div className="memo-content">
         <article aria-labelledby={titleId} ref={articleRef}>
           <h1 className="memo-title" id={titleId}>{edition.title}</h1>
+          <MemoReadTime minutes={minutes} />
           {memo.coverage && <p className="memo-coverage"><Markdown inline>{memo.coverage}</Markdown></p>}
           {edition.topics.length > 0 && <Topics label="Relevant topics" topics={edition.topics} />}
           {notices.map(t => <p key={t} className="memo-aside is-alert" role="note">{t}</p>)}

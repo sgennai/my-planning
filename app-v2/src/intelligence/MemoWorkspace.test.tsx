@@ -41,14 +41,14 @@ describe('the reading bar', () => {
     expect(document.querySelector('.memo-readbar-left')!.children).toHaveLength(1);
   });
 
-  it('the run’s date and time between the chevrons to the older and newer edition; none, faded, at an end', () => {
+  it('the edition’s date, without the run’s time (INT-58), between the chevrons to the older and newer edition; none, faded, at an end', () => {
     const onOpenAdjacent = vi.fn();
     bar({ adjacent: { older: EDITIONS[2], newer: null }, onOpenAdjacent });
     fireEvent.click(screen.getByRole('button', { name: 'Previous edition: Sat 31 Oct, Defensible decisions' }));
     expect(onOpenAdjacent).toHaveBeenCalledWith(EDITIONS[2]);
     expect(screen.getByRole('button', { name: 'Next edition: none' })).toBeDisabled();
     expect([...document.querySelector('.memo-readbar-right')!.children].map(c => [c.className, c.textContent])).toEqual([
-      ['memo-step', '‹'], ['memo-readbar-date', 'Mon 2 Nov 2026 · 08:20'], ['memo-step', '›'],
+      ['memo-step', '‹'], ['memo-readbar-date', '2 Nov 2026'], ['memo-step', '›'],
     ]);
   });
 

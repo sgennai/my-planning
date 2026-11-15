@@ -373,11 +373,14 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   questions with Save, vocabulary with a quiet save, "Use it in a conversation" with Save), or
   as its Markdown; the topic map moved to a fold at the end (`memoOrder`), "Related by topic"
   a second fold under it (all of `relatedTo`, 5 then "Show more"); the footer, then quiet tools
-  (Mark as read, Save this edition, Open original). Above the article, across the reader's whole
-  width, the reader's header (INT-57, `MemoHead` in `MemoParts.tsx`, the three memos): the memo's
-  name · date (· Imported) · developments · min read, starting where the text column does, and at
-  the far right (16px; 12 when the reader is ≤760px) the read button, icon only, 38px (36 ≤830px
-  window) in a 44px target: `aria-pressed`, named "Mark edition as read" / "… as unread". No save in the sections' margin (the user's
+  (Mark as read, Save this edition, Open original). The clean reader (INT-58, after the user's
+  approved `date-companion-clean.html`): above the article only a transparent corner across the
+  reader's whole width (`MemoHead` in `MemoParts.tsx`, 43px, 41 ≤760px reader) holding the read
+  button at the far right (16px; 12 when the reader is ≤760px), icon only, 38px (36 ≤830px
+  window) in a 44px target: `aria-pressed`, named "Mark edition as read" / "… as unread". No
+  name, date, count or "Imported" above the title (the tab says the feed, the bar the date; Today
+  and Feed status say imported): the title comes first, then "06 min read" (`MemoReadTime`,
+  `readingMinutes` of the whole Markdown, 220 words a minute, the same for the three feeds). No save in the sections' margin (the user's
   choice, 12 Nov): a whole section is kept by selecting its text, or in the briefs.
   Its CSS is the prototype's: Avenir Next and Georgia,
   window-based sizes, breakpoints (760/430px) on the reader's own width (`@container memo`, the
@@ -391,7 +394,7 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   (`IntelligenceScreen` draws it for any feed with a memo; the memos draw only the article). A
   reading bar across it, the band the selected tab runs into (INT-54: 80px, 67 ≤850, 56 on a
   phone; the app's sans): "Hide editions" / "Show editions" (`aria-expanded`), no feed name
-  (the tab says it), the run's date and time (Paris) between chevrons to the older and newer edition
+  (the tab says it), the edition's date ("15 Nov 2026", `headDate`; no run time since INT-58) between chevrons to the older and newer edition
   (`adjacent`), and along its foot the 2px reading line, which `EditionReader` paints (`fill`)
   from the memo's own scroll (to the briefing's end). Under it the paper index and the memo, side
   by side, each scrolling on its own; one width token for the three feeds,
@@ -427,12 +430,19 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   they publish and get their own forms.
 - **Reading state** (`reading.ts`): two records per edition, kept apart (INT-57). **Reading**:
   `ir:<driveFileId>`, type `intel-reading`, value `{ feedId, progress (furthest, 0–1), section
-  (last), readAt }`; written when scrolling rests (1.2 s), on leaving the edition, and when the
-  app is hidden; only a new section, +10 % or the end is worth a write. `readAt` is when the end
-  was reached (before INT-57 it also meant read, and Mark as read/unread wrote it and `resetAt`;
-  old records keep both). An edition reopens at its last section until its end was reached. Two
-  devices' copies **merge** on sync (`mergeReading`, D11, INT-14): the furthest progress, the end
-  if either reached it, the later write's section; a start-over from before INT-57 still holds.
+  (last), readAt, place }`; written when scrolling rests (1.2 s), on leaving the edition (another
+  edition, feed, Today, Takeaways), and when the app is hidden; only a new section, +10 %, the end
+  or the place moved by 2 % of its section is worth a write. `readAt` is when the end was reached
+  (before INT-57 it also meant read, and Mark as read/unread wrote it and `resetAt`; old records
+  keep both). **Place** (INT-58, `placeIn` / `topOfPlace` in `EditionReader.tsx`): the section whose
+  start the reader's top has passed (null before the first) and how far through it (0–1, to the
+  next section's start or the end), so it lands on the same words at another width; an edition
+  reopens there, read or not, to the end or not (else, for a record from before INT-58, at its
+  section; a takeaway or search result sends it to its section instead). The scroll that puts it
+  back is not reported as a move. The bug it fixed: only the section was kept and an edition
+  reopened at the section's start (a long development: 60 % came back as 33 %). Two devices'
+  copies **merge** on sync (`mergeReading`, D11, INT-14): the furthest progress, the end if either
+  reached it, the later write's section and place; a start-over from before INT-57 still holds.
   **Read** (only ever by you): `ic:<driveFileId>`, type `intel-read-mark`, value `{ feedId, read }`,
   `at` the moment of the tap, written by the reader's read button, the memo's end button and
   Today's Mark read, the same again taking it back (`withReadMark`); last-write-wins like a
@@ -776,7 +786,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (570 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (572 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris

@@ -1,7 +1,7 @@
 // The executive memos' workspace (INT-53), after the approved prototype
 // `executive-memo-unified-paper-index.html`, one for the three feeds: a
-// reading bar across it (Hide or Show editions, the run's date and time
-// between the older and newer editions' chevrons, the 2px reading line; the
+// reading bar across it (Hide or Show editions, the edition's date, without
+// the run's time since INT-58, between the older and newer editions' chevrons, the 2px reading line; the
 // feed's name is the selected tab's above it, INT-54), then the paper index of editions beside the memo, each
 // scrolling on its own. The index lists the feed's editions by month, newest
 // first, each month opening and closing on its own, with a search; choosing an
@@ -15,7 +15,7 @@
 import { useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import type { Edition } from './parse';
 import type { FeedId } from './feeds';
-import { barDate, indexGroups, monthKey, shortDate } from './memo';
+import { headDate, indexGroups, monthKey, shortDate } from './memo';
 
 /** The index's element, which the bar's toggle controls. */
 const INDEX = 'memo-editions';
@@ -92,7 +92,7 @@ export function MemoReadbar({ edition, shown, onToggle, toggleRef, adjacent, onO
       {edition && (
         <div className="memo-readbar-right">
           {adjacent && <Step to={adjacent.older} newer={false} onOpen={onOpenAdjacent} />}
-          <span className="memo-readbar-date">{barDate(edition.editionDate, edition.time)}</span>
+          <span className="memo-readbar-date">{headDate(edition.editionDate)}</span>
           {adjacent && <Step to={adjacent.newer} newer onOpen={onOpenAdjacent} />}
         </div>
       )}

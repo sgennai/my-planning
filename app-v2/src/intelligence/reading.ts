@@ -2,8 +2,10 @@
 // Google Drive. Two things, kept apart (INT-57):
 //
 // - Reading (`ir:<driveFileId>`, type `intel-reading`): how far down the
-//   edition you have been, which only grows, and the section you were in
-//   last, where it reopens. `readAt` is when the end was reached; it says
+//   edition you have been, which only grows; the section you were in last;
+//   and your place, which is where it reopens (INT-58): the section the
+//   reader's top was in and how far into it, a fraction, so it lands on the
+//   same words at another width. `readAt` is when the end was reached; it says
 //   nothing about whether you count it as read (before INT-57 it did, and
 //   Mark as read wrote it too, so old records carry it either way). Two
 //   devices' copies combine (`mergeReading`, decision D11) rather than the
@@ -41,8 +43,21 @@ export interface ReadingRecord {
     readAt: string | null;
     /** When Mark as unread last started it over; absent if it never was. */
     resetAt?: string | null;
+    /** Where it reopens (INT-58); absent in records from before, which reopen at `section`. */
+    place?: Place;
   };
 }
+
+/**
+ * Where the reader's top is: in a section (null before the first one, among
+ * the title and what follows it) and how far through it, 0–1.
+ */
+export interface Place { section: string | null; within: number }
+
+/** A move within a section worth a write: about a line in a long one. */
+const PLACE_STEP = 0.02;
+const samePlace = (a: Place | undefined, b: Place | undefined) =>
+  !!a && !!b && a.section === b.section && Math.abs(a.within - b.within) < PLACE_STEP;
 
 export const readingId = (driveFileId: string) => `ir:${driveFileId}`;
 
@@ -125,10 +140,11 @@ function put(log: unknown[] | undefined, edition: Edition, value: ReadingRecord[
 
 /**
  * Where you are now. Returns the log unchanged when nothing worth syncing
- * moved: a new section, a tenth more of the edition, or the end. Reaching the
- * end is noted (`readAt`); it does not mark the edition read.
+ * moved: a new section, a tenth more of the edition, the end, or your place
+ * by more than a step. Reaching the end is noted (`readAt`); it does not mark
+ * the edition read.
  */
-export function withPosition(log: unknown[] | undefined, edition: Edition, progress: number, section: string | null): unknown[] {
+export function withPosition(log: unknown[] | undefined, edition: Edition, progress: number, section: string | null, place?: Place): unknown[] {
   const before = readingIndex(log).get(edition.driveFileId);
   const furthest = Math.max(before?.progress ?? 0, Math.min(1, Math.max(0, progress)));
   const ended = furthest >= THE_END;
@@ -136,9 +152,11 @@ export function withPosition(log: unknown[] | undefined, edition: Edition, progr
   const moved = !before
     || section !== before.section
     || furthest - before.progress >= 0.1
-    || (ended && !before.readAt);
-  if (!moved || (furthest === 0 && !section)) return log || [];
-  return put(log, edition, { feedId: edition.feedId, progress: ended ? 1 : furthest, section, readAt, ...keptReset(before) });
+    || (ended && !before.readAt)
+    || (!!place && !samePlace(place, before.place));
+  if (!moved || (furthest === 0 && !section && (!place || place.within === 0))) return log || [];
+  const kept = place ?? before?.place;
+  return put(log, edition, { feedId: edition.feedId, progress: ended ? 1 : furthest, section, readAt, ...keptReset(before), ...(kept && { place: kept }) });
 }
 
 const keptReset = (before: ReadingRecord['value'] | undefined) => (before?.resetAt ? { resetAt: before.resetAt } : {});
@@ -159,8 +177,8 @@ const byTime = (a: ReadingRecord, b: ReadingRecord) =>
 
 /**
  * One edition's reading as two devices left it, combined (D11): the furthest
- * progress, the end reached if either reached it, and the section of the
- * later write. Before INT-57, Mark as unread started an edition over
+ * progress, the end reached if either reached it, and the section and place
+ * of the later write. Before INT-57, Mark as unread started an edition over
  * (`resetAt`); records written then still combine so: of a copy from before
  * it, only an end reached after it and the section count. Either order gives
  * the same result, so every device and the server converge on it.
@@ -178,6 +196,8 @@ export function mergeReading(a: ReadingRecord, b: ReadingRecord): ReadingRecord 
       section: later.value.section,
       readAt: reads.pop() ?? null,
       ...(resetAt && { resetAt }),
+      // Your place is where you were last, on whichever device.
+      ...(later.value.place && { place: later.value.place }),
     },
   };
 }
