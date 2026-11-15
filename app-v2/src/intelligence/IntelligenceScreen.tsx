@@ -35,7 +35,7 @@ import { topicIndex, relatedTo } from './related';
 import { EditionReader, EditionTools } from './EditionReader';
 import { MemoIndex, MemoReadbar } from './MemoWorkspace';
 import { IntelligenceNav } from './IntelligenceNav';
-import { memoBrand } from './memo';
+import { memoBrand, shortDate } from './memo';
 import { TodayView } from './TodayView';
 import { FeedStatus } from './FeedStatus';
 import { conformanceOf, labelOf, NEEDS_A_LOOK, type FeedConformance } from './conformance';
@@ -48,7 +48,7 @@ import { reviewIndex, dueOf, dueOn, withRating, withReviewing, withoutReview, SE
 import { NO_FILTERS, type SearchFilters } from './search';
 import type { Edition } from './parse';
 import type { FeedState } from './library';
-import { readingIndex, readingState, withPosition, withRead, isArchive } from './reading';
+import { readingIndex, readingState, withPosition, withReadMark, isRead, isArchive, countsAsUnread } from './reading';
 import {
   savedOf, saveInsight, removeInsight, updateInsight, findSaved, nameOf, type SaveInput, type SavedInsight,
 } from './saved';
@@ -377,12 +377,14 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   // Today and Takeaways open at their top; an edition places itself.
   useEffect(() => { if (!isFeed(view)) readerRef.current?.scrollTo({ top: 0 }); }, [view]);
 
-  // From Today, which edition a feed opens on stays as it was.
+  // Read only when you say so (INT-57): the reader's read button and Today's
+  // Mark read set the same mark, and the same again takes it back; where you
+  // are in the edition stays as it was. From Today, which edition a feed
+  // opens on stays as it was too.
   const markRead = (e: Edition) => {
-    const read = !reading.get(e.driveFileId)?.readAt;
-    flushPosition();
-    onPersist(d => ({ ...d, progressLog: withRead(d.progressLog, e, read), lastModified: stamp() }));
-    onNote(read ? 'Marked as read' : 'Marked as unread');
+    const read = !isRead(e, reading);
+    onPersist(d => ({ ...d, progressLog: withReadMark(d.progressLog, e, read), lastModified: stamp() }));
+    onNote(`${read ? 'Marked as read' : 'Marked as unread'} · ${shortDate(e.editionDate)}`);
   };
   const toggleRead = (e: Edition) => {
     keep(e);
@@ -603,15 +605,16 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
         <MemoIndex
           key={feedId}
           feedId={feedId}
-          brand={brand}
           editions={editions}
           current={edition}
           shown={shown}
+          readOf={e => isRead(e, reading)}
+          unreadOf={e => countsAsUnread(e, reading)}
           tagsOf={e => {
-            const s = readingState(e, reading);
             const label = labelOf(conformance[e.feedId]?.flags.get(e.driveFileId));
             return [
-              ...(!isArchive(e) && (s === 'new' || s === 'updated') ? [{ text: s === 'new' ? 'New' : 'Updated', alert: false }] : []),
+              // Read, then changed in Drive.
+              ...(readingState(e, reading) === 'updated' ? [{ text: 'Updated', alert: false }] : []),
               // Imported is most of the archive: the memo says it when one is open.
               ...(label && label !== 'Imported' ? [{ text: label, alert: true }] : []),
             ];
@@ -732,7 +735,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
             <span className="intel-grow" />
             <EditionTools
               edition={edition}
-              read={!!record?.readAt}
+              read={isRead(edition, reading)}
               saved={!!findSaved(saved, edition, { kind: 'edition', text: edition.title })}
               onToggleRead={() => toggleRead(edition)}
               onToggleSave={() => toggleSave(edition, { kind: 'edition', text: edition.title })}

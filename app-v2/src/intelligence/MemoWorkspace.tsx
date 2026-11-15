@@ -8,17 +8,21 @@
 // edition opens it beside the index, which stays (on a phone, where the index
 // takes the whole width, the memo replaces it). Which edition, and whether the
 // index shows, are the screen's (`IntelligenceScreen`); the index keeps its
-// own months and search, so that neither redraws the memo beside it; how a
-// memo is drawn is the memo's.
+// own months, search and filter, so that neither redraws the memo beside it;
+// how a memo is drawn is the memo's. An edition you marked read (INT-57,
+// `reading.ts`) is sage in the index, as the memo's read button is when on:
+// read and chosen are apart, so each of the four combinations shows.
 import { useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import type { Edition } from './parse';
 import type { FeedId } from './feeds';
-import { barDate, indexGroups, monthKey, shortDate, type MemoBrand } from './memo';
+import { barDate, indexGroups, monthKey, shortDate } from './memo';
 
 /** The index's element, which the bar's toggle controls. */
 const INDEX = 'memo-editions';
 
 const plural = (n: number) => `${n} edition${n === 1 ? '' : 's'}`;
+
+type Filter = 'all' | 'unread';
 
 /** A feed's open months, kept on the device; its search, for the session. */
 const monthsKey = (feedId: FeedId) => `my-planning-intel-months:${feedId}`;
@@ -100,12 +104,15 @@ export function MemoReadbar({ edition, shown, onToggle, toggleRef, adjacent, onO
 interface IndexProps {
   /** Whose index: its months and search are kept per feed (the index is drawn anew for each). */
   feedId: FeedId;
-  brand: MemoBrand;
   /** The feed's editions, newest first. */
   editions: Edition[];
   current: Edition | null;
   shown: boolean;
-  /** Quiet words after an edition's date: "New", a problem with its document. */
+  /** Marked read by you (INT-57). */
+  readOf: (e: Edition) => boolean;
+  /** Counted as unread: not marked read, and not imported (the archive, D17). */
+  unreadOf: (e: Edition) => boolean;
+  /** Quiet words after an edition's date: "Updated", a problem with its document. */
   tagsOf: (e: Edition) => { text: string; alert: boolean }[];
   onChoose: (e: Edition) => void;
   onStatus: () => void;
@@ -115,15 +122,15 @@ interface IndexProps {
 }
 
 /**
- * The paper index: the feed's name, "Edition history", how many editions,
- * the search; then the months, each with its count, open or shut on its own
+ * The paper index: "Edition history", how many read and unread, the search,
+ * All editions or Unread only; then the months, each with its count, open or shut on its own
  * (while searching, every month with a match shows, and closing one there
  * lasts until the search changes); the edition being read marked; the foot.
  * The month of the edition being read opens as the index is drawn and as
  * that edition changes (worked out while rendering, so it never shows shut);
  * a month closed by hand stays closed until then.
  */
-export function MemoIndex({ feedId, brand, editions, current, shown, tagsOf, onChoose, onStatus, indexRef, loading = false }: IndexProps) {
+export function MemoIndex({ feedId, editions, current, shown, readOf, unreadOf, tagsOf, onChoose, onStatus, indexRef, loading = false }: IndexProps) {
   const [open, setOpen] = useState<string[]>(() => storedMonths(feedId));
   const [seen, setSeen] = useState<string | null>(null);
   const reading = current?.driveFileId ?? null;
@@ -136,7 +143,13 @@ export function MemoIndex({ feedId, brand, editions, current, shown, tagsOf, onC
   const [query, setQuery] = useState(() => recall(session, searchKey(feedId)) ?? '');
   const search = (q: string) => { setQuery(q); remember(session, searchKey(feedId), q); };
 
-  const groups = useMemo(() => indexGroups(editions, query), [editions, query]);
+  // All editions, or only those still to read: an edition marked read leaves
+  // this list at once, while it stays open beside it.
+  const [filter, setFilter] = useState<Filter>('all');
+  const listed = useMemo(() => (filter === 'unread' ? editions.filter(unreadOf) : editions), [editions, filter, unreadOf]);
+  const groups = useMemo(() => indexGroups(listed, query), [listed, query]);
+  const read = editions.filter(readOf).length;
+  const unread = editions.filter(unreadOf).length;
   const searching = !!query.trim();
   // Months shut while searching, until the search changes.
   const [shut, setShut] = useState<{ query: string; keys: string[] }>({ query, keys: [] });
@@ -162,13 +175,16 @@ export function MemoIndex({ feedId, brand, editions, current, shown, tagsOf, onC
   return (
     <aside id={INDEX} className="memo-editions" aria-label="Edition history" inert={!shown || undefined} ref={indexRef}>
       <div className="memo-editions-head">
-        <span className="memo-editions-kicker">{brand.name}</span>
         <h2>Edition history</h2>
-        <div className="memo-editions-sub">{plural(editions.length)} in your archive</div>
+        <div className="memo-editions-sub"><b>{read} read</b> · {unread} unread · {plural(editions.length)}</div>
         <label className="memo-editions-search">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg>
-          <input type="search" placeholder="Search titles or dates" autoComplete="off" aria-label="Search edition history" value={query} onChange={e => search(e.target.value)} />
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg>
+          <input type="search" placeholder="Search editions" autoComplete="off" aria-label="Search edition history" value={query} onChange={e => search(e.target.value)} />
         </label>
+        <div className="memo-editions-filters" role="group" aria-label="Show">
+          <button type="button" aria-pressed={filter === 'all'} onClick={() => setFilter('all')}>All editions</button>
+          <button type="button" aria-pressed={filter === 'unread'} onClick={() => setFilter('unread')}>Unread only</button>
+        </div>
       </div>
       <nav className="memo-months" aria-label="Browse editions by month" ref={listRef}>
         {groups.map(g => {
@@ -189,11 +205,12 @@ export function MemoIndex({ feedId, brand, editions, current, shown, tagsOf, onC
               <div className="memo-month-list" id={`memo-month-${g.key}`} hidden={!here}>
                 {g.editions.map(e => {
                   const now = e === current;
+                  const isRead = readOf(e);
                   return (
                     <button
                       key={e.driveFileId}
                       type="button"
-                      className="memo-edition"
+                      className={`memo-edition${isRead ? ' is-read' : ''}`}
                       aria-current={now ? 'page' : undefined}
                       onClick={() => onChoose(e)}
                     >
@@ -201,6 +218,8 @@ export function MemoIndex({ feedId, brand, editions, current, shown, tagsOf, onC
                         {shortDate(e.editionDate)}
                         {tagsOf(e).map(t => <span key={t.text} className={`memo-edition-tag${t.alert ? ' is-alert' : ''}`}><span className="intel-vh">, </span>{t.text}</span>)}
                       </span>
+                      {/* Read in words too, not by colour alone. */}
+                      <span className="intel-vh">{isRead ? ', read: ' : ': '}</span>
                       <span className="memo-edition-title">{e.title}</span>
                     </button>
                   );
@@ -209,7 +228,11 @@ export function MemoIndex({ feedId, brand, editions, current, shown, tagsOf, onC
             </div>
           );
         })}
-        {!groups.length && !loading && <p className="memo-editions-empty">{editions.length ? 'No matching editions.' : 'No editions yet.'}</p>}
+        {!groups.length && !loading && (
+          <p className="memo-editions-empty">
+            {!editions.length ? 'No editions yet.' : query.trim() ? 'No matching editions.' : 'No unread editions.'}
+          </p>
+        )}
       </nav>
       <div className="memo-editions-foot">
         <span>{plural(shownCount)}</span>

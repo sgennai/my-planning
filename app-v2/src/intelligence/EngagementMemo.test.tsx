@@ -38,11 +38,10 @@ describe('the Customer Engagement memo', () => {
     for (const url of linksOf(ENGAGEMENT_BODY)) expect(hrefs).toContain(url);
   });
 
-  it('the subline, the title, the coverage line and the relevant topics', () => {
+  it('the reader\'s header, the title, the coverage line and the relevant topics', () => {
     const { container } = memo();
     expect(container.querySelector('.memo')).toHaveClass('memo--engagement');
-    expect(container.querySelector('.memo-subline')).toHaveTextContent('The executive memo / 2 November 2026');
-    expect(container.querySelector('.memo-subline')).toHaveTextContent(/02 developments\s*01 min read/);
+    expect(container.querySelector('.memo > .memo-head .memo-head-meta')).toHaveTextContent('Customer Engagement Brief, 2 Nov 2026, 02 developments, 01 min read');
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Connected Agents and Headless CDPs');
     expect(container.querySelector('.memo-title + .memo-coverage')).toHaveTextContent('Coverage: 26 October – 2 November 2026 — new since Friday');
     expect(container.querySelector('.memo-topics')).toHaveTextContent('Relevant topicsAgentic AIHeadless CDP');

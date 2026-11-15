@@ -35,9 +35,28 @@ describe('the memo', () => {
   it('dates itself by the run: the memo, its end (the bar is the workspace’s, MemoWorkspace.test.tsx)', () => {
     const { container } = memo();
     expect(container.querySelector('.memo-bar, .memo-readbar')).toBeNull();
-    expect(container.querySelector('.memo-subline')).toHaveTextContent('The executive memo / 2 November 2026');
-    expect(container.querySelector('.memo-subline')).toHaveTextContent('01 min read');
+    // The reader's header (INT-57): across the reader, not in the text column.
+    const head = container.querySelector('.memo > .memo-head')!;
+    expect(head.querySelector('.memo-head-meta')).toHaveTextContent('AI Challenge, 2 Nov 2026, 01 min read');
+    expect(container.querySelector('.memo-content .memo-head')).toBeNull();
     expect(container.querySelector('.memo-footer')).toHaveTextContent('AI Challenge · End of edition2 November 2026');
+  });
+
+  it('the read button: icon only, at the header\'s far right, saying what a tap does; it marks nothing by itself (INT-57)', () => {
+    const toggle = vi.fn();
+    const { container, rerender } = memo({ onToggleRead: toggle });
+    const head = container.querySelector('.memo-head')!;
+    const button = within(head as HTMLElement).getByRole('button', { name: 'Mark edition as read' });
+    expect(button).toHaveAttribute('aria-pressed', 'false');
+    expect(button.textContent).toBe('');
+    expect(head.lastElementChild).toBe(button);
+    fireEvent.click(button);
+    expect(toggle).toHaveBeenCalledTimes(1);
+    const marked = new Map([[edition.driveFileId, { feedId: edition.feedId, progress: 0.4, section: null, readAt: null, mark: { read: true, at: '2026-11-15T09:00:00Z' } }]]);
+    rerender(<EditionReader edition={edition} scroller={scroller} onNote={() => {}} onToggleSave={() => {}} onToggleRead={toggle} reading={marked} />);
+    expect(screen.getByRole('button', { name: 'Mark edition as unread' })).toHaveAttribute('aria-pressed', 'true');
+    // The end's own button says the same.
+    expect(screen.getByRole('button', { name: 'Read · Mark as unread' })).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('opens the challenge in one sentence, said once, and numbers the sections in their order, the topic map apart', () => {

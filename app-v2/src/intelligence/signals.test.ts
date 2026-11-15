@@ -12,7 +12,11 @@ const ed = (id: string): Edition => ({ driveFileId: id } as Edition);
 const feed = (feedId: FeedState['feedId'], ids: string[], pending = 0): FeedState => ({
   feedId, editions: ids.map(ed), missing: [], status: 'ready', message: null, refreshedAt: null, pending,
 });
-const read = (readAt: string | null, progress = 1) => ({ feedId: 'enterprise-ai-challenge' as const, progress, section: null, readAt });
+/** Marked read at `at` (INT-57), or not marked (read to the end or not). */
+const read = (at: string | null, progress = 1) => ({
+  feedId: 'enterprise-ai-challenge' as const, progress, section: null, readAt: progress === 1 ? '2026-11-01T09:00:00Z' : null,
+  ...(at && { mark: { read: true, at } }),
+});
 const review = (id: string, lastAt: string | null): unknown => ({
   id: `rv:${id}`, type: 'intel-review', refId: id, at: lastAt ?? '2026-11-01T00:00:00Z',
   value: { on: true, due: '2026-12-01', confidence: 3, count: 1, lastAt } satisfies ReviewValue,
@@ -25,6 +29,8 @@ describe('reading signals', () => {
     ['s1', read('2026-11-06T09:00:00Z')], // 7 days before the 13th: outside the week window
     ['s2', read('2026-10-01T09:00:00Z')], // more than 30 days before the 13th
     ['gone', read('2026-11-13T07:00:00Z')], // no longer in Drive, still a read
+    ['a3', read(null)], // read to the end, never marked: unread, and not counted as read
+    ['s3', { ...read('2026-11-12T09:00:00Z'), mark: { read: false, at: '2026-11-12T10:00:00Z' } }], // marked, then taken back
   ]);
   const states = {
     'enterprise-ai-challenge': feed('enterprise-ai-challenge', ['a1', 'a2', 'a3']),
@@ -41,7 +47,7 @@ describe('reading signals', () => {
     ]);
   });
 
-  it('counts editions read over the last 7 and 30 days, today included, wherever they were read', () => {
+  it('counts editions marked read over the last 7 and 30 days, today included, wherever they were marked', () => {
     const s = signalsOf(states, reading, reviews, '2026-11-13');
     expect([s.read7, s.read30]).toEqual([2, 3]);
   });

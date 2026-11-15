@@ -110,6 +110,8 @@ export const memoDate = (day: DayKey) => format(day, { day: 'numeric', month: 'l
 /** "Wed 11 Nov 2026 · 09:03": the bar's. */
 export const barDate = (day: DayKey, time: string | null) =>
   `${format(day, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }).replace(',', '')}${time ? ` · ${time}` : ''}`;
+/** "11 Nov 2026": the reader's header (INT-57). */
+export const headDate = (day: DayKey) => format(day, { day: 'numeric', month: 'short', year: 'numeric' });
 /** "Wed 11 Nov": a list's. */
 export const shortDate = (day: DayKey) => format(day, { weekday: 'short', day: 'numeric', month: 'short' }).replace(',', '');
 /** "14 November": Today's queue (INT-55). */

@@ -373,7 +373,11 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   questions with Save, vocabulary with a quiet save, "Use it in a conversation" with Save), or
   as its Markdown; the topic map moved to a fold at the end (`memoOrder`), "Related by topic"
   a second fold under it (all of `relatedTo`, 5 then "Show more"); the footer, then quiet tools
-  (Mark as read, Save this edition, Open original). No save in the sections' margin (the user's
+  (Mark as read, Save this edition, Open original). Above the article, across the reader's whole
+  width, the reader's header (INT-57, `MemoHead` in `MemoParts.tsx`, the three memos): the memo's
+  name · date (· Imported) · developments · min read, starting where the text column does, and at
+  the far right (16px; 12 when the reader is ≤760px) the read button, icon only, 38px (36 ≤830px
+  window) in a 44px target: `aria-pressed`, named "Mark edition as read" / "… as unread". No save in the sections' margin (the user's
   choice, 12 Nov): a whole section is kept by selecting its text, or in the briefs.
   Its CSS is the prototype's: Avenir Next and Georgia,
   window-based sizes, breakpoints (760/430px) on the reader's own width (`@container memo`, the
@@ -392,15 +396,21 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   from the memo's own scroll (to the briefing's end). Under it the paper index and the memo, side
   by side, each scrolling on its own; one width token for the three feeds,
   `--edition-index-width` (324px, 316 ≤1080, 290 ≤790, window-based as in the prototype). The
-  index (`MemoIndex`): the feed's name, "Edition history", "n editions in your archive", a search
+  index (`MemoIndex`): "Edition history" (22px; no feed name, INT-57), "n read · m unread · k
+  editions" (unread as `countsAsUnread`), a slim search (33px),
+  All editions / Unread only (`aria-pressed`, the index's own, reset with the feed; one marked
+  read leaves Unread only at once while its memo stays open), a search
   (title and date as written or said, `indexGroups`; per feed, for the session,
   `sessionStorage`), then the months newest first (`indexGroups`, the Paris day's month, none
   without an edition), each a button with its count, open or shut on its own, kept per feed on
   the device (`localStorage`); the month of the edition being read opens as the index is drawn
   and as that edition changes (worked out while rendering); while searching every month with a
   match shows (closing one lasts until the search changes), and clearing it brings the months
-  back. Each edition: its date without the time, its title, "New"/"Updated" and problem tags; the
-  one read marked (`aria-current="page"`) and kept in sight. Choosing one opens it beside the
+  back. Each edition: its date without the time, its title, "Updated" (marked read, then changed
+  in Drive) and problem tags; one marked read is sage (`is-read`, `--memo-read-*`, the button's
+  palette, titles a shade deeper than the prototype's for 4.5:1) and says ", read" to a screen
+  reader; the one open marked (`aria-current="page"`, a 3px left edge, sage when read too) and
+  kept in sight. Choosing one opens it beside the
   index, which stays. The index keeps its own months and search, so neither redraws the memo.
   Hidden, the index collapses (`inert`) and the memo takes the width, its place kept
   (`useReadingAnchor`); one choice for the three feeds, kept on the device
@@ -415,15 +425,22 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   reaches the screen. An edition that throws shows "couldn't be shown" + Open original
   (`EditionBoundary`) without taking the section down. Other feeds render as Markdown until
   they publish and get their own forms.
-- **Reading state** (`reading.ts`): one synced `progressLog` record per edition,
+- **Reading state** (`reading.ts`): two records per edition, kept apart (INT-57). **Reading**:
   `ir:<driveFileId>`, type `intel-reading`, value `{ feedId, progress (furthest, 0–1), section
-  (last), readAt }`. Written when scrolling rests (1.2 s), on leaving the edition, and when the
-  app is hidden; only a new section, +10 % or the end is worth a write. The end marks it read;
-  Mark as unread starts over (and stamps `resetAt`). An edition reopens at its last section while
-  unread. "Updated" = Drive's `modifiedTime` after `readAt`. Two devices' copies **merge** on sync
-  (`mergeReading`, D11, INT-14): the furthest progress, read if either read it, the later write's
-  section; after a Mark as unread, only what came after it counts. A device that had not caught
-  up used to make an edition read elsewhere unread, its progress lower.
+  (last), readAt }`; written when scrolling rests (1.2 s), on leaving the edition, and when the
+  app is hidden; only a new section, +10 % or the end is worth a write. `readAt` is when the end
+  was reached (before INT-57 it also meant read, and Mark as read/unread wrote it and `resetAt`;
+  old records keep both). An edition reopens at its last section until its end was reached. Two
+  devices' copies **merge** on sync (`mergeReading`, D11, INT-14): the furthest progress, the end
+  if either reached it, the later write's section; a start-over from before INT-57 still holds.
+  **Read** (only ever by you): `ic:<driveFileId>`, type `intel-read-mark`, value `{ feedId, read }`,
+  `at` the moment of the tap, written by the reader's read button, the memo's end button and
+  Today's Mark read, the same again taking it back (`withReadMark`); last-write-wins like a
+  routine tick; never touches the reading record. Opening, scrolling, reaching the end or saving
+  never marks it. `readingIndex` gives both (`mark`); `isRead`, `countsAsUnread` (not marked, not
+  imported) and `readingState` (read / updated = marked before Drive's `modifiedTime` / started /
+  new) are what every list, count, Today and "Your reading" use. No record from before INT-57 is
+  taken as read (in production on 15 Nov: 11 editions read to the end, none provably marked).
 - **Takeaways** (the brief's "À retenir"; `saved.ts`): synced `content` records `is:<uuid>`, type
   `intel-saved`, kinds edition / section / labelled (a question or the rehearse line) / term /
   passage (selected text, via a button at the foot because iOS gives web apps no selection
@@ -471,8 +488,8 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   (`previewOf`: "What I should remember today"; else the Executive take's conclusion after its
   list; else the Challenge's bold opening and the paragraph after it; whole sentences up to 440
   characters, verbatim on all 128 archived editions), three topics, Open edition (that edition, in
-  its memo) and Mark read / Mark unread (`withRead`, synced, without changing which edition a feed
-  opens on). Choosing reads nothing and stays on Today; on a phone (≤660px, stacked) it scrolls
+  its memo) and Mark read / Mark unread (`withReadMark`: the same mark as the reader's read button,
+  INT-57; without changing which edition a feed opens on). Choosing reads nothing and stays on Today; on a phone (≤660px, stacked) it scrolls
   the preview into view and the copy says "above". Below: "Still unread" (every other unread
   edition, newest first; folded until Expand, kept open by the screen; five then "Show all n";
   each row Open), takeaways due for review, Your reading, Publishing. Light in both themes, like
@@ -641,8 +658,8 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   clearance), so the list never delays "read".
 - **Your reading** (INT-44, D16; `signals.ts`, `ReadingPanel` in `TodayView.tsx`): a panel at the
   foot of Today, above Publishing, once an edition exists. Unread per feed (editions on this
-  device without `readAt`, started ones included; "More are still downloading" while a feed has
-  `pending`), editions read in the last 7 and 30 days (synced `readAt`, today included, from any
+  device not marked read, started or read to the end included; "More are still downloading" while a feed has
+  `pending`), editions marked read in the last 7 and 30 days (by the mark's `at`, INT-57, today included, from any
   device), takeaways reviewed this week (review `lastAt` since Monday, Paris). Windows reaching
   back before `RECORDS_SINCE` (2026-11-01) say "since 1 Nov". No streaks, goals or charts.
 - **Reading place** (INT-35, `useReadingAnchor.ts`): Safari keeps no scroll anchor, so a new
@@ -759,7 +776,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (562 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (570 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris

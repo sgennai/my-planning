@@ -35,10 +35,9 @@ describe('the Sales memo', () => {
     for (const url of linksOf(SALES_BODY)) expect(hrefs).toContain(url);
   });
 
-  it('the subline, the title and the relevant topics', () => {
+  it('the reader\'s header, the title and the relevant topics', () => {
     const { container } = memo();
-    expect(container.querySelector('.memo-subline')).toHaveTextContent('The executive memo / 3 November 2026');
-    expect(container.querySelector('.memo-subline')).toHaveTextContent(/02 developments\s*01 min read/);
+    expect(container.querySelector('.memo > .memo-head .memo-head-meta')).toHaveTextContent('Enterprise AI Sales Brief, 3 Nov 2026, 02 developments, 01 min read');
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Outcome Pricing and Sovereign Capacity');
     expect(container.querySelector('.memo-topics')).toHaveTextContent('Relevant topicsInvestment & budgetsVendor strategy');
     expect(container.querySelector('.memo-footer')).toHaveTextContent('Enterprise AI Sales Brief · End of edition3 November 2026');

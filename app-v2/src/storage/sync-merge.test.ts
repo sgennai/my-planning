@@ -12,7 +12,7 @@ import { mergeActivityLists } from './merge';
 import { makeDefaultData } from '../main-app';
 import { setCompletion, buildCompletionIndex, stateOf } from '../routine/engine';
 import type { RoutineActivity } from '../routine/model';
-import { readingIndex, withPosition, withRead } from '../intelligence/reading';
+import { readingIndex, withPosition, withReadMark, isRead, readingId, READING_TYPE } from '../intelligence/reading';
 import { reviewIndex, withRating } from '../intelligence/review';
 import type { Edition } from '../intelligence/parse';
 import { savedOf, removeInsight, type SavedInsight } from '../intelligence/saved';
@@ -232,10 +232,16 @@ describe('two devices reading the same edition (INT-14, D11)', () => {
     });
   });
 
-  it('Mark as unread starts it over on both, whatever the other did meanwhile', async () => {
+  /** A start-over as the app wrote it before INT-57 (Mark as unread then reset the reading). */
+  const startedOver = (log: unknown[]) => [
+    ...log.filter(r => (r as { id?: string }).id !== readingId(ed.driveFileId)),
+    { id: readingId(ed.driveFileId), type: READING_TYPE, refId: ed.driveFileId, at: new Date(clock).toISOString(), value: { feedId: ed.feedId, progress: 0, section: null, readAt: null, resetAt: new Date(clock).toISOString() } },
+  ];
+
+  it('a start-over written before INT-57 still holds on both, whatever the other did meanwhile', async () => {
     let [ipad, iphone] = await twoDevices();
     ipad = await as(ipad, async () => { await reading(log => withPosition(log, ed, 1, 'vocabulary')); tick(); await sync(); });
-    iphone = await as(iphone, async () => { tick(); await sync(); await reading(log => withRead(log, ed, false)); tick(); await sync(); });
+    iphone = await as(iphone, async () => { tick(); await sync(); await reading(startedOver); tick(); await sync(); });
     // The iPad, not synced since it read it, scrolls back through it.
     await as(ipad, async () => {
       await reading(log => withPosition(log, ed, 0.5, 'approaches'));
@@ -248,6 +254,48 @@ describe('two devices reading the same edition (INT-14, D11)', () => {
       await sync();
       expect(await stateOn()).toMatchObject({ progress: 0, readAt: null, section: 'approaches' });
     });
+  });
+
+  it('marked read on one, read on to the end on the other: read on both, where each was kept (INT-57)', async () => {
+    let [ipad, iphone] = await twoDevices();
+    ipad = await as(ipad, async () => { await reading(log => withPosition(log, ed, 0.4, 'challenge')); tick(); await sync(); });
+    iphone = await as(iphone, async () => { tick(); await sync(); });
+    online.value = false;
+    ipad = await as(ipad, async () => { await reading(log => withReadMark(log, ed, true, new Date(clock))); await sync(); });
+    iphone = await as(iphone, async () => { await reading(log => withPosition(log, ed, 1, 'vocabulary')); await sync(); });
+    online.value = true;
+    ipad = await as(ipad, async () => { tick(); await sync(); });
+    iphone = await as(iphone, async () => { tick(); await sync(); });
+    ipad = await as(ipad, async () => { tick(); await sync(); });
+    for (const device of [ipad, iphone]) {
+      await as(device, async () => {
+        const r = readingIndex((await read()).progressLog);
+        expect(isRead(ed, r)).toBe(true);
+        expect(r.get(ed.driveFileId)).toMatchObject({ progress: 1, section: 'vocabulary' });
+      });
+    }
+  });
+
+  it('read on one, then unread on the other, both offline: the later stands on both; tapping fast leaves the last tap', async () => {
+    let [ipad, iphone] = await twoDevices();
+    online.value = false;
+    ipad = await as(ipad, async () => { await reading(log => withReadMark(log, ed, true, new Date(clock))); await sync(); });
+    iphone = await as(iphone, async () => {
+      // Three quick taps: read, unread, read; then a fourth, later than the iPad's: unread.
+      await reading(log => withReadMark(log, ed, true, new Date(clock)));
+      await reading(log => withReadMark(log, ed, false, new Date(clock)));
+      await reading(log => withReadMark(log, ed, true, new Date(clock)));
+      await reading(log => withReadMark(log, ed, false, new Date(clock)));
+      await sync();
+      expect((await read()).progressLog.filter(r => (r as { id?: string }).id === `ic:${ed.driveFileId}`)).toHaveLength(1);
+    });
+    online.value = true;
+    iphone = await as(iphone, async () => { tick(); await sync(); });
+    ipad = await as(ipad, async () => { tick(); await sync(); });
+    iphone = await as(iphone, async () => { tick(); await sync(); });
+    for (const device of [ipad, iphone]) {
+      await as(device, async () => { expect(isRead(ed, readingIndex((await read()).progressLog))).toBe(false); });
+    }
   });
 
   it('a review given offline on each: the later rating stands, the count keeps the higher (D12)', async () => {

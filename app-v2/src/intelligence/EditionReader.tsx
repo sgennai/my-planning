@@ -451,7 +451,10 @@ function Reader({
     });
   };
 
-  const progress = record && !record.readAt && record.progress > 0 ? Math.round(record.progress * 100) : null;
+  // Read only when marked read (INT-57); how far you went is apart from it.
+  const read = !!record?.mark?.read;
+  const progress = record && !read && record.progress > 0 ? Math.round(record.progress * 100) : null;
+  // Where you were, until you reach the end.
   const resumeAt = record && !record.readAt ? indexed.find(s => s.id === record.section) : undefined;
   const editionInput: SaveInput = { kind: 'edition', text: edition.title };
   // A suspected import is for the feed's status only; it is never proof.
@@ -477,7 +480,7 @@ function Reader({
     articleRef,
     related,
     onOpenRelated,
-    read: !!record?.readAt,
+    read,
     editionSaved: !!findSaved(saved, edition, editionInput),
     onToggleRead,
     onToggleEditionSave: onToggleSave && (() => onToggleSave(editionInput)),
@@ -506,7 +509,7 @@ function Reader({
           articleRef={articleRef}
           related={related}
           onOpenRelated={onOpenRelated}
-          read={!!record?.readAt}
+          read={read}
           editionSaved={!!findSaved(saved, edition, editionInput)}
           onToggleRead={onToggleRead}
           onToggleEditionSave={onToggleSave && (() => onToggleSave(editionInput))}
@@ -529,7 +532,7 @@ function Reader({
             {heroActions && (
               <EditionTools
                 edition={edition}
-                read={!!record?.readAt}
+                read={read}
                 saved={!!findSaved(saved, edition, editionInput)}
                 onToggleRead={onToggleRead}
                 onToggleSave={onToggleSave && (() => onToggleSave(editionInput))}
@@ -545,7 +548,7 @@ function Reader({
           <p className="intel-meta">
             {readingMinutes(edition.markdownBody)} min read
             {imported && <span className="intel-tag" title="Imported by hand, not published by the schedule">Imported</span>}
-            {record?.readAt && ' · Read'}
+            {read && ' · Read'}
             {progress !== null && ` · ${progress}% read`}
             {resumeAt && resumeAt.id !== active && (
               <> · <button type="button" className="intel-resume" onClick={() => goTo(resumeAt.id)}>

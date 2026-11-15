@@ -2,7 +2,9 @@
 // the rules over them.
 import { describe, it, expect } from 'vitest';
 import { parseEdition } from './parse';
-import { readingIndex, readingState, withPosition, withRead, readingId, mergeReading, READING_TYPE, type ReadingRecord } from './reading';
+import {
+  readingIndex, readingState, withPosition, withReadMark, readingId, readMarkId, mergeReading, isRead, countsAsUnread, READING_TYPE, READ_MARK_TYPE, type ReadingRecord,
+} from './reading';
 import {
   savedOf, saveInsight, removeInsight, updateInsight, findSaved, parseTags, searchSaved, tagsOf, nameOf, SAVED_TYPE,
 } from './saved';
@@ -36,29 +38,64 @@ describe('reading state', () => {
     expect(withPosition(log, edition, 0.45, 'challenge')).not.toBe(log);
   });
 
-  it('reaching the end marks it read; Mark as unread starts over', () => {
+  it('reaching the end is how far you read, never read: only marking it makes it read (INT-57)', () => {
     let log = withPosition([], edition, 0.99, 'vocabulary');
-    expect(readingIndex(log).get(edition.driveFileId)).toMatchObject({ progress: 1 });
+    expect(readingIndex(log).get(edition.driveFileId)).toMatchObject({ progress: 1, readAt: expect.any(String) });
+    expect(readingState(edition, readingIndex(log))).toBe('started');
+    expect(isRead(edition, readingIndex(log))).toBe(false);
+    expect(countsAsUnread(edition, readingIndex(log))).toBe(true);
+    const reading = log[0];
+    log = withReadMark(log, edition, true, new Date('2026-11-15T09:00:00Z'));
+    expect(log[0]).toBe(reading);
+    expect(log[1]).toEqual({ id: readMarkId(edition.driveFileId), type: READ_MARK_TYPE, refId: edition.driveFileId, at: '2026-11-15T09:00:00.000Z', value: { feedId: 'enterprise-ai-challenge', read: true } });
     expect(readingState(edition, readingIndex(log))).toBe('read');
-    log = withRead(log, edition, false);
-    expect(readingIndex(log).get(edition.driveFileId)).toEqual({ feedId: 'enterprise-ai-challenge', progress: 0, section: null, readAt: null, resetAt: expect.any(String) });
-    log = withRead(log, edition, true);
-    expect(readingState(edition, readingIndex(log))).toBe('read');
+    expect(countsAsUnread(edition, readingIndex(log))).toBe(false);
+    // Taken back: unread, where you were in it unchanged.
+    log = withReadMark(log, edition, false, new Date('2026-11-15T09:01:00Z'));
+    expect(readingState(edition, readingIndex(log))).toBe('started');
+    expect(readingIndex(log).get(edition.driveFileId)).toMatchObject({ progress: 1, section: 'vocabulary', mark: { read: false, at: '2026-11-15T09:01:00.000Z' } });
   });
 
-  it('an edition changed in Drive after you read it is "updated"', () => {
-    const log = withRead([], other, true);
+  it('opening and scrolling never mark it; a mark stays as scrolling goes on', () => {
+    let log = withPosition([], edition, 0.3, 'challenge');
+    log = withPosition(log, edition, 0.6, 'approaches');
+    expect(isRead(edition, readingIndex(log))).toBe(false);
+    log = withReadMark(log, edition, true);
+    log = withPosition(log, edition, 1, 'vocabulary');
+    expect(isRead(edition, readingIndex(log))).toBe(true);
+  });
+
+  it('an edition marked read from Today, never opened, is read and has no reading', () => {
+    const log = withReadMark([], other, true);
+    expect(readingIndex(log).get(other.driveFileId)).toEqual({ feedId: 'enterprise-ai-challenge', progress: 0, section: null, readAt: null, mark: { read: true, at: expect.any(String) } });
+    expect(readingState(other, readingIndex(log))).toBe('read');
+  });
+
+  it('a record from before INT-57, read to the end or marked read then, is not taken as read', () => {
+    const before: ReadingRecord = {
+      id: readingId(edition.driveFileId), type: READING_TYPE, refId: edition.driveFileId, at: '2026-11-10T09:00:00Z',
+      value: { feedId: 'enterprise-ai-challenge', progress: 1, section: 'vocabulary', readAt: '2026-11-10T09:00:00Z' },
+    };
+    expect(readingState(edition, readingIndex([before]))).toBe('started');
+    expect(countsAsUnread(edition, readingIndex([before]))).toBe(true);
+  });
+
+  it('an edition changed in Drive after you marked it read is "updated"', () => {
+    const log = withReadMark([], other, true);
     const later = { ...other, modifiedTime: '2999-01-01T00:00:00.000Z' };
     expect(readingState(later, readingIndex(log))).toBe('updated');
   });
 
-  it('one record per edition, whatever happens to it', () => {
+  it('one reading record and one mark per edition, whatever happens to it', () => {
     let log: unknown[] = [];
     log = withPosition(log, edition, 0.3, 'a');
     log = withPosition(log, edition, 0.5, 'b');
-    log = withRead(log, edition, true);
+    log = withReadMark(log, edition, true);
+    log = withReadMark(log, edition, false);
+    log = withReadMark(log, edition, true);
     log = withPosition(log, other, 0.2, 'a');
-    expect(log.map(r => (r as { id: string }).id)).toEqual([readingId(edition.driveFileId), readingId(other.driveFileId)]);
+    expect(log.map(r => (r as { id: string }).id)).toEqual([readingId(edition.driveFileId), readMarkId(edition.driveFileId), readingId(other.driveFileId)]);
+    expect(isRead(edition, readingIndex(log))).toBe(true);
   });
 });
 
@@ -97,15 +134,12 @@ describe('two devices\' copies of one edition\'s reading (D11)', () => {
     expect(mergeReading(same, same)).toEqual(same);
   });
 
-  it('Mark as unread is recorded, and kept by later reading', () => {
-    let log = withPosition([], edition, 0.99, 'vocabulary');
-    log = withRead(log, edition, false);
-    const reset = readingIndex(log).get(edition.driveFileId)!.resetAt;
-    expect(reset).toBeTruthy();
-    log = withPosition(log, edition, 0.4, 'challenge');
-    expect(readingIndex(log).get(edition.driveFileId)?.resetAt).toBe(reset);
-    log = withRead(log, edition, true);
-    expect(readingIndex(log).get(edition.driveFileId)?.resetAt).toBe(reset);
+  it('a start-over recorded before INT-57 is kept by later reading and by a mark', () => {
+    const reset = copy('2026-11-03T10:00:00Z', { progress: 0, resetAt: '2026-11-03T10:00:00Z' });
+    let log: unknown[] = withPosition([reset], edition, 0.4, 'challenge');
+    expect(readingIndex(log).get(edition.driveFileId)?.resetAt).toBe('2026-11-03T10:00:00Z');
+    log = withReadMark(log, edition, true);
+    expect(readingIndex(log).get(edition.driveFileId)?.resetAt).toBe('2026-11-03T10:00:00Z');
   });
 });
 

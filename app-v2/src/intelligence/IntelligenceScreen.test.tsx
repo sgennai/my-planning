@@ -10,7 +10,7 @@ import { render, screen, fireEvent, cleanup, within } from '@testing-library/rea
 import { IntelligenceScreen } from './IntelligenceScreen';
 import { _closeLibrary } from './library';
 import { savedOf } from './saved';
-import { readingIndex } from './reading';
+import { readingIndex, isRead } from './reading';
 import { CHALLENGE_DOC, CHALLENGE_FILE, ENGAGEMENT_DOC, ENGAGEMENT_FILE, SALES_DOC, SALES_FILE } from './test-fixtures';
 
 let docText: string;
@@ -123,10 +123,11 @@ describe('the Intelligence section', () => {
     withEngagement();
     render(<App />);
     const preview = await screen.findByRole('region', { name: 'Preview' });
-    const feeds = screen.getByRole('group', { name: 'Your three feeds' });
-    const item = (n: string) => within(feeds).getByRole('button', { name: new RegExp(`^${n} · `) });
-    await within(feeds).findByRole('button', { name: /Connected Agents/ });
-    await within(feeds).findByRole('button', { name: /Outcome Pricing/ });
+    // Looked up each time: coming back from a memo draws Today anew.
+    const feeds = () => screen.getByRole('group', { name: 'Your three feeds' });
+    const item = (n: string) => within(feeds()).getByRole('button', { name: new RegExp(`^${n} · `) });
+    await within(feeds()).findByRole('button', { name: /Connected Agents/ });
+    await within(feeds()).findByRole('button', { name: /Outcome Pricing/ });
 
     fireEvent.click(item('02'));
     expect(item('02')).toHaveAttribute('aria-pressed', 'true');
@@ -144,19 +145,25 @@ describe('the Intelligence section', () => {
 
     // Mark read: the row, the preview and the synced data say so; the feed still opens where it would.
     fireEvent.click(within(preview).getByRole('button', { name: 'Mark read' }));
-    expect(readingIndex(latest.progressLog).get(ENGAGEMENT_FILE.id)?.readAt).toBeTruthy();
+    expect(isRead({ driveFileId: ENGAGEMENT_FILE.id }, readingIndex(latest.progressLog))).toBe(true);
     expect(item('03')).toHaveTextContent(/Mon 2 Nov · Read$/);
     expect(preview.querySelector('.today-pill')).toHaveTextContent('✓Read');
-    expect(screen.getByText('Marked as read')).toBeInTheDocument();
+    expect(screen.getByText('Marked as read · Mon 2 Nov')).toBeInTheDocument();
     expect(localStorage.getItem('my-planning-intel-edition:customer-engagement-brief')).toBeNull();
     fireEvent.click(within(preview).getByRole('button', { name: 'Mark unread' }));
-    expect(readingIndex(latest.progressLog).get(ENGAGEMENT_FILE.id)?.readAt).toBeNull();
+    expect(isRead({ driveFileId: ENGAGEMENT_FILE.id }, readingIndex(latest.progressLog))).toBe(false);
     expect(item('03')).toHaveTextContent(/Mon 2 Nov · Unread$/);
+    // The memo's read button says the same: Today and the reader share one mark (INT-57).
+    fireEvent.click(within(preview).getByRole('button', { name: 'Mark read' }));
 
     // Open edition reads that edition in its memo; back on Today, the same feed is previewed.
     fireEvent.click(within(preview).getByRole('button', { name: 'Open edition' }));
     expect(screen.getByRole('heading', { level: 1, name: 'Connected Agents and Headless CDPs' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Mark edition as unread' })).toHaveAttribute('aria-pressed', 'true');
+    expect(within(editionIndex()).getByRole('button', { name: /Mon 2 Nov/ })).toHaveClass('is-read');
+    fireEvent.click(screen.getByRole('button', { name: 'Mark edition as unread' }));
     fireEvent.click(screen.getByRole('tab', { name: 'Today' }));
+    expect(item('03')).toHaveTextContent(/Mon 2 Nov · Unread$/);
     expect(item('03')).toHaveAttribute('aria-pressed', 'true');
     expect(within(screen.getByRole('region', { name: 'Preview' })).getByRole('heading', { level: 2 })).toHaveTextContent('Connected Agents and Headless CDPs');
   });
@@ -168,11 +175,14 @@ describe('the Intelligence section', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
     const index = editionIndex();
     expect(index).not.toHaveAttribute('inert');
-    expect(index.querySelector('.memo-editions-head')).toHaveTextContent('AI ChallengeEdition history1 edition in your archive');
+    expect(index.querySelector('.memo-editions-head')).toHaveTextContent(/^Edition history0 read · 1 unread · 1 editionAll editionsUnread only$/);
     expect(within(index).getByRole('button', { name: /^November 2026/ })).toHaveAttribute('aria-expanded', 'true');
     const listed = within(index).getByRole('button', { name: /Mon 2 Nov/ });
     expect(listed).toHaveAttribute('aria-current', 'page');
-    expect(listed).toHaveAccessibleName(/^Mon 2 Nov,\s*New\s*Agent Sprawl/);
+    expect(listed).toHaveAccessibleName(/^Mon 2 Nov:\s?Agent Sprawl/);
+    // Opened is not read: nothing marks it but its button (INT-57).
+    expect(listed).not.toHaveClass('is-read');
+    expect(screen.getByRole('button', { name: 'Mark edition as read' })).toHaveAttribute('aria-pressed', 'false');
     // The feed is named by its tab, not again in the bar.
     expect(document.querySelector('.memo-readbar')).toHaveTextContent(/^Hide editions‹Mon 2 Nov 2026 · 08:20›$/);
   });
@@ -187,7 +197,9 @@ describe('the Intelligence section', () => {
       await screen.findByRole('heading', { level: 1, name: title });
       const index = editionIndex();
       expect(marked()).toHaveTextContent(title);
-      looks.push([index.className, index.id, document.querySelector('.memo-workspace')!.className, index.querySelector('.memo-editions-kicker')!.textContent!]);
+      // The index names no feed (its tab does); the reader's header does.
+      expect(index.querySelector('.memo-editions-head')).not.toHaveTextContent(/AI Challenge|Sales Brief|Engagement Brief/);
+      looks.push([index.className, index.id, document.querySelector('.memo-workspace')!.className, document.querySelector('.memo-head-meta')!.firstChild!.textContent!]);
     }
     expect(looks.map(l => l.slice(0, 3))).toEqual(Array(3).fill(['memo-editions', 'memo-editions', 'memo-workspace']));
     expect(looks.map(l => l[3])).toEqual(['AI Challenge', 'Enterprise AI Sales Brief', 'Customer Engagement Brief']);
@@ -236,11 +248,11 @@ describe('the Intelligence section', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Connected Agents and Headless CDPs' })).toBeInTheDocument();
     expect(screen.queryByRole('complementary', { name: 'Editions' })).toBeNull();
     const index = editionIndex();
-    expect(index).toHaveTextContent('Customer Engagement Brief');
+    expect(document.querySelector('.memo-head-meta')).toHaveTextContent(/^Customer Engagement Brief/);
     expect(within(index).getByRole('searchbox', { name: 'Search edition history' })).toBeInTheDocument();
     const listed = within(index).getByRole('button', { name: /Mon 2 Nov/ });
     expect(listed).toHaveAttribute('aria-current', 'page');
-    expect(listed).toHaveAccessibleName(/^Mon 2 Nov,\s*New\s*Connected Agents/);
+    expect(listed).toHaveAccessibleName(/^Mon 2 Nov:\s?Connected Agents/);
   });
 
   it('the Engagement memo saves each of its questions to Takeaways, as the brief did', async () => {
@@ -258,15 +270,35 @@ describe('the Intelligence section', () => {
     expect(savedOf(latest.content).map(s => s.label)).toEqual(['Executive discovery question']);
   });
 
-  it('Mark as read is kept in the synced data, and undone the same way', async () => {
-    render(<App />);
+  it('the read button marks the edition read, in the synced data, the index and Today; the same again takes it back, where you were kept (INT-57)', async () => {
+    const reading = { id: `ir:${CHALLENGE_FILE.id}`, type: 'intel-reading', refId: CHALLENGE_FILE.id, at: '2026-11-02T05:00:00Z', value: { feedId: 'enterprise-ai-challenge', progress: 1, section: 'vocabulary', readAt: '2026-11-02T05:00:00Z' } };
+    render(<App initial={{ progressLog: [reading], content: [] }} />);
+    // Read to the end before: unread, all the same.
+    expect(await screen.findByRole('button', { name: /^01 · AI Challenge.*100% read$/ })).toBeInTheDocument();
     await openChallenge();
-    fireEvent.click(screen.getByRole('button', { name: 'Mark as read' }));
-    expect(readingIndex(latest.progressLog).get(CHALLENGE_FILE.id)?.readAt).toBeTruthy();
-    expect(within(editionIndex()).getByRole('button', { name: /Mon 2 Nov/ })).not.toHaveTextContent('New');
-    fireEvent.keyDown(window, { key: 'Escape' });
-    fireEvent.click(screen.getByRole('button', { name: 'Read · Mark as unread' }));
-    expect(readingIndex(latest.progressLog).get(CHALLENGE_FILE.id)?.readAt).toBeNull();
+    const button = screen.getByRole('button', { name: 'Mark edition as read' });
+    expect(button).toHaveAttribute('aria-pressed', 'false');
+    expect(button.closest('.memo-head')).toBeTruthy();
+    fireEvent.click(button);
+    expect(isRead({ driveFileId: CHALLENGE_FILE.id }, readingIndex(latest.progressLog))).toBe(true);
+    expect(latest.progressLog.find(r => (r as { id: string }).id === reading.id)).toEqual(reading);
+    expect(screen.getByRole('button', { name: 'Mark edition as unread' })).toHaveAttribute('aria-pressed', 'true');
+    expect(within(editionIndex()).getByRole('button', { name: /Mon 2 Nov/ })).toHaveClass('is-read');
+    expect(editionIndex().querySelector('.memo-editions-sub')).toHaveTextContent('1 read · 0 unread · 1 edition');
+    expect(screen.getByText('Marked as read · Mon 2 Nov')).toBeInTheDocument();
+    // The memo's own button at its end is the same mark.
+    expect(screen.getByRole('button', { name: 'Read · Mark as unread' })).toHaveAttribute('aria-pressed', 'true');
+    // Unread only: it leaves the list, and stays open.
+    fireEvent.click(within(editionIndex()).getByRole('button', { name: 'Unread only' }));
+    expect(within(editionIndex()).queryByRole('button', { name: /Mon 2 Nov/ })).toBeNull();
+    expect(screen.getByRole('heading', { level: 1, name: 'Agent Sprawl: Who Owns the Bots?' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'Today' }));
+    expect(screen.getByRole('button', { name: /^01 · AI Challenge/ })).toHaveTextContent(/Mon 2 Nov · Read$/);
+    await openChallenge();
+    fireEvent.click(screen.getByRole('button', { name: 'Mark edition as unread' }));
+    expect(isRead({ driveFileId: CHALLENGE_FILE.id }, readingIndex(latest.progressLog))).toBe(false);
+    expect(readingIndex(latest.progressLog).get(CHALLENGE_FILE.id)).toMatchObject({ progress: 1, section: 'vocabulary' });
+    expect(latest.progressLog.filter(r => (r as { id: string }).id.startsWith('ic:'))).toHaveLength(1);
   });
 
   it('saves a question to Takeaways with where it came from, and finds it again', async () => {
@@ -439,7 +471,7 @@ describe('what the app says about the documents (conformance)', () => {
     await screen.findByRole('heading', { level: 1 });
     expect(screen.queryByRole('note')).toBeNull();
     expect(screen.queryByText(/needs a look/)).toBeNull();
-    expect(screen.getByText(/The executive memo/)).toHaveTextContent('Imported');
+    expect(document.querySelector('.memo-head-meta')).toHaveTextContent('AI Challenge, 2 Nov 2026, Imported');
     fireEvent.click(within(editionIndex()).getByRole('button', { name: 'Feed status' }));
     expect(within(screen.getByRole('dialog')).getByText('Mon 2 Nov · 08:20, imported')).toBeInTheDocument();
   });
@@ -1268,21 +1300,24 @@ describe('imported editions are the archive, never unread (INT-34)', () => {
 
     await openChallenge();
     const history = editionIndex();
-    expect(within(history).getByRole('button', { name: /Mon 2 Nov/ })).toHaveTextContent('New');
+    // The scheduled edition counts as unread; the imported one is the archive: in neither count.
+    expect(history.querySelector('.memo-editions-sub')).toHaveTextContent('0 read · 1 unread · 2 editions');
     // October is shut until opened; November, the month being read, is open.
     expect(within(history).queryByRole('button', { name: /Thu 1 Oct/ })).toBeNull();
     fireEvent.click(within(history).getByRole('button', { name: /^October 2026/ }));
     const archived = within(history).getByRole('button', { name: /Thu 1 Oct/ });
-    expect(archived).not.toHaveTextContent(/New|Imported/);
+    expect(archived).not.toHaveTextContent(/Imported/);
     fireEvent.click(archived);
     expect(screen.getByRole('heading', { level: 1, name: 'An Archived Challenge' })).toBeInTheDocument();
-    expect(screen.getByText(/The executive memo/)).toHaveTextContent('1 October 2026 / Imported');
+    expect(document.querySelector('.memo-head-meta')).toHaveTextContent('1 Oct 2026, Imported');
     // The index stayed, the choice marked, both months open.
     expect(marked()).toHaveTextContent('An Archived Challenge');
     expect([...editionIndex().querySelectorAll('.memo-month-head')].map(b => b.getAttribute('aria-expanded'))).toEqual(['true', 'true']);
-    // Once the scheduled edition is read, nothing in the feed is new.
+    // Unread only lists the scheduled edition, not the archive's; marked read, nothing is left.
+    fireEvent.click(within(editionIndex()).getByRole('button', { name: 'Unread only' }));
+    expect(within(editionIndex()).getAllByRole('button', { name: /^(Mon|Thu) / }).map(b => b.textContent)).toEqual(['Mon 2 Nov: Agent Sprawl: Who Owns the Bots?']);
     fireEvent.click(within(editionIndex()).getByRole('button', { name: /Mon 2 Nov/ }));
-    fireEvent.click(screen.getByRole('button', { name: 'Mark as read' }));
-    expect(within(editionIndex()).getByRole('button', { name: /Mon 2 Nov/ })).not.toHaveTextContent('New');
+    fireEvent.click(screen.getByRole('button', { name: 'Mark edition as read' }));
+    expect(within(editionIndex()).getByText('No unread editions.')).toBeInTheDocument();
   });
 });

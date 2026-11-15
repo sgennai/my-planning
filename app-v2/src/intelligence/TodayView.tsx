@@ -16,7 +16,7 @@ import { useId, useMemo, useRef, useState } from 'react';
 import { FEEDS, feedById } from './feeds';
 import { splitSections, newestFirst, type Edition } from './parse';
 import { previewOf } from './present';
-import { readingState, countsAsUnread, isArchive, type ReadingIndex, type ReadingState } from './reading';
+import { readingState, countsAsUnread, isArchive, isRead, type ReadingIndex, type ReadingState } from './reading';
 import type { FeedState } from './library';
 import type { FeedId } from './feeds';
 import { dayNameShort, formatDayCompact, type DayKey } from '../routine/dates';
@@ -123,7 +123,7 @@ function Preview({ edition, reading, today, label, onOpen, onToggleRead }: {
           Open edition<span aria-hidden> ↗</span>
         </button>
         <button type="button" className="today-thin" onClick={() => onToggleRead(edition)} aria-describedby={`${id}-title`}>
-          {reading.get(edition.driveFileId)?.readAt ? 'Mark unread' : 'Mark read'}
+          {isRead(edition, reading) ? 'Mark unread' : 'Mark read'}
         </button>
       </div>
     </>
@@ -189,7 +189,7 @@ export function TodayView({ states, reading, loading, checked, today, now, healt
   const [showAll, setShowAll] = useState(false);
   const signals = useMemo(() => signalsOf(states, reading, reviews, today), [states, reading, reviews, today]);
   const newest = FEEDS.map(f => states[f.id]?.editions[0]).filter((e): e is Edition => !!e);
-  // Unread is anything not read to the end or marked read, started or not.
+  // Unread is anything not marked read, started or not, even read to the end (INT-57).
   const unread = FEEDS.flatMap(f => states[f.id]?.editions ?? [])
     .filter(e => countsAsUnread(e, reading))
     .sort(newestFirst);

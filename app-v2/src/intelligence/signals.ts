@@ -14,12 +14,12 @@ export const RECORDS_SINCE: DayKey = '2026-11-01';
 
 export interface Signals {
   /**
-   * Editions on this device not yet read (started ones included; imported
-   * ones are the archive, never unread), per feed in `FEEDS` order;
+   * Editions on this device not marked read (started ones included, even
+   * read to the end; imported ones are the archive, never unread), per feed in `FEEDS` order;
    * `partial` while the feed is still downloading.
    */
   unread: { feedId: FeedId; count: number; partial: boolean }[];
-  /** Editions read to the end or marked read, today included, from the synced reading records. */
+  /** Editions marked read, today included, by the day they were marked (INT-57: reaching the end no longer counts). */
   read7: number;
   read30: number;
   /** Takeaways whose last review fell this week. */
@@ -29,7 +29,7 @@ export interface Signals {
 }
 
 export function signalsOf(states: Partial<Record<FeedId, FeedState>>, reading: ReadingIndex, reviews: ReviewIndex, today: DayKey): Signals {
-  const readDays = [...reading.values()].flatMap(r => (r.readAt ? [dayKeyOf(new Date(r.readAt))] : []));
+  const readDays = [...reading.values()].flatMap(r => (r.mark?.read ? [dayKeyOf(new Date(r.mark.at))] : []));
   const inLast = (days: number) => {
     const from = addDaysKey(today, -(days - 1));
     return readDays.filter(d => d >= from && d <= today).length;

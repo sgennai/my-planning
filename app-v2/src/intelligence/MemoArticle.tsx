@@ -12,8 +12,8 @@ import type { Edition, Section } from './parse';
 import type { Presentation, Labelled, Term } from './present';
 import type { Related } from './related';
 import { asideNote } from './artifacts';
-import { memoOrder, memoTopics, challengeLead, memoDate, memoBrand, two } from './memo';
-import { MemoEnd, MemoSave, RefFold, RelatedFold, Topics } from './MemoParts';
+import { memoOrder, memoTopics, challengeLead, memoBrand, two } from './memo';
+import { MemoEnd, MemoHead, MemoSave, RefFold, RelatedFold, Topics } from './MemoParts';
 
 function Question({ item, section }: { item: Labelled; section: Section }) {
   return (
@@ -118,12 +118,10 @@ export function MemoArticle({
   return (
     <div className="memo">
 
+      <MemoHead brand={brand} edition={edition} imported={imported} details={[`${two(minutes)} min read`]} read={read} onToggleRead={onToggleRead} />
+
       <div className="memo-content">
         <article aria-labelledby={titleId} ref={articleRef}>
-          <div className="memo-subline">
-            <span className="memo-eyebrow">The executive memo <span aria-hidden>/</span> {memoDate(edition.editionDate)}{imported && <> <span aria-hidden>/</span> Imported</>}</span>
-            <span className="memo-eyebrow">{two(minutes)} min read</span>
-          </div>
           <h1 className="memo-title" id={titleId}>{edition.title}</h1>
           {topics && <Topics label={topics.label} topics={topics.topics} />}
           {notices.map(t => <p key={t} className="memo-aside is-alert" role="note">{t}</p>)}

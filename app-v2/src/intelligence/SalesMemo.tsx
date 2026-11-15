@@ -13,11 +13,11 @@ import { useState, type MouseEvent } from 'react';
 import { Markdown } from './Markdown';
 import type { Section } from './parse';
 import { asideNote } from './artifacts';
-import { memoBrand, memoDate, questionInput, two, type Chapter, type Field } from './memo';
+import { memoBrand, questionInput, two, type Chapter, type Field } from './memo';
 import { bestQuestion, takeawaysOf, type SalesMemo as SalesMemoModel } from './sales-memo';
 import { CANONICAL_TOPICS } from './topics';
 import type { SaveInput } from './saved';
-import { CONTENTS, MemoChapter, MemoContents, MemoEnd, MemoQuestion, RefFold, RelatedFold, Topics, type ChapterAsk } from './MemoParts';
+import { CONTENTS, MemoChapter, MemoContents, MemoEnd, MemoHead, MemoQuestion, RefFold, RelatedFold, Topics, type ChapterAsk } from './MemoParts';
 import type { MemoProps } from './MemoArticle';
 
 const TONES: Partial<Record<Field['tone'], string>> = {
@@ -78,12 +78,9 @@ export function SalesMemo({
 
   return (
     <div className="memo memo--sales">
+      <MemoHead brand={brand} edition={edition} imported={imported} details={[...(total > 0 ? [`${two(total)} ${total === 1 ? 'development' : 'developments'}`] : []), `${two(minutes)} min read`]} read={read} onToggleRead={onToggleRead} />
       <div className="memo-content">
         <article aria-labelledby={titleId} ref={articleRef}>
-          <div className="memo-subline">
-            <span className="memo-eyebrow">The executive memo <span aria-hidden>/</span> {memoDate(edition.editionDate)}{imported && <> <span aria-hidden>/</span> Imported</>}</span>
-            <span className="memo-eyebrow">{total > 0 && <>{two(total)} {total === 1 ? 'development' : 'developments'} <span className="memo-dot" aria-hidden /></>}{two(minutes)} min read</span>
-          </div>
           <h1 className="memo-title" id={titleId}>{edition.title}</h1>
           {edition.topics.length > 0 && <Topics label="Relevant topics" topics={edition.topics} />}
           {notices.map(t => <p key={t} className="memo-aside is-alert" role="note">{t}</p>)}

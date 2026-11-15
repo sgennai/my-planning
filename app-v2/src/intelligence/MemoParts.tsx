@@ -10,7 +10,7 @@ import type { SaveInput } from './saved';
 import type { PartTone } from './briefs';
 import { feedById } from './feeds';
 import { useEditionActions } from './context';
-import { chapterTitle, memoDate, shortDate, two, TOPICS_SHOWN, type Chapter, type Field, type MemoBrand } from './memo';
+import { chapterTitle, headDate, memoDate, shortDate, two, TOPICS_SHOWN, type Chapter, type Field, type MemoBrand } from './memo';
 
 /** Related editions shown before "Show more", and how many more each time. */
 const RELATED_FIRST = 5;
@@ -218,6 +218,49 @@ export function RelatedFold({ edition, related, onOpen, counted = false }: { edi
         </button>
       )}
     </details>
+  );
+}
+
+export interface HeadProps {
+  brand: MemoBrand;
+  edition: Edition;
+  imported: boolean;
+  /** What else the memo says of itself, after the date: "03 developments", "05 min read". */
+  details: string[];
+  read: boolean;
+  onToggleRead?: () => void;
+}
+
+/**
+ * The reader's header (INT-57, the approved "Date Companion"): across the
+ * reader's whole width, the memo's name and date on the left, where the text
+ * column begins, and the read button at the far right. The button is the only
+ * thing that marks an edition read: an icon, a circle that fills with a tick
+ * when read, its name saying what a tap will do.
+ */
+export function MemoHead({ brand, edition, imported, details, read, onToggleRead }: HeadProps) {
+  const parts = [headDate(edition.editionDate), ...(imported ? ['Imported'] : []), ...details];
+  return (
+    <header className="memo-head">
+      <p className="memo-head-meta">
+        {brand.name}
+        {parts.map(p => <span key={p}><span className="memo-dot" aria-hidden /><span className="intel-vh">, </span>{p}</span>)}
+      </p>
+      {onToggleRead && (
+        <button
+          type="button"
+          className="memo-readmark"
+          aria-pressed={read}
+          aria-label={read ? 'Mark edition as unread' : 'Mark edition as read'}
+          title={read ? 'Mark as unread' : 'Mark as read'}
+          onClick={onToggleRead}
+        >
+          <span className="memo-readmark-circle" aria-hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"><path d="m6.5 12.5 3.6 3.6 7.4-8" /></svg>
+          </span>
+        </button>
+      )}
+    </header>
   );
 }
 
