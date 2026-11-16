@@ -58,9 +58,12 @@ import { wordsOf, NOTEBOOK_START, type NotebookState } from './notebook';
 import { dayNameShort, formatDayCompact, dayKeyOf, addDaysKey } from '../routine/dates';
 import { IconRefresh, IconList, IconX, IconChevronLeft, IconBookmark, IconPulse, IconSearch } from '../ui/icons';
 
-// "Jour & verre", the Phase 1 pilot (INT-59): the three memo views in the
-// theme of `styles/intel-jour-et-verre.css`. False, and they look as before.
+// "Jour & verre", the theme of `styles/intel-jour-et-verre.css`. Phase 1
+// (INT-59): the three memo views. Phase 2 (INT-60): Today and Takeaways, and,
+// in the light theme only (they turn dark in the dark one), Search, Review
+// and the feed-status sheet. False, and they look as before.
 const JOUR_ET_VERRE = true;
+const JOUR_ET_VERRE_2 = true;
 
 type View = 'today' | FeedId | 'saved' | 'search' | 'review';
 
@@ -91,6 +94,14 @@ function useMatches(query: string) {
   }, [query]);
   return useSyncExternalStore(subscribe, () => window.matchMedia(query).matches);
 }
+
+// The app's theme, as main-app.tsx writes it on <html data-theme>.
+function watchTheme(onChange: () => void) {
+  const watch = new MutationObserver(onChange);
+  watch.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  return () => watch.disconnect();
+}
+const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark';
 
 // Each device remembers the last view and the edition last opened in each feed.
 function recall(key: string): string | null {
@@ -182,6 +193,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   const { states, refreshed, refreshing, refresh } = useFeeds();
   const phone = useMatches(PHONE);
   const portrait = useMatches(PORTRAIT);
+  const dark = useSyncExternalStore(watchTheme, isDark);
   const mode = phone ? 'single' : portrait ? 'drawer' : 'rail';
 
   const [view, setView] = useState<View>(() => {
@@ -524,8 +536,12 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     />
   );
   const noteLine = note && <div key={note.at} className="intel-note" role="status">{note.text}</div>;
-  // Today and Takeaways are the memos' paper, light in both themes (today.css, takeaways.css).
-  const pageClass = view === 'today' ? ' intel--today' : view === 'saved' ? ' intel--saved' : '';
+  // Today and Takeaways are the memos' paper, light in both themes (today.css, takeaways.css);
+  // Search is named for its theme.
+  const pageClass = view === 'today' ? ' intel--today' : view === 'saved' ? ' intel--saved' : view === 'search' ? ' intel--search' : '';
+  // Jour & verre beyond the memos (Phase 2): what is light in both themes always, the rest in the light theme.
+  const jvPage = JOUR_ET_VERRE_2 && (view === 'today' || view === 'saved' || !dark) ? ' intel--jv' : '';
+  const jvSheet = JOUR_ET_VERRE_2 && !dark ? ' intel--jv-sheet' : '';
 
   const list = (head: ReactNode) => (
     <>
@@ -704,7 +720,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
 
   if (view === 'review' && session) {
     return (
-      <div className={`intel intel--${mode} intel--review`} style={rootStyle}>
+      <div className={`intel intel--${mode} intel--review${jvPage}`} style={rootStyle}>
         <ReviewView
           key={session.key}
           items={session.items}
@@ -724,7 +740,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
 
   if (workspace) {
     return (
-      <div className={`intel intel--${mode} intel--memo${JOUR_ET_VERRE ? ' intel--jv' : ''}`} style={rootStyle}>
+      <div className={`intel intel--${mode} intel--memo${JOUR_ET_VERRE ? ' intel--jv' : ''}${jvSheet}`} style={rootStyle}>
         {nav(<>{searchButton}{mode !== 'single' && refreshButton}</>)}
         {workspace}
         {noteLine}
@@ -758,7 +774,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
       );
     }
     return (
-      <div className={`intel intel--single${pageClass}`} style={rootStyle}>
+      <div className={`intel intel--single${pageClass}${jvPage}${jvSheet}`} style={rootStyle}>
         {nav(searchButton)}
         {statusLine}
         <div className="intel-list" {...panel}>
@@ -776,7 +792,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
   }
 
   return (
-    <div className={`intel intel--${mode}${pageClass}${drawerOpen ? ' is-drawer-open' : ''}`} style={rootStyle}>
+    <div className={`intel intel--${mode}${pageClass}${jvPage}${jvSheet}${drawerOpen ? ' is-drawer-open' : ''}`} style={rootStyle}>
       {nav(
         <>{searchButton}{refreshButton}</>,
         mode === 'drawer' && feedId && (

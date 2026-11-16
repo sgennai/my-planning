@@ -1,14 +1,19 @@
 /*
-  "Jour & verre" (Day & Glass), Phase 1 pilot (INT-59): the theme of
-  `DESIGN_SPEC_jour-et-verre.md` and `jour-et-verre_reference.html` (outside
-  the repo) on the three memo views only: the top navigation as they show it,
-  the reading bar, Edition History and the three memos. Today, Takeaways,
-  Search, Review and the feed-status sheet keep their look until Phase 2.
+  "Jour & verre" (Day & Glass): the theme of `DESIGN_SPEC_jour-et-verre.md`
+  and `jour-et-verre_reference.html` (outside the repo) on the Intelligence
+  section, never beyond it.
+  - Phase 1 (INT-59): the three memo views, their top navigation, the reading
+    bar, Edition History and the memos, under `.intel--memo.intel--jv`.
+  - Phase 2 (INT-60): Today and Takeaways (light in both themes, as the memos)
+    and, in the light theme only, Search, Review and the feed-status sheet,
+    which keep their dark look in the dark one (D8).
 
-  Every rule here sits under `.intel--memo.intel--jv`, a class the screen adds
-  to the memo views alone (`JOUR_ET_VERRE` in IntelligenceScreen.tsx): false
-  there, and the previous look comes back as it was. The stylesheets under
-  this one are unchanged.
+  The screen adds `intel--jv` to each themed view's root and `intel--jv-sheet`
+  where the sheet takes the theme (`JOUR_ET_VERRE`, `JOUR_ET_VERRE_2` in
+  IntelligenceScreen.tsx): false there, and the previous look comes back as it
+  was. What the views share (tokens, background, navigation, the toast) sits
+  under `.intel.intel--jv`; each view's own rules under its class. The
+  stylesheets under this one are unchanged.
 
   The spec's values, with the user's decisions of 16 Nov (D2–D14) as
   documented exceptions:
@@ -25,8 +30,12 @@
     the spec's 40px pills get a transparent 44px hit area);
   - the theme has no italic face, so text the memos set in italics is upright;
   - focus rings are the app's 3px, in the spec's indigo.
+  Phase 2 maps each element by the spec's §8 table and the plan's choices;
+  where the spec has nothing (primary buttons, cards, the quotation), the
+  rule says so.
 */
-.intel--memo.intel--jv {
+.intel.intel--jv,
+.intel.intel--jv-sheet {
   /* §2, colour tokens. */
   --jv-bg-base: #EEF1F8;
   --jv-ink: #0E1330;
@@ -39,10 +48,15 @@
   --jv-indigo: #4F46E5;
   --jv-indigo-strong: #4338CA;
   --jv-cyan-strong: #0E7490;
-  /* Cyan text set straight on the gradient (the reader): 7% darker than the spec's, so it keeps 4.5:1
-     over every glow at the spec's intensity (#0E7490 falls to 4.14 under the indigo and cyan glows; D13).
-     The spec's cyan stays where text sits on glass (Edition History) and for the reading line. */
-  --jv-cyan-text: #0D6C86;
+  /* Cyan text set straight on the gradient: a shade darker than the spec's, so it keeps 4.5:1 over every
+     glow at the spec's intensity (#0E7490 falls to 4.14 under the indigo and cyan glows; D13). #0C6A83 since
+     Phase 2, whose pages scroll up under the navigation, deeper into the indigo glow (#0D6C86 fell to 4.41).
+     The spec's cyan stays where text sits on glass and for the reading line. */
+  --jv-cyan-text: #0C6A83;
+  /* Meaning colours set straight on the gradient (D5), a shade darker, their hue kept: the due amber
+     (#8a5f33, 4.11 there) and the kept sage (#3f6b5b, 4.46). On glass they stay as they were. */
+  --jv-due-text: #7c552d;
+  --jv-kept-text: #3a6455;
   --jv-on-accent: #FFFFFF;
   --jv-glass-panel: rgba(255, 255, 255, .52);
   --jv-glass-button: rgba(255, 255, 255, .62);
@@ -74,7 +88,9 @@
   /* The memos' and navigation's own tokens, in the theme's colours. */
   --memo-line: var(--jv-line-3);
   --intel-nav-focus: var(--jv-indigo);
-  /* §3: one background behind the whole section, its glows in proportion to the screen. */
+}
+/* §3: one background behind the whole section, its glows in proportion to the screen. */
+.intel.intel--jv {
   background:
     radial-gradient(72.22vw 40.74vw at 88% -10%, rgba(129, 140, 248, .34), rgba(129, 140, 248, 0) 70%),
     radial-gradient(59.26vw 48.15vw at 0% 106%, rgba(34, 211, 238, .26), rgba(34, 211, 238, 0) 70%),
@@ -82,55 +98,58 @@
     var(--jv-bg-base);
 }
 /* Every bar and pane over it is clear or translucent. */
-.intel--memo.intel--jv :is(.intel-nav, .memo-workspace, .memo-readbar, .intel-reader--memo, .memo) { background: transparent; }
+.intel.intel--jv .intel-nav,
+.intel--memo.intel--jv :is(.memo-workspace, .memo-readbar, .intel-reader--memo, .memo) { background: transparent; }
 .intel--memo.intel--jv :is(.memo-workspace, .memo) { color: var(--jv-ink); font-family: var(--jv-font-ui); }
 .intel--memo.intel--jv :is(.memo, .memo-workspace) :is(button, input, a, summary):focus-visible { outline: 3px solid var(--jv-indigo); outline-offset: 2px; }
 
 /* ── The top navigation (§6 "Barre supérieure") ─────────────────────────── */
-.intel--memo.intel--jv .intel-nav { align-items: center; padding-bottom: 4px; font-family: var(--jv-font-ui); }
-.intel--memo.intel--jv .intel-nav-tabs,
-.intel--memo.intel--jv :is(.intel-nav-feeds, .intel-nav-more) { align-items: center; }
-.intel--memo.intel--jv .intel-nav-feeds { gap: 8px; }
-.intel--memo.intel--jv .intel-nav-more { gap: 8px; }
-.intel--memo.intel--jv .intel-nav-tools { gap: 8px; margin-bottom: 0; }
-.intel--memo.intel--jv .intel-nav-tab {
+.intel.intel--jv .intel-nav { align-items: center; padding-bottom: 4px; font-family: var(--jv-font-ui); }
+.intel.intel--jv .intel-nav-tabs,
+.intel.intel--jv :is(.intel-nav-feeds, .intel-nav-more) { align-items: center; }
+.intel.intel--jv .intel-nav-feeds { gap: 8px; }
+.intel.intel--jv .intel-nav-more { gap: 8px; }
+.intel.intel--jv .intel-nav-tools { gap: 8px; margin-bottom: 0; }
+.intel.intel--jv .intel-nav-tab {
   min-height: 44px; height: 44px; gap: 8px; padding: 0 18px;
   border: 1px solid transparent; border-radius: 999px; background: transparent; box-shadow: none;
   color: var(--jv-muted); font-family: var(--jv-font-ui); font-size: calc(15 * var(--tpx)); font-weight: 600; letter-spacing: 0; line-height: normal;
 }
-.intel--memo.intel--jv .intel-nav-tab[aria-selected="true"] {
+.intel.intel--jv .intel-nav-tab[aria-selected="true"] {
   background: var(--jv-glass-tab-active); border-color: var(--jv-border-tab-active);
   color: var(--jv-ink); box-shadow: var(--jv-shadow-tab-active);
 }
-/* Today and Takeaways: the spec's pill buttons (never selected in a memo view), 40px drawn in a 44px target (D14). */
-.intel--memo.intel--jv .intel-nav-tab--more {
+/* Today and Takeaways: the spec's pill buttons, 40px drawn in a 44px target (D14); open, the selected tab's glass above. */
+.intel.intel--jv .intel-nav-tab--more {
   position: relative; min-height: 40px; height: 40px; padding: 0 16px;
   border: 1px solid var(--jv-line-2); background: var(--jv-glass-button);
   color: var(--jv-ink-2); font-size: calc(14 * var(--tpx));
 }
 /* 44px from the 38px inside the border: exactly the tab row's height, which scrolls sideways on a phone. */
-.intel--memo.intel--jv :is(.intel-nav-tab--more, .memo-tools button, .memo-tools a)::after { content: ''; position: absolute; inset: -3px -1px; }
-.intel--memo.intel--jv .intel-nav-tab:focus-visible { outline: 3px solid var(--jv-indigo); outline-offset: -3px; border-radius: 999px; }
+.intel.intel--jv :is(.intel-nav-tab--more, .memo-tools button, .memo-tools a)::after { content: ''; position: absolute; inset: -3px -1px; }
+.intel.intel--jv .intel-nav-tab:focus-visible { outline: 3px solid var(--jv-indigo); outline-offset: -3px; border-radius: 999px; }
 @media (hover: hover) {
-  .intel--memo.intel--jv .intel-nav-tab:hover:not([aria-selected="true"]) { background: var(--jv-glass-button); color: var(--jv-ink); }
-  .intel--memo.intel--jv .intel-nav-tab--more:hover { background: var(--jv-glass-tab-active); }
+  .intel.intel--jv .intel-nav-tab:hover:not([aria-selected="true"]) { background: var(--jv-glass-button); color: var(--jv-ink); }
+  .intel.intel--jv .intel-nav-tab--more:hover { background: var(--jv-glass-tab-active); }
 }
-.intel--memo.intel--jv .intel-nav-tab:active { opacity: .7; }
+.intel.intel--jv .intel-nav-tab:active { opacity: .7; }
 /* The count on Takeaways: the spec's badge. */
-.intel--memo.intel--jv .intel-nav-count {
+.intel.intel--jv .intel-nav-count {
   display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;
   min-width: 22px; height: 22px; margin-left: 0; padding: 0 7px; border-radius: 999px;
   background: var(--jv-indigo); color: var(--jv-on-accent); font-size: calc(12 * var(--tpx)); font-weight: 700; letter-spacing: 0;
 }
 /* Search and Refresh: the spec's round icon buttons. */
-.intel--memo.intel--jv .intel-nav-icon {
+.intel.intel--jv .intel-nav-icon {
   width: 40px; height: 40px; border: 1px solid var(--jv-line-2); border-radius: 999px;
   background: var(--jv-glass-button); color: var(--jv-ink-2);
 }
-.intel--memo.intel--jv .intel-nav-icon::after { inset: -2px; }
-.intel--memo.intel--jv .intel-nav-icon svg { width: 19px; height: 19px; stroke-width: 1.8; }
-@media (hover: hover) { .intel--memo.intel--jv .intel-nav-icon:hover { background: var(--jv-glass-tab-active); color: var(--jv-ink); } }
-.intel--memo.intel--jv .intel-nav-icon:focus-visible { outline: 3px solid var(--jv-indigo); }
+.intel.intel--jv .intel-nav-icon::after { inset: -2px; }
+.intel.intel--jv .intel-nav-icon svg { width: 19px; height: 19px; stroke-width: 1.8; }
+@media (hover: hover) { .intel.intel--jv .intel-nav-icon:hover { background: var(--jv-glass-tab-active); color: var(--jv-ink); } }
+.intel.intel--jv .intel-nav-icon:focus-visible { outline: 3px solid var(--jv-indigo); }
+/* Search open: the button stands in for the tab, so it takes the selected tab's glass. */
+.intel.intel--jv .intel-nav-icon.on { background: var(--jv-glass-tab-active); border-color: var(--jv-border-tab-active); color: var(--jv-ink); box-shadow: var(--jv-shadow-tab-active); }
 /* One size at every width, as the spec: the base sheet's smaller tabs (1120px, 850px) lose to the rules above. */
 
 /* ── The reading bar (§6 "Barre d'outils") ──────────────────────────────── */
@@ -167,8 +186,9 @@
 /* The reading line (D12): the spec's cyan on a fine line. */
 .intel--memo.intel--jv .memo-track { background: var(--jv-line-2); }
 .intel--memo.intel--jv .memo-fill { background: var(--jv-cyan-strong); }
-/* The feed's state under the bar: glass, in the theme's ink; a problem keeps its colour (D5). */
+/* The feed's state under the bar: glass, in the theme's ink; a problem keeps its colour (D5, memo.css's). */
 .intel--memo.intel--jv .memo-workspace .intel-status { background: var(--jv-glass-panel); border-bottom: 1px solid var(--jv-line-1); color: var(--jv-body); }
+.intel--memo.intel--jv .memo-workspace .intel-status.is-alert { background: #f7e6e1; color: #8a3b26; }
 /* The base sheet's narrower bars (850px, 600px) lose to the rules above; a phone's bar is tighter still. */
 @media (max-width: 600px) {
   .intel--memo.intel--jv .memo-editions-toggle { padding: 0 12px; }
@@ -366,7 +386,7 @@
 .intel--memo.intel--jv .memo-approach { padding: 18px 20px; border: 1px solid var(--jv-line-2); border-radius: 14px; background: var(--jv-glass-panel); }
 .intel--memo.intel--jv .memo-approach p { margin-top: 0; }
 /* Feedback: the theme's ink. */
-.intel--memo.intel--jv .intel-note { background: var(--jv-ink); border-color: var(--jv-ink); color: var(--jv-on-accent); box-shadow: none; font-family: var(--jv-font-ui); }
+.intel.intel--jv .intel-note { background: var(--jv-ink); border-color: var(--jv-ink); color: var(--jv-on-accent); box-shadow: none; font-family: var(--jv-font-ui); }
 /* Save a selection: a pill button over the text, its glass the densest of the spec's (no blur) so the words under it never show through. */
 .intel--memo.intel--jv .intel-selsave {
   border: 1px solid var(--jv-line-2); background: var(--jv-glass-footer); color: var(--jv-ink-2);
@@ -384,3 +404,409 @@
   .intel--memo.intel--jv .memo-take-text > ul { padding-left: 42px; }
   .intel--memo.intel--jv .memo-take-text > ul li::before { left: -42px; }
 }
+
+/* ══ Phase 2 (INT-60): the rest of the section ═══════════════════════════ */
+
+/* The state line over a view (downloading, offline): glass; a problem keeps its colour (D5). */
+.intel.intel--jv:not(.intel--memo) .intel-status { background: var(--jv-glass-panel); border: 1px solid var(--jv-line-1); color: var(--jv-body); font-family: var(--jv-font-ui); }
+.intel.intel--jv:not(.intel--memo) .intel-status.is-alert { background: var(--alert-tint); border-color: transparent; color: var(--alert); }
+/* Pages over the section's background. */
+.intel.intel--jv:is(.intel--today, .intel--saved, .intel--search) :is(.intel-reader, .intel-list) { background: transparent; }
+
+/* ── Today, the Reading Queue (§8; the plan's §8.4) ─────────────────────── */
+.intel--today.intel--jv .today-q {
+  /* The app's tokens, for the panels kept from before (Publishing, Your reading), in the theme's colours;
+     the alert colours stay (D5). */
+  --ink: var(--jv-ink);
+  --ink-2: var(--jv-body);
+  --ink-3: var(--jv-muted);
+  --ink-4: var(--jv-dot);
+  --surface: var(--jv-glass-panel);
+  --surface-sunken: var(--jv-glass-chip);
+  --hairline: var(--jv-line-2);
+  --hairline-faint: var(--jv-line-1);
+  --accent: var(--jv-indigo);
+  --accent-tint: rgba(99, 102, 241, .14);
+  --tq-focus: var(--jv-indigo);
+  color: var(--jv-ink);
+  font-family: var(--jv-font-ui);
+}
+/* The introduction: a label, the article's headline, its text. */
+.intel--today.intel--jv .today-kicker {
+  font-family: var(--jv-font-display); font-size: calc(11 * var(--tpx)); font-weight: 700; letter-spacing: .18em; color: var(--jv-indigo);
+}
+.intel--today.intel--jv .today-q .today-masthead {
+  font-family: var(--jv-font-display); font-size: clamp(calc(34 * var(--tpx)), calc(4.45vw * var(--intel-scale, 1)), calc(48 * var(--tpx)));
+  font-weight: 600; letter-spacing: -.03em; line-height: 1.02; color: var(--jv-ink);
+}
+.intel--today.intel--jv .today-lede { font-size: calc(16 * var(--tpx)); line-height: 1.6; color: var(--jv-body); }
+/* The queue: the feeds as Edition History's panel and rows, the preview on the background. */
+.intel--today.intel--jv .today-shell { border-color: var(--jv-line-2); border-radius: 19px; background: transparent; }
+.intel--today.intel--jv .today-left { background: var(--jv-glass-panel); border-right-color: var(--jv-line-1); }
+.intel--today.intel--jv .today-right { background: transparent; }
+/* Every capitals line is the spec's label, but those inside a row, which take the month header's capitals. */
+.intel--today.intel--jv .today-caps {
+  font-family: var(--jv-font-display); font-size: calc(11 * var(--tpx)); font-weight: 700; letter-spacing: .18em; color: var(--jv-indigo);
+}
+.intel--today.intel--jv :is(.today-item, .today-backlog-what) .today-caps {
+  font-family: var(--jv-font-ui); letter-spacing: .16em; color: var(--jv-muted);
+}
+.intel--today.intel--jv .today-q .today-item {
+  padding: 12px 14px; border: 1px solid transparent; border-radius: 14px; background: transparent; color: var(--jv-subtle);
+}
+.intel--today.intel--jv .today-item strong {
+  margin: 6px 0 5px; font-size: calc(14.5 * var(--tpx)); font-weight: 700; line-height: 1.35; letter-spacing: -.005em; color: var(--jv-ink-2);
+}
+/* Row dates: the spec's muted grey, not its subtle one, which falls to 4.1:1 over the cyan glow on glass (D13). */
+.intel--today.intel--jv .today-item .today-meta { font-size: calc(12 * var(--tpx)); font-weight: 500; color: var(--jv-muted); }
+@media (hover: hover) { .intel--today.intel--jv .today-q .today-item:not(.is-on):hover { background: var(--jv-glass-chip); } }
+.intel--today.intel--jv .today-q .today-item:active { background: var(--jv-glass-row-selected); }
+.intel--today.intel--jv .today-q .today-item.is-on {
+  background: var(--jv-selected-tint), var(--jv-glass-row-selected); border-color: var(--jv-border-row-selected); box-shadow: var(--jv-shadow-row-selected);
+}
+.intel--today.intel--jv .today-item.is-on strong { color: var(--jv-ink); }
+.intel--today.intel--jv .today-item.is-on .today-caps { color: var(--jv-indigo-strong); }
+.intel--today.intel--jv .today-q .today-item:focus-visible { border-radius: 14px; }
+/* The preview: the feed as a label, its state as a chip ("Read" keeps its sage, D5), the title as a panel's title. */
+.intel--today.intel--jv .today-feed {
+  font-family: var(--jv-font-display); font-size: calc(11 * var(--tpx)); font-weight: 700; letter-spacing: .18em; color: var(--jv-indigo);
+}
+.intel--today.intel--jv .today-pill {
+  padding: 4px 10px; border: 1px solid var(--jv-line-4); background: var(--jv-glass-chip); color: var(--jv-body);
+  font-size: calc(12 * var(--tpx)); font-weight: 600;
+}
+.intel--today.intel--jv .today-pill.is-read { background: #e7f2ed; border-color: #d5e7df; color: #3e7060; }
+/* Secondary text straight on the gradient: the spec's coverage grey; its muted one falls to 4.37:1 under the indigo glow (D13). */
+.intel--today.intel--jv .today-right .today-meta { font-size: calc(13 * var(--tpx)); color: var(--jv-coverage); }
+.intel--today.intel--jv .today-q .today-title {
+  font-family: var(--jv-font-display); font-size: calc(26 * var(--tpx)); font-weight: 600; letter-spacing: -.02em; line-height: 1.15; color: var(--jv-ink);
+}
+.intel--today.intel--jv .today-snip { font-size: calc(16 * var(--tpx)); line-height: 1.6; color: var(--jv-body); }
+.intel--today.intel--jv .today-snip.is-quiet { color: var(--jv-coverage); }
+/* Topics: the memo's topic links, dot between. */
+.intel--today.intel--jv .today-right .today-chips { gap: 0; }
+.intel--today.intel--jv .today-right .today-chips li {
+  padding: 0; border-radius: 0; background: none; color: var(--jv-cyan-text); font-size: calc(14.5 * var(--tpx)); font-weight: 600;
+}
+.intel--today.intel--jv .today-right .today-chips li + li::before { content: '·'; margin: 0 8px; color: var(--jv-dot); font-weight: 400; }
+/* The actions: the spec's pill buttons; the one to take dark (not in the spec: the active chip's colours on a pill);
+   the quiet ones links. 40px drawn in a 44px target (D14). */
+.intel--today.intel--jv .today-q .today-action {
+  min-height: 40px; padding: 0 16px; border: 1px solid var(--jv-line-2); border-radius: 999px; background: var(--jv-glass-button);
+  color: var(--jv-ink-2); font-size: calc(14 * var(--tpx)); font-weight: 600;
+}
+.intel--today.intel--jv .today-q .today-action.is-primary { background: var(--jv-ink); border-color: var(--jv-ink); color: var(--jv-on-accent); }
+.intel--today.intel--jv .today-q .today-action.is-quiet {
+  padding: 0 4px; border-color: transparent; background: transparent; color: var(--jv-cyan-strong);
+  text-decoration: underline; text-decoration-color: currentColor; text-underline-offset: 3px;
+}
+.intel--today.intel--jv .today-q .today-thin {
+  border-bottom: 0; color: var(--jv-cyan-text); font-size: calc(14 * var(--tpx)); font-weight: 600;
+  text-decoration: underline; text-decoration-color: currentColor; text-underline-offset: 3px;
+}
+.intel--today.intel--jv .today-box .today-thin { color: var(--jv-cyan-strong); }
+.intel--today.intel--jv .today-q :is(.today-action, .today-thin):focus-visible { border-radius: 999px; }
+@media (hover: hover) {
+  .intel--today.intel--jv .today-q .today-action:hover { background: var(--jv-glass-tab-active); }
+  .intel--today.intel--jv .today-q .today-action.is-primary:hover { background: var(--jv-ink-2); }
+  .intel--today.intel--jv .today-q .today-action.is-quiet:hover { background: transparent; color: var(--jv-ink); }
+  .intel--today.intel--jv .today-q .today-thin:hover { color: var(--jv-ink); }
+}
+.intel--today.intel--jv .today-empty { color: var(--jv-coverage); }
+/* Below the queue: the backlog, takeaways to review, Your reading and Publishing as the theme's cards
+   (glass, the rows' radius; the spec has none). */
+.intel--today.intel--jv .today-box,
+.intel--today.intel--jv .today-q .intel-publishing { border: 1px solid var(--jv-line-2); border-radius: 14px; background: var(--jv-glass-panel); }
+.intel--today.intel--jv .today-q .today-box-title {
+  font-family: var(--jv-font-display); font-size: calc(22 * var(--tpx)); font-weight: 600; letter-spacing: -.02em; line-height: 1.15; color: var(--jv-ink);
+}
+.intel--today.intel--jv .today-count { font-family: var(--jv-font-ui); font-size: calc(13 * var(--tpx)); color: var(--jv-muted); }
+.intel--today.intel--jv .today-box-note { color: var(--jv-body); }
+.intel--today.intel--jv .today-review .today-chips li {
+  padding: 4px 10px; border: 1px solid var(--jv-line-4); background: var(--jv-glass-chip); color: var(--jv-body); font-size: calc(12 * var(--tpx)); font-weight: 600;
+}
+.intel--today.intel--jv .today-backlog-body li { border-top-color: var(--jv-line-2); color: var(--jv-body); }
+.intel--today.intel--jv .today-backlog-name { font-size: calc(14.5 * var(--tpx)); font-weight: 700; letter-spacing: -.005em; color: var(--jv-ink-2); }
+.intel--today.intel--jv .today-q .intel-eyebrow {
+  font-family: var(--jv-font-display); font-size: calc(11 * var(--tpx)); font-weight: 700; letter-spacing: .18em; color: var(--jv-indigo);
+}
+.intel--today.intel--jv .today-q .intel-publishing-open {
+  min-height: 40px; padding: 0 8px 0 16px; border-color: var(--jv-line-2); background: var(--jv-glass-button);
+  color: var(--jv-ink-2); font-size: calc(14 * var(--tpx)); font-weight: 600;
+}
+.intel--today.intel--jv .today-q .intel-publishing-open::after { inset: -3px -1px; }
+@media (max-width: 660px) {
+  .intel--today.intel--jv .today-left { border-right: 0; border-bottom-color: var(--jv-line-1); }
+}
+
+/* ── Takeaways, the notebook (§8; the plan's §8.5) ──────────────────────── */
+.intel--saved.intel--jv .tk {
+  --tk-ink: var(--jv-ink);
+  --tk-ink-2: var(--jv-body);
+  --tk-line: var(--jv-line-2);
+  --tk-caps: var(--jv-muted);
+  --tk-meta: var(--jv-muted);
+  --tk-focus: var(--jv-indigo);
+  color: var(--jv-ink);
+  font-family: var(--jv-font-ui);
+}
+.intel--saved.intel--jv .tk :is(button, input, textarea) { font-family: var(--jv-font-ui); }
+/* The introduction: a label, the article's headline, its text; the counts as cards. */
+.intel--saved.intel--jv :is(.tk-eyebrow, .tk-label, .tk-metric span) {
+  font-family: var(--jv-font-display); font-size: calc(11 * var(--tpx)); font-weight: 700; letter-spacing: .18em; color: var(--jv-indigo);
+}
+.intel--saved.intel--jv .tk .tk-title {
+  font-family: var(--jv-font-display); font-size: clamp(calc(34 * var(--tpx)), calc(4.45vw * var(--intel-scale, 1)), calc(48 * var(--tpx)));
+  font-weight: 600; letter-spacing: -.03em; line-height: 1.02; color: var(--jv-ink);
+}
+.intel--saved.intel--jv .tk-lede { font-size: calc(16 * var(--tpx)); line-height: 1.6; color: var(--jv-body); }
+.intel--saved.intel--jv .tk-metric { border-color: var(--jv-line-2); border-radius: 14px; background: var(--jv-glass-panel); }
+.intel--saved.intel--jv .tk-metric strong { font-family: var(--jv-font-display); font-size: calc(26 * var(--tpx)); font-weight: 600; color: var(--jv-ink); }
+/* The workspace: the library as Edition History's panel, the chosen one on the background. */
+.intel--saved.intel--jv .tk-workspace { border-color: var(--jv-line-2); background: transparent; box-shadow: none; }
+.intel--saved.intel--jv .tk-left { background: var(--jv-glass-panel); border-right-color: var(--jv-line-1); }
+.intel--saved.intel--jv .tk-panel-head { border-bottom-color: var(--jv-line-2); }
+.intel--saved.intel--jv .tk .tk-panel-title h2 {
+  font-family: var(--jv-font-display); font-size: calc(26 * var(--tpx)); font-weight: 600; letter-spacing: -.02em; line-height: 1.15; color: var(--jv-ink);
+}
+.intel--saved.intel--jv .tk-tiny { font-size: calc(13 * var(--tpx)); color: var(--jv-muted); }
+/* Fields: the spec's search field, at the app's 16px (D14). */
+.intel--saved.intel--jv :is(.tk-search, .tk-input, .tk .tk-note) {
+  border: 1px solid var(--jv-line-2); border-radius: 12px; background: var(--jv-glass-input); color: var(--jv-ink);
+}
+.intel--saved.intel--jv :is(.tk-search, .tk-input, .tk-note)::placeholder { color: var(--jv-subtle); }
+/* Filters, tags and roles: the spec's chips (Edition History's compact size, D2). */
+.intel--saved.intel--jv .tk :is(.tk-filter, .tk-tag, .tk-role) {
+  padding: 6px 12px; border: 1px solid var(--jv-line-4); border-radius: 999px; background: var(--jv-glass-chip);
+  color: var(--jv-body); font-size: calc(12 * var(--tpx)); font-weight: 600;
+}
+/* Their 44px targets (D14): the chips' hit areas grown to the new heights, from the inside of the border. */
+.intel--saved.intel--jv .tk :is(.tk-filter, .tk-role)::after { inset: -9px -3px; }
+.intel--saved.intel--jv .tk :is(.tk-filter, .tk-role)[aria-pressed="true"],
+.intel--saved.intel--jv .tk .tk-tagrow .tk-tag[aria-pressed="true"] { background: var(--jv-ink); border-color: var(--jv-ink); color: var(--jv-on-accent); }
+/* "n to review today" keeps its amber (D5). */
+.intel--saved.intel--jv .tk-dueline { font-size: calc(13 * var(--tpx)); font-weight: 600; color: #8a5f33; }
+/* Text buttons: the spec's links (cyan on glass, the deeper cyan on the background, D13). */
+.intel--saved.intel--jv .tk :is(.tk-thin, .tk-export, .tk-source) {
+  border-bottom: 0; color: var(--jv-cyan-strong); font-weight: 600;
+  text-decoration: underline; text-decoration-color: currentColor; text-underline-offset: 3px;
+}
+.intel--saved.intel--jv .tk-right :is(.tk-thin, .tk-source) { color: var(--jv-cyan-text); }
+/* The right is straight on the gradient: secondary text in the spec's coverage grey (D13, as Today's). */
+.intel--saved.intel--jv .tk-right { --tk-meta: var(--jv-coverage); }
+.intel--saved.intel--jv .tk .tk-quiet { color: var(--jv-coverage); text-decoration-color: var(--jv-line-4); }
+.intel--saved.intel--jv .tk .tk-remove { color: var(--jv-coverage); }
+@media (hover: hover) { .intel--saved.intel--jv .tk :is(.tk-thin, .tk-source, .tk-export):hover { color: var(--jv-ink); } }
+/* The entries: Edition History's rows; the chosen one selected. */
+.intel--saved.intel--jv .tk .tk-entry { padding: 12px 14px; border-radius: 14px; }
+@media (hover: hover) { .intel--saved.intel--jv .tk .tk-entry:not(.is-on):hover { background: var(--jv-glass-chip); } }
+.intel--saved.intel--jv .tk .tk-entry:active { background: var(--jv-glass-row-selected); }
+.intel--saved.intel--jv .tk .tk-entry.is-on {
+  background: var(--jv-selected-tint), var(--jv-glass-row-selected); border-color: var(--jv-border-row-selected); box-shadow: var(--jv-shadow-row-selected);
+}
+.intel--saved.intel--jv .tk .tk-entry:focus-visible { border-radius: 14px; }
+.intel--saved.intel--jv .tk-entry strong { font-size: calc(14.5 * var(--tpx)); font-weight: 700; line-height: 1.35; letter-spacing: -.005em; color: var(--jv-ink-2); }
+.intel--saved.intel--jv .tk-entry.is-on strong { color: var(--jv-ink); }
+/* Row dates: the spec's muted grey, not its subtle one, which falls to 4.1:1 over the cyan glow on glass (D13). */
+.intel--saved.intel--jv .tk-entry small { font-size: calc(12 * var(--tpx)); font-weight: 500; color: var(--jv-muted); }
+/* Question, Insight: the plan's choice, a label with no box. */
+.intel--saved.intel--jv .tk-chip {
+  padding: 0; border-radius: 0; background: none;
+  font-family: var(--jv-font-display); font-size: calc(11 * var(--tpx)); font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--jv-indigo);
+}
+/* Where each stands: the rows' date; due keeps its amber, reviewed its sage (D5). */
+.intel--saved.intel--jv .tk-status { font-size: calc(12 * var(--tpx)); font-weight: 500; color: var(--jv-muted); }
+.intel--saved.intel--jv .tk-status.is-due { color: #8a5f33; font-weight: 650; }
+.intel--saved.intel--jv .tk-status.is-reviewed { color: #3f6b5b; }
+/* The right: the views as chips, the meeting kit as a pill button. */
+.intel--saved.intel--jv .tk-right { background: transparent; }
+.intel--saved.intel--jv .tk-right-top { border-bottom-color: var(--jv-line-2); }
+.intel--saved.intel--jv .tk-viewtabs { gap: 8px; padding: 0; border-radius: 0; background: transparent; }
+.intel--saved.intel--jv .tk .tk-viewtab {
+  padding: 9px 14px; border: 1px solid var(--jv-line-4); border-radius: 999px; background: var(--jv-glass-chip);
+  color: var(--jv-body); font-size: calc(13 * var(--tpx)); font-weight: 600;
+}
+.intel--saved.intel--jv .tk .tk-viewtab[aria-selected="true"] { background: var(--jv-ink); border-color: var(--jv-ink); color: var(--jv-on-accent); box-shadow: none; }
+/* The views and the meeting kit reach 44px through a transparent margin (D14). */
+.intel--saved.intel--jv .tk :is(.tk-viewtab, .tk-kitbtn) { position: relative; }
+.intel--saved.intel--jv .tk .tk-viewtab::after { content: ''; position: absolute; inset: -5px -1px; }
+.intel--saved.intel--jv .tk .tk-kitbtn::after { content: ''; position: absolute; inset: -3px -1px; }
+.intel--saved.intel--jv .tk :is(.tk-kitbtn, .tk-btn) {
+  min-height: 40px; padding: 0 16px; border: 1px solid var(--jv-line-2); border-radius: 999px; background: var(--jv-glass-button);
+  color: var(--jv-ink-2); font-size: calc(14 * var(--tpx)); font-weight: 600;
+}
+.intel--saved.intel--jv .tk .tk-kitbtn[aria-selected="true"],
+.intel--saved.intel--jv .tk .tk-btn.is-primary { background: var(--jv-ink); border-color: var(--jv-ink); color: var(--jv-on-accent); }
+/* "Added to meeting kit" keeps its sage (D5). */
+.intel--saved.intel--jv .tk .tk-btn.is-soft { background: #e9f0ec; border-color: #c9dbcf; color: #3f6b5b; }
+.intel--saved.intel--jv .tk .tk-btn::after { inset: -3px -1px; }
+@media (hover: hover) {
+  .intel--saved.intel--jv .tk .tk-btn:not(:disabled):not(.is-primary):not(.is-soft):hover,
+  .intel--saved.intel--jv .tk .tk-kitbtn:not([aria-selected="true"]):hover { background: var(--jv-glass-tab-active); }
+  .intel--saved.intel--jv .tk .tk-btn.is-primary:not(:disabled):hover { background: var(--jv-ink-2); }
+  .intel--saved.intel--jv .tk .tk-viewtab:not([aria-selected="true"]):hover { background: var(--jv-glass-button); color: var(--jv-ink); }
+}
+/* What was kept: the words in the display face (the plan's choice: at their own sizes, not the 48px headline), upright. */
+.intel--saved.intel--jv .tk-label-note { font-family: var(--jv-font-ui); letter-spacing: 0; text-transform: none; color: var(--jv-coverage); }
+.intel--saved.intel--jv .tk-saved { color: var(--jv-kept-text); }
+.intel--saved.intel--jv .tk :is(.tk-quote, .tk-card-quote) {
+  font-family: var(--jv-font-display); font-weight: 600; letter-spacing: -.02em; line-height: 1.2; color: var(--jv-ink);
+}
+.intel--saved.intel--jv .tk-card-quote { font-size: calc(22 * var(--tpx)); }
+.intel--saved.intel--jv :is(.tk-longtext, .tk-card-long) { font-family: var(--jv-font-ui); font-size: calc(16 * var(--tpx)); line-height: 1.6; color: var(--jv-body); }
+.intel--saved.intel--jv .tk-divider { background: var(--jv-line-3); }
+.intel--saved.intel--jv .tk-meta { color: var(--jv-coverage); }
+.intel--saved.intel--jv .tk-meta cite { font-style: normal; color: var(--jv-ink-2); }
+.intel--saved.intel--jv .tk-review { color: var(--jv-body); }
+.intel--saved.intel--jv .tk-review.is-due { color: var(--jv-due-text); }
+/* Use in conversation and the meeting kit: cards (glass, the rows' radius; the spec has none), panel titles, labels. */
+.intel--saved.intel--jv .tk .tk-h,
+.intel--saved.intel--jv .tk .tk-kit-title {
+  font-family: var(--jv-font-display); font-size: calc(26 * var(--tpx)); font-weight: 600; letter-spacing: -.02em; line-height: 1.15; color: var(--jv-ink);
+}
+.intel--saved.intel--jv :is(.tk-purpose, .tk-role-purpose, .tk-hint) { color: var(--jv-coverage); }
+.intel--saved.intel--jv :is(.tk-card, .tk-kit-context) { border: 1px solid var(--jv-line-2); border-radius: 14px; background: var(--jv-glass-panel); }
+.intel--saved.intel--jv .tk-mini { border-color: var(--jv-line-2); border-radius: 14px; background: var(--jv-glass-button); }
+.intel--saved.intel--jv .tk .tk-mini h3 { font-size: calc(14.5 * var(--tpx)); font-weight: 700; letter-spacing: -.005em; color: var(--jv-ink-2); }
+.intel--saved.intel--jv .tk-mini p:not(.tk-label) { font-size: calc(13 * var(--tpx)); color: var(--jv-body); }
+.intel--saved.intel--jv .tk .tk-support { font-size: calc(13 * var(--tpx)); color: var(--jv-body); }
+.intel--saved.intel--jv .tk .tk-kit-group h3 {
+  font-family: var(--jv-font-display); font-size: calc(11 * var(--tpx)); font-weight: 700; letter-spacing: .18em; color: var(--jv-indigo);
+}
+.intel--saved.intel--jv .tk-kit-group { border-bottom-color: var(--jv-line-2); }
+.intel--saved.intel--jv .tk-kit-item { border-top-color: var(--jv-line-1); }
+/* A kit's line: the spec's lead sentence; a longer passage its body text. */
+.intel--saved.intel--jv .tk-kit-item p { font-family: var(--jv-font-ui); font-size: calc(16 * var(--tpx)); font-weight: 700; line-height: 1.5; color: var(--jv-ink); }
+.intel--saved.intel--jv .tk-kit-long { font-family: var(--jv-font-ui); font-size: calc(16 * var(--tpx)); font-weight: 400; line-height: 1.6; color: var(--jv-body); }
+/* Empty: muted text in a card with a dashed rule. */
+.intel--saved.intel--jv .tk-empty { border: 1px dashed var(--jv-line-4); border-radius: 14px; background: var(--jv-glass-chip); color: var(--jv-muted); }
+@media (max-width: 620px) {
+  .intel--saved.intel--jv .tk-left { border-right: 0; border-bottom-color: var(--jv-line-1); }
+}
+
+/* ── Search, in the light theme (D8) ─────────────────────────────────────── */
+.intel--search.intel--jv {
+  --ink: var(--jv-ink);
+  --ink-2: var(--jv-body);
+  --ink-3: var(--jv-muted);
+  --hairline: var(--jv-line-2);
+  --surface: var(--jv-glass-panel);
+  --accent: var(--jv-indigo);
+}
+.intel--search.intel--jv .intel-search-view { font-family: var(--jv-font-ui); }
+.intel--search.intel--jv .intel-search .ds-input {
+  border: 1px solid var(--jv-line-2); border-radius: 12px; background: var(--jv-glass-input); color: var(--jv-ink); box-shadow: none;
+}
+.intel--search.intel--jv .intel-search .ds-input::placeholder { color: var(--jv-subtle); }
+.intel--search.intel--jv .intel-search .ds-input:focus { border-color: var(--jv-line-2); box-shadow: none; outline: 3px solid var(--jv-indigo); outline-offset: 0; }
+.intel--search.intel--jv .intel-search svg { color: var(--jv-subtle); }
+/* The filters: the spec's chips. */
+.intel--search.intel--jv .intel-tagbar { gap: 8px; }
+.intel--search.intel--jv .intel-tagbar button {
+  padding: 0 12px; border: 1px solid var(--jv-line-4); background: var(--jv-glass-chip); color: var(--jv-body);
+  font-size: calc(13 * var(--tpx)); font-weight: 600;
+}
+.intel--search.intel--jv .intel-tagbar button[aria-pressed="true"] { background: var(--jv-ink); border-color: var(--jv-ink); color: var(--jv-on-accent); }
+.intel--search.intel--jv .intel-tagbar button:focus-visible { outline: 3px solid var(--jv-indigo); outline-offset: 2px; }
+.intel--search.intel--jv .intel-linkbtn {
+  color: var(--jv-cyan-text); text-decoration: underline; text-decoration-color: currentColor; text-underline-offset: 3px;
+}
+.intel--search.intel--jv .intel-search-count { color: var(--jv-coverage); }
+/* The results: cards (glass, the rows' radius), each an edition row's date and title over the passage. */
+.intel--search.intel--jv .intel-result { border-color: var(--jv-line-2); border-radius: 14px; background: var(--jv-glass-panel); }
+.intel--search.intel--jv .intel-result:active { background: var(--jv-glass-row-selected); }
+@media (hover: hover) { .intel--search.intel--jv .intel-result:hover { background: var(--jv-glass-button); } }
+.intel--search.intel--jv .intel-result:focus-visible { outline: 3px solid var(--jv-indigo); outline-offset: 2px; }
+.intel--search.intel--jv .intel-result .intel-ed-date { font-weight: 500; color: var(--jv-muted); }
+.intel--search.intel--jv .intel-result-title { font-weight: 700; letter-spacing: -.005em; color: var(--jv-ink-2); }
+.intel--search.intel--jv .intel-result-snippet { color: var(--jv-body); }
+.intel--search.intel--jv .intel-result mark { background: rgba(99, 102, 241, .14); color: var(--jv-ink); }
+
+/* ── Review, in the light theme (D8) ─────────────────────────────────────── */
+.intel--review.intel--jv {
+  --ink: var(--jv-ink);
+  --ink-2: var(--jv-body);
+  --ink-3: var(--jv-muted);
+  --hairline: var(--jv-line-2);
+  --surface: var(--jv-glass-panel);
+  --surface-sunken: var(--jv-glass-chip);
+  --accent: var(--jv-indigo);
+  --accent-line: var(--jv-line-4);
+  --accent-tint: rgba(99, 102, 241, .14);
+  font-family: var(--jv-font-ui);
+}
+.intel--review.intel--jv .intel-review-bar h1 { font-family: var(--jv-font-display); font-weight: 600; color: var(--jv-ink); }
+.intel--review.intel--jv .intel-review-bar .ds-icon-btn {
+  position: relative; width: 40px; height: 40px; border: 1px solid var(--jv-line-2); border-radius: 999px; background: var(--jv-glass-button); color: var(--jv-ink-2);
+}
+/* The spec's 40px buttons in the app's 44px targets (D14). */
+.intel--review.intel--jv :is(.intel-review-bar .ds-icon-btn, .intel-review-actions .ds-btn)::after { content: ''; position: absolute; inset: -3px -1px; }
+.intel--review.intel--jv .intel-review-bar .ds-icon-btn::after { inset: -3px; }
+/* The count sits under the indigo glow, where the muted grey falls to 4.4:1: body text (D13). */
+.intel--review.intel--jv .intel-review-count { color: var(--jv-body); }
+/* The progress: the reading line's colours. */
+.intel--review.intel--jv .intel-review-progress { background: var(--jv-line-2); }
+.intel--review.intel--jv .intel-review-progress i { background: var(--jv-cyan-strong); }
+/* The card: glass, no shadow (the spec has none). */
+.intel--review.intel--jv .intel-review-card { border-color: var(--jv-line-2); background: var(--jv-glass-panel); box-shadow: none; }
+.intel--review.intel--jv .intel-eyebrow {
+  font-family: var(--jv-font-display); font-size: calc(11 * var(--tpx)); font-weight: 700; letter-spacing: .18em; color: var(--jv-indigo);
+}
+.intel--review.intel--jv :is(.intel-review-term, h2.intel-review-prompt, .intel-review-done h2) {
+  font-family: var(--jv-font-display); font-weight: 600; letter-spacing: -.02em; line-height: 1.15; color: var(--jv-ink);
+}
+.intel--review.intel--jv h2.intel-review-prompt,
+.intel--review.intel--jv .intel-review-done h2 { font-size: calc(26 * var(--tpx)); }
+.intel--review.intel--jv p.intel-review-prompt { font-size: calc(16 * var(--tpx)); font-weight: 700; line-height: 1.6; color: var(--jv-ink); }
+.intel--review.intel--jv .intel-review-help { line-height: 1.6; }
+/* What was kept: a line in the display face (as Takeaways' quotation), a passage as body text. */
+.intel--review.intel--jv .intel-review-kept.is-line { font-family: var(--jv-font-display); font-size: calc(22 * var(--tpx)); font-weight: 600; letter-spacing: -.02em; line-height: 1.3; }
+.intel--review.intel--jv .intel-review-kept.is-passage { font-size: calc(16 * var(--tpx)); line-height: 1.6; color: var(--jv-body); }
+.intel--review.intel--jv .intel-review-kept.intel-md:not(.is-line) { font-size: calc(16 * var(--tpx)); line-height: 1.6; color: var(--jv-body); }
+.intel--review.intel--jv .intel-review-note { border: 1px solid var(--jv-line-2); border-radius: 12px; }
+.intel--review.intel--jv .intel-review-rate h3 { font-weight: 700; color: var(--jv-ink-2); }
+/* The ratings: rows as buttons; the top one selected. */
+.intel--review.intel--jv .intel-rate { border-color: var(--jv-line-2); background: var(--jv-glass-button); color: var(--jv-ink-2); }
+.intel--review.intel--jv .intel-rate b { font-family: var(--jv-font-display); color: var(--jv-cyan-strong); }
+.intel--review.intel--jv .intel-rate small { color: var(--jv-subtle); }
+.intel--review.intel--jv .intel-rate.is-top small { color: var(--jv-muted); }
+.intel--review.intel--jv .intel-rate.is-top { background: var(--jv-selected-tint), var(--jv-glass-row-selected); border-color: var(--jv-border-row-selected); }
+.intel--review.intel--jv .intel-rate.is-top b { color: var(--jv-indigo-strong); }
+@media (hover: hover) { .intel--review.intel--jv .intel-rate:hover { background: var(--jv-glass-tab-active); } }
+/* Buttons: the pill buttons; the one to take dark; the quiet one a muted link. */
+.intel--review.intel--jv .intel-review-actions .ds-btn {
+  position: relative; min-height: 40px; padding: 0 16px; border: 1px solid var(--jv-line-2); border-radius: 999px; background: var(--jv-glass-button);
+  color: var(--jv-ink-2); font-size: calc(14 * var(--tpx)); font-weight: 600;
+}
+.intel--review.intel--jv .intel-review-actions .ds-btn--primary { background: var(--jv-ink); border-color: var(--jv-ink); color: var(--jv-on-accent); }
+.intel--review.intel--jv .intel-review-actions .ds-btn--quiet {
+  border-color: transparent; background: transparent; color: var(--jv-muted);
+  text-decoration: underline; text-decoration-color: var(--jv-line-4); text-underline-offset: 3px;
+}
+.intel--review.intel--jv .intel-linkbtn { color: var(--jv-cyan-strong); text-decoration: underline; text-decoration-color: currentColor; text-underline-offset: 3px; }
+.intel--review.intel--jv :is(.ds-btn, .ds-icon-btn, .intel-rate, .intel-linkbtn):focus-visible { outline: 3px solid var(--jv-indigo); outline-offset: 2px; }
+.intel--review.intel--jv .intel-review-back b { font-family: var(--jv-font-display); color: var(--jv-cyan-strong); }
+
+/* ── The feed-status sheet, in the light theme (D8) ─────────────────────── */
+.intel.intel--jv-sheet .intel-health-sheet {
+  --ink: var(--jv-ink);
+  --ink-2: var(--jv-body);
+  --ink-3: var(--jv-muted);
+  --hairline: var(--jv-line-2);
+  --hairline-faint: var(--jv-line-2);
+  --surface-sunken: var(--jv-glass-chip);
+  --accent: var(--jv-cyan-strong);
+  /* The densest of the spec's glass over the section's base, opaque: with no blur, the page under a sheet would show through. */
+  border-color: var(--jv-line-2); background: linear-gradient(var(--jv-glass-footer), var(--jv-glass-footer)), var(--jv-bg-base);
+  color: var(--jv-ink); font-family: var(--jv-font-ui);
+}
+.intel.intel--jv-sheet .intel-health-sheet .ds-modal-head h2 {
+  font-family: var(--jv-font-display); font-size: calc(22 * var(--tpx)); font-weight: 600; letter-spacing: -.02em; color: var(--jv-ink);
+}
+.intel.intel--jv-sheet .intel-health-sheet .ds-icon-btn { border: 1px solid var(--jv-line-2); border-radius: 999px; background: var(--jv-glass-button); color: var(--jv-ink-2); }
+.intel.intel--jv-sheet .intel-health h3 { font-weight: 700; letter-spacing: -.005em; color: var(--jv-ink-2); }
+.intel.intel--jv-sheet .intel-health-sub {
+  font-family: var(--jv-font-display); font-size: calc(11 * var(--tpx)); font-weight: 700; letter-spacing: .18em; color: var(--jv-indigo);
+}
+.intel.intel--jv-sheet .intel-health-sheet .intel-linkbtn { text-decoration: underline; text-decoration-color: currentColor; text-underline-offset: 3px; }
+.intel.intel--jv-sheet .intel-health-sheet :is(button, [tabindex]):focus-visible { outline: 3px solid var(--jv-indigo); outline-offset: 2px; }
