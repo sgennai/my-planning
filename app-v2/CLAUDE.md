@@ -114,8 +114,8 @@ colour; everything else is neutral.
 
 ## Current code structure
 
-- `index.html` — shell; loads `src/main.tsx`. Fonts: Instrument Serif / Instrument Sans /
-  IBM Plex Mono. PWA meta for Home Screen install.
+- `index.html` — shell; loads `src/main.tsx`. Fonts (Google Fonts): Inter, and Space Grotesk
+  600/700 for the Intelligence pilot (INT-59). PWA meta for Home Screen install.
 - `src/main-app.tsx` — **`App` root** (`@ts-nocheck`). Holds `appPage` state
   (`'routine' | 'calendar' | 'practice' | 'intake' | 'create' | 'modules'`, default
   `'routine'`) and swaps full-page screens. `makeDefaultData()`, `persist(nextData)`,
@@ -420,6 +420,22 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   (`my-planning-intel-index`). A phone (the shell's More query): the memo first; "Show editions"
   lays the index over the whole width (the memo `inert` under it) with the focus on the edition
   read; choosing goes back to the memo, the focus on the toggle. Feed status at the index's foot.
+- **"Jour & verre", the Phase 1 pilot** (INT-59; `styles/intel-jour-et-verre.css`, after the
+  user's `DESIGN_SPEC_jour-et-verre.md` and `jour-et-verre_reference.html`, outside the repo, and
+  decisions D1–D14 of 16 Nov): the three memo views only (their top navigation, the reading bar,
+  Edition History, the memos). An indigo/cyan/lavender gradient over #EEF1F8 behind the whole
+  section, translucent glass (no backdrop blur), Space Grotesk for titles, labels, numbers and the
+  date (Inter for the rest), pill tabs and buttons, the indigo selected row. **The switch:**
+  `JOUR_ET_VERRE` in `IntelligenceScreen.tsx` adds `intel--jv` to the memo workspace's root, and
+  every rule requires `.intel--memo.intel--jv`; false gives back the previous look exactly
+  (checked style for style), and the older sheets are unchanged under it. Today, Takeaways,
+  Search, Review and the feed-status sheet are Phase 2, not started. Kept: Edition History's compact
+  sizes (D2), the 38px read button (D3), sage for read (D4), alert colours (D5), the 2px reading
+  line in cyan (D12), `--tpx`, 16px fields; the spec's 40px pills get a transparent 44px hit area
+  (D14). Contrast (D13): the glows are the spec's, so text set straight on them uses
+  `--jv-cyan-text` #0D6C86 (the spec's #0E7490 fell to 4.14:1) and the related editions' dates
+  are muted; every text keeps 4.5:1 over the darkest background it can scroll onto. A rule
+  setting `display` must not override `hidden` (`:not([hidden])`): a month list did once.
 - **Sections** (`EditionReader.tsx`, `present.ts`): a sticky index of chips, then each
   section in its order (the briefs). AI Challenge sections take a richer form (bold lead,
   numbered approaches, quotes, labelled questions, vocabulary terms and notes) **only when every

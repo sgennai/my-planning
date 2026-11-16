@@ -1,0 +1,386 @@
+/*
+  "Jour & verre" (Day & Glass), Phase 1 pilot (INT-59): the theme of
+  `DESIGN_SPEC_jour-et-verre.md` and `jour-et-verre_reference.html` (outside
+  the repo) on the three memo views only: the top navigation as they show it,
+  the reading bar, Edition History and the three memos. Today, Takeaways,
+  Search, Review and the feed-status sheet keep their look until Phase 2.
+
+  Every rule here sits under `.intel--memo.intel--jv`, a class the screen adds
+  to the memo views alone (`JOUR_ET_VERRE` in IntelligenceScreen.tsx): false
+  there, and the previous look comes back as it was. The stylesheets under
+  this one are unchanged.
+
+  The spec's values, with the user's decisions of 16 Nov (D2–D14) as
+  documented exceptions:
+  - Edition History keeps its compact sizes: a 22px heading, a ~33px search,
+    the small filters (D2);
+  - the read button keeps its 38px rounded square in its own corner row, and
+    "read" keeps its sage, beside the new indigo selection (D3, D4);
+  - warnings, problems and read keep their meaning colours (D5);
+  - no backdrop blur, for the iPad (D6); translucency and gradients stay;
+  - the reading line stays, in the spec's cyan (D12);
+  - contrast (D13): the glows are the spec's, so the reader's cyan text is a
+    shade deeper (--jv-cyan-text) and its related-edition dates muted;
+  - text keeps the iPad's Text Size (--tpx), fields 16px, targets 44px (D14:
+    the spec's 40px pills get a transparent 44px hit area);
+  - the theme has no italic face, so text the memos set in italics is upright;
+  - focus rings are the app's 3px, in the spec's indigo.
+*/
+.intel--memo.intel--jv {
+  /* §2, colour tokens. */
+  --jv-bg-base: #EEF1F8;
+  --jv-ink: #0E1330;
+  --jv-ink-2: #1E2540;
+  --jv-body: #334155;
+  --jv-coverage: #475069;
+  --jv-muted: #5B6478;
+  --jv-subtle: #646D82;
+  --jv-dot: #A5ADC0;
+  --jv-indigo: #4F46E5;
+  --jv-indigo-strong: #4338CA;
+  --jv-cyan-strong: #0E7490;
+  /* Cyan text set straight on the gradient (the reader): 7% darker than the spec's, so it keeps 4.5:1
+     over every glow at the spec's intensity (#0E7490 falls to 4.14 under the indigo and cyan glows; D13).
+     The spec's cyan stays where text sits on glass (Edition History) and for the reading line. */
+  --jv-cyan-text: #0D6C86;
+  --jv-on-accent: #FFFFFF;
+  --jv-glass-panel: rgba(255, 255, 255, .52);
+  --jv-glass-button: rgba(255, 255, 255, .62);
+  --jv-glass-toggle: rgba(255, 255, 255, .72);
+  --jv-glass-input: rgba(255, 255, 255, .75);
+  --jv-glass-tab-active: rgba(255, 255, 255, .78);
+  --jv-glass-row-selected: rgba(255, 255, 255, .80);
+  --jv-glass-chip: rgba(255, 255, 255, .4);
+  --jv-glass-footer: rgba(244, 246, 251, .92);
+  --jv-line-1: rgba(15, 23, 42, .06);
+  --jv-line-2: rgba(15, 23, 42, .08);
+  --jv-line-3: rgba(15, 23, 42, .10);
+  --jv-line-4: rgba(15, 23, 42, .14);
+  --jv-border-tab-active: rgba(255, 255, 255, .95);
+  --jv-border-row-selected: rgba(99, 102, 241, .38);
+  --jv-selected-tint: linear-gradient(135deg, rgba(99, 102, 241, .14), rgba(6, 182, 212, .08));
+  --jv-shadow-tab-active: 0 4px 14px rgba(30, 41, 99, .08);
+  --jv-shadow-row-selected: 0 10px 30px rgba(30, 41, 99, .10);
+  /* §1, fonts. */
+  --jv-font-ui: 'Inter', system-ui, sans-serif;
+  --jv-font-display: 'Space Grotesk', 'Inter', sans-serif;
+  /* Read (D4): the approved sage. */
+  --jv-read-bg: #e4efe9;
+  --jv-read-line: #d5e6dc;
+  --jv-read-edge: #b2d1c0;
+  --jv-read-accent: #6a8b79;
+  --jv-read-ink: #52705f;
+  --jv-read-deep: #4d6b5c;
+  /* The memos' and navigation's own tokens, in the theme's colours. */
+  --memo-line: var(--jv-line-3);
+  --intel-nav-focus: var(--jv-indigo);
+  /* §3: one background behind the whole section, its glows in proportion to the screen. */
+  background:
+    radial-gradient(72.22vw 40.74vw at 88% -10%, rgba(129, 140, 248, .34), rgba(129, 140, 248, 0) 70%),
+    radial-gradient(59.26vw 48.15vw at 0% 106%, rgba(34, 211, 238, .26), rgba(34, 211, 238, 0) 70%),
+    radial-gradient(48.15vw 33.33vw at 45% 55%, rgba(196, 181, 253, .16), rgba(196, 181, 253, 0) 70%),
+    var(--jv-bg-base);
+}
+/* Every bar and pane over it is clear or translucent. */
+.intel--memo.intel--jv :is(.intel-nav, .memo-workspace, .memo-readbar, .intel-reader--memo, .memo) { background: transparent; }
+.intel--memo.intel--jv :is(.memo-workspace, .memo) { color: var(--jv-ink); font-family: var(--jv-font-ui); }
+.intel--memo.intel--jv :is(.memo, .memo-workspace) :is(button, input, a, summary):focus-visible { outline: 3px solid var(--jv-indigo); outline-offset: 2px; }
+
+/* ── The top navigation (§6 "Barre supérieure") ─────────────────────────── */
+.intel--memo.intel--jv .intel-nav { align-items: center; padding-bottom: 4px; font-family: var(--jv-font-ui); }
+.intel--memo.intel--jv .intel-nav-tabs,
+.intel--memo.intel--jv :is(.intel-nav-feeds, .intel-nav-more) { align-items: center; }
+.intel--memo.intel--jv .intel-nav-feeds { gap: 8px; }
+.intel--memo.intel--jv .intel-nav-more { gap: 8px; }
+.intel--memo.intel--jv .intel-nav-tools { gap: 8px; margin-bottom: 0; }
+.intel--memo.intel--jv .intel-nav-tab {
+  min-height: 44px; height: 44px; gap: 8px; padding: 0 18px;
+  border: 1px solid transparent; border-radius: 999px; background: transparent; box-shadow: none;
+  color: var(--jv-muted); font-family: var(--jv-font-ui); font-size: calc(15 * var(--tpx)); font-weight: 600; letter-spacing: 0; line-height: normal;
+}
+.intel--memo.intel--jv .intel-nav-tab[aria-selected="true"] {
+  background: var(--jv-glass-tab-active); border-color: var(--jv-border-tab-active);
+  color: var(--jv-ink); box-shadow: var(--jv-shadow-tab-active);
+}
+/* Today and Takeaways: the spec's pill buttons (never selected in a memo view), 40px drawn in a 44px target (D14). */
+.intel--memo.intel--jv .intel-nav-tab--more {
+  position: relative; min-height: 40px; height: 40px; padding: 0 16px;
+  border: 1px solid var(--jv-line-2); background: var(--jv-glass-button);
+  color: var(--jv-ink-2); font-size: calc(14 * var(--tpx));
+}
+/* 44px from the 38px inside the border: exactly the tab row's height, which scrolls sideways on a phone. */
+.intel--memo.intel--jv :is(.intel-nav-tab--more, .memo-tools button, .memo-tools a)::after { content: ''; position: absolute; inset: -3px -1px; }
+.intel--memo.intel--jv .intel-nav-tab:focus-visible { outline: 3px solid var(--jv-indigo); outline-offset: -3px; border-radius: 999px; }
+@media (hover: hover) {
+  .intel--memo.intel--jv .intel-nav-tab:hover:not([aria-selected="true"]) { background: var(--jv-glass-button); color: var(--jv-ink); }
+  .intel--memo.intel--jv .intel-nav-tab--more:hover { background: var(--jv-glass-tab-active); }
+}
+.intel--memo.intel--jv .intel-nav-tab:active { opacity: .7; }
+/* The count on Takeaways: the spec's badge. */
+.intel--memo.intel--jv .intel-nav-count {
+  display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;
+  min-width: 22px; height: 22px; margin-left: 0; padding: 0 7px; border-radius: 999px;
+  background: var(--jv-indigo); color: var(--jv-on-accent); font-size: calc(12 * var(--tpx)); font-weight: 700; letter-spacing: 0;
+}
+/* Search and Refresh: the spec's round icon buttons. */
+.intel--memo.intel--jv .intel-nav-icon {
+  width: 40px; height: 40px; border: 1px solid var(--jv-line-2); border-radius: 999px;
+  background: var(--jv-glass-button); color: var(--jv-ink-2);
+}
+.intel--memo.intel--jv .intel-nav-icon::after { inset: -2px; }
+.intel--memo.intel--jv .intel-nav-icon svg { width: 19px; height: 19px; stroke-width: 1.8; }
+@media (hover: hover) { .intel--memo.intel--jv .intel-nav-icon:hover { background: var(--jv-glass-tab-active); color: var(--jv-ink); } }
+.intel--memo.intel--jv .intel-nav-icon:focus-visible { outline: 3px solid var(--jv-indigo); }
+/* One size at every width, as the spec: the base sheet's smaller tabs (1120px, 850px) lose to the rules above. */
+
+/* ── The reading bar (§6 "Barre d'outils") ──────────────────────────────── */
+.intel--memo.intel--jv .memo-readbar { border-bottom: 0; font-family: var(--jv-font-ui); }
+.intel--memo.intel--jv .memo-editions-toggle {
+  min-height: 44px; height: 44px; padding: 0 18px; gap: 10px;
+  border: 1px solid var(--jv-line-2); border-radius: 999px; background: var(--jv-glass-button);
+  color: var(--jv-ink-2); font-size: calc(14 * var(--tpx)); font-weight: 600;
+}
+.intel--memo.intel--jv .memo-editions-toggle svg { width: 20px; height: 20px; stroke-width: 1.8; }
+@media (hover: hover) { .intel--memo.intel--jv .memo-editions-toggle:hover { background: var(--jv-glass-tab-active); } }
+.intel--memo.intel--jv .memo-editions-toggle:active { opacity: .7; }
+.intel--memo.intel--jv .memo-readbar-right { gap: 8px; color: var(--jv-indigo-strong); }
+.intel--memo.intel--jv .memo-readbar-date {
+  font-family: var(--jv-font-display); font-size: calc(13 * var(--tpx)); font-weight: 700; letter-spacing: .18em; color: var(--jv-indigo-strong);
+}
+/* The arrows: the spec's chevrons (stroke 2.2) in place of the text arrow (hidden from assistive tech already; the button keeps its name). */
+.intel--memo.intel--jv .memo-step {
+  width: 40px; height: 40px; margin: 0; padding: 0; display: grid; place-items: center;
+  border: 0; border-radius: 999px; background: transparent; color: var(--jv-indigo-strong);
+}
+.intel--memo.intel--jv .memo-step > span { display: none; }
+.intel--memo.intel--jv .memo-step::before {
+  content: ''; width: 20px; height: 20px; background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.5 6l-6 6 6 6'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.5 6l-6 6 6 6'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.intel--memo.intel--jv .memo-readbar-right > .memo-step:last-child::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9.5 6l6 6-6 6'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9.5 6l6 6-6 6'/%3E%3C/svg%3E");
+}
+@media (hover: hover) { .intel--memo.intel--jv .memo-step:hover:not(:disabled) { background: var(--jv-glass-button); } }
+.intel--memo.intel--jv .memo-step:disabled { opacity: .45; }
+/* The reading line (D12): the spec's cyan on a fine line. */
+.intel--memo.intel--jv .memo-track { background: var(--jv-line-2); }
+.intel--memo.intel--jv .memo-fill { background: var(--jv-cyan-strong); }
+/* The feed's state under the bar: glass, in the theme's ink; a problem keeps its colour (D5). */
+.intel--memo.intel--jv .memo-workspace .intel-status { background: var(--jv-glass-panel); border-bottom: 1px solid var(--jv-line-1); color: var(--jv-body); }
+/* The base sheet's narrower bars (850px, 600px) lose to the rules above; a phone's bar is tighter still. */
+@media (max-width: 600px) {
+  .intel--memo.intel--jv .memo-editions-toggle { padding: 0 12px; }
+  .intel--memo.intel--jv .memo-readbar-date { font-size: calc(12 * var(--tpx)); letter-spacing: .14em; }
+}
+
+/* ── Edition History (§6 "Panneau gauche"), its compact sizes kept (D2) ─── */
+.intel--memo.intel--jv .memo-editions { background: var(--jv-glass-panel); border-right: 1px solid var(--jv-line-1); }
+.intel--memo.intel--jv .memo-editions-head h2 {
+  font-family: var(--jv-font-display); font-size: calc(22 * var(--tpx)); font-weight: 600;
+  letter-spacing: -.02em; line-height: 1.15; color: var(--jv-ink);
+}
+.intel--memo.intel--jv .memo-editions-sub { font-size: calc(13 * var(--tpx)); color: var(--jv-muted); }
+.intel--memo.intel--jv .memo-editions-sub b { font-weight: 700; color: var(--jv-cyan-strong); }
+.intel--memo.intel--jv .memo-editions-search {
+  min-height: 33px; border: 1px solid var(--jv-line-2); border-radius: 12px; background: var(--jv-glass-input); color: var(--jv-subtle);
+}
+.intel--memo.intel--jv .memo-editions-search svg { stroke-width: 1.8; }
+.intel--memo.intel--jv .memo-editions-search input { font-family: var(--jv-font-ui); color: var(--jv-ink); }
+.intel--memo.intel--jv .memo-editions-search input::placeholder { color: var(--jv-subtle); opacity: 1; }
+.intel--memo.intel--jv .memo-editions-search:focus-within { outline: 3px solid var(--jv-indigo); }
+.intel--memo.intel--jv .memo-editions-filters { gap: 8px; }
+.intel--memo.intel--jv .memo-editions-filters button {
+  padding: 6px 12px; border: 1px solid var(--jv-line-4); border-radius: 999px; background: var(--jv-glass-chip);
+  color: var(--jv-body); font-family: var(--jv-font-ui); font-size: calc(12 * var(--tpx)); font-weight: 600;
+}
+.intel--memo.intel--jv .memo-editions-filters button[aria-pressed="true"] { background: var(--jv-ink); border-color: var(--jv-ink); color: var(--jv-on-accent); }
+.intel--memo.intel--jv .memo-month { border-bottom: 1px solid var(--jv-line-1); }
+.intel--memo.intel--jv .memo-month-head { font-family: var(--jv-font-ui); font-size: calc(11 * var(--tpx)); font-weight: 700; letter-spacing: .16em; color: var(--jv-muted); }
+.intel--memo.intel--jv .memo-month-count { font-size: calc(11 * var(--tpx)); font-weight: 700; letter-spacing: 0; color: var(--jv-muted); }
+.intel--memo.intel--jv .memo-month-chev { width: 16px; height: 16px; stroke-width: 2.2; color: var(--jv-muted); }
+.intel--memo.intel--jv .memo-month-list:not([hidden]) { display: flex; flex-direction: column; gap: 4px; }
+.intel--memo.intel--jv .memo-edition {
+  margin: 0; padding: 12px 14px; border: 1px solid transparent; border-radius: 14px; background: transparent; font-family: var(--jv-font-ui);
+}
+.intel--memo.intel--jv .memo-edition-date { margin-bottom: 5px; font-size: calc(12 * var(--tpx)); font-weight: 500; letter-spacing: 0; color: var(--jv-subtle); }
+.intel--memo.intel--jv .memo-edition-title { font-size: calc(14.5 * var(--tpx)); font-weight: 700; line-height: 1.35; letter-spacing: -.005em; color: var(--jv-ink-2); }
+@media (hover: hover) { .intel--memo.intel--jv .memo-edition:hover { background: var(--jv-glass-chip); } }
+.intel--memo.intel--jv .memo-edition:active { background: var(--jv-glass-row-selected); }
+/* Open: the spec's selected row. */
+.intel--memo.intel--jv .memo-edition[aria-current="page"] {
+  background: var(--jv-selected-tint), var(--jv-glass-row-selected);
+  border-color: var(--jv-border-row-selected); box-shadow: var(--jv-shadow-row-selected);
+}
+.intel--memo.intel--jv .memo-edition[aria-current="page"] .memo-edition-date { color: var(--jv-indigo-strong); }
+.intel--memo.intel--jv .memo-edition[aria-current="page"] .memo-edition-title { font-weight: 700; color: var(--jv-ink); }
+/* Read (D4): sage, its title lighter; open and read, the sage with the indigo frame. */
+.intel--memo.intel--jv .memo-edition.is-read { background: var(--jv-read-bg); border-color: var(--jv-read-line); }
+.intel--memo.intel--jv .memo-edition.is-read .memo-edition-date { color: var(--jv-read-ink); }
+.intel--memo.intel--jv .memo-edition.is-read .memo-edition-title { font-weight: 500; color: var(--jv-read-ink); }
+@media (hover: hover) { .intel--memo.intel--jv .memo-edition.is-read:hover { background: var(--jv-read-bg); filter: brightness(.988); } }
+.intel--memo.intel--jv .memo-edition.is-read[aria-current="page"] {
+  background: var(--jv-read-bg); border-color: var(--jv-border-row-selected); box-shadow: var(--jv-shadow-row-selected);
+}
+.intel--memo.intel--jv .memo-edition.is-read[aria-current="page"] .memo-edition-date { color: var(--jv-indigo-strong); }
+.intel--memo.intel--jv .memo-edition.is-read[aria-current="page"] .memo-edition-title { font-weight: 700; color: var(--jv-read-deep); }
+.intel--memo.intel--jv .memo-edition-tag { font-family: var(--jv-font-ui); color: var(--jv-indigo-strong); }
+.intel--memo.intel--jv .memo-edition-tag.is-alert { color: #a3482f; }
+.intel--memo.intel--jv .memo-editions-empty { color: var(--jv-muted); }
+.intel--memo.intel--jv .memo-editions-foot {
+  background: var(--jv-glass-footer); border-top: 1px solid var(--jv-line-2);
+  font-family: var(--jv-font-ui); font-size: calc(12.5 * var(--tpx)); color: var(--jv-muted);
+}
+.intel--memo.intel--jv .memo-editions-foot button { color: var(--jv-cyan-strong); font-weight: 600; text-decoration: underline; text-decoration-color: currentColor; text-underline-offset: 3px; }
+
+/* ── The read button (D3): its approved geometry, the theme's glass; read stays sage ── */
+.intel--memo.intel--jv .memo-readmark { border: 1px solid var(--jv-line-2); background: var(--jv-glass-toggle); color: var(--jv-indigo-strong); }
+.intel--memo.intel--jv .memo-readmark-circle { border-color: var(--jv-indigo-strong); }
+@media (hover: hover) { .intel--memo.intel--jv .memo-readmark:hover { background: var(--jv-glass-row-selected); } }
+.intel--memo.intel--jv .memo-readmark[aria-pressed="true"] { background: var(--jv-read-bg); border-color: var(--jv-read-edge); color: var(--jv-read-deep); }
+.intel--memo.intel--jv .memo-readmark[aria-pressed="true"] .memo-readmark-circle { background: var(--jv-read-accent); border-color: var(--jv-read-accent); color: #fff; }
+@media (hover: hover) { .intel--memo.intel--jv .memo-readmark[aria-pressed="true"]:hover { background: #dbe9e1; } }
+
+/* ── The article (§6 "Article") ─────────────────────────────────────────── */
+.intel--memo.intel--jv .memo-title {
+  max-width: 580px; margin: 0 0 20px;
+  font-family: var(--jv-font-display); font-size: calc(48 * var(--tpx)); font-weight: 600; font-style: normal;
+  letter-spacing: -.03em; line-height: 1.02; color: var(--jv-ink); text-wrap: balance;
+}
+.intel--memo.intel--jv .memo-readtime {
+  margin: 0 0 8px; font-family: var(--jv-font-display); font-size: calc(12 * var(--tpx)); font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--jv-cyan-text);
+}
+/* Coverage, where the document has it (the Customer Engagement Brief). */
+.intel--memo.intel--jv .memo-coverage { margin: 0; font-family: var(--jv-font-ui); font-size: calc(14 * var(--tpx)); font-weight: 600; letter-spacing: 0; color: var(--jv-coverage); }
+.intel--memo.intel--jv .memo-topics { align-items: center; gap: 8px; margin-top: 20px; font-size: calc(14.5 * var(--tpx)); color: var(--jv-muted); }
+.intel--memo.intel--jv .memo-topics-list { color: var(--jv-cyan-text); }
+.intel--memo.intel--jv .memo-topics-list b { font-weight: 600; }
+.intel--memo.intel--jv .memo-dot::before { color: var(--jv-dot); }
+.intel--memo.intel--jv .memo-more-topics {
+  margin-left: 6px; padding: 1px 0; font-family: var(--jv-font-ui); font-size: calc(14.5 * var(--tpx)); font-weight: 700;
+  color: var(--jv-indigo-strong); text-decoration: underline; text-decoration-color: currentColor; text-underline-offset: 4px;
+}
+/* Every label in capitals (§6 ".label"). */
+.intel--memo.intel--jv :is(.memo-topics-head, .memo-idx-label, .memo-dev-kicker, .memo-field-label, .memo-summary-label, .memo-question-label,
+  .memo-conversation-label, .memo-part-title, .memo-eyebrow, .memo-ref summary) {
+  font-family: var(--jv-font-display); font-size: calc(11 * var(--tpx)); font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--jv-indigo);
+}
+.intel--memo.intel--jv .memo-topics-head { margin-right: 10px; white-space: nowrap; }
+.intel--memo.intel--jv .memo-take-heading { gap: 16px; }
+.intel--memo.intel--jv .memo-take-rule { background: var(--jv-line-3); }
+/* Numbers (§6 ".key-point__number"). */
+.intel--memo.intel--jv :is(.memo-idx, .memo-approach-no, .memo-term-n, .memo-toc-n) {
+  font-family: var(--jv-font-display); font-size: calc(14 * var(--tpx)); font-weight: 700; letter-spacing: .02em; color: var(--jv-cyan-text);
+}
+/* Body text (§6 ".key-point__text"). */
+.intel--memo.intel--jv :is(.memo-body, .memo-prose, .memo-take-text, .memo-approach p, .memo-term-def, .memo-listen li, .memo-summary--end li, .memo-row .memo-body) {
+  font-family: var(--jv-font-ui); font-size: calc(16 * var(--tpx)); line-height: 1.6; letter-spacing: 0; color: var(--jv-body);
+}
+.intel--memo.intel--jv :is(.memo-body, .memo-prose) strong { font-weight: 700; color: var(--jv-ink); }
+.intel--memo.intel--jv :is(.memo-body, .memo-prose, .memo-map) a { color: var(--jv-cyan-text); text-decoration: underline; text-decoration-color: currentColor; text-underline-offset: 3px; }
+.intel--memo.intel--jv .memo-field--response .memo-prose { color: var(--jv-body); }
+.intel--memo.intel--jv :is(.memo-field--linkedin .memo-prose, .memo-listen li, .memo-prose blockquote, .memo-note, .memo-aside) { font-family: var(--jv-font-ui); font-style: normal; }
+.intel--memo.intel--jv .memo-listen li { border-left-color: var(--jv-line-4); }
+.intel--memo.intel--jv .memo-prose blockquote { border-left-color: var(--jv-line-4); }
+.intel--memo.intel--jv :is(.memo-note, .memo-aside) { color: var(--jv-muted); font-size: calc(13 * var(--tpx)); }
+.intel--memo.intel--jv .memo-aside.is-alert { color: #8a4b3c; }
+/* Lead sentences (§6 ".article__lead"): the take's opening line, a question, a line to use. */
+.intel--memo.intel--jv .memo-take-text > p:first-child:not(:last-child) {
+  margin: 18px 0 16px; font-size: calc(16 * var(--tpx)); font-weight: 700; letter-spacing: 0; color: var(--jv-ink);
+}
+.intel--memo.intel--jv :is(.memo-question blockquote, .memo-field--question .memo-question blockquote, .memo-closing .memo-question blockquote,
+  .memo--engagement .memo-field--question .memo-question blockquote, .memo-conversation blockquote, .memo-summary p) {
+  font-family: var(--jv-font-ui); font-size: calc(16 * var(--tpx)); font-weight: 700; font-style: normal; line-height: 1.6; letter-spacing: 0; color: var(--jv-ink);
+}
+/* The take's numbered points (§6 ".key-point"): the number in a 30px column, 20px before the text. */
+.intel--memo.intel--jv .memo-take-text > ul { padding-left: 50px; margin: 0 0 22px; }
+.intel--memo.intel--jv .memo-take-text > ul li { padding-left: 0; margin: 0 0 16px; font-size: calc(16 * var(--tpx)); line-height: 1.6; color: var(--jv-body); }
+.intel--memo.intel--jv .memo-take-text > ul li::before {
+  left: -50px; top: 1px; width: 30px; font-family: var(--jv-font-display); font-size: calc(14 * var(--tpx)); font-weight: 700; letter-spacing: .02em; color: var(--jv-cyan-text);
+}
+/* Headings inside the memo: a development, the closing (§6 ".editions-panel__title"). */
+.intel--memo.intel--jv :is(.memo-dev-title, .memo-closing-heading h2) {
+  font-family: var(--jv-font-display); font-size: calc(26 * var(--tpx)); font-weight: 600; font-style: normal; letter-spacing: -.02em; line-height: 1.15; color: var(--jv-ink);
+}
+.intel--memo.intel--jv :is(.memo-approach h3, .memo-term strong, .memo-related-title) {
+  font-family: var(--jv-font-ui); font-weight: 700; letter-spacing: -.005em; color: var(--jv-ink-2);
+}
+.intel--memo.intel--jv :is(.memo-approach h3, .memo-term strong) { font-size: calc(16 * var(--tpx)); line-height: 1.35; }
+/* Boxes the memos set apart: the theme's glass, with the rows' radius (no box in the spec). */
+.intel--memo.intel--jv :is(.memo-summary, .memo-conversation, .memo-take-text > p:last-child) {
+  border: 1px solid var(--jv-line-2); border-left-width: 1px; border-radius: 14px; background: var(--jv-glass-panel); box-shadow: none;
+}
+.intel--memo.intel--jv .memo-take-text > p:last-child { font-size: calc(16 * var(--tpx)); font-weight: 500; line-height: 1.6; color: var(--jv-ink); }
+.intel--memo.intel--jv .memo-summary--end li::before { color: var(--jv-indigo); }
+/* Rules between parts (§6 ".article__divider"). */
+.intel--memo.intel--jv :is(.memo-dev, .memo-question, .memo-term, .memo-related li, .memo-customer-question) { border-color: var(--jv-line-3); }
+/* Contents, next and back: text links (cyan). */
+.intel--memo.intel--jv .memo-toc { color: var(--jv-muted); font-family: var(--jv-font-ui); font-size: calc(14 * var(--tpx)); }
+.intel--memo.intel--jv .memo-toc summary { font-weight: 700; color: var(--jv-ink-2); }
+.intel--memo.intel--jv .memo-toc-count { color: var(--jv-muted); font-weight: 500; }
+.intel--memo.intel--jv .memo-toc-list a { color: var(--jv-cyan-text); font-weight: 600; }
+.intel--memo.intel--jv :is(.memo-next, .memo-minor, .memo-related-more) {
+  border-bottom: 0; font-family: var(--jv-font-ui); font-weight: 600; letter-spacing: 0; color: var(--jv-cyan-text);
+  text-decoration: underline; text-decoration-color: currentColor; text-underline-offset: 3px;
+}
+.intel--memo.intel--jv .memo-next { font-size: calc(14 * var(--tpx)); }
+/* The reference folds at the end; related editions as the spec's rows' text. */
+.intel--memo.intel--jv .memo-ref summary { color: var(--jv-indigo); }
+.intel--memo.intel--jv .memo-ref-note { font-family: var(--jv-font-ui); font-size: calc(13 * var(--tpx)); font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--jv-muted); }
+.intel--memo.intel--jv .memo-map { color: var(--jv-muted); font-family: var(--jv-font-ui); }
+.intel--memo.intel--jv .memo-related-title { font-size: calc(14.5 * var(--tpx)); line-height: 1.35; }
+@media (hover: hover) { .intel--memo.intel--jv .memo-related-item:hover .memo-related-title { color: var(--jv-cyan-text); } }
+/* Muted, not the spec's subtle grey (4.0:1 under the glows): it sits straight on the gradient. */
+.intel--memo.intel--jv .memo-related-meta { font-family: var(--jv-font-ui); font-size: calc(12 * var(--tpx)); font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--jv-muted); }
+.intel--memo.intel--jv .memo-related-shares { font-family: var(--jv-font-ui); font-size: calc(12.5 * var(--tpx)); color: var(--jv-muted); }
+/* The end: the footer as the panel's foot text; the edition's actions as pill buttons. */
+.intel--memo.intel--jv .memo-footer { font-family: var(--jv-font-ui); font-size: calc(12.5 * var(--tpx)); font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--jv-muted); }
+.intel--memo.intel--jv .memo-tools { gap: 8px; }
+.intel--memo.intel--jv .memo-tools :is(button, a) {
+  position: relative; display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px;
+  border: 1px solid var(--jv-line-2); border-radius: 999px; background: var(--jv-glass-button);
+  font-family: var(--jv-font-ui); font-size: calc(14 * var(--tpx)); font-weight: 600; color: var(--jv-ink-2); text-decoration: none;
+}
+.intel--memo.intel--jv .memo-tools button[aria-pressed="true"] { background: var(--jv-selected-tint), var(--jv-glass-row-selected); border-color: var(--jv-border-row-selected); color: var(--jv-ink); }
+/* "Read · Mark as unread": read keeps its sage (D4). */
+.intel--memo.intel--jv .memo-tools button[aria-pressed="true"]:first-child { background: var(--jv-read-bg); border-color: var(--jv-read-edge); color: var(--jv-read-deep); }
+/* The saves beside a question or a term (not in the spec): quiet, in indigo; saved, filled. */
+.intel--memo.intel--jv :is(.memo-save, .memo-mark) { border-color: transparent; background: transparent; color: var(--jv-indigo-strong); font-family: var(--jv-font-ui); }
+.intel--memo.intel--jv .memo-save { font-size: calc(12 * var(--tpx)); font-weight: 700; }
+@media (hover: hover) { .intel--memo.intel--jv :is(.memo-save, .memo-mark):hover { background: var(--jv-glass-button); color: var(--jv-ink); } }
+.intel--memo.intel--jv :is(.memo-save, .memo-mark)[aria-pressed="true"] { background: transparent; border-color: transparent; color: var(--jv-indigo-strong); }
+.intel--memo.intel--jv :is(.memo-save, .memo-mark)[aria-pressed="true"] svg { fill: currentColor; }
+/* Questions and approaches as cards (the plan's choice: the spec has none). */
+.intel--memo.intel--jv .memo-question,
+.intel--memo.intel--jv .memo-question:last-child,
+.intel--memo.intel--jv .memo-field--question .memo-question {
+  padding: 16px 20px 20px; border: 1px solid var(--jv-line-2); border-radius: 14px; background: var(--jv-glass-panel);
+}
+.intel--memo.intel--jv .memo-questions { gap: 14px; }
+.intel--memo.intel--jv .memo-question-top { margin-bottom: 10px; }
+.intel--memo.intel--jv .memo-customer-question,
+.intel--memo.intel--jv .memo-customer-question:last-child { margin-bottom: 14px; padding-bottom: 0; border: 0; }
+.intel--memo.intel--jv .memo-approaches { gap: 14px; }
+.intel--memo.intel--jv .memo-approach { padding: 18px 20px; border: 1px solid var(--jv-line-2); border-radius: 14px; background: var(--jv-glass-panel); }
+.intel--memo.intel--jv .memo-approach p { margin-top: 0; }
+/* Feedback: the theme's ink. */
+.intel--memo.intel--jv .intel-note { background: var(--jv-ink); border-color: var(--jv-ink); color: var(--jv-on-accent); box-shadow: none; font-family: var(--jv-font-ui); }
+/* Save a selection: a pill button over the text, its glass the densest of the spec's (no blur) so the words under it never show through. */
+.intel--memo.intel--jv .intel-selsave {
+  border: 1px solid var(--jv-line-2); background: var(--jv-glass-footer); color: var(--jv-ink-2);
+  box-shadow: var(--jv-shadow-row-selected); font-family: var(--jv-font-ui); font-size: calc(14 * var(--tpx)); font-weight: 600;
+}
+
+/* ── Narrower readers (the app's breakpoints, D9) ───────────────────────── */
+@container memo (max-width: 760px) {
+  .intel--memo.intel--jv .memo-title { font-size: clamp(calc(34 * var(--tpx)), calc(4.45vw * var(--intel-scale, 1)), calc(48 * var(--tpx))); letter-spacing: -.03em; }
+  .intel--memo.intel--jv .memo-dev-title { font-size: calc(24 * var(--tpx)); }
+}
+@container memo (max-width: 430px) {
+  .intel--memo.intel--jv .memo-title { font-size: calc(34 * var(--tpx)); }
+  .intel--memo.intel--jv .memo-dev-title { font-size: calc(22 * var(--tpx)); }
+  .intel--memo.intel--jv .memo-take-text > ul { padding-left: 42px; }
+  .intel--memo.intel--jv .memo-take-text > ul li::before { left: -42px; }
+}

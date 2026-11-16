@@ -24,6 +24,7 @@ import '../styles/intelligence.css';
 import '../styles/memo.css';
 import '../styles/today.css';
 import '../styles/takeaways.css';
+import '../styles/intel-jour-et-verre.css';
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react';
 import { FEEDS, feedById, type FeedId } from './feeds';
 import { useFeeds } from './useFeeds';
@@ -56,6 +57,10 @@ import { kitOf, withRole, withMembership, withKitLabel, withoutKit, type Role } 
 import { wordsOf, NOTEBOOK_START, type NotebookState } from './notebook';
 import { dayNameShort, formatDayCompact, dayKeyOf, addDaysKey } from '../routine/dates';
 import { IconRefresh, IconList, IconX, IconChevronLeft, IconBookmark, IconPulse, IconSearch } from '../ui/icons';
+
+// "Jour & verre", the Phase 1 pilot (INT-59): the three memo views in the
+// theme of `styles/intel-jour-et-verre.css`. False, and they look as before.
+const JOUR_ET_VERRE = true;
 
 type View = 'today' | FeedId | 'saved' | 'search' | 'review';
 
@@ -719,7 +724,7 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
 
   if (workspace) {
     return (
-      <div className={`intel intel--${mode} intel--memo`} style={rootStyle}>
+      <div className={`intel intel--${mode} intel--memo${JOUR_ET_VERRE ? ' intel--jv' : ''}`} style={rootStyle}>
         {nav(<>{searchButton}{mode !== 'single' && refreshButton}</>)}
         {workspace}
         {noteLine}
