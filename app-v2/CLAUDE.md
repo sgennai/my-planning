@@ -443,7 +443,9 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   over the darkest background it can scroll onto, which for Phase 2's pages is just under the
   navigation, in the indigo glow. A rule setting `display` must not override `hidden`
   (`:not([hidden])`): a month list did once. A sheet over the page is opaque (glass over the base):
-  with no blur the page shows through.
+  with no blur the page shows through. A field drawn as a box around its input keeps one focus ring,
+  on the box (`:focus-within`): the memo views' general focus rule reached Edition History's input
+  too until INT-60's follow-up (two rings on the iPad).
 - **Sections** (`EditionReader.tsx`, `present.ts`): a sticky index of chips, then each
   section in its order (the briefs). AI Challenge sections take a richer form (bold lead,
   numbered approaches, quotes, labelled questions, vocabulary terms and notes) **only when every

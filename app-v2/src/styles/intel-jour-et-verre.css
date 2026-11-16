@@ -210,6 +210,9 @@
 .intel--memo.intel--jv .memo-editions-search input { font-family: var(--jv-font-ui); color: var(--jv-ink); }
 .intel--memo.intel--jv .memo-editions-search input::placeholder { color: var(--jv-subtle); opacity: 1; }
 .intel--memo.intel--jv .memo-editions-search:focus-within { outline: 3px solid var(--jv-indigo); }
+/* One ring, on the field: the memo views' focus rule above (as strong as this) put one back on the input
+   itself, which memo.css had taken off. */
+.intel--memo.intel--jv .memo-editions-search input:focus-visible { outline: none; }
 .intel--memo.intel--jv .memo-editions-filters { gap: 8px; }
 .intel--memo.intel--jv .memo-editions-filters button {
   padding: 6px 12px; border: 1px solid var(--jv-line-4); border-radius: 999px; background: var(--jv-glass-chip);
