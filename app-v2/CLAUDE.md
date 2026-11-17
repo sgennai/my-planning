@@ -31,9 +31,8 @@ Create · Setup. On a phone, Setup sits in the More menu and Intelligence is lab
   `.setup-screen`: labels-above-fields formcard that autosaves, modules grouped by family as
   calm `modrow`s with status badges + Pause/Activate + Schedule controls), **Practice**
   (`.prac-screen`: DrillView for JSON tracks, Interview workspace for user-authored track,
-  bilingual EN/FR toggle, `renderRefPanel` with chip-per-item keyPhrases), and **Intake**
-  (`.intk-screen`: `.intake-add` 4-col Quick Add, `.icard`/`.iact`/`.ib` card list, `itemSrc`
-  domain/feed/time derivation, `.segment` tab switcher), and **Create** (`.crt-screen`:
+  bilingual EN/FR toggle, `renderRefPanel` with chip-per-item keyPhrases), **Intake** (retired
+  by Intake 2.0, below; its `.intk-*` rules stay in `index.css`, unused), and **Create** (`.crt-screen`:
   `.kanban` 4-col grid, `.kcol`/`.kcard`/`.kc-tag`/`.kc-h` reference chrome, inline-editable
   `.kcard-edit` flush inputs, `.kcard-sub` angle subtitle, `.kcard-body` draft textarea,
   `.kcard-act` per-card text-link actions, `.kempty` empty states, `.addbtn` column footers,
@@ -724,6 +723,58 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
   next to `npm run dev`; Vite proxies `/api` to it with that throwaway login. The service worker
   never serves the app shell for `/api` (`navigateFallbackDenylist`).
 
+## Intake (`src/intake/`)
+
+Intake 2.0: your Instapaper library, then a reader. Plan and decisions D1–D11:
+`../SUPPORTING FILES/intake-2-articles-audit-and-plan-2026-11-16.md` (with the probe report and each
+phase's validation report beside it). Phase 1 (the Articles library) is built; Phase 2 (the Paper
+Sanctuary reader) and Phase 3 (Active Reading: highlights, notes, Save to Takeaways) are not.
+
+- **Instapaper access** is server-side and read-only: `functions/api/intake/[[path]].ts` →
+  `server/intake.ts` (`GET /api/intake/status`, `/sync?since=&offset=`, `/articles/<id>`, `/folders`,
+  `/tags`), with a personal access token, the Pages secret `INSTAPAPER_ACCESS_TOKEN` (`.dev.vars`
+  locally; never in the bundle, Git, logs or an answer). Instapaper API v2 (`/api/2`, bearer). Its
+  failures come back as codes (`not-configured`, `auth-failed`, `rate-limited` with Retry-After,
+  `unavailable` for an article it can't extract, `offline` on the device…), never the token. Nothing
+  is ever written to Instapaper (D8). Behind the site login like every path.
+- **Content vs your data:** the library (metadata) and the bodies are per device, in IndexedDB
+  `my-planning-intake` (`cache.ts`: `articles`, `bodies`, `meta`), deleted on sign-out
+  (`ui/sign-out.ts`). Only your own data will sync: reading `ar:<bookmark id>` (`intake-reading`) and
+  Finished `ac:<id>` (`intake-read-mark`) in `progressLog`, written from Phase 2; highlights and notes
+  in Phase 3.
+- **Sync** (`sync.ts`, pure, with `useArticles.ts` driving it): `since` from the last complete sync
+  less a minute (1 the first time), pages of 500, offset advanced past bookmarks and deleted ids; a
+  sync cut short resumes from its saved offset. `mergeSync` (`articles.ts`) keeps what the device
+  found out (first seen, body, length, lead) and marks a deleted bookmark `removedAt` rather than
+  dropping it. Then the bodies of unread articles are fetched in the background, newest first, one
+  every 2 s while Intake is open (D3); a 429 waits Retry-After (else 60 s), offline stops quietly, an
+  article Instapaper can't extract is set aside as "Original only". Reading time = words / 230.
+- **The library** (`ArticlesLibrary.tsx`, `styles/intake.css`): Intelligence's Jour & verre look on
+  its own root `.ik` (tokens copied, not shared), light in both themes, lazy-loaded with its CSS. A pill
+  navigation (Websites "Planned", Articles, Podcasts and Webinars disabled) and Sync; the header (counts,
+  last sync), search (title, source, author, description, tags; every word, case and accents ignored),
+  sort (recently saved, oldest, recently added to ROUTINE, shortest read), filters (your reading:
+  All · Unread · In progress · Finished; Instapaper's, apart: Archived · Liked; Removed only when
+  some are), a status line, then List (thumbnail or the source's initial, title, two lines, author,
+  source · saved · minutes · status · flags) or Bento (three columns, the first article two columns by
+  two rows; two columns ≤930px). View, filter and sort are kept on the device
+  (`my-planning-intake-library`), the search and the place for the session. Switching views and
+  coming back keep the first article in view where it was (`holdAnchor`: rows use
+  `content-visibility`, so it re-places for a second as they lay out). Until the reader, an article
+  opens its original in a new tab (`noopener noreferrer`); images load with `referrerPolicy="no-referrer"`
+  and fall back to the initial.
+- **Takeaways from articles** (D7, shipped ahead of Phase 3): a `SavedInsight` may carry `source`
+  (`kind: 'intake-article'`, bookmark id, url, title, publication, author). `originOf` names it
+  "Intake · Article" where a feed name was, `originalOf` links "Original article" where "Original in
+  Google Docs" was, search reads its source and author, export and the meeting kit name it, and opening
+  it opens the article. A briefing's takeaway reads exactly as before.
+- **The old Intake** (Quick Add, cards over `data.learning`) is gone from the screen (D9); its data
+  (42 OPML podcasts) and the OPML seeding (`intake-loader.ts`) stay for Podcasts.
+- **Tests:** `server/intake.test.ts`, `src/intake/articles.test.ts`, `sync.test.ts`,
+  `intelligence/article-takeaway.test.ts`, `ui/sign-out.test.ts`. The browser checks (real library,
+  WebKit) are kept in `../SUPPORTING FILES/intake-harnesses/`; under Playwright, block the service
+  worker (`serviceWorkers: 'block'`), or WebKit's requests escape `route()`.
+
 ## Plan calendar integration
 
 `CalendarScreen` no longer reads `data.routine`. It derives:
@@ -763,7 +814,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
   (an HMAC of the user keyed by the password, renewed on each `/sw.js` fetch, so a Home Screen
   app keeps receiving updates). **Sign out** (`ui/sign-out.ts`, asks first) posts
   `/__auth/sign-out`, which clears the cookie and sets `mp_signed_out` so a remembered Basic
-  password cannot sign the device back in; the app then deletes the Intelligence cache and its
+  password cannot sign the device back in; the app then deletes the Intelligence and Intake caches and its
   service worker and caches, keeping its own database. A Basic header still works for scripts
   and the Vite proxy. Changing either credential signs every device out.
   `src/auth-gate.test.ts` covers the gate. Never make the JS bundle public: it carries
@@ -812,7 +863,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (572 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (608 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris

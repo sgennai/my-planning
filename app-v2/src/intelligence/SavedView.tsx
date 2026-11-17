@@ -15,7 +15,7 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode,
 import { Markdown } from './Markdown';
 import { feedById, type FeedId } from './feeds';
 import { plainText } from './present';
-import { parseTags, tagsOf, type SavedInsight } from './saved';
+import { isFromArticle, originOf, originalOf, parseTags, tagsOf, type SavedInsight } from './saved';
 import { canReview, dayText, statusOf, RATINGS, type ReviewIndex } from './review';
 import {
   noteKindOf, NOTE_KIND_LABEL, keptAsOf, placeOf, wordsOf, standingOf, STANDING_LABEL, notebookList, supportingOf, isQuotable, FILTERS,
@@ -80,7 +80,7 @@ function Entry({ item, on, panel, reviews, today, onSelect }: {
           {standing && <span className={`tk-status is-${standing}`}>{STANDING_LABEL[standing]}</span>}
         </span>
         <strong className={text.length > 280 ? 'is-long' : undefined}>{text}</strong>
-        <small>{feedLabel(item.feedId)} · {dateOf(item.editionDate)}</small>
+        <small>{originOf(item)} · {dateOf(item.editionDate)}</small>
       </button>
     </li>
   );
@@ -176,21 +176,22 @@ function Notebook({ item, reviews, today, topics, noteRef, actions, onView, onTa
 }) {
   const quoteId = useId();
   const place = placeOf(item);
+  const original = originalOf(item);
   const s = statusOf(item, reviews);
   const due = canReview(item) && s.on && !!s.due && s.due <= today;
   return (
     <article className="tk-detail" aria-labelledby={quoteId}>
-      <p className="tk-label">{NOTE_KIND_LABEL[noteKindOf(item)]} · {place ?? keptAsOf(item)} · Saved from {feedLabel(item.feedId)}</p>
+      <p className="tk-label">{NOTE_KIND_LABEL[noteKindOf(item)]} · {place ?? keptAsOf(item)} · Saved from {originOf(item)}</p>
       <Kept item={item} quoteId={quoteId} />
       <Tags item={item} onPatch={actions.onPatch} onNote={actions.onNote} onTag={onTag} />
       {topics.length > 0 && <p className="tk-meta">Topics of the edition · {topics.slice(0, TOPICS_SHOWN).join(', ')}{topics.length > TOPICS_SHOWN && ` +${topics.length - TOPICS_SHOWN}`}</p>}
       <p className="tk-meta">
-        Original source · {feedLabel(item.feedId)}, {dayNameShort(item.editionDate)} {dateOf(item.editionDate)}{item.editionTime && `, ${item.editionTime}`}
+        Original source · {originOf(item)}, {dayNameShort(item.editionDate)} {dateOf(item.editionDate)}{item.editionTime && `, ${item.editionTime}`}
         {item.kind !== 'edition' && <> · <cite>{item.editionTitle}</cite></>}{place && ` · ${place}`}. The saved wording is preserved exactly.
       </p>
       <p className="tk-sources">
-        <button type="button" className="tk-source" onClick={() => actions.onOpen(item)}>Open the edition</button>
-        <a className="tk-source" href={item.sourceUrl} target="_blank" rel="noopener noreferrer">Original in Google Docs<span aria-hidden> ↗</span></a>
+        <button type="button" className="tk-source" onClick={() => actions.onOpen(item)}>{isFromArticle(item) ? 'Open the article' : 'Open the edition'}</button>
+        {original.url && <a className="tk-source" href={original.url} target="_blank" rel="noopener noreferrer">{original.label}<span aria-hidden> ↗</span></a>}
       </p>
       <div className="tk-divider" />
       <NoteField key={item.id} item={item} onPatch={actions.onPatch} fieldRef={noteRef} />
@@ -223,7 +224,7 @@ function Conversation({ item, kit, saved, topicsOf, actions, onSelect, onWriteNo
   };
   return (
     <article className="tk-detail" aria-labelledby={headId}>
-      <p className="tk-label">From the notebook · {feedLabel(item.feedId)} · {dateOf(item.editionDate)}</p>
+      <p className="tk-label">From the notebook · {originOf(item)} · {dateOf(item.editionDate)}</p>
       <h2 className="tk-h" id={headId}>Make this usable in the room.</h2>
       <p className="tk-purpose">Keep the original text intact. Decide where it belongs in the conversation, pair it with a supporting insight, then add it to the meeting kit.</p>
       <div className="tk-divider" />
@@ -240,7 +241,7 @@ function Conversation({ item, kit, saved, topicsOf, actions, onSelect, onWriteNo
           ? <div className="tk-card-long"><Markdown>{item.text}</Markdown></div>
           : <blockquote className="tk-card-quote">“{plainText(wordingOf(item))}”</blockquote>}
         <figcaption className="tk-meta">
-          {feedLabel(item.feedId)} · {dateOf(item.editionDate)}{place && ` · ${place}`} · {roleInfo(role).label}
+          {originOf(item)} · {dateOf(item.editionDate)}{place && ` · ${place}`} · {roleInfo(role).label}
         </figcaption>
       </figure>
       <div className="tk-context">
@@ -259,7 +260,7 @@ function Conversation({ item, kit, saved, topicsOf, actions, onSelect, onWriteNo
               {supporting.map(({ item: other, why }) => (
                 <li key={other.id}>
                   <button type="button" className="tk-support" onClick={() => onSelect(other.id)}>{listTextOf(other)}</button>
-                  <small>{why} · {feedLabel(other.feedId)} · {dateOf(other.editionDate)}</small>
+                  <small>{why} · {originOf(other)} · {dateOf(other.editionDate)}</small>
                 </li>
               ))}
             </ul>

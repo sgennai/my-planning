@@ -4,8 +4,7 @@
 // and your note and tags. The words are quoted line by line, as written, so
 // their own headings, lists and links survive without breaking the file's
 // structure. The full JSON backup in Settings is unchanged.
-import type { SavedInsight } from './saved';
-import { feedById } from './feeds';
+import { isFromArticle, originOf, originalOf, type SavedInsight } from './saved';
 import { shortTitle } from './present';
 import { clockOf, dayKeyOf, dayNameShort, formatDayAnchor, formatDayCompact, type DayKey } from '../routine/dates';
 
@@ -30,7 +29,7 @@ function headingOf(item: SavedInsight): string {
 
 function itemOf(item: SavedInsight): string {
   const from = [
-    feedById(item.feedId)?.label ?? item.feedId,
+    originOf(item),
     `${dayOf(item.editionDate)}${item.editionTime ? `, ${item.editionTime}` : ''}`,
     ...(item.kind === 'edition' ? [] : [literal(item.editionTitle)]),
     ...(item.sectionTitle && item.kind !== 'section' ? [literal(shortTitle(item.sectionTitle))] : []),
@@ -39,7 +38,9 @@ function itemOf(item: SavedInsight): string {
   if (item.kind !== 'edition') parts.push(quoted(item.text));
   if (item.note.trim()) parts.push(`**Note:** ${item.note.trim().replace(/\n/g, '  \n')}`);
   if (item.tags.length) parts.push(`**Tags:** ${item.tags.map(literal).join(', ')}`);
-  parts.push(`[Open the original in Google Docs](${item.sourceUrl}) · kept on ${dayOf(dayKeyOf(new Date(item.savedAt)))}`);
+  const original = originalOf(item);
+  const open = isFromArticle(item) ? 'Open the original article' : 'Open the original in Google Docs';
+  parts.push(`${original.url ? `[${open}](${original.url})` : open} · kept on ${dayOf(dayKeyOf(new Date(item.savedAt)))}`);
   return parts.join('\n\n');
 }
 

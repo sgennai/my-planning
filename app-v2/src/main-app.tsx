@@ -6,7 +6,6 @@ import { SEED_ROUTINE_ACTIVITIES } from './routine/model';
 import { PracticeScreen } from './practice/PracticeScreen';
 import { CalendarScreen } from './calendar/CalendarScreen';
 import { ModuleDashboard } from './modules/ModuleDashboard';
-import { IntakeScreen } from './intake/IntakeScreen';
 import { CreateScreen } from './create/CreateScreen';
 import { loadData, saveData, syncData, pullAndReplaceFromWorker, NEEDS_INITIAL_PULL_KEY } from './storage/db';
 import { createLiveData } from './storage/live';
@@ -19,6 +18,8 @@ import { signOutOfThisDevice } from './ui/sign-out';
 // Loaded on first visit: the Markdown reader is the section's own weight.
 const IntelligenceScreen = lazy(() =>
   import('./intelligence/IntelligenceScreen').then(m => ({ default: m.IntelligenceScreen })));
+const IntakeScreen = lazy(() =>
+  import('./intake/IntakeScreen').then(m => ({ default: m.IntakeScreen })));
 
 // DEFAULT DATA + MIGRATION
 // ═════════════════════════════════════════════════════════════
@@ -410,14 +411,9 @@ export function App() {
     pageContent = <ModuleDashboard data={data} onPersist={persist} />;
   } else if (appPage === 'intake') {
     pageContent = (
-      <IntakeScreen
-        data={data}
-        onPersist={persist}
-        onScheduleBlock={(block) => {
-          setPendingCalAction({ type: 'create_block', payload: block });
-          setAppPage('calendar');
-        }}
-      />
+      <Suspense fallback={<Centered>Loading…</Centered>}>
+        <IntakeScreen data={data} />
+      </Suspense>
     );
   } else if (appPage === 'practice') {
     pageContent = (

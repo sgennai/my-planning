@@ -18,9 +18,8 @@
 // the kit, not to the takeaway, so a later second kit can give the same
 // takeaway another role. Version 1 has one kit, `main`. A takeaway removed
 // from Takeaways takes its kit records with it (`withoutKit`).
-import type { SavedInsight } from './saved';
+import { originOf, type SavedInsight } from './saved';
 import { reviewKindOf } from './review';
-import { feedById } from './feeds';
 import { copyText } from './present';
 import { dayNameShort, formatDayCompact } from '../routine/dates';
 
@@ -177,7 +176,7 @@ export function wordingOf(item: SavedInsight): string {
 }
 
 const sourceOf = (item: SavedInsight) =>
-  `${feedById(item.feedId)?.label ?? item.feedId}, ${dayNameShort(item.editionDate)} ${formatDayCompact(item.editionDate)} ${item.editionDate.slice(0, 4)}`;
+  `${originOf(item)}, ${dayNameShort(item.editionDate)} ${formatDayCompact(item.editionDate)} ${item.editionDate.slice(0, 4)}`;
 
 /**
  * The kit as text to paste into notes, a document or an email: the meeting,

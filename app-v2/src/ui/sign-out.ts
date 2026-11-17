@@ -1,10 +1,11 @@
 // Signing out of this device. The server forgets the session first (and a
 // password the browser remembers stops working here); then the device drops
-// what it keeps for reading without the network: the briefings' cache and the
-// offline copy of the app, so the next open goes through the sign-in page.
+// what it keeps for reading without the network: the briefings' cache, the
+// Instapaper library's, and the offline copy of the app, so the next open goes through the sign-in page.
 // The app's own database stays: it mirrors synced data and may hold edits not
 // yet sent, which go up once you sign back in.
 import { INTEL_CACHE_DB } from '../intelligence/cache-name';
+import { INTAKE_CACHE_DB } from '../intake/cache-name';
 
 export type SignOutResult = 'signed-out' | 'offline' | 'refused';
 
@@ -38,6 +39,6 @@ export async function signOutOfThisDevice(): Promise<SignOutResult> {
   }
   // Local development runs without the gate, so without its sign-out either.
   if (!response.ok && response.status !== 404) return 'refused';
-  await Promise.allSettled([deleteDatabase(INTEL_CACHE_DB), dropOfflineCopy()]);
+  await Promise.allSettled([deleteDatabase(INTEL_CACHE_DB), deleteDatabase(INTAKE_CACHE_DB), dropOfflineCopy()]);
   return 'signed-out';
 }

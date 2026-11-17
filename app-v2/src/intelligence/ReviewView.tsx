@@ -4,9 +4,8 @@
 // ending part-way loses nothing. It ends on what comes back when.
 import { useEffect, useRef, useState } from 'react';
 import { Markdown } from './Markdown';
-import { feedById } from './feeds';
 import { shortTitle } from './present';
-import type { SavedInsight } from './saved';
+import { originOf, type SavedInsight } from './saved';
 import { RATINGS, cueOf, dayText, dueAfter, reviewKindOf, whenText } from './review';
 import { dayNameShort, formatDayCompact, type DayKey } from '../routine/dates';
 import { IconCheck, IconX } from '../ui/icons';
@@ -47,7 +46,7 @@ function Source({ item }: { item: SavedInsight }) {
   return (
     <p className="intel-review-from">
       From “{from}”<br />
-      <span>{feedById(item.feedId)?.label} · {dayNameShort(item.editionDate)} {formatDayCompact(item.editionDate)}</span>
+      <span>{originOf(item)} · {dayNameShort(item.editionDate)} {formatDayCompact(item.editionDate)}</span>
     </p>
   );
 }

@@ -6,8 +6,7 @@
 // as text, or goes out as a Markdown file like the Takeaways export.
 import { useId } from 'react';
 import { Markdown } from './Markdown';
-import { feedById } from './feeds';
-import type { SavedInsight } from './saved';
+import { originOf, type SavedInsight } from './saved';
 import { kitText, kitFileName, kitSize, type KitSection } from './kit';
 import { isQuotable, wordsOf, dateOf } from './notebook';
 import { handOver } from './export';
@@ -82,7 +81,7 @@ export function MeetingKit({ sections, label, today, onLabel, onOut, onRole, onB
                   <div>
                     <KitWords item={item} />
                     <small>
-                      {feedById(item.feedId)?.label ?? item.feedId} · {dateOf(item.editionDate)} · <button type="button" className="tk-quiet" onClick={() => onRole(item)} aria-label={`Change role: ${wordsOf(item)}`}>Change role</button>
+                      {originOf(item)} · {dateOf(item.editionDate)} · <button type="button" className="tk-quiet" onClick={() => onRole(item)} aria-label={`Change role: ${wordsOf(item)}`}>Change role</button>
                     </small>
                   </div>
                   <button type="button" className="tk-remove" onClick={() => onOut(item)} aria-label={`Remove ${wordsOf(item)} from the meeting kit`}>Remove</button>

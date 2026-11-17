@@ -51,7 +51,7 @@ import type { Edition } from './parse';
 import type { FeedState } from './library';
 import { readingIndex, readingState, withPosition, withReadMark, isRead, isArchive, countsAsUnread, type Place } from './reading';
 import {
-  savedOf, saveInsight, removeInsight, updateInsight, findSaved, nameOf, type SaveInput, type SavedInsight,
+  savedOf, saveInsight, removeInsight, updateInsight, findSaved, nameOf, isFromArticle, type SaveInput, type SavedInsight,
 } from './saved';
 import { kitOf, withRole, withMembership, withKitLabel, withoutKit, type Role } from './kit';
 import { wordsOf, NOTEBOOK_START, type NotebookState } from './notebook';
@@ -476,6 +476,12 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     switchView(from);
   };
   const openSaved = (item: SavedInsight) => {
+    // Kept from an Intake article: its original, until Intake's reader can open the passage.
+    if (isFromArticle(item)) {
+      if (item.source?.url) window.open(item.source.url, '_blank', 'noopener,noreferrer');
+      else onNote("That article has no address to open.");
+      return;
+    }
     const e = states[item.feedId]?.editions.find(x => x.driveFileId === item.driveFileId);
     if (!e) { onNote("That edition isn't on this device. Its original is in Google Docs."); return; }
     openEdition(e, item.sectionId);

@@ -1,0 +1,350 @@
+/*
+  Intake (Intake 2.0, IntakeScreen.tsx): the Jour & verre language of Intelligence
+  (styles/intel-jour-et-verre.css) on its own root, `.ik`: the indigo, cyan and
+  lavender glows over #EEF1F8, translucent glass with no backdrop blur (the iPad
+  7th gen), Space Grotesk for titles, labels and numbers, Inter for the rest,
+  pill navigation. Light in both themes, as Intelligence's reading views.
+  Sizes follow the iPad's Text Size (--tpx); fields keep 16px and targets 44px,
+  smaller pills reaching it through a transparent margin. Text set straight on
+  the gradient is the spec's coverage grey or darker: lighter greys fall under
+  4.5:1 near the glows (as found for Intelligence, INT-60). The reader (Phase 2)
+  will be paper, without the gradient.
+*/
+.ik {
+  --tpx: calc(1px * var(--ik-scale, 1));
+  --ik-foot: var(--sp-12);
+  --ik-bg-base: #EEF1F8;
+  --ik-ink: #0E1330;
+  --ik-ink-2: #1E2540;
+  --ik-body: #334155;
+  --ik-coverage: #475069;
+  --ik-muted: #5B6478;
+  --ik-subtle: #646D82;
+  --ik-indigo: #4F46E5;
+  --ik-indigo-strong: #4338CA;
+  --ik-cyan-strong: #0E7490;
+  --ik-read: #3e7060;
+  --ik-glass-panel: rgba(255, 255, 255, .52);
+  --ik-glass-button: rgba(255, 255, 255, .62);
+  --ik-glass-input: rgba(255, 255, 255, .75);
+  --ik-glass-active: rgba(255, 255, 255, .78);
+  --ik-glass-row: rgba(255, 255, 255, .80);
+  --ik-glass-chip: rgba(255, 255, 255, .4);
+  --ik-line-1: rgba(15, 23, 42, .06);
+  --ik-line-2: rgba(15, 23, 42, .08);
+  --ik-line-4: rgba(15, 23, 42, .14);
+  --ik-edge-active: rgba(255, 255, 255, .95);
+  --ik-shadow-active: 0 4px 14px rgba(30, 41, 99, .08);
+  --ik-shadow-row: 0 10px 30px rgba(30, 41, 99, .10);
+  --ik-tint: linear-gradient(135deg, rgba(99, 102, 241, .14), rgba(6, 182, 212, .08));
+  --ik-font-ui: 'Inter', system-ui, sans-serif;
+  --ik-font-display: 'Space Grotesk', 'Inter', sans-serif;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  color-scheme: light;
+  color: var(--ik-ink);
+  font-family: var(--ik-font-ui);
+  background:
+    radial-gradient(72.22vw 40.74vw at 88% -10%, rgba(129, 140, 248, .34), rgba(129, 140, 248, 0) 70%),
+    radial-gradient(59.26vw 48.15vw at 0% 106%, rgba(34, 211, 238, .26), rgba(34, 211, 238, 0) 70%),
+    radial-gradient(48.15vw 33.33vw at 45% 55%, rgba(196, 181, 253, .16), rgba(196, 181, 253, 0) 70%),
+    var(--ik-bg-base);
+}
+@media (orientation: portrait) {
+  /* The list runs on under the floating pill, and ends clear of it. */
+  .shell-main:has(> .ik) { padding-bottom: 0; }
+  .ik { --ik-foot: calc(var(--nav-h) + var(--sp-8) + env(safe-area-inset-bottom) + var(--sp-6)); }
+}
+.ik :is(button, a, input, select):focus-visible { outline: 3px solid var(--ik-indigo); outline-offset: 2px; }
+.ik-vh { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+/* ── The navigation: Intake's four places, Articles open ──────────────────── */
+.ik-nav {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: max(var(--sp-5), calc(env(safe-area-inset-top) + var(--sp-2))) 22px 4px;
+}
+.ik-places { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+.ik-places::-webkit-scrollbar { display: none; }
+.ik-place {
+  flex: none;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ik-muted);
+  font: 600 calc(15 * var(--tpx)) / 1 var(--ik-font-ui);
+  white-space: nowrap;
+  touch-action: manipulation;
+}
+.ik-place[aria-current="page"] { background: var(--ik-glass-active); border-color: var(--ik-edge-active); color: var(--ik-ink); box-shadow: var(--ik-shadow-active); }
+.ik-place:disabled { opacity: .45; cursor: default; }
+.ik-place-tag {
+  margin-left: 7px;
+  font: 700 calc(10 * var(--tpx)) / 1 var(--ik-font-display);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.ik-place:focus-visible { outline-offset: -3px; }
+.ik-icon {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--ik-line-2);
+  border-radius: 999px;
+  background: var(--ik-glass-button);
+  color: var(--ik-ink-2);
+  touch-action: manipulation;
+}
+/* 44px from the 38px inside the border. */
+.ik-icon::after { content: ''; position: absolute; inset: -3px; }
+.ik-icon svg { width: 19px; height: 19px; stroke-width: 1.8; }
+.ik-icon.is-busy svg { animation: ik-spin 900ms linear infinite; }
+@keyframes ik-spin { to { transform: rotate(360deg); } }
+@media (hover: hover) {
+  .ik-place:not(:disabled):not([aria-current="page"]):hover { background: var(--ik-glass-button); color: var(--ik-ink); }
+  .ik-icon:hover { background: var(--ik-glass-active); color: var(--ik-ink); }
+}
+
+/* ── The library ─────────────────────────────────────────────────────────── */
+.ik-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.ik-library { max-width: 1180px; margin: 0 auto; padding: 18px 28px var(--ik-foot); box-sizing: border-box; }
+.ik-intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin: 6px 0 20px; }
+.ik-eyebrow {
+  margin: 0;
+  font: 700 calc(11 * var(--tpx)) / 1.2 var(--ik-font-display);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  /* The deeper indigo: Intelligence's kicker indigo falls to 4.44:1 at the heart of the top glow. */
+  color: var(--ik-indigo-strong);
+}
+.ik-title {
+  margin: 8px 0 8px;
+  font: 600 clamp(calc(34 * var(--tpx)), calc(4.45vw * var(--ik-scale, 1)), calc(48 * var(--tpx))) / 1.02 var(--ik-font-display);
+  letter-spacing: -.03em;
+  color: var(--ik-ink);
+}
+.ik-sub { margin: 0; font-size: calc(14 * var(--tpx)); line-height: 1.5; color: var(--ik-coverage); }
+.ik-modes { display: flex; gap: 6px; }
+.ik-modes button,
+.ik-filters button {
+  position: relative;
+  border: 1px solid var(--ik-line-4);
+  border-radius: 999px;
+  background: var(--ik-glass-chip);
+  color: var(--ik-body);
+  font: 600 calc(13 * var(--tpx)) / 1.2 var(--ik-font-ui);
+  touch-action: manipulation;
+}
+.ik-modes button { min-height: 38px; padding: 0 16px; }
+.ik-modes button::after { content: ''; position: absolute; inset: -4px -1px; }
+.ik-filters button { padding: 7px 12px; }
+.ik-filters button::after { content: ''; position: absolute; inset: -8px -3px; }
+.ik-modes button[aria-pressed="true"],
+.ik-filters button[aria-pressed="true"] { background: var(--ik-ink); border-color: var(--ik-ink); color: #fff; }
+/* Instapaper's own states, apart from your reading. */
+.ik-filters button:not(.is-instapaper) + .is-instapaper { margin-left: 14px; }
+.ik-count { margin-left: 6px; font-variant-numeric: tabular-nums; color: var(--ik-muted); }
+[aria-pressed="true"] > .ik-count { color: rgba(255, 255, 255, .78); }
+@media (hover: hover) {
+  .ik-modes button:not([aria-pressed="true"]):hover,
+  .ik-filters button:not([aria-pressed="true"]):hover { background: var(--ik-glass-button); color: var(--ik-ink); }
+}
+
+.ik-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ik-search {
+  flex: 1 1 260px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 14px;
+  box-sizing: border-box;
+  border: 1px solid var(--ik-line-2);
+  border-radius: 12px;
+  background: var(--ik-glass-input);
+  color: var(--ik-subtle);
+}
+.ik-search svg { flex: none; width: 17px; height: 17px; }
+/* One ring, on the field. */
+.ik-search:focus-within { outline: 3px solid var(--ik-indigo); }
+.ik-search input {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--ik-ink);
+  font: 400 max(16px, calc(15 * var(--tpx))) / 1.3 var(--ik-font-ui);
+}
+.ik-search input:focus-visible { outline: none; }
+.ik-search input::placeholder { color: var(--ik-subtle); opacity: 1; }
+.ik-sort select {
+  min-height: 44px;
+  padding: 0 38px 0 16px;
+  border: 1px solid var(--ik-line-2);
+  border-radius: 999px;
+  background: var(--ik-glass-button) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2540' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center / 16px 16px;
+  color: var(--ik-ink-2);
+  font: 600 max(16px, calc(14 * var(--tpx))) / 1.2 var(--ik-font-ui);
+  appearance: none;
+  -webkit-appearance: none;
+}
+.ik-filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 6px; }
+
+.ik-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0 4px;
+  padding: 9px 14px;
+  border: 1px solid var(--ik-line-1);
+  border-radius: 12px;
+  background: var(--ik-glass-panel);
+  color: var(--ik-body);
+  font-size: calc(13 * var(--tpx));
+  line-height: 1.45;
+}
+.ik-status.is-alert { background: var(--alert-tint); border-color: transparent; color: var(--alert); }
+.ik-status button {
+  position: relative;
+  flex: none;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.ik-status button::after { content: ''; position: absolute; inset: -12px -8px; }
+.ik-empty { margin: 32px 0; font-size: calc(15 * var(--tpx)); color: var(--ik-coverage); }
+
+/* ── The articles: a list, or a bento grid ───────────────────────────────── */
+.ik-articles { list-style: none; margin: 16px 0 0; padding: 0; }
+.ik-articles > li { content-visibility: auto; contain-intrinsic-size: auto 150px; }
+.ik-articles--bento > li { contain-intrinsic-size: auto 330px; }
+.ik-articles--list { display: flex; flex-direction: column; gap: 10px; }
+.ik-row,
+.ik-card {
+  color: inherit;
+  text-decoration: none;
+  border: 1px solid var(--ik-line-2);
+  border-radius: 16px;
+  background: var(--ik-glass-panel);
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s, box-shadow .15s;
+}
+.ik-row { display: flex; align-items: flex-start; gap: 18px; padding: 12px; }
+@media (hover: hover) { :is(.ik-row, .ik-card):hover { background: var(--ik-glass-row); box-shadow: var(--ik-shadow-row); } }
+:is(.ik-row, .ik-card):active { background: var(--ik-glass-row); }
+.ik-thumb,
+.ik-card-img { position: relative; overflow: hidden; background: var(--ik-tint), #fff; }
+.ik-thumb { flex: none; width: 148px; aspect-ratio: 3 / 2; border-radius: 11px; }
+:is(.ik-thumb, .ik-card-img) img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
+:is(.ik-thumb, .ik-card-img).is-type { display: grid; place-items: center; }
+:is(.ik-thumb, .ik-card-img).is-type span { font: 700 calc(30 * var(--tpx)) / 1 var(--ik-font-display); color: var(--ik-indigo-strong); }
+.ik-row-body { flex: 1; min-width: 0; padding-top: 2px; }
+.ik-row-title,
+.ik-card-title {
+  margin: 0 0 6px;
+  font: 600 calc(19 * var(--tpx)) / 1.25 var(--ik-font-display);
+  letter-spacing: -.02em;
+  color: var(--ik-ink);
+  overflow-wrap: anywhere;
+}
+.ik-desc {
+  margin: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: calc(14 * var(--tpx));
+  line-height: 1.5;
+  color: var(--ik-body);
+}
+.ik-author { margin: 6px 0 0; font-size: calc(13 * var(--tpx)); color: var(--ik-muted); }
+.ik-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 8px 0 0;
+  font-size: calc(12 * var(--tpx));
+  font-weight: 500;
+  color: var(--ik-muted);
+}
+.ik-meta b { font-weight: 700; color: var(--ik-cyan-strong); }
+.ik-state.is-progress { color: var(--ik-indigo-strong); font-weight: 600; }
+.ik-state.is-finished { color: var(--ik-read); font-weight: 600; }
+.ik-flag { color: var(--ik-body); }
+.ik-flag.is-alert { color: var(--alert); }
+
+/* Three columns: the first article takes two, over two rows, the next two stacked beside it; its image
+   takes the height they leave. Two columns: it spans the row, its image a band. */
+.ik-articles--bento { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.ik-articles--bento > li:first-child { grid-column: span 2; grid-row: span 2; }
+.ik-card { display: flex; flex-direction: column; height: 100%; box-sizing: border-box; overflow: hidden; }
+.ik-card-img { flex: none; aspect-ratio: 16 / 9; }
+.ik-card.is-lead .ik-card-img { flex: 1 1 auto; aspect-ratio: auto; min-height: 240px; }
+.ik-card.is-lead .ik-desc { -webkit-line-clamp: 3; }
+.ik-card.is-lead.is-type .ik-card-body { justify-content: center; padding: 28px 32px; }
+.ik-card.is-lead.is-type .ik-card-title { font-size: calc(34 * var(--tpx)); line-height: 1.12; }
+.ik-card-body { flex: 1; display: flex; flex-direction: column; gap: 6px; padding: 15px 17px 16px; }
+.ik-card-body .ik-meta { margin-top: auto; padding-top: 6px; }
+.ik-card .ik-card-title { margin: 0; font-size: calc(18 * var(--tpx)); }
+.ik-card.is-lead .ik-card-title { font-size: calc(24 * var(--tpx)); }
+/* No image: a typographic card on the theme's tint, its text the larger. */
+.ik-card.is-type { background: var(--ik-tint), var(--ik-glass-panel); }
+.ik-card.is-type .ik-card-title { font-size: calc(21 * var(--tpx)); }
+.ik-source {
+  margin: 0;
+  font: 700 calc(11 * var(--tpx)) / 1.2 var(--ik-font-display);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ik-muted);
+}
+
+@media (max-width: 930px) {
+  .ik-nav { padding-left: 14px; padding-right: 14px; }
+  .ik-library { padding-left: 20px; padding-right: 20px; }
+  .ik-articles--bento { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ik-articles--bento > li:first-child { grid-row: auto; }
+  .ik-card.is-lead .ik-card-img { flex: none; aspect-ratio: 2.2 / 1; min-height: 0; }
+  .ik-card.is-lead.is-type .ik-card-body { padding: 22px 24px; }
+}
+@media (max-width: 600px) {
+  .ik-nav { gap: 8px; padding: max(var(--sp-3), calc(env(safe-area-inset-top) + var(--sp-2))) 10px 2px; }
+  .ik-place { padding: 0 14px; }
+  /* The places scroll sideways here: the last fades rather than being cut. */
+  .ik-places { mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); padding-right: 28px; }
+  .ik-library { padding: 10px 16px var(--ik-foot); }
+  .ik-row { gap: 12px; padding: 10px; }
+  .ik-thumb { width: 92px; aspect-ratio: 1; }
+  .ik-row-title { font-size: calc(16 * var(--tpx)); }
+  .ik-row .ik-desc { -webkit-line-clamp: 2; font-size: calc(13 * var(--tpx)); }
+  .ik-articles--bento { gap: 8px; }
+  .ik-card-body { padding: 11px 12px 12px; }
+  .ik-card .ik-card-title { font-size: calc(15 * var(--tpx)); }
+  .ik-card.is-lead .ik-card-title { font-size: calc(19 * var(--tpx)); }
+  .ik-card.is-lead.is-type .ik-card-title { font-size: calc(24 * var(--tpx)); }
+  .ik-card:not(.is-lead) .ik-desc { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ik-icon.is-busy svg { animation: none; }
+  :is(.ik-row, .ik-card) { transition: none; }
+}

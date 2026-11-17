@@ -2,8 +2,10 @@
 // in `data.content` (`is:<uuid>`, type `intel-saved`), with the words exactly
 // as the document had them and enough of the edition to show where they came
 // from even on a device that has never fetched it. Never written to Drive.
+// A takeaway can also come from an article read in Intake (`source`, Intake 2.0): it then names the
+// article in place of an edition.
 import type { Edition } from './parse';
-import type { FeedId } from './feeds';
+import { feedById, type FeedId } from './feeds';
 import { generateId } from '../ui/helpers';
 import { fold } from './blocks';
 
@@ -35,7 +37,30 @@ export interface SavedInsight {
   note: string;
   tags: string[];
   savedAt: string;
+  /** Where it was kept when not from a briefing: an article read in Intake. */
+  source?: ArticleSource;
 }
+
+/** The article a takeaway was kept from, in Intake: enough to name it and find the passage again. */
+export interface ArticleSource {
+  kind: 'intake-article';
+  bookmarkId: number;
+  url: string | null;
+  title: string;
+  /** The source, as its domain: Instapaper gives no publication name. */
+  publication: string | null;
+  author: string | null;
+}
+
+export const isFromArticle = (item: Pick<SavedInsight, 'source'>): boolean => item.source?.kind === 'intake-article';
+
+/** Where a takeaway comes from, in words: its feed, or Intake's article. */
+export const originOf = (item: Pick<SavedInsight, 'feedId' | 'source'>): string =>
+  isFromArticle(item) ? 'Intake · Article' : feedById(item.feedId)?.label ?? item.feedId;
+
+/** Its original's address and what to call the link. */
+export const originalOf = (item: Pick<SavedInsight, 'sourceUrl' | 'source'>): { url: string | null; label: string } =>
+  isFromArticle(item) ? { url: item.source!.url, label: 'Original article' } : { url: item.sourceUrl, label: 'Original in Google Docs' };
 
 /** What a save button knows; the edition fills in the rest. */
 export interface SaveInput {
@@ -118,7 +143,7 @@ export function searchSaved(
   return saved.filter(s => {
     if (tag && !s.tags.some(t => t.toLowerCase() === tag.toLowerCase())) return false;
     if (!words.length) return true;
-    const hay = fold([s.text, s.label, s.note, s.sectionTitle, s.editionTitle, feedLabel(s.feedId), ...s.tags, ...topicsOf(s)].join(' '));
+    const hay = fold([s.text, s.label, s.note, s.sectionTitle, s.editionTitle, isFromArticle(s) ? originOf(s) : feedLabel(s.feedId), s.source?.publication, s.source?.author, ...s.tags, ...topicsOf(s)].join(' '));
     return words.every(w => hay.includes(w));
   });
 }
