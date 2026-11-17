@@ -24,6 +24,8 @@ export const INSTAPAPER_API = 'https://www.instapaper.com/api/2';
 const PAGE = 500;
 const MAX_PAGES = 40;
 const TIMEOUT_MS = 15_000;
+// Instapaper extracts an article when first asked, which can take longer than a list.
+const PARSE_TIMEOUT_MS = 25_000;
 const ID = /^\d{1,15}$/;
 
 const json = (status: number, body: unknown, headers: Record<string, string> = {}) => new Response(JSON.stringify(body), {
@@ -42,13 +44,13 @@ class InstapaperError extends Error {
   }
 }
 
-async function instapaper(path: string, token: string, fetchImpl: typeof fetch): Promise<unknown> {
+async function instapaper(path: string, token: string, fetchImpl: typeof fetch, timeoutMs = TIMEOUT_MS): Promise<unknown> {
   let response: Response;
   try {
     response = await fetchImpl(INSTAPAPER_API + path, {
       headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
       redirect: 'manual',
-      signal: AbortSignal.timeout(TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeoutMs),
     });
   } catch {
     throw new InstapaperError(0, 'unreachable');
@@ -171,7 +173,7 @@ export async function handleIntake(request: Request, env: IntakeEnv, fetchImpl: 
   if (what === 'articles' && id) {
     if (!ID.test(id)) return fail(404, 'not-found', 'No such bookmark.');
     try {
-      return json(200, articleOf(Number(id), await instapaper(`/bookmarks/${id}/parse`, token, fetchImpl)));
+      return json(200, articleOf(Number(id), await instapaper(`/bookmarks/${id}/parse`, token, fetchImpl, PARSE_TIMEOUT_MS)));
     } catch (e) { return failure(e, true); }
   }
 

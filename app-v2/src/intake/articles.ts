@@ -21,6 +21,9 @@ export interface Article extends SyncedBookmark {
   words: number | null;
   /** What the parse found that the list lacked. */
   lead: { image: string | null; description: string | null; author: string | null; publishedAt: number | null } | null;
+  /** Times in a row its body didn't come (Instapaper too slow, or failing), and when to ask again. */
+  tries?: number;
+  retryAt?: number | null;
 }
 
 export const READING_TYPE = 'intake-reading';
@@ -58,6 +61,7 @@ export function mergeSync(existing: ReadonlyMap<number, Article>, bookmarks: Syn
       content: prev?.content ?? 'none',
       words: prev?.words ?? null,
       lead: prev?.lead ?? null,
+      ...(prev?.tries ? { tries: prev.tries, retryAt: prev.retryAt ?? null } : {}),
     });
   }
   for (const id of deletedIds) {
@@ -74,6 +78,8 @@ export function withParse(a: Article, p: ParsedArticle): Article {
     content: p.html ? 'cached' : 'unavailable',
     words: p.words ?? a.words,
     lead: { image: p.thumbnail, description: p.description, author: p.author, publishedAt: p.publishedAt },
+    tries: 0,
+    retryAt: null,
   };
 }
 
@@ -166,7 +172,7 @@ export function sortArticles(list: Article[], sort: Sort): Article[] {
   return [...list].sort(order);
 }
 
-/** What the background fetch takes next: unread, never fetched, newest first. */
-export function toFetch(list: Article[]): Article[] {
-  return sortArticles(list.filter(a => a.content === 'none' && !a.archived && a.removedAt === null && a.url), 'saved-desc');
+/** What the background fetch takes next: unread, never fetched and not waiting to be asked again, newest first. */
+export function toFetch(list: Article[], now: number): Article[] {
+  return sortArticles(list.filter(a => a.content === 'none' && !a.archived && a.removedAt === null && a.url && !((a.retryAt ?? 0) > now)), 'saved-desc');
 }

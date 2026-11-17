@@ -4,10 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Article } from './articles';
 import { fetchArticle, fetchChanges, IntakeError, type IntakeErrorCode } from './api';
 import { loadArticles, loadMeta, saveArticles, saveBody, saveMeta } from './cache';
-import { fetchOne, syncLibrary, toFetch } from './sync';
-
-const PACE_MS = 2000;
-const SLOW_DOWN_MS = 60_000;
+import { fetchBodies as fetchAll, syncLibrary, type BodiesEnd } from './sync';
 
 export interface LibraryStatus {
   phase: 'loading' | 'syncing' | 'ready' | 'error';
@@ -15,13 +12,15 @@ export interface LibraryStatus {
   lastSyncAt: number | null;
   /** Bodies still to fetch in the background, while it runs. */
   fetching: { done: number; total: number } | null;
+  /** How the last background fetch ended, when it is worth saying: until the next sync. */
+  fetchEnd: BodiesEnd | null;
 }
 
-const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
 
 export function useArticles() {
   const [articles, setArticles] = useState<ReadonlyMap<number, Article> | null>(null);
-  const [status, setStatus] = useState<LibraryStatus>({ phase: 'loading', error: null, lastSyncAt: null, fetching: null });
+  const [status, setStatus] = useState<LibraryStatus>({ phase: 'loading', error: null, lastSyncAt: null, fetching: null, fetchEnd: null });
   const current = useRef<Map<number, Article>>(new Map());
   const alive = useRef(true);
   const running = useRef(false);
@@ -38,33 +37,28 @@ export function useArticles() {
   const fetchBodies = useCallback(async () => {
     if (fetching.current) return;
     fetching.current = true;
+    let end: BodiesEnd | null = null;
     try {
-      const total = toFetch([...current.current.values()]).length;
-      let done = 0;
-      while (alive.current) {
-        const next = toFetch([...current.current.values()])[0];
-        if (!next) break;
-        setStatus(s => ({ ...s, fetching: { done, total } }));
-        const out = await fetchOne(next, { fetchArticle, saveBody, saveArticles, now: Date.now });
-        if ('stop' in out) {
-          if (out.stop.code !== 'rate-limited') break;
-          await sleep((out.stop.retryAfter ?? 0) * 1000 || SLOW_DOWN_MS);
-          continue;
-        }
-        apply([out.article]);
-        done++;
-        await sleep(PACE_MS);
-      }
+      end = await fetchAll({
+        fetchArticle, saveBody, saveArticles, now: Date.now, sleep,
+        list: () => [...current.current.values()],
+        alive: () => alive.current,
+        onArticle: a => apply([a]),
+        onProgress: p => setStatus(s => ({ ...s, fetching: p })),
+      });
+    } catch (e) {
+      end = { stopped: e instanceof IntakeError ? e : new IntakeError('upstream', String(e)), failed: 0 };
     } finally {
       fetching.current = false;
-      if (alive.current) setStatus(s => ({ ...s, fetching: null }));
+      const said = end && (end.stopped || end.failed) ? end : null;
+      if (alive.current) setStatus(s => ({ ...s, fetching: null, fetchEnd: said }));
     }
   }, [apply]);
 
   const refresh = useCallback(async () => {
     if (running.current) return;
     running.current = true;
-    setStatus(s => ({ ...s, phase: 'syncing', error: null }));
+    setStatus(s => ({ ...s, phase: 'syncing', error: null, fetchEnd: null }));
     try {
       apply(await syncLibrary(current.current, { fetchChanges, loadMeta, saveMeta, saveArticles, now: Date.now }));
       if (alive.current) setStatus(s => ({ ...s, phase: 'ready', error: null, lastSyncAt: Date.now() }));

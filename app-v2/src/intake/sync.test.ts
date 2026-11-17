@@ -1,7 +1,7 @@
 // The sync and the background fetch against stand-ins: no duplicates, a cut-short sync resumed, deletions
 // kept, an article Instapaper can't extract set aside, a slow-down stopping the fetch.
 import { describe, it, expect } from 'vitest';
-import { syncLibrary, fetchOne } from './sync';
+import { syncLibrary, fetchOne, fetchBodies, RETRY_AFTER_MS, IN_A_ROW } from './sync';
 import { IntakeError, type SyncPage } from './api';
 import type { Article, SyncedBookmark } from './articles';
 import type { Body, SyncMeta } from './cache';
@@ -98,5 +98,75 @@ describe('fetching a body', () => {
       expect('stop' in out && out.stop.code).toBe(code);
       expect(d.articles).toEqual([]);
     }
+  });
+});
+
+describe('an article that does not come', () => {
+  const base: Article = { ...bm(7), domain: 'example.com', firstSeenAt: 1, removedAt: null, content: 'none', words: null, lead: null };
+  const deps = () => ({ saveBody: async () => {}, saveArticles: async () => {}, now: () => 1000 });
+  const slow = async () => { throw new IntakeError('unreachable', 'x'); };
+
+  it('is set aside and asked for again after 10 minutes, an hour, 6 hours, then left to its original', async () => {
+    let a = base;
+    for (const wait of RETRY_AFTER_MS) {
+      const out = await fetchOne(a, { ...deps(), fetchArticle: slow });
+      expect('failed' in out && out.failed).toBe(true);
+      a = (out as { article: Article }).article;
+      expect([a.content, a.retryAt]).toEqual(['none', 1000 + wait]);
+    }
+    const last = await fetchOne(a, { ...deps(), fetchArticle: slow });
+    expect((last as { article: Article }).article).toMatchObject({ content: 'unavailable', tries: 4, retryAt: null });
+  });
+
+  it("is passed over: the rest still come", async () => {
+    const list = new Map<number, Article>([1, 2, 3].map(id => [id, { ...base, id, savedAt: id }]));
+    const asked: number[] = [];
+    const end = await fetchBodies({
+      ...deps(), sleep: async () => {}, alive: () => true, onProgress: () => {},
+      list: () => [...list.values()], onArticle: a => list.set(a.id, a),
+      fetchArticle: async id => {
+        asked.push(id);
+        if (id === 3) throw new IntakeError('unreachable', 'x');
+        return { id, title: null, author: null, authorUrl: null, publishedAt: null, thumbnail: null, description: null, category: 0, html: '<p>x</p>', images: [], words: 230, paywalled: false, direction: 'ltr' };
+      },
+    });
+    expect(asked).toEqual([3, 2, 1]);
+    expect(end).toEqual({ stopped: null, failed: 1 });
+    expect([...list.values()].map(a => a.content)).toEqual(['cached', 'cached', 'none']);
+  });
+
+  it(`${IN_A_ROW} in a row: Instapaper isn't answering, so the fetch stops until next time`, async () => {
+    const list = new Map<number, Article>([1, 2, 3, 4, 5].map(id => [id, { ...base, id, savedAt: id }]));
+    const asked: number[] = [];
+    const end = await fetchBodies({
+      ...deps(), sleep: async () => {}, alive: () => true, onProgress: () => {},
+      list: () => [...list.values()], onArticle: a => list.set(a.id, a),
+      fetchArticle: async id => { asked.push(id); throw new IntakeError('upstream', 'x'); },
+    });
+    expect(asked).toEqual([5, 4, 3]);
+    expect(end.stopped?.code).toBe('unreachable');
+    expect(end.failed).toBe(3);
+  });
+
+  it('a slow-down waits and goes on; offline stops at once, marking nothing', async () => {
+    const list = new Map<number, Article>([[1, { ...base, id: 1 }]]);
+    const waits: number[] = [];
+    let calls = 0;
+    const end = await fetchBodies({
+      ...deps(), sleep: async ms => { waits.push(ms); }, alive: () => true, onProgress: () => {},
+      list: () => [...list.values()], onArticle: a => list.set(a.id, a),
+      fetchArticle: async id => {
+        if (calls++ === 0) throw new IntakeError('rate-limited', 'x', 30);
+        return { id, title: null, author: null, authorUrl: null, publishedAt: null, thumbnail: null, description: null, category: 0, html: '<p>x</p>', images: [], words: 230, paywalled: false, direction: 'ltr' };
+      },
+    });
+    expect(waits[0]).toBe(30_000);
+    expect(end).toEqual({ stopped: null, failed: 0 });
+    const offline = await fetchBodies({
+      ...deps(), sleep: async () => {}, alive: () => true, onProgress: () => {},
+      list: () => [{ ...base, id: 9 }], onArticle: () => { throw new Error('nothing to record'); },
+      fetchArticle: async () => { throw new IntakeError('offline', 'x'); },
+    });
+    expect(offline).toEqual({ stopped: expect.objectContaining({ code: 'offline' }), failed: 0 });
   });
 });

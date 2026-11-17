@@ -747,8 +747,14 @@ Sanctuary reader) and Phase 3 (Active Reading: highlights, notes, Save to Takeaw
   sync cut short resumes from its saved offset. `mergeSync` (`articles.ts`) keeps what the device
   found out (first seen, body, length, lead) and marks a deleted bookmark `removedAt` rather than
   dropping it. Then the bodies of unread articles are fetched in the background, newest first, one
-  every 2 s while Intake is open (D3); a 429 waits Retry-After (else 60 s), offline stops quietly, an
-  article Instapaper can't extract is set aside as "Original only". Reading time = words / 230.
+  every 2 s while Intake is open (D3; the loop is `fetchBodies` in `sync.ts`); a 429 waits Retry-After
+  (else 60 s), an article Instapaper can't extract is set aside as "Original only". An article whose
+  body doesn't come (Instapaper too slow, 25 s for a parse, or failing: `unreachable`, `upstream`) is
+  passed over, never holding up the rest, and asked for again after 10 min, 1 h, 6 h, then left to its
+  original (`tries`, `retryAt`); three in a row, or offline, quota or a refused token, stop the run, and
+  the status line says why (`fetchEnd`) until the next sync. Found in production on 17 Nov: one
+  article whose parse never ends (1886559881) stopped the whole fetch, silently, on every run.
+  Reading time = words / 230.
 - **The library** (`ArticlesLibrary.tsx`, `styles/intake.css`): Intelligence's Jour & verre look on
   its own root `.ik` (tokens copied, not shared), light in both themes, lazy-loaded with its CSS. A pill
   navigation (Websites "Planned", Articles, Podcasts and Webinars disabled) and Sync; the header (counts,

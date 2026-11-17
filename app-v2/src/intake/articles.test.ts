@@ -111,7 +111,19 @@ describe('finding and ordering', () => {
 
   it('fetches unread, not yet fetched articles, newest first', () => {
     const list = [art(1, { savedAt: 1 }), art(2, { savedAt: 5, archived: true }), art(3, { savedAt: 3, content: 'cached' }), art(4, { savedAt: 4 }), art(5, { savedAt: 6, removedAt: 1 }), art(6, { savedAt: 9, url: null })];
-    expect(toFetch(list).map(a => a.id)).toEqual([4, 1]);
+    expect(toFetch(list, 0).map(a => a.id)).toEqual([4, 1]);
+  });
+
+  it('leaves an article that did not come until its time to ask again', () => {
+    const list = [art(1, { savedAt: 1 }), art(2, { savedAt: 2, tries: 1, retryAt: 5000 })];
+    expect(toFetch(list, 4999).map(a => a.id)).toEqual([1]);
+    expect(toFetch(list, 5000).map(a => a.id)).toEqual([2, 1]);
+  });
+
+  it('keeps the tries across a sync, and a body clears them', () => {
+    const waiting = art(1, { tries: 2, retryAt: 9000 });
+    expect(mergeSync(new Map([[1, waiting]]), [bm(1)], [], 1)[0]).toMatchObject({ tries: 2, retryAt: 9000 });
+    expect(withParse(waiting, { id: 1, title: null, author: null, authorUrl: null, publishedAt: null, thumbnail: null, description: null, category: 0, html: '<p>x</p>', images: [], words: 10, paywalled: false, direction: 'ltr' })).toMatchObject({ content: 'cached', tries: 0, retryAt: null });
   });
 
   it('names what has no title by its source, and reads a domain without www', () => {

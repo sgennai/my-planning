@@ -212,6 +212,23 @@ function StatusLine({ status, onRetry, empty }: { status: LibraryStatus; onRetry
   if (status.fetching && status.fetching.total > 0) {
     return <div className="ik-status" role="status">Getting reading times and offline copies: {status.fetching.done} of {status.fetching.total}</div>;
   }
+  // Why the background fetch ended before every article came, until the next sync.
+  const end = status.fetchEnd;
+  if (end) {
+    const stop = end.stopped?.code;
+    const text = !stop
+      ? `${end.failed === 1 ? "1 article didn't" : `${end.failed} articles didn't`} come through from Instapaper in time. ${end.failed === 1 ? "It'll" : "They'll"} be tried again later.`
+      : stop === 'offline' ? "Reading times paused: you're offline. The rest will come next time."
+      : stop === 'quota' ? "Instapaper's limit on article text is reached for now. The remaining reading times will come later."
+      : stop === 'unreachable' ? "Instapaper isn't answering for now. The remaining reading times will come next time."
+      : "Couldn't get the remaining reading times. They'll come next time.";
+    return (
+      <div className="ik-status" role="status">
+        <span>{text}</span>
+        {stop && <button type="button" onClick={onRetry}>Try again</button>}
+      </div>
+    );
+  }
   if (status.phase === 'ready' && empty) return <p className="ik-empty" role="status">Nothing saved in Instapaper yet.</p>;
   return null;
 }
