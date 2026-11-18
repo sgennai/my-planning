@@ -1,17 +1,29 @@
 // @vitest-environment node
 // /api/intake against a stand-in Instapaper: what it asks for, what it returns, and what it refuses.
-import { describe, it, expect, beforeEach } from 'vitest';
-import { handleIntake, INSTAPAPER_API } from './intake';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { handleIntake, INSTAPAPER_API, DNS_API, IMAGE_LIMITS, signImage, isPublicAddress, imageAddressesOf, sniffImage, _resetImagePace } from './intake';
 
 const TOKEN = 'tok-secret-123';
 const env = { INSTAPAPER_ACCESS_TOKEN: TOKEN };
 const calls: { url: string; auth: string | null; redirect?: RequestRedirect }[] = [];
-let reply: (url: URL) => Response | Promise<Response>;
+let reply: (url: URL, init?: RequestInit) => Response | Promise<Response>;
+/** What the resolver says each name is: public unless a test says otherwise. */
+let names: Record<string, { a?: string[]; aaaa?: string[]; fail?: boolean }> = {};
+const sent: Headers[] = [];
 
 const fake = (async (input: RequestInfo | URL, init?: RequestInit) => {
   const url = String(input);
+  if (url.startsWith(DNS_API)) {
+    const q = new URL(url);
+    const name = names[q.searchParams.get('name')!] ?? { a: ['93.184.215.14'] };
+    if (name.fail) return new Response('busy', { status: 503 });
+    const type = q.searchParams.get('type') === 'A' ? 1 : 28;
+    const data = (type === 1 ? name.a : name.aaaa) ?? [];
+    return Response.json({ Status: 0, Answer: data.map(d => ({ name: q.searchParams.get('name'), type, TTL: 60, data: d })) });
+  }
   calls.push({ url, auth: new Headers(init?.headers).get('Authorization'), redirect: init?.redirect });
-  return reply(new URL(url));
+  sent.push(new Headers(init?.headers));
+  return reply(new URL(url), init);
 }) as typeof fetch;
 
 const get = (path: string, e: Record<string, string | undefined> = env) =>
@@ -25,7 +37,10 @@ const bookmark = (id: number, extra: Record<string, unknown> = {}) => ({
 
 beforeEach(() => {
   calls.length = 0;
+  sent.length = 0;
+  names = {};
   reply = () => Response.json({});
+  _resetImagePace();
 });
 
 describe('/api/intake', () => {
@@ -65,8 +80,9 @@ describe('/api/intake', () => {
     expect(body.bookmarks[498]).toEqual({
       id: 600, url: 'https://example.com/a/600', title: 'Title 600', description: 'Opening words', image: 'https://img.example.com/x.jpg',
       author: null, savedAt: 1_700_000_600, publishedAt: null, archived: true, liked: true, folderId: null, tags: ['ai'], category: 0,
-      instapaperProgress: 0.25, privateSource: null,
+      instapaperProgress: 0.25, privateSource: null, imageSig: await signImage(TOKEN, 'https://img.example.com/x.jpg'),
     });
+    expect(body.bookmarks[0].imageSig).toBeNull();
   });
 
   it('starts from the beginning without a since, and resumes from an offset', async () => {
@@ -94,7 +110,15 @@ describe('/api/intake', () => {
     expect(body).toEqual({
       id: 1234567890, title: 'A title', author: 'A. Writer', authorUrl: null, publishedAt: 1_699_000_000, thumbnail: 'https://img.example.com/t.jpg',
       description: 'Summary', category: 0, html: '<p>Made-up words.</p>', images: ['https://img.example.com/1.jpg'], words: 1234, paywalled: false, direction: 'ltr',
+      sigs: { 'https://img.example.com/1.jpg': await signImage(TOKEN, 'https://img.example.com/1.jpg'), 'https://img.example.com/t.jpg': await signImage(TOKEN, 'https://img.example.com/t.jpg') },
     });
+  });
+
+  it("signs the article's pictures as the reader will ask for them: listed, in its HTML (entities read), its thumbnail; never a relative one", async () => {
+    const html = '<p><img src="https://cdn.example.com/a.jpg?w=800&amp;q=80"><img alt="x" src=\'HTTPS://CDN.Example.com/b c.png\'><img src="/relative.png"><img data-src="https://cdn.example.com/no.png"><img src="data:image/png;base64,AAAA"></p>';
+    expect(imageAddressesOf(html, ['https://img.example.com/1.jpg'], 'https://img.example.com/t.jpg')).toEqual([
+      'https://cdn.example.com/a.jpg?w=800&q=80', 'https://cdn.example.com/b%20c.png', 'https://img.example.com/1.jpg', 'https://img.example.com/t.jpg',
+    ]);
   });
 
   it('refuses an id that is not a number, without calling Instapaper', async () => {
@@ -146,57 +170,165 @@ describe('/api/intake', () => {
 });
 
 describe('/api/intake/image', () => {
-  const pic = (type = 'image/jpeg', bytes = 2000, headers: Record<string, string> = {}) =>
-    new Response(new Uint8Array(bytes), { headers: { 'Content-Type': type, ...headers } });
-  const image = (u: string) => get(`image?url=${encodeURIComponent(u)}`);
+  const JPEG = [0xff, 0xd8, 0xff, 0xe0];
+  const PNG = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+  const WEBP = [...'RIFF'].map(c => c.charCodeAt(0)).concat([0, 0, 0, 0], [...'WEBPVP8 '].map(c => c.charCodeAt(0)));
+  const AVIF = [0, 0, 0, 0x1c, ...[...'ftypavif'].map(c => c.charCodeAt(0)), 0, 0, 0, 0];
+  const bytesOf = (head: number[], size = 2000) => { const b = new Uint8Array(size); b.set(head); return b; };
+  const pic = (type = 'image/jpeg', head = JPEG, size = 2000, headers: Record<string, string> = {}) =>
+    new Response(bytesOf(head, size), { headers: { 'Content-Type': type, ...headers } });
+  const image = async (u: string, sig?: string) => get(`image?url=${encodeURIComponent(u)}&s=${sig ?? await signImage(TOKEN, u)}`);
+  afterEach(() => { IMAGE_LIMITS.timeoutMs = 15_000; vi.restoreAllMocks(); });
 
-  it("fetches a picture with nothing of ours, and answers it safely; no token needed", async () => {
-    reply = () => pic('image/webp; charset=binary');
-    const res = await get(`image?url=${encodeURIComponent('https://cdn.example.com/a.webp')}`, {});
+  it("fetches a signed picture with nothing of ours, and answers it safely", async () => {
+    reply = () => pic('image/webp; charset=binary', WEBP);
+    const res = await image('https://cdn.example.com/a.webp');
     expect(res.status).toBe(200);
     expect(res.headers.get('Content-Type')).toBe('image/webp');
+    expect(res.headers.get('Content-Length')).toBe('2000');
     expect(res.headers.get('Cache-Control')).toBe('private, no-store');
     expect(res.headers.get('X-Content-Type-Options')).toBe('nosniff');
-    expect(res.headers.get('Content-Security-Policy')).toContain('sandbox');
+    expect(res.headers.get('Content-Security-Policy')).toBe("default-src 'none'; sandbox");
+    expect(res.headers.get('Cross-Origin-Resource-Policy')).toBe('same-origin');
     expect((await res.arrayBuffer()).byteLength).toBe(2000);
     expect(calls).toEqual([{ url: 'https://cdn.example.com/a.webp', auth: null, redirect: 'manual' }]);
+    // Only Accept and User-Agent go: no cookie, token, referrer or anything of the request that came in.
+    expect([...sent[0].keys()].sort()).toEqual(['accept', 'user-agent']);
+  });
+
+  it('is not a general fetcher: an address the server did not sign is refused, without asking anything', async () => {
+    const other = await signImage(TOKEN, 'https://cdn.example.com/a.jpg');
+    for (const [u, sig] of [
+      ['https://evil.example.net/x.jpg', ''],
+      ['https://evil.example.net/x.jpg', other], // another picture's signature
+      ['https://cdn.example.com/a.jpg?x=1', other], // the same picture, changed
+      ['https://evil.example.net/x.jpg', await signImage('another-token', 'https://evil.example.net/x.jpg')],
+    ] as const) expect((await image(u, sig)).status, u).toBe(403);
+    expect(calls).toEqual([]);
+    // No token, no pictures: the key that signs them comes from it.
+    expect((await get(`image?url=${encodeURIComponent('https://cdn.example.com/a.jpg')}&s=${other}`, {})).status).toBe(503);
   });
 
   it('refuses addresses that are not a public web host, without asking anything', async () => {
-    for (const u of ['ftp://x.example.com/a.png', 'https://localhost/a.png', 'http://127.0.0.1/a.png', 'http://[::1]/a.png', 'https://printer.local/a.png',
-      'https://user:pw@x.example.com/a.png', 'https://x.example.com:8080/a.png', 'https://intranet/a.png', 'not a url']) {
+    for (const u of ['ftp://x.example.com/a.png', 'https://localhost/a.png', 'https://localhost./a.png', 'http://127.0.0.1/a.png', 'http://2130706433/a.png',
+      'http://0x7f.1/a.png', 'http://0177.0.0.1/a.png', 'http://[::1]/a.png', 'http://[::ffff:127.0.0.1]/a.png', 'http://169.254.169.254/latest/meta-data',
+      'https://printer.local/a.png', 'https://db.internal/a.png', 'https://nas.home.arpa/a.png', 'https://x.test/a.png', 'https://user:pw@x.example.com/a.png',
+      'https://x.example.com:8080/a.png', 'https://intranet/a.png', 'javascript:alert(1)', 'not a url', `https://x.example.com/${'a'.repeat(2100)}`]) {
       expect((await image(u)).status, u).toBe(400);
     }
     expect(calls).toEqual([]);
   });
 
-  it('keeps only raster pictures: never SVG, HTML or anything over 6 MB', async () => {
-    reply = () => pic('image/svg+xml');
+  it('refuses a name that resolves to a private, loopback, link-local or reserved address, or that the resolver cannot answer for', async () => {
+    const cases: [string, { a?: string[]; aaaa?: string[]; fail?: boolean }, string][] = [
+      ['rebind.example.net', { a: ['127.0.0.1'] }, 'blocked'],
+      ['metadata.example.net', { a: ['169.254.169.254'] }, 'blocked'],
+      ['lan.example.net', { a: ['10.1.2.3'] }, 'blocked'],
+      ['cgnat.example.net', { a: ['100.64.0.1'] }, 'blocked'],
+      ['mixed.example.net', { a: ['93.184.215.14', '192.168.1.1'] }, 'blocked'],
+      ['v6loop.example.net', { aaaa: ['::1'] }, 'blocked'],
+      ['v6ula.example.net', { a: ['93.184.215.14'], aaaa: ['fd00:ec2::254'] }, 'blocked'],
+      ['v6mapped.example.net', { aaaa: ['::ffff:7f00:1'] }, 'blocked'],
+      ['nothing.example.net', {}, 'blocked'],
+      ['flaky.example.net', { fail: true }, 'unreachable'],
+    ];
+    for (const [host, answer, code] of cases) {
+      names[host] = answer;
+      const r = await image(`https://${host}/a.jpg`);
+      expect([r.status, (await r.json()).error.code], host).toEqual([502, code]);
+    }
+    expect(calls).toEqual([]);
+  });
+
+  it('knows which addresses are public', () => {
+    for (const ip of ['93.184.215.14', '1.1.1.1', '8.8.8.8', '2606:4700::6810:84e5', '2a00:1450:4007:80e::200e']) expect(isPublicAddress(ip), ip).toBe(true);
+    for (const ip of ['0.0.0.0', '10.0.0.1', '100.100.1.1', '127.0.0.1', '169.254.169.254', '172.16.0.1', '172.31.255.255', '192.0.0.8', '192.0.2.1', '192.168.0.1',
+      '198.18.0.1', '198.51.100.1', '203.0.113.1', '224.0.0.1', '255.255.255.255', '256.1.1.1', '::', '::1', '::ffff:7f00:1', '64:ff9b::7f00:1', 'fc00::1', 'fd00::1',
+      'fe80::1', 'ff02::1', '2001:db8::1', '2001::1', '2002:7f00:1::1', '3fff::1', 'not-an-ip']) expect(isPublicAddress(ip), ip).toBe(false);
+  });
+
+  it('keeps only the five raster types, by their bytes as well as their header', async () => {
+    reply = () => pic('image/svg+xml', [...'<svg'].map(c => c.charCodeAt(0)));
     expect((await image('https://cdn.example.com/a.svg')).status).toBe(415);
     reply = () => pic('text/html');
     expect((await image('https://cdn.example.com/a.png')).status).toBe(415);
-    reply = () => pic('image/png', 10, { 'Content-Length': String(7 * 1024 * 1024) });
-    expect((await image('https://cdn.example.com/b.png')).status).toBe(413);
-    reply = () => pic('image/png', 6 * 1024 * 1024 + 1);
-    expect((await image('https://cdn.example.com/c.png')).status).toBe(413);
+    // A header that lies: an HTML page sent as a PNG.
+    reply = () => pic('image/png', [...'<!doctype html><script>'].map(c => c.charCodeAt(0)));
+    expect((await image('https://cdn.example.com/b.png')).status).toBe(415);
+    reply = () => new Response(new Uint8Array(0), { headers: { 'Content-Type': 'image/png' } });
+    expect((await image('https://cdn.example.com/empty.png')).status).toBe(415);
+    // A CDN that sends a WebP for a .jpg: served as what it is.
+    reply = () => pic('image/jpeg', WEBP);
+    const r = await image('https://cdn.example.com/c.jpg');
+    expect([r.status, r.headers.get('Content-Type')]).toEqual([200, 'image/webp']);
+    for (const [head, type] of [[JPEG, 'image/jpeg'], [PNG, 'image/png'], [[...'GIF89a'].map(c => c.charCodeAt(0)), 'image/gif'], [AVIF, 'image/avif']] as const) {
+      expect(sniffImage(bytesOf([...head])), type).toBe(type);
+    }
   });
 
-  it('follows a redirect only to an address it would fetch, three at most', async () => {
+  it('stops at 6 MB as the picture streams, whatever its length says', async () => {
+    reply = () => pic('image/png', PNG, 10, { 'Content-Length': String(7 * 1024 * 1024) });
+    expect((await image('https://cdn.example.com/b.png')).status).toBe(413);
+    // No length given: read in pieces until it passes 6 MB, and no further.
+    let pulled = 0;
+    reply = () => new Response(new ReadableStream({
+      pull(c) { pulled++; c.enqueue(bytesOf(PNG, 1024 * 1024)); },
+    }), { headers: { 'Content-Type': 'image/png' } });
+    expect((await image('https://cdn.example.com/endless.png')).status).toBe(413);
+    expect(pulled).toBeLessThanOrEqual(9);
+    reply = () => pic('image/png', PNG, 6 * 1024 * 1024 + 1);
+    expect((await image('https://cdn.example.com/c.png')).status).toBe(413);
+    reply = () => pic('image/png', PNG, 6 * 1024 * 1024);
+    expect((await image('https://cdn.example.com/d.png')).status).toBe(200);
+  });
+
+  it('gives up after its time, a picture that never ends included', async () => {
+    IMAGE_LIMITS.timeoutMs = 60;
+    reply = (_u, init) => new Promise((_, reject) => init?.signal?.addEventListener('abort', () => reject(init.signal!.reason)));
+    expect((await image('https://cdn.example.com/slow.jpg')).status).toBe(504);
+    reply = (_u, init) => new Response(new ReadableStream({
+      start(c) { c.enqueue(bytesOf(JPEG, 100)); init?.signal?.addEventListener('abort', () => c.error(init.signal!.reason)); },
+    }), { headers: { 'Content-Type': 'image/jpeg' } });
+    expect((await image('https://cdn.example.com/trickle.jpg')).status).toBe(504);
+  });
+
+  it('follows a redirect only to an address it would fetch, its name checked again, three at most', async () => {
     reply = url => (url.pathname === '/a.jpg' ? new Response(null, { status: 302, headers: { Location: '/b.jpg' } }) : pic());
     expect((await image('https://cdn.example.com/a.jpg')).status).toBe(200);
     expect(calls.map(c => c.url)).toEqual(['https://cdn.example.com/a.jpg', 'https://cdn.example.com/b.jpg']);
-    reply = () => new Response(null, { status: 301, headers: { Location: 'http://127.0.0.1/admin.png' } });
-    expect((await image('https://cdn.example.com/a.jpg')).status).toBe(502);
+    for (const to of ['http://127.0.0.1/admin.png', 'http://[::1]/x.png', 'http://localhost/x.png', 'file:///etc/passwd', 'https://inside.example.net/x.png']) {
+      names['inside.example.net'] = { a: ['10.0.0.5'] };
+      calls.length = 0;
+      reply = () => new Response(null, { status: 301, headers: { Location: to } });
+      const r = await image('https://cdn.example.com/a.jpg');
+      expect([r.status, (await r.json()).error.code], to).toEqual([502, 'blocked']);
+      expect(calls.length, to).toBe(1);
+    }
     calls.length = 0;
     reply = url => new Response(null, { status: 302, headers: { Location: `${url.pathname}x` } });
     expect((await image('https://cdn.example.com/a')).status).toBe(502);
     expect(calls.length).toBe(4);
   });
 
-  it("says when the picture's site refuses it or doesn't answer", async () => {
+  it("says when the picture's site refuses it or doesn't answer, never with the token or the address in a log", async () => {
+    const log = vi.spyOn(console, 'log'), warn = vi.spyOn(console, 'warn'), error = vi.spyOn(console, 'error');
     reply = () => new Response('no', { status: 403 });
-    expect(await (await image('https://cdn.example.com/a.jpg')).json()).toMatchObject({ error: { code: 'blocked' } });
+    const refused = await image('https://cdn.example.com/a.jpg');
+    const text = await refused.text();
+    expect(JSON.parse(text)).toMatchObject({ error: { code: 'blocked' } });
+    expect(text).not.toContain(TOKEN);
     reply = () => { throw new TypeError('network'); };
     expect((await image('https://cdn.example.com/a.jpg')).status).toBe(504);
+    expect([log, warn, error].every(s => s.mock.calls.length === 0)).toBe(true);
+  });
+
+  it('paces itself: 240 pictures a minute, then asks to wait', async () => {
+    reply = () => pic();
+    const u = 'https://cdn.example.com/a.jpg';
+    const sig = await signImage(TOKEN, u);
+    for (let i = 0; i < IMAGE_LIMITS.perMinute; i++) expect((await image(u, sig)).status).toBe(200);
+    const r = await image(u, sig);
+    expect(r.status).toBe(429);
+    expect(Number(r.headers.get('Retry-After'))).toBeGreaterThan(0);
   });
 });

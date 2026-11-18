@@ -3,6 +3,7 @@
 // the repo).
 import { describe, it, expect } from 'vitest';
 import { cleanArticle } from './sanitize';
+import { imageAddressesOf } from '../../server/intake';
 
 const BASE = 'https://news.example.com/2026/story';
 const dom = (html: string) => { const d = document.createElement('div'); d.innerHTML = html; return d; };
@@ -70,5 +71,17 @@ describe('what the reader needs', () => {
     const blocks = [...dom(html).querySelectorAll('[data-b]')];
     expect(blocks.map(b => `${b.getAttribute('data-b')}:${b.tagName}`)).toEqual(['0:H2', '1:P', '2:P', '3:P', '4:LI', '5:FIGURE', '6:P', '7:DIV']);
     expect(opening).toBe('H');
+  });
+});
+
+describe('pictures and their signatures', () => {
+  it("asks for each picture by the very address the server signed for it (as the browser reads the HTML)", () => {
+    const html = '<p><img src=" https://cdn.example.com/a.jpg?w=800&amp;q=80&#38;x=1 "><img src=\'HTTPS://CDN.Example.com/b c.png\'><img src="https://cdn.example.com/caf&eacute;.png"></p>';
+    const signed = imageAddressesOf(html, [], null);
+    const asked = cleanArticle(html, 'https://example.com/a/1').images;
+    expect(asked.slice(0, 2)).toEqual(signed.slice(0, 2));
+    expect(asked.slice(0, 2).every(u => signed.includes(u))).toBe(true);
+    // A rarer entity the server doesn't read: that one picture goes unsigned and loads from the publisher.
+    expect(signed).not.toContain(asked[2]);
   });
 });

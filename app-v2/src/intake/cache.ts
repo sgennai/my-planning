@@ -15,6 +15,8 @@ export interface Body {
   paywalled: boolean;
   direction: 'ltr' | 'rtl' | null;
   fetchedAt: number;
+  /** The signatures of its pictures (images.ts). Absent on a body fetched before Phase 2. */
+  sigs?: Record<string, string>;
 }
 
 export interface SyncMeta {
@@ -23,6 +25,8 @@ export interface SyncMeta {
   /** A sync cut short: where it goes on from, and when it began (Unix seconds). */
   pending: { since: number; offset: number; startedAt: number } | null;
   lastSyncAt: number | null;
+  /** A whole sync has been made since bookmarks came with their picture's signature (Phase 2). */
+  signed?: boolean;
 }
 
 let dbPromise: Promise<IDBPDatabase> | null = null;

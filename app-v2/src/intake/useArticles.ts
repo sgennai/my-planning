@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Article } from './articles';
 import { fetchArticleNow, fetchArticleQueued, fetchChanges, IntakeError, type IntakeErrorCode } from './api';
-import { loadArticles, loadMeta, saveArticles, saveBody, saveMeta } from './cache';
+import { loadArticles, loadBody, loadMeta, saveArticles, saveBody, saveMeta } from './cache';
 import { fetchBodies as fetchAll, fetchOne, syncLibrary, type BodiesEnd, type FetchOutcome } from './sync';
 
 export interface LibraryStatus {
@@ -103,5 +103,22 @@ export function useArticles() {
     apply([a]);
   }, [apply]);
 
-  return { articles, status, refresh, fetchNow, update };
+  /**
+   * The picture signatures for a body fetched before Phase 2: the article is asked for again (paced, like
+   * opening it) and only its signatures are added to the body this device has; its text, and the article,
+   * stay as they are, whatever Instapaper answers. Null when it couldn't be had.
+   */
+  const signBody = useCallback(async (a: Article): Promise<Record<string, string> | null> => {
+    try {
+      const parsed = await fetchArticleNow(a.id);
+      const body = await loadBody(a.id);
+      if (!body || !parsed.sigs) return null;
+      await saveBody({ ...body, sigs: parsed.sigs });
+      return parsed.sigs;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  return { articles, status, refresh, fetchNow, update, signBody };
 }

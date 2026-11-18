@@ -18,6 +18,8 @@ export interface SyncedBookmark {
   /** Instapaper's own reading progress (0 to 1), from its apps: a hint, never the app's. */
   instapaperProgress: number;
   privateSource: string | null;
+  /** The server's signature for `image`, so the reader may fetch it through /api/intake/image (Phase 2). */
+  imageSig?: string | null;
 }
 
 export interface ParsedArticle {
@@ -35,4 +37,6 @@ export interface ParsedArticle {
   words: number | null;
   paywalled: boolean;
   direction: 'ltr' | 'rtl' | null;
+  /** The server's signature for each picture address it may fetch for this article (Phase 2). */
+  sigs?: Record<string, string>;
 }

@@ -2,6 +2,7 @@
 // contents, and the Active Reading panel. The panel holds what is true now (this article's reading, Keep
 // offline, the original) and says plainly that highlights and notes come later: nothing invented.
 import { useEffect, useRef, useState, type RefObject } from 'react';
+import { flushSync } from 'react-dom';
 import { RANGES, type ReaderPrefs } from './reader-prefs';
 import type { Heading } from './sanitize';
 import { imageFor } from './images';
@@ -18,25 +19,28 @@ export function Icon({ name }: { name: keyof typeof PATHS }) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>{PATHS[name]}</svg>;
 }
 
-/** The article's lead picture, when it isn't already in its text; nothing when it can't be shown. */
-export function HeroImage({ src, keptBy }: { src: string; keptBy: RefObject<number | undefined> }) {
-  const [url, setUrl] = useState<string | null>(null);
-  const [direct, setDirect] = useState(false);
+/**
+ * The article's lead picture, when it isn't already in its text; nothing when it can't be shown. It appears
+ * (and goes, if it fails) inside `steady`, so the text below it doesn't move under your reading line.
+ */
+export function HeroImage({ src, sigOf, keptBy, steady }: { src: string; sigOf: (url: string) => Promise<string | null>; keptBy: RefObject<number | undefined>; steady: (change: () => void) => void }) {
+  const [shown, setShown] = useState<{ url: string; direct: boolean } | null>(null);
   useEffect(() => {
     let made: string | null = null;
     let alive = true;
-    void imageFor(src, keptBy.current).then(r => {
+    void sigOf(src).then(sig => imageFor(src, { keptBy: keptBy.current, sig })).then(r => {
       if (!alive) return;
-      if ('blob' in r) { made = URL.createObjectURL(r.blob); setUrl(made); }
-      else if (r.missing !== 'offline' && navigator.onLine !== false) setDirect(true);
+      if ('blob' in r) made = URL.createObjectURL(r.blob);
+      else if (r.missing === 'offline' || navigator.onLine === false) return;
+      const next = { url: made ?? src, direct: !made };
+      steady(() => flushSync(() => setShown(next)));
     });
     return () => { alive = false; if (made) URL.revokeObjectURL(made); };
-  }, [src, keptBy]);
-  const [failed, setFailed] = useState(false);
-  if (failed || (!url && !direct)) return null;
+  }, [src, sigOf, keptBy, steady]);
+  if (!shown) return null;
   return (
     <div className="ikr-hero">
-      <img src={url ?? src} alt="" decoding="async" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
+      <img src={shown.url} alt="" decoding="async" referrerPolicy="no-referrer" onError={() => steady(() => flushSync(() => setShown(null)))} />
     </div>
   );
 }

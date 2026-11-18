@@ -33,7 +33,7 @@ const session = { openId: null as number | null };
 
 export function IntakeScreen({ data, onPersist }: Props) {
   const scale = useTextScale();
-  const { articles, status, refresh, fetchNow, update } = useArticles();
+  const { articles, status, refresh, fetchNow, update, signBody } = useArticles();
   const [openId, setOpenId] = useState(session.openId);
   const show = (id: number | null) => { session.openId = id; setOpenId(id); };
   const open = openId === null ? null : articles?.get(openId) ?? null;
@@ -68,7 +68,7 @@ export function IntakeScreen({ data, onPersist }: Props) {
         ><IconRefresh /></button>
       </div>
       {open
-        ? <ArticleReader key={open.id} article={open} reading={reading.get(open.id)} onBack={() => show(null)} onPersist={onPersist} fetchNow={fetchNow} update={update} />
+        ? <ArticleReader key={open.id} article={open} reading={reading.get(open.id)} onBack={() => show(null)} onPersist={onPersist} fetchNow={fetchNow} update={update} signBody={signBody} />
         : <ArticlesLibrary articles={articles} status={status} reading={reading} onRetry={() => void refresh()} onOpen={show} />}
     </div>
   );

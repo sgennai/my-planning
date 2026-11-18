@@ -101,6 +101,9 @@
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
+  /* Your place is kept by the reader itself (place.ts, `steady`), as on a Safari without scroll anchoring:
+     a browser that anchors too would move the text a second time for the same picture. */
+  overflow-anchor: none;
   -webkit-overflow-scrolling: touch;
   background: var(--ikr-paper);
   color: var(--ikr-ink);

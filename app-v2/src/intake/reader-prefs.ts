@@ -41,14 +41,3 @@ export function recallPrefs(appDark: boolean): ReaderPrefs {
 export function rememberPrefs(p: ReaderPrefs) {
   try { localStorage.setItem(KEY, JSON.stringify(p)); } catch { /* private browsing: not remembered */ }
 }
-
-let fontAsked = false;
-/** Literata (D6), asked for the first time the reader opens; Georgia until it arrives, or offline. */
-export function loadReaderFont() {
-  if (fontAsked || typeof document === 'undefined') return;
-  fontAsked = true;
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = 'https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&display=swap';
-  document.head.append(link);
-}

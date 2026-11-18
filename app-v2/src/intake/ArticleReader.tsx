@@ -5,20 +5,24 @@
 // over it where there isn't.
 //
 // Your place: a block of text and how far through it (place.ts), noted as you scroll and put back
-// whenever the text reflows without you scrolling (a new size, width or font, the panel, a rotation, a
-// picture arriving), and when the article reopens. It is written (reading.ts) when scrolling rests, on
-// leaving, and when the app is hidden; opening an article and putting your place back write nothing.
-// Finished is your tap only. The article's HTML is drawn once and never by React again.
+// whenever the text reflows without you scrolling (a new size, width or font, the panel, a rotation), and
+// when the article reopens. A picture arriving or going never moves the words at the reading line
+// (`steady`). Only your own move is written (reading.ts): scrolling by the wheel, a drag, a scroll key or
+// the scrollbar (and the momentum after it), or a jump from Contents; never a tap on another button (the
+// panel, Finished). It is written when scrolling rests, on leaving, and when the app is hidden; opening an
+// article and putting your place back write nothing. Finished is your tap only. The article's HTML is
+// drawn once and never by React again.
 import '../styles/intake-reader.css';
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type RefObject } from 'react';
 import { authorOf, descriptionOf, imageOf, minutesOf, statusOf, titleOf, type Article, type Reading } from './articles';
 import { loadBody, type Body } from './cache';
 import { cleanArticle } from './sanitize';
-import { goTo, placeAt, progressOf, type Place } from './place';
+import { blockOf, goTo, placeAt, progressOf, type Place } from './place';
 import { withFinished, withPosition } from './reading';
-import { keepImages, releaseImages } from './images';
-import { useArticleImages } from './reader-images';
-import { loadReaderFont, recallPrefs, rememberPrefs, type ReaderPrefs } from './reader-prefs';
+import { imageAddress, isInline, keepImages, releaseImages } from './images';
+import { useArticleImages, type PictureHooks } from './reader-images';
+import { recallPrefs, rememberPrefs, type ReaderPrefs } from './reader-prefs';
+import { loadReaderFont } from './reader-font';
 import { Appearance, Contents, ActiveReading, Icon, HeroImage } from './ReaderParts';
 import type { FetchOutcome } from './sync';
 
@@ -32,6 +36,8 @@ interface Props {
   onPersist: Persist;
   fetchNow: (a: Article) => Promise<FetchOutcome>;
   update: (a: Article) => Promise<void>;
+  /** The picture signatures for a body fetched before Phase 2 (null if they couldn't be had). */
+  signBody: (a: Article) => Promise<Record<string, string> | null>;
 }
 
 type View =
@@ -39,16 +45,20 @@ type View =
   | { state: 'ready'; body: Body }
   | { state: 'failed'; why: 'unavailable' | 'offline' | 'error'; message?: string };
 
-/** A scroll this soon after a touch, wheel, key or press is yours (momentum included). */
+/** A scroll this soon after a drag, the wheel, a scroll key or the scrollbar is yours (momentum included). */
 const YOURS_MS = 3000;
+const SCROLL_KEYS = new Set([' ', 'PageDown', 'PageUp', 'ArrowDown', 'ArrowUp', 'Home', 'End']);
+/** The first draw waits this long at most for Literata, so the text isn't laid out twice. */
+const FONT_WAIT_MS = 1200;
 const REST_MS = 1200;
 /** Beside the text from this width of the reader; over it below. */
 const PANEL_BESIDE = 800;
 
+const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
 const DATE = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark';
 
-export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, update }: Props) {
+export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, update, signBody }: Props) {
   const [view, setView] = useState<View>(article.content === 'unavailable' ? { state: 'failed', why: 'unavailable' } : { state: 'loading' });
   const [prefs, setPrefsState] = useState<ReaderPrefs>(() => recallPrefs(isDark()));
   const [popover, setPopover] = useState<'appearance' | 'contents' | null>(null);
@@ -80,11 +90,12 @@ export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, u
     setView(body ? { state: 'ready', body } : { state: 'failed', why: 'error' });
   }, [fetchNow]);
   useEffect(() => {
-    loadReaderFont();
+    const font = loadReaderFont();
     let alive = true;
     void (async () => {
       if (article.content === 'unavailable') return;
       const body = article.content === 'cached' ? await loadBody(id) : undefined;
+      await Promise.race([font, sleep(FONT_WAIT_MS)]);
       if (!alive) return;
       if (body) setView({ state: 'ready', body });
       else void open(article);
@@ -100,7 +111,7 @@ export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, u
   };
 
   const clean = useMemo(() => (view.state === 'ready' ? cleanArticle(view.body.html, article.url) : null), [view, article.url]);
-  const hero = imageOf(article);
+  const hero = imageAddress(imageOf(article));
   const heroInBody = !!hero && !!clean?.images.includes(hero);
   const description = descriptionOf(article);
   const deck = description && clean && !clean.opening.toLowerCase().startsWith(description.slice(0, 60).toLowerCase()) ? description : null;
@@ -109,6 +120,12 @@ export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, u
 
   // ── Your place ───────────────────────────────────────────────────────────
   const place = useRef<Place | null>(reading?.place ?? null);
+  /** The place being put back, held as it was saved until the view moves by anything but the reader itself
+   *  (your scroll, a jump, VoiceOver, find in page): what the screen shows may not have room for it yet (a
+   *  picture at it, its size unknown, is nothing high until it arrives). */
+  const restoring = useRef<Place | null>(reading?.place ?? null);
+  /** Where the reader itself last put the scroll position: any other move releases `restoring`. */
+  const ownTop = useRef<number | null>(null);
   const hint = useRef(reading?.place?.block ?? 0);
   const furthest = useRef(reading?.progress ?? 0);
   const touched = useRef(false);
@@ -131,8 +148,55 @@ export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, u
   }, []);
   const hold = useCallback(() => {
     const sc = scrollRef.current, body = bodyRef.current;
-    if (sc && body) goTo(sc, body, place.current, line());
+    if (!sc || !body) return;
+    goTo(sc, body, restoring.current ?? place.current, line());
+    ownTop.current = sc.scrollTop;
   }, []);
+  /**
+   * A change to the page (a picture arriving or going) that leaves your place where it is, in the same frame:
+   * the block at the reading line is put back exactly where it was on the screen when the change was
+   * elsewhere (a picture above it), or as far through it as you were when it was in that very block.
+   * While a place is being put back, that place.
+   */
+  const steady = useCallback((change: () => void) => {
+    const sc = scrollRef.current, body = bodyRef.current;
+    if (restoring.current) {
+      change();
+      if (sc && body) { goTo(sc, body, restoring.current, line()); ownTop.current = sc.scrollTop; }
+      return;
+    }
+    const at = sc && body && sc.scrollTop >= 4 ? placeAt(body, line(), hint.current) : null;
+    const block = at && body ? blockOf(body, at) : null;
+    const before = block?.getBoundingClientRect();
+    change();
+    if (!at || !block || !before || !sc || !body) return;
+    const now = block.getBoundingClientRect();
+    if (Math.abs(now.height - before.height) >= 0.5) goTo(sc, body, at, line());
+    else if (Math.abs(now.top - before.top) >= 0.5) sc.scrollTop += now.top - before.top;
+  }, []);
+
+  // ── The pictures' signatures ────────────────────────────────────────────
+  // The server's signature for each picture it may fetch: with the body, and with the library for the lead
+  // picture. A body fetched before Phase 2 has none: the article is asked for again (online, paced like
+  // any request) for its signatures only, its text kept as it is; its pictures wait for that.
+  const sigs = useRef<Record<string, string>>({});
+  const signing = useRef<Promise<unknown> | null>(null);
+  const bodySeen = useRef<Body | null>(null);
+  useLayoutEffect(() => {
+    if (view.state !== 'ready' || bodySeen.current === view.body) return;
+    bodySeen.current = view.body;
+    sigs.current = view.body.sigs ?? {};
+    const needs = view.body.sigs === undefined && navigator.onLine !== false
+      && (!!clean?.images.some(u => !isInline(u)) || (!!hero && hero !== imageAddress(article.image)));
+    signing.current = needs ? signBody(article).then(got => { if (got) sigs.current = got; }) : null;
+    // Once per body drawn.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view]);
+  const sigFor = useCallback((url: string): string | null =>
+    sigs.current[url] ?? (url === imageAddress(article.image) ? article.imageSig ?? null : null), [article.image, article.imageSig]);
+  const sigOf = useCallback(async (url: string) => { await signing.current; return sigFor(url); }, [sigFor]);
+  const hooks = useRef<PictureHooks>({ sigOf, steady });
+  useLayoutEffect(() => { hooks.current = { sigOf, steady }; }, [sigOf, steady]);
   const save = useCallback(() => {
     window.clearTimeout(rest.current);
     if (!touched.current) return;
@@ -149,10 +213,19 @@ export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, u
     const sc = scrollRef.current;
     if (!sc) return;
     let frame = 0;
+    let dragged = false;
     const onInput = () => { inputAt.current = Date.now(); };
-    const onDown = () => { pressing.current = true; onInput(); };
-    const onUp = () => { pressing.current = false; onInput(); };
+    // A touch is yours once it moves (a tap on a button scrolls nothing), and its momentum after it.
+    const onDown = () => { pressing.current = true; dragged = false; };
+    const onMove = () => { dragged = true; onInput(); };
+    const onUp = () => { pressing.current = false; if (dragged) onInput(); dragged = false; };
+    // The scrollbar, with a mouse: a press on the scroller itself, not on what it holds.
+    const onPress = (e: PointerEvent) => { if (e.target === sc) onInput(); };
+    const onKey = (e: KeyboardEvent) => {
+      if (SCROLL_KEYS.has(e.key) && !(e.target as Element | null)?.closest?.('button, a, input, select, textarea, [contenteditable]')) onInput();
+    };
     const onScroll = () => {
+      if (restoring.current && (ownTop.current === null || Math.abs(sc.scrollTop - ownTop.current) > 2)) restoring.current = null;
       if (pressing.current || Date.now() - inputAt.current < YOURS_MS) {
         touched.current = true;
         yourScrollAt.current = Date.now();
@@ -173,10 +246,11 @@ export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, u
     sc.addEventListener('scroll', onScroll, { passive: true });
     sc.addEventListener('wheel', onInput, { passive: true });
     sc.addEventListener('touchstart', onDown, { passive: true });
+    sc.addEventListener('touchmove', onMove, { passive: true });
     sc.addEventListener('touchend', onUp, { passive: true });
     sc.addEventListener('touchcancel', onUp, { passive: true });
-    sc.addEventListener('pointerdown', onInput, { passive: true });
-    sc.addEventListener('keydown', onInput);
+    sc.addEventListener('pointerdown', onPress, { passive: true });
+    sc.addEventListener('keydown', onKey);
     document.addEventListener('visibilitychange', onHide);
     window.addEventListener('pagehide', save);
     return () => {
@@ -185,10 +259,11 @@ export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, u
       sc.removeEventListener('scroll', onScroll);
       sc.removeEventListener('wheel', onInput);
       sc.removeEventListener('touchstart', onDown);
+      sc.removeEventListener('touchmove', onMove);
       sc.removeEventListener('touchend', onUp);
       sc.removeEventListener('touchcancel', onUp);
-      sc.removeEventListener('pointerdown', onInput);
-      sc.removeEventListener('keydown', onInput);
+      sc.removeEventListener('pointerdown', onPress);
+      sc.removeEventListener('keydown', onKey);
       document.removeEventListener('visibilitychange', onHide);
       window.removeEventListener('pagehide', save);
       save(); // leaving the article
@@ -204,7 +279,7 @@ export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, u
   }, [clean, hold, measure]);
   useLayoutEffect(() => { hold(); measure(); }, [prefs.size, prefs.line, prefs.measure, prefs.font, hold, measure]);
 
-  useArticleImages(bodyRef, scrollRef, `${id}:${clean ? 'drawn' : ''}`, keptBy);
+  useArticleImages(bodyRef, scrollRef, `${id}:${clean ? 'drawn' : ''}`, keptBy, hooks);
 
   // ── The panel, the bar's popovers ───────────────────────────────────────
   useEffect(() => {
@@ -244,11 +319,12 @@ export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, u
     setKeepBusy(true);
     keptBy.current = id;
     await update({ ...article, keep: true });
-    const urls = [...new Set([...(hero && !heroInBody ? [hero] : []), ...(clean?.images ?? [])])];
+    const urls = [...new Set([...(hero && !heroInBody ? [hero] : []), ...(clean?.images ?? [])])].filter(u => !isInline(u));
     if (!urls.length) setKeepNote('Kept offline.');
     else {
       setKeepNote(`Keeping its pictures offline: 0 of ${urls.length}`);
-      const out = await keepImages(id, urls, done => setKeepNote(`Keeping its pictures offline: ${done} of ${urls.length}`));
+      await signing.current;
+      const out = await keepImages(id, urls.map(url => ({ url, sig: sigFor(url) })), done => setKeepNote(`Keeping its pictures offline: ${done} of ${urls.length}`));
       const missed = out.failed + out.full;
       setKeepNote(!missed ? `Kept offline, with its ${out.kept === 1 ? 'picture' : `${out.kept} pictures`}.`
         : out.full ? `Kept offline, with ${out.kept} of its ${urls.length} pictures: the space for offline pictures is full.`
@@ -263,6 +339,7 @@ export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, u
     setPopover(null);
     if (!sc || !h) return;
     touched.current = true;
+    restoring.current = null;
     sc.scrollTop += h.getBoundingClientRect().top - line();
     measure();
     window.clearTimeout(rest.current);
@@ -316,7 +393,7 @@ export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, u
                   {minutes && <b>{String(minutes).padStart(2, '0')} min read</b>}
                   {article.url && <a href={article.url} target="_blank" rel="noopener noreferrer">Original<span aria-hidden> ↗</span></a>}
                 </p>
-                {hero && !heroInBody && view.state === 'ready' && <HeroImage src={hero} keptBy={keptBy} />}
+                {hero && !heroInBody && view.state === 'ready' && <HeroImage src={hero} sigOf={sigOf} keptBy={keptBy} steady={steady} />}
                 {view.state === 'ready' && view.body.paywalled && (
                   <p className="ikr-notice">Instapaper found this article behind a paywall: it may be incomplete here. The original has all of it.</p>
                 )}

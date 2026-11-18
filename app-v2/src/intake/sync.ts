@@ -1,7 +1,7 @@
 // Bringing the device's copy up to date with Instapaper, and fetching bodies in the background.
 // - A sync asks for what changed since the last one began (a minute early: applying a change twice
-//   changes nothing). The first asks from the beginning. A sync cut short (offline, a large account)
-//   goes on from where it stopped, its start time kept.
+//   changes nothing). The first asks from the beginning, and so does the first after Phase 2 (`signed`).
+//   A sync cut short (offline, a large account) goes on from where it stopped, its start time kept.
 // - Bodies come one at a time, every unread article once, newest first: its length (the reading time)
 //   and what the list lacked, and the article readable offline. A slow-down from Instapaper pauses the
 //   fetch; an article Instapaper can't extract is marked so and not asked for again. One that doesn't come
@@ -23,9 +23,12 @@ export interface SyncDeps {
 /** Applies every change since the last sync; returns the articles that changed. Throws IntakeError. */
 export async function syncLibrary(current: ReadonlyMap<number, Article>, deps: SyncDeps): Promise<Article[]> {
   const meta = await deps.loadMeta();
-  const startedAt = meta.pending?.startedAt ?? Math.floor(deps.now() / 1000);
-  const since = meta.pending?.since ?? meta.since ?? 1;
-  let offset = meta.pending?.offset ?? 0;
+  // Once, the whole library again: bookmarks synced before Phase 2 came without their picture's signature.
+  const whole = !meta.signed;
+  const resume = meta.pending && (!whole || meta.pending.since === 1) ? meta.pending : null;
+  const startedAt = resume?.startedAt ?? Math.floor(deps.now() / 1000);
+  const since = resume?.since ?? (whole ? 1 : meta.since ?? 1);
+  let offset = resume?.offset ?? 0;
   const all = new Map(current);
   const changed = new Map<number, Article>();
   for (;;) {
@@ -37,7 +40,7 @@ export async function syncLibrary(current: ReadonlyMap<number, Article>, deps: S
     offset = page.nextOffset;
     await deps.saveMeta({ ...meta, pending: { since, offset, startedAt } });
   }
-  await deps.saveMeta({ since: Math.max(1, startedAt - 60), pending: null, lastSyncAt: deps.now() });
+  await deps.saveMeta({ since: Math.max(1, startedAt - 60), pending: null, lastSyncAt: deps.now(), signed: true });
   return [...changed.values()];
 }
 
@@ -61,7 +64,7 @@ export type FetchOutcome = { article: Article; failed?: boolean } | { stop: Inta
 export async function fetchOne(a: Article, deps: FetchDeps): Promise<FetchOutcome> {
   try {
     const p = await deps.fetchArticle(a.id);
-    if (p.html) await deps.saveBody({ id: a.id, html: p.html, images: p.images, words: p.words, paywalled: p.paywalled, direction: p.direction, fetchedAt: deps.now() });
+    if (p.html) await deps.saveBody({ id: a.id, html: p.html, images: p.images, words: p.words, paywalled: p.paywalled, direction: p.direction, fetchedAt: deps.now(), sigs: p.sigs ?? {} });
     const next = withParse(a, p);
     await deps.saveArticles([next]);
     return { article: next };

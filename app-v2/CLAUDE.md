@@ -732,14 +732,14 @@ reader) are built; Phase 3 (Active Reading's highlights, notes, Save to Takeaway
 
 - **Instapaper access** is server-side and read-only: `functions/api/intake/[[path]].ts` →
   `server/intake.ts` (`GET /api/intake/status`, `/sync?since=&offset=`, `/articles/<id>`, `/folders`,
-  `/tags`, `/image?url=`), with a personal access token, the Pages secret `INSTAPAPER_ACCESS_TOKEN` (`.dev.vars`
+  `/tags`, `/image?url=&s=`), with a personal access token, the Pages secret `INSTAPAPER_ACCESS_TOKEN` (`.dev.vars`
   locally; never in the bundle, Git, logs or an answer). Instapaper API v2 (`/api/2`, bearer). Its
   failures come back as codes (`not-configured`, `auth-failed`, `rate-limited` with Retry-After,
   `unavailable` for an article it can't extract, `offline` on the device…), never the token. Nothing
   is ever written to Instapaper (D8). Behind the site login like every path.
 - **Content vs your data:** the library (metadata) and the bodies are per device, in IndexedDB
-  `my-planning-intake` (`cache.ts`: `articles`, `bodies`, `meta`), the reader's pictures in
-  `my-planning-intake-images`, both deleted on sign-out (`ui/sign-out.ts`). Only your own data syncs:
+  `my-planning-intake` (`cache.ts`: `articles`, `bodies`, `meta`; still version 1), the reader's pictures,
+  their sizes and its font in `my-planning-intake-images` (version 2), both deleted on sign-out (`ui/sign-out.ts`). Only your own data syncs:
   reading `ar:<bookmark id>` (`intake-reading`) and Finished `ac:<id>` (`intake-read-mark`) in
   `progressLog` (Phase 2); highlights and notes in Phase 3.
 - **Sync** (`sync.ts`, pure, with `useArticles.ts` driving it): `since` from the last complete sync
@@ -773,7 +773,7 @@ reader) are built; Phase 3 (Active Reading's highlights, notes, Save to Takeaway
   own when that reads as prose (C5); nothing is rewritten.
 - **The reader** (Phase 2; `ArticleReader.tsx`, `ReaderParts.tsx`, `styles/intake-reader.css`), after the
   approved prototype `intake-reader.html` (Concept 01 "Paper Sanctuary" with Concept 10's Active Reading
-  panel): paper (#fffdfa, Literata loaded on first open, Georgia before and offline), a sticky opaque bar
+  panel): paper (#fffdfa, Literata), a sticky opaque bar
   (back, Contents when the article has h2/h3, Aa, Active Reading, Finished) with the 3px reading line at
   its foot, the article (source · author · date, title, a deck when the description doesn't repeat the
   opening, minutes, Original ↗, the lead picture when not in the text), its HTML, and a footer (Mark as
@@ -791,27 +791,64 @@ reader) are built; Phase 3 (Active Reading's highlights, notes, Save to Takeaway
   keep their words; headings shift so the article's start at h2 and h2/h3 get ids for Contents; images
   keep their address in `data-src`; every innermost block of text is numbered (`data-b`). Drawn once into
   the page (`ArticleBody`, memo, `dangerouslySetInnerHTML`): React never redraws it.
+- **Literata** (`reader-font.ts`, D6): the app's own files, not Google Fonts: four woff2 in `intake/fonts/`
+  (Latin and Latin Extended, roman and italic, weight and optical-size axes; Fontsource 5.3.0, OFL in
+  `fonts/OFL.txt`), emitted by Vite as hashed assets and **not** precached (the service worker is
+  unchanged: it keeps js/css/html). The first online open fetches them and keeps them in the reader's
+  database (`files`, keyed by the hashed address, a new version replacing the old); every open after,
+  online or not, installs them with `FontFace` from there. The first draw waits up to 1.2 s for the font
+  so the text isn't laid out twice. Georgia until then, and on a device that never opened the reader online.
 - **Your place** (`place.ts`, `reading.ts`): a block, a hash of its first 40 characters (no article text
   in synced data), and how far through it the reading line is (just under the bar). Noted on every scroll
   frame; put back (`goTo`) when the article is drawn, after any change of size, spacing, measure or font
   (`useLayoutEffect`), and whenever the text reflows while you aren't scrolling (a ResizeObserver: the
-  panel, a rotation, a picture arriving). A scroll is yours if a touch, wheel, key or press came in the
-  3 s before (momentum included); only then is anything written: `ar:<bookmark id>` (`intake-reading`,
+  panel, a rotation). Until the view moves by anything but the reader itself (your scroll, a Contents jump,
+  VoiceOver, find in page: `ownTop` is where the reader last put it), what is put back is the saved place
+  itself (`restoring`), not what the screen shows: a picture at it whose size isn't known yet is nothing
+  high until it arrives. A picture
+  arriving or going never moves it (`steady`, below). The reader keeps the
+  place itself, so its scroller has `overflow-anchor: none`: a WebKit that anchors scrolling (26 does)
+  moved the text a second time for the same picture. A scroll is yours if a drag (`touchmove`), the
+  wheel, a scroll key (not on a control) or the scrollbar came in the 3 s before (momentum included); a
+  tap on a button (the panel, Finished) is not. Only then is anything written: `ar:<bookmark id>` (`intake-reading`,
   `{ progress: furthest, place }`) 1.2 s after scrolling rests, on leaving the article, on the app being
   hidden; opening and putting the place back write nothing. Finished is `ac:<bookmark id>`
   (`intake-read-mark`, `{ finished }`), by your tap only (the bar's button or the footer's). Two devices:
   `mergeReading` (storage/merge.ts) keeps the furthest progress and the later write's place; the mark is
   last-write-wins.
 - **Pictures** (`images.ts`, `reader-images.ts`, D4): loaded as they come within 1,500px (never all at
-  once), through `/api/intake/image` (the server fetches an http(s) picture from a public host name,
-  jpeg/png/gif/webp/avif only, ≤6 MB, redirects checked, nothing of ours sent, `no-store`, sandboxed), and
-  kept in a database of their own, `my-planning-intake-images` (`imageMeta` + `imageData`; bytes as an
-  ArrayBuffer, as Safari can't store a Blob in a private window; the library's database stays at version
-  1, so a rollback to Phase 1 finds it as it left it; sign-out deletes both) within 400 pictures and 150 MB; eviction: unused for
-  60 days, then least recently used, never a picture an article kept offline holds. Their sizes are noted
-  so they hold their space next time. Not kept, or refused: the browser tries the publisher directly
-  online; else "Picture not on this device" / "Picture unavailable", the alt text kept. The service worker
-  is untouched (cross-origin pictures in it would be opaque: no size, no error, padded quota).
+  once), through `/api/intake/image`, which is **not a general fetcher**: it fetches only an address the
+  server signed itself (an HMAC, 128 bits, under a key derived from `INSTAPAPER_ACCESS_TOKEN`): each
+  article's pictures (Instapaper's list, every `<img src>` of its HTML read as a browser reads it, its
+  thumbnail) come back as `sigs` with the article, a bookmark's picture as `imageSig` with the sync. Then: an
+  http(s) host name (no IP address, port, credentials, local or reserved name), every address it resolves
+  to public (asked of `cloudflare-dns.com`, A and AAAA; private, loopback, link-local and metadata,
+  shared, documentation, multicast and non-global IPv6 refused), each redirect checked again (3 at most),
+  jpeg/png/gif/webp/avif by header **and** first bytes (served as its bytes say; never SVG), 6 MB counted as
+  it streams, 15 s for all of it, 240 a minute per server instance (429 + Retry-After; the device waits
+  once), nothing of ours sent (Accept and User-Agent only), nothing logged, `no-store`, nosniff, sandboxed.
+  `scratchpad/pw/img-probe.mjs` (kept in `intake-harnesses/`) runs those attacks against workerd with a
+  throwaway token. Bodies fetched before the hardening have no `sigs`: opening one online asks Instapaper
+  for the article again (paced) and adds only its signatures (`signBody`), its text kept; and the first sync
+  after it is a whole one (`SyncMeta.signed`) so every bookmark gets its `imageSig`. Without a signature a
+  picture loads from the publisher (not kept). Kept in `my-planning-intake-images` (`imageMeta` +
+  `imageData` written in one transaction after the whole picture arrived, so a broken download leaves
+  nothing and a half-written pair is cleared on reading; bytes as an ArrayBuffer, as Safari can't store a
+  Blob in a private window; `sizes` for every picture shown, kept or not, 2,000 at most; `files` for the
+  font) within 400 pictures and 150 MB, or less when the browser has less room (half of what
+  `navigator.storage.estimate()` says is free, beside what is kept); eviction: unused for 60 days, then
+  least recently used, never a picture an article kept offline holds, only this database touched. A
+  browser that refuses to store (quota) gets a quarter of the unheld pictures given back and one more
+  try; refused again, nothing more is kept that session and pictures are still shown. **Placing a
+  picture never moves your words** (`steady` in `ArticleReader`): it is decoded off the page first (a decode
+  that fails leaves it to its own load and error: WebKit's offline switch refuses blob: copies off the
+  page), then its size and source are set in one step and the place put back in the same frame (the block at the
+  line where it was on the screen, or as far through it when the picture is in that block); a picture
+  above the screen waits for a pause in your scrolling (or until it nears the screen), as moving the
+  scroll position mid-flick would cut the flick short. The hero appears the same way. Not kept, or
+  refused: the browser tries the publisher directly online; else "Picture not on this device" / "Picture
+  unavailable", the alt text kept. The service worker is untouched (cross-origin pictures in it would be
+  opaque: no size, no error, padded quota).
   **Keep offline** (`keep` on the article, this device): the text is here already; all its pictures are
   fetched and held for it; taking it back lets them be evicted in turn.
 - **Takeaways from articles** (D7, shipped ahead of Phase 3): a `SavedInsight` may carry `source`
@@ -824,7 +861,10 @@ reader) are built; Phase 3 (Active Reading's highlights, notes, Save to Takeaway
 - **Tests:** `server/intake.test.ts`, `src/intake/{articles,sync,sanitize,reading,images}.test.ts`,
   `intelligence/article-takeaway.test.ts`, `ui/sign-out.test.ts`. The browser checks (real library,
   WebKit: `ik-checks`, `ikr-checks` from a saved library state made by `ikr-prime`, and `ikr-sync`, two
-  devices through a local sync worker) are kept in `../SUPPORTING FILES/intake-harnesses/`. Under
+  devices through a local sync worker; `img-probe`, the picture endpoint's attacks in workerd) are kept in
+  `../SUPPORTING FILES/intake-harnesses/`. `ikr-checks` section G watches each picture as it is placed (the
+  words at the line before and after) with and without browser scroll anchoring; Playwright's WebKit 26
+  anchors scrolling by itself and hid the shifts Safari on the iPad would show. Under
   Playwright: block the service worker (`serviceWorkers: 'block'`), or WebKit's requests escape
   `route()`; scroll a library row into view with the page's own `scrollIntoView` (Playwright's misses rows
   skipped by `content-visibility`); a route that refuses the network must spare `blob:` addresses; and
@@ -918,7 +958,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (608 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (661 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris

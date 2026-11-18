@@ -35,7 +35,17 @@ describe('syncing', () => {
     const changed = await syncLibrary(new Map(), { ...s, fetchChanges: async (since, offset) => { asked.push([since, offset]); return pages.shift()!; } });
     expect(asked).toEqual([[1, 0], [1, 2]]);
     expect(changed.map(a => a.id)).toEqual([1, 2, 3]);
-    expect(s.metas.at(-1)).toEqual({ since: 2_000_000_000 - 60, pending: null, lastSyncAt: 2_000_000_000_000 });
+    expect(s.metas.at(-1)).toEqual({ since: 2_000_000_000 - 60, pending: null, lastSyncAt: 2_000_000_000_000, signed: true });
+  });
+
+  it('once after Phase 2, a device synced before it asks for the whole library again (its pictures signed), then goes on as before', async () => {
+    const s = store({ since: 1_900_000_000, pending: { since: 1_900_000_000, offset: 500, startedAt: 1_950_000_000 }, lastSyncAt: 1 });
+    const asked: [number, number][] = [];
+    const page: SyncPage = { bookmarks: [bm(1)], deletedIds: [], complete: true, nextOffset: null };
+    await syncLibrary(new Map(), { ...s, fetchChanges: async (since, offset) => { asked.push([since, offset]); return page; } });
+    await syncLibrary(new Map(s.saved), { ...s, fetchChanges: async (since, offset) => { asked.push([since, offset]); return page; } });
+    expect(asked).toEqual([[1, 0], [2_000_000_000 - 60, 0]]);
+    expect(s.metas.at(-1)?.signed).toBe(true);
   });
 
   it('a second sync of the same bookmarks adds nothing new', async () => {
@@ -79,9 +89,9 @@ describe('fetching a body', () => {
 
   it('keeps the body on the device and records its length', async () => {
     const d = deps();
-    const out = await fetchOne(a, { ...d, fetchArticle: async () => ({ id: 7, title: null, author: null, authorUrl: null, publishedAt: null, thumbnail: null, description: null, category: 0, html: '<p>words</p>', images: [], words: 460, paywalled: false, direction: 'ltr' }) });
+    const out = await fetchOne(a, { ...d, fetchArticle: async () => ({ id: 7, title: null, author: null, authorUrl: null, publishedAt: null, thumbnail: null, description: null, category: 0, html: '<p>words</p>', images: [], words: 460, paywalled: false, direction: 'ltr', sigs: { 'https://img.example.com/1.jpg': 'sig1' } }) });
     expect('article' in out && out.article).toMatchObject({ content: 'cached', words: 460 });
-    expect(d.bodies).toEqual([{ id: 7, html: '<p>words</p>', images: [], words: 460, paywalled: false, direction: 'ltr', fetchedAt: 42 }]);
+    expect(d.bodies).toEqual([{ id: 7, html: '<p>words</p>', images: [], words: 460, paywalled: false, direction: 'ltr', fetchedAt: 42, sigs: { 'https://img.example.com/1.jpg': 'sig1' } }]);
   });
 
   it("sets aside an article Instapaper can't extract, so it isn't asked for again", async () => {
