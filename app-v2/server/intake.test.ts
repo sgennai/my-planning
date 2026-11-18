@@ -144,3 +144,59 @@ describe('/api/intake', () => {
     expect(await (await get('tags')).json()).toEqual({ tags: [{ id: 1, name: 'ai', count: 3 }] });
   });
 });
+
+describe('/api/intake/image', () => {
+  const pic = (type = 'image/jpeg', bytes = 2000, headers: Record<string, string> = {}) =>
+    new Response(new Uint8Array(bytes), { headers: { 'Content-Type': type, ...headers } });
+  const image = (u: string) => get(`image?url=${encodeURIComponent(u)}`);
+
+  it("fetches a picture with nothing of ours, and answers it safely; no token needed", async () => {
+    reply = () => pic('image/webp; charset=binary');
+    const res = await get(`image?url=${encodeURIComponent('https://cdn.example.com/a.webp')}`, {});
+    expect(res.status).toBe(200);
+    expect(res.headers.get('Content-Type')).toBe('image/webp');
+    expect(res.headers.get('Cache-Control')).toBe('private, no-store');
+    expect(res.headers.get('X-Content-Type-Options')).toBe('nosniff');
+    expect(res.headers.get('Content-Security-Policy')).toContain('sandbox');
+    expect((await res.arrayBuffer()).byteLength).toBe(2000);
+    expect(calls).toEqual([{ url: 'https://cdn.example.com/a.webp', auth: null, redirect: 'manual' }]);
+  });
+
+  it('refuses addresses that are not a public web host, without asking anything', async () => {
+    for (const u of ['ftp://x.example.com/a.png', 'https://localhost/a.png', 'http://127.0.0.1/a.png', 'http://[::1]/a.png', 'https://printer.local/a.png',
+      'https://user:pw@x.example.com/a.png', 'https://x.example.com:8080/a.png', 'https://intranet/a.png', 'not a url']) {
+      expect((await image(u)).status, u).toBe(400);
+    }
+    expect(calls).toEqual([]);
+  });
+
+  it('keeps only raster pictures: never SVG, HTML or anything over 6 MB', async () => {
+    reply = () => pic('image/svg+xml');
+    expect((await image('https://cdn.example.com/a.svg')).status).toBe(415);
+    reply = () => pic('text/html');
+    expect((await image('https://cdn.example.com/a.png')).status).toBe(415);
+    reply = () => pic('image/png', 10, { 'Content-Length': String(7 * 1024 * 1024) });
+    expect((await image('https://cdn.example.com/b.png')).status).toBe(413);
+    reply = () => pic('image/png', 6 * 1024 * 1024 + 1);
+    expect((await image('https://cdn.example.com/c.png')).status).toBe(413);
+  });
+
+  it('follows a redirect only to an address it would fetch, three at most', async () => {
+    reply = url => (url.pathname === '/a.jpg' ? new Response(null, { status: 302, headers: { Location: '/b.jpg' } }) : pic());
+    expect((await image('https://cdn.example.com/a.jpg')).status).toBe(200);
+    expect(calls.map(c => c.url)).toEqual(['https://cdn.example.com/a.jpg', 'https://cdn.example.com/b.jpg']);
+    reply = () => new Response(null, { status: 301, headers: { Location: 'http://127.0.0.1/admin.png' } });
+    expect((await image('https://cdn.example.com/a.jpg')).status).toBe(502);
+    calls.length = 0;
+    reply = url => new Response(null, { status: 302, headers: { Location: `${url.pathname}x` } });
+    expect((await image('https://cdn.example.com/a')).status).toBe(502);
+    expect(calls.length).toBe(4);
+  });
+
+  it("says when the picture's site refuses it or doesn't answer", async () => {
+    reply = () => new Response('no', { status: 403 });
+    expect(await (await image('https://cdn.example.com/a.jpg')).json()).toMatchObject({ error: { code: 'blocked' } });
+    reply = () => { throw new TypeError('network'); };
+    expect((await image('https://cdn.example.com/a.jpg')).status).toBe(504);
+  });
+});

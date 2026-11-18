@@ -6,6 +6,8 @@
 // - `ar:<bookmarkId>`, type `intake-reading`: how far you have read, and your place (written by the reader);
 // - `ac:<bookmarkId>`, type `intake-read-mark`: Finished, set only by your tap.
 // Instapaper's archive, like and progress are shown as Instapaper's, never taken for those.
+import { READING_TYPE, READ_MARK_TYPE } from './reading';
+import type { Place } from './place';
 import type { SyncedBookmark, ParsedArticle } from './types';
 
 export type { SyncedBookmark, ParsedArticle };
@@ -24,12 +26,11 @@ export interface Article extends SyncedBookmark {
   /** Times in a row its body didn't come (Instapaper too slow, or failing), and when to ask again. */
   tries?: number;
   retryAt?: number | null;
+  /** Kept offline on this device, images included (Phase 2): its images are evicted last. */
+  keep?: boolean;
 }
 
-export const READING_TYPE = 'intake-reading';
-export const READ_MARK_TYPE = 'intake-read-mark';
-export const readingId = (bookmarkId: number) => `ar:${bookmarkId}`;
-export const readMarkId = (bookmarkId: number) => `ac:${bookmarkId}`;
+export { READING_TYPE, READ_MARK_TYPE, readingId, readMarkId } from './reading';
 
 export function domainOf(url: string | null): string | null {
   if (!url) return null;
@@ -41,7 +42,25 @@ export const minutesOf = (words: number | null): number | null => (words && word
 
 /** The image, description, byline and date to show: Instapaper's, or the parse's where it had none. */
 export const imageOf = (a: Article) => a.image ?? a.lead?.image ?? null;
-export const descriptionOf = (a: Article) => a.description ?? a.lead?.description ?? null;
+/**
+ * A description that is a site's menu or breadcrumb trail rather than prose, by its shape alone: a trail of
+ * at least three steps ("Home > Industry > …"), a menu word doubled at the start ("Products Products …"),
+ * or eight words or more of capitalised labels without a sentence ending.
+ */
+export function looksLikeDebris(text: string): boolean {
+  const t = text.trim();
+  if (/(?:[^>›»]{1,60}[>›»]){2,}/u.test(t)) return true;
+  if (/^(\p{Lu}\p{L}+)\s+\1\b/u.test(t)) return true;
+  const words = t.split(/\s+/);
+  const labels = words.filter(w => /^\p{Lu}/u.test(w)).length;
+  return words.length >= 8 && !/[.!?…](\s|$)/u.test(t) && labels / words.length > 0.6;
+}
+
+/** Instapaper's description; the article's own (from the parse) when Instapaper's is page debris and the article's isn't. Never rewritten. */
+export const descriptionOf = (a: Article) => {
+  const own = a.description, lead = a.lead?.description ?? null;
+  return own && lead && looksLikeDebris(own) && !looksLikeDebris(lead) ? lead : own ?? lead;
+};
 export const authorOf = (a: Article) => a.author ?? a.lead?.author ?? null;
 export const titleOf = (a: Article) => a.title ?? a.domain ?? a.url ?? 'Untitled';
 
@@ -62,6 +81,7 @@ export function mergeSync(existing: ReadonlyMap<number, Article>, bookmarks: Syn
       words: prev?.words ?? null,
       lead: prev?.lead ?? null,
       ...(prev?.tries ? { tries: prev.tries, retryAt: prev.retryAt ?? null } : {}),
+      ...(prev?.keep ? { keep: true } : {}),
     });
   }
   for (const id of deletedIds) {
@@ -84,10 +104,10 @@ export function withParse(a: Article, p: ParsedArticle): Article {
 }
 
 // ── Your reading ───────────────────────────────────────────────────────────
-export interface Reading { progress: number; finished: boolean }
+export interface Reading { progress: number; finished: boolean; place: Place | null }
 export type Status = 'unread' | 'progress' | 'finished';
 
-interface LogRecord { id?: unknown; type?: unknown; refId?: unknown; value?: { progress?: unknown; finished?: unknown }; _deleted?: unknown }
+interface LogRecord { id?: unknown; type?: unknown; refId?: unknown; value?: { progress?: unknown; finished?: unknown; place?: Place | null }; _deleted?: unknown }
 
 export function readingIndex(log: unknown[] | undefined): Map<number, Reading> {
   const out = new Map<number, Reading>();
@@ -96,8 +116,11 @@ export function readingIndex(log: unknown[] | undefined): Map<number, Reading> {
     if (r?._deleted || typeof r?.id !== 'string') continue;
     const id = Number(r.id.slice(3));
     if (!Number.isInteger(id)) continue;
-    const cur = out.get(id) ?? { progress: 0, finished: false };
-    if (r.type === READING_TYPE && r.id.startsWith('ar:')) cur.progress = Math.max(cur.progress, Math.min(1, Number(r.value?.progress) || 0));
+    const cur = out.get(id) ?? { progress: 0, finished: false, place: null };
+    if (r.type === READING_TYPE && r.id.startsWith('ar:')) {
+      cur.progress = Math.max(cur.progress, Math.min(1, Number(r.value?.progress) || 0));
+      cur.place = r.value?.place ?? null;
+    }
     else if (r.type === READ_MARK_TYPE && r.id.startsWith('ac:')) cur.finished = r.value?.finished === true;
     else continue;
     out.set(id, cur);

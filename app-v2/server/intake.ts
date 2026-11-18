@@ -6,6 +6,7 @@
 //   GET /api/intake/articles/<id>        one article as Instapaper parsed it: its HTML body and metadata
 //   GET /api/intake/folders              folder names
 //   GET /api/intake/tags                 tag names
+//   GET /api/intake/image?url=           an article's picture, for the reader to keep on the device (D4)
 //
 // The token (INSTAPAPER_ACCESS_TOKEN, a Pages secret) only ever goes to Instapaper: one host, fixed paths,
 // numeric ids, and no redirect followed, as the official SDK does. Nothing is written to Instapaper and
@@ -131,6 +132,67 @@ function failure(e: unknown, article = false): Response {
   }
 }
 
+// ── Images (Intake 2.0 Phase 2, D4) ────────────────────────────────────────
+// An article's picture, fetched here because the browser cannot read another site's image to keep it
+// offline. Only that: an http(s) address with a host name (no address, no port, nothing local), one of
+// five raster types (never SVG, which can carry script), 6 MB at most, each redirect checked like the
+// first. The request carries nothing of ours (no cookie, no token) and nothing is cached here. Behind the
+// site's login like every path.
+const IMAGE_TYPES = /^image\/(jpeg|png|gif|webp|avif)$/;
+const IMAGE_MAX = 6 * 1024 * 1024;
+const IMAGE_HOPS = 3;
+
+export function imageAddress(raw: string | null): URL | null {
+  if (!raw || raw.length > 2048) return null;
+  let u: URL;
+  try { u = new URL(raw); } catch { return null; }
+  if ((u.protocol !== 'https:' && u.protocol !== 'http:') || u.username || u.password) return null;
+  if (u.port && u.port !== '80' && u.port !== '443') return null;
+  const host = u.hostname.toLowerCase();
+  if (!host.includes('.') || host.startsWith('[') || /^[\d.]+$/.test(host)) return null;
+  if (/(^|\.)(localhost|local|internal|lan|home\.arpa)$/.test(host)) return null;
+  return u;
+}
+
+async function image(raw: string | null, fetchImpl: typeof fetch): Promise<Response> {
+  let url = imageAddress(raw);
+  if (!url) return fail(400, 'bad-url', 'Not an image address this fetches.');
+  let response: Response;
+  for (let hop = 0; ; hop++) {
+    try {
+      response = await fetchImpl(url.href, {
+        headers: { Accept: 'image/avif,image/webp,image/png,image/jpeg,image/gif', 'User-Agent': 'Mozilla/5.0 (compatible; RoutineReader/1.0)' },
+        redirect: 'manual',
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+      });
+    } catch {
+      return fail(504, 'unreachable', "The image's site didn't answer.");
+    }
+    const location = response.status >= 300 && response.status < 400 ? response.headers.get('Location') : null;
+    if (!location) break;
+    let next: URL | null;
+    try { next = hop < IMAGE_HOPS ? imageAddress(new URL(location, url).href) : null; } catch { next = null; }
+    if (!next) return fail(502, 'blocked', 'The image moved somewhere this does not follow.');
+    url = next;
+  }
+  if (!response.ok) return fail(502, 'blocked', `The image's site refused it (${response.status}).`);
+  const type = (response.headers.get('Content-Type') ?? '').split(';')[0].trim().toLowerCase();
+  if (!IMAGE_TYPES.test(type)) return fail(415, 'not-an-image', 'Not a picture this keeps.');
+  if (Number(response.headers.get('Content-Length')) > IMAGE_MAX) return fail(413, 'too-large', 'The picture is too large to keep.');
+  const body = await response.arrayBuffer();
+  if (body.byteLength > IMAGE_MAX) return fail(413, 'too-large', 'The picture is too large to keep.');
+  return new Response(body, {
+    status: 200,
+    headers: {
+      'Content-Type': type,
+      'Cache-Control': 'private, no-store',
+      'X-Content-Type-Options': 'nosniff',
+      'Content-Security-Policy': "default-src 'none'; sandbox",
+      'Cross-Origin-Resource-Policy': 'same-origin',
+    },
+  });
+}
+
 const int = (v: string | null, min: number): number | null => (v !== null && /^\d{1,12}$/.test(v) && Number(v) >= min ? Number(v) : null);
 
 export async function handleIntake(request: Request, env: IntakeEnv, fetchImpl: typeof fetch = fetch): Promise<Response> {
@@ -138,6 +200,8 @@ export async function handleIntake(request: Request, env: IntakeEnv, fetchImpl: 
   const url = new URL(request.url);
   const [what, id, ...rest] = url.pathname.replace(/^\/api\/intake\/?/, '').split('/');
   if (rest.length) return fail(404, 'not-found', 'No such path.');
+  // Pictures need no Instapaper token, and are never given it.
+  if (what === 'image' && !id) return image(url.searchParams.get('url'), fetchImpl);
 
   const token = env.INSTAPAPER_ACCESS_TOKEN?.trim();
   if (!token) return fail(503, 'not-configured', 'Instapaper is not connected yet (INSTAPAPER_ACCESS_TOKEN).');

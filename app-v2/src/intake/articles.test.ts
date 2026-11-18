@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   mergeSync, withParse, readingIndex, statusOf, matchesFilter, matchesQuery, sortArticles, toFetch, domainOf, minutesOf,
-  imageOf, descriptionOf, authorOf, titleOf, type Article, type SyncedBookmark,
+  imageOf, descriptionOf, authorOf, titleOf, looksLikeDebris, type Article, type SyncedBookmark,
 } from './articles';
 
 const bm = (id: number, extra: Partial<SyncedBookmark> = {}): SyncedBookmark => ({
@@ -132,5 +132,25 @@ describe('finding and ordering', () => {
     expect(domainOf('not a url')).toBeNull();
     expect(minutesOf(100)).toBe(1);
     expect(minutesOf(null)).toBeNull();
+  });
+});
+
+describe('descriptions that are page debris (C5)', () => {
+  it('knows a breadcrumb trail, a doubled menu word and a run of labels; not prose', () => {
+    expect(looksLikeDebris('Home>Industry>Technology & Telecom> The future of work')).toBe(true);
+    expect(looksLikeDebris('Home › News › Tech › A story')).toBe(true);
+    expect(looksLikeDebris('Products Products All Products Platform Overview. Explore more')).toBe(true);
+    expect(looksLikeDebris('Sign In Pricing Customers Partners Resources Events Careers Contact Support')).toBe(true);
+    expect(looksLikeDebris('Sales teams are changing how they work. Here is what we found.')).toBe(false);
+    expect(looksLikeDebris('A > B is a common comparison in maths')).toBe(false);
+    expect(looksLikeDebris('New York State Is Changing Its Rules')).toBe(false);
+  });
+
+  it("shows the article's own description instead, only when it reads as prose", () => {
+    const lead = (description: string | null) => ({ image: null, description, author: null, publishedAt: null });
+    expect(descriptionOf(art(1, { description: 'Home > News > Tech > Story', lead: lead('What the story says.') }))).toBe('What the story says.');
+    expect(descriptionOf(art(1, { description: 'Home > News > Tech > Story', lead: lead('Menu > Other > Debris > Too') }))).toBe('Home > News > Tech > Story');
+    expect(descriptionOf(art(1, { description: 'Good words.', lead: lead('Other words.') }))).toBe('Good words.');
+    expect(descriptionOf(art(1, { description: null, lead: lead('Only these.') }))).toBe('Only these.');
   });
 });

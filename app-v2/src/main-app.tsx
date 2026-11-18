@@ -412,7 +412,7 @@ export function App() {
   } else if (appPage === 'intake') {
     pageContent = (
       <Suspense fallback={<Centered>Loading…</Centered>}>
-        <IntakeScreen data={data} />
+        <IntakeScreen data={data} onPersist={persist} />
       </Suspense>
     );
   } else if (appPage === 'practice') {

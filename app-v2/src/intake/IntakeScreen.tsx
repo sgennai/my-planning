@@ -1,21 +1,24 @@
 // Intake (Intake 2.0): what to read, watch and listen to, in four places, of which Articles is built.
 // Articles is your Instapaper library (useArticles), browsed as a list or a bento grid. The section takes
-// the Jour & verre look of Intelligence (styles/intake.css), light in both themes; the reader comes in
-// Phase 2, so an article opens its original for now.
+// the Jour & verre look of Intelligence (styles/intake.css), light in both themes. An article opens in the
+// Paper Sanctuary reader (ArticleReader, Phase 2), which stays open while the app runs: leaving Intake
+// and coming back finds it.
 //
 // What the old Intake kept (`data.learning`: the podcast feeds seeded from podcasts.opml) is left as it
 // is, for Podcasts.
 import '../styles/intake.css';
-import { useMemo, type CSSProperties } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import type { AppDataV26 } from '../storage/types';
 import { IconRefresh } from '../ui/icons';
 import { useTextScale } from '../intelligence/useTextScale';
 import { readingIndex } from './articles';
 import { useArticles } from './useArticles';
 import { ArticlesLibrary } from './ArticlesLibrary';
+import { ArticleReader, type Persist } from './ArticleReader';
 
 interface Props {
   data: AppDataV26;
+  onPersist: Persist;
 }
 
 // Websites is planned (said on the pill); Podcasts and Webinars are not built yet.
@@ -26,9 +29,14 @@ const PLACES = [
   { id: 'webinars', label: 'Webinars', live: false, planned: false },
 ];
 
-export function IntakeScreen({ data }: Props) {
+const session = { openId: null as number | null };
+
+export function IntakeScreen({ data, onPersist }: Props) {
   const scale = useTextScale();
-  const { articles, status, refresh } = useArticles();
+  const { articles, status, refresh, fetchNow, update } = useArticles();
+  const [openId, setOpenId] = useState(session.openId);
+  const show = (id: number | null) => { session.openId = id; setOpenId(id); };
+  const open = openId === null ? null : articles?.get(openId) ?? null;
   const reading = useMemo(() => readingIndex((data as { progressLog?: unknown[] }).progressLog), [data]);
   const busy = status.phase === 'syncing';
 
@@ -59,7 +67,9 @@ export function IntakeScreen({ data }: Props) {
           aria-busy={busy}
         ><IconRefresh /></button>
       </div>
-      <ArticlesLibrary articles={articles} status={status} reading={reading} onRetry={() => void refresh()} />
+      {open
+        ? <ArticleReader key={open.id} article={open} reading={reading.get(open.id)} onBack={() => show(null)} onPersist={onPersist} fetchNow={fetchNow} update={update} />
+        : <ArticlesLibrary articles={articles} status={status} reading={reading} onRetry={() => void refresh()} onOpen={show} />}
     </div>
   );
 }

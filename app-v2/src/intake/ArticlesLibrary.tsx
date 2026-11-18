@@ -47,9 +47,10 @@ interface Props {
   status: LibraryStatus;
   reading: ReadonlyMap<number, Reading>;
   onRetry: () => void;
+  onOpen: (id: number) => void;
 }
 
-export function ArticlesLibrary({ articles, status, reading, onRetry }: Props) {
+export function ArticlesLibrary({ articles, status, reading, onRetry, onOpen }: Props) {
   const [prefs, setPrefs] = useState(recallPrefs);
   const [query, setQuery] = useState(session.query);
   const scroller = useRef<HTMLDivElement>(null);
@@ -145,7 +146,7 @@ export function ArticlesLibrary({ articles, status, reading, onRetry }: Props) {
           <ol className={`ik-articles ik-articles--${prefs.mode}`}>
             {shown.map((a, i) => (
               <li key={a.id} data-id={a.id}>
-                {prefs.mode === 'list' ? <Row a={a} reading={reading} /> : <Card a={a} reading={reading} lead={i === 0} />}
+                {prefs.mode === 'list' ? <Row a={a} reading={reading} onOpen={onOpen} /> : <Card a={a} reading={reading} lead={i === 0} onOpen={onOpen} />}
               </li>
             ))}
           </ol>
@@ -248,6 +249,7 @@ function Meta({ a, reading, source = true }: { a: Article; reading: ReadonlyMap<
       {a.liked && <span className="ik-flag">Liked in Instapaper</span>}
       {a.removedAt && <span className="ik-flag is-alert">Removed from Instapaper</span>}
       {a.content === 'unavailable' && <span className="ik-flag">Original only</span>}
+      {a.keep && <span className="ik-flag">Kept offline</span>}
     </p>
   );
 }
@@ -265,39 +267,39 @@ function Thumb({ a, className }: { a: Article; className: string }) {
   );
 }
 
-// Until the reader (Phase 2), an article opens its original, in a new tab.
-const linkProps = (a: Article) => (a.url ? { href: a.url, target: '_blank', rel: 'noopener noreferrer' } : {});
+// The title is the article's one control, its touch area the whole row or card (`.ik-open::after`).
+function Open({ a, onOpen }: { a: Article; onOpen: (id: number) => void }) {
+  return <button type="button" className="ik-open" onClick={() => onOpen(a.id)}>{titleOf(a)}</button>;
+}
 
-function Row({ a, reading }: { a: Article; reading: ReadonlyMap<number, Reading> }) {
+function Row({ a, reading, onOpen }: { a: Article; reading: ReadonlyMap<number, Reading>; onOpen: (id: number) => void }) {
   const desc = descriptionOf(a);
   const author = authorOf(a);
   return (
-    <a className="ik-row" {...linkProps(a)}>
+    <div className="ik-row">
       <Thumb a={a} className="ik-thumb" />
       <div className="ik-row-body">
-        <h2 className="ik-row-title">{titleOf(a)}</h2>
+        <h2 className="ik-row-title"><Open a={a} onOpen={onOpen} /></h2>
         {desc && <p className="ik-desc">{desc}</p>}
         {author && <p className="ik-author">{author}</p>}
         <Meta a={a} reading={reading} />
       </div>
-      <span className="ik-vh">, opens the original</span>
-    </a>
+    </div>
   );
 }
 
-function Card({ a, reading, lead }: { a: Article; reading: ReadonlyMap<number, Reading>; lead: boolean }) {
+function Card({ a, reading, lead, onOpen }: { a: Article; reading: ReadonlyMap<number, Reading>; lead: boolean; onOpen: (id: number) => void }) {
   const desc = descriptionOf(a);
   const image = !!imageOf(a);
   return (
-    <a className={`ik-card${image ? '' : ' is-type'}${lead ? ' is-lead' : ''}`} {...linkProps(a)}>
+    <div className={`ik-card${image ? '' : ' is-type'}${lead ? ' is-lead' : ''}`}>
       {image && <Thumb a={a} className="ik-card-img" />}
       <div className="ik-card-body">
         {a.domain && <p className="ik-source">{a.domain}</p>}
-        <h2 className="ik-card-title">{titleOf(a)}</h2>
+        <h2 className="ik-card-title"><Open a={a} onOpen={onOpen} /></h2>
         {desc && (!image || lead) && <p className="ik-desc">{desc}</p>}
         <Meta a={a} reading={reading} source={false} />
       </div>
-      <span className="ik-vh">, opens the original</span>
-    </a>
+    </div>
   );
 }

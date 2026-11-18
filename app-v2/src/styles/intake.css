@@ -251,6 +251,24 @@
   transition: background .15s, box-shadow .15s;
 }
 .ik-row { display: flex; align-items: flex-start; gap: 18px; padding: 12px; }
+.ik-row, .ik-card { position: relative; }
+/* The title is the article's button; its touch area covers the row or card. */
+.ik-open {
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.ik-open::after { content: ''; position: absolute; inset: 0; border-radius: 16px; }
+.ik .ik-open:focus-visible { outline: none; }
+:is(.ik-row, .ik-card):has(.ik-open:focus-visible) { outline: 3px solid var(--ik-indigo); outline-offset: 2px; }
 @media (hover: hover) { :is(.ik-row, .ik-card):hover { background: var(--ik-glass-row); box-shadow: var(--ik-shadow-row); } }
 :is(.ik-row, .ik-card):active { background: var(--ik-glass-row); }
 .ik-thumb,

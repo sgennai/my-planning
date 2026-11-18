@@ -727,21 +727,21 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
 
 Intake 2.0: your Instapaper library, then a reader. Plan and decisions D1–D11:
 `../SUPPORTING FILES/intake-2-articles-audit-and-plan-2026-11-16.md` (with the probe report and each
-phase's validation report beside it). Phase 1 (the Articles library) is built; Phase 2 (the Paper
-Sanctuary reader) and Phase 3 (Active Reading: highlights, notes, Save to Takeaways) are not.
+phase's validation report beside it). Phase 1 (the Articles library) and Phase 2 (the Paper Sanctuary
+reader) are built; Phase 3 (Active Reading's highlights, notes, Save to Takeaways) is not.
 
 - **Instapaper access** is server-side and read-only: `functions/api/intake/[[path]].ts` →
   `server/intake.ts` (`GET /api/intake/status`, `/sync?since=&offset=`, `/articles/<id>`, `/folders`,
-  `/tags`), with a personal access token, the Pages secret `INSTAPAPER_ACCESS_TOKEN` (`.dev.vars`
+  `/tags`, `/image?url=`), with a personal access token, the Pages secret `INSTAPAPER_ACCESS_TOKEN` (`.dev.vars`
   locally; never in the bundle, Git, logs or an answer). Instapaper API v2 (`/api/2`, bearer). Its
   failures come back as codes (`not-configured`, `auth-failed`, `rate-limited` with Retry-After,
   `unavailable` for an article it can't extract, `offline` on the device…), never the token. Nothing
   is ever written to Instapaper (D8). Behind the site login like every path.
 - **Content vs your data:** the library (metadata) and the bodies are per device, in IndexedDB
-  `my-planning-intake` (`cache.ts`: `articles`, `bodies`, `meta`), deleted on sign-out
-  (`ui/sign-out.ts`). Only your own data will sync: reading `ar:<bookmark id>` (`intake-reading`) and
-  Finished `ac:<id>` (`intake-read-mark`) in `progressLog`, written from Phase 2; highlights and notes
-  in Phase 3.
+  `my-planning-intake` (`cache.ts`: `articles`, `bodies`, `meta`), the reader's pictures in
+  `my-planning-intake-images`, both deleted on sign-out (`ui/sign-out.ts`). Only your own data syncs:
+  reading `ar:<bookmark id>` (`intake-reading`) and Finished `ac:<id>` (`intake-read-mark`) in
+  `progressLog` (Phase 2); highlights and notes in Phase 3.
 - **Sync** (`sync.ts`, pure, with `useArticles.ts` driving it): `since` from the last complete sync
   less a minute (1 the first time), pages of 500, offset advanced past bookmarks and deleted ids; a
   sync cut short resumes from its saved offset. `mergeSync` (`articles.ts`) keeps what the device
@@ -766,9 +766,54 @@ Sanctuary reader) and Phase 3 (Active Reading: highlights, notes, Save to Takeaw
   two rows; two columns ≤930px). View, filter and sort are kept on the device
   (`my-planning-intake-library`), the search and the place for the session. Switching views and
   coming back keep the first article in view where it was (`holdAnchor`: rows use
-  `content-visibility`, so it re-places for a second as they lay out). Until the reader, an article
-  opens its original in a new tab (`noopener noreferrer`); images load with `referrerPolicy="no-referrer"`
-  and fall back to the initial.
+  `content-visibility`, so it re-places for a second as they lay out). An article's title is its button
+  (`.ik-open`, its `::after` covering the row or card) and opens the reader; thumbnails load with
+  `referrerPolicy="no-referrer"` and fall back to the initial. A description that is page debris (a
+  breadcrumb trail, a doubled menu word, a run of labels: `looksLikeDebris`) gives way to the parse's
+  own when that reads as prose (C5); nothing is rewritten.
+- **The reader** (Phase 2; `ArticleReader.tsx`, `ReaderParts.tsx`, `styles/intake-reader.css`), after the
+  approved prototype `intake-reader.html` (Concept 01 "Paper Sanctuary" with Concept 10's Active Reading
+  panel): paper (#fffdfa, Literata loaded on first open, Georgia before and offline), a sticky opaque bar
+  (back, Contents when the article has h2/h3, Aa, Active Reading, Finished) with the 3px reading line at
+  its foot, the article (source · author · date, title, a deck when the description doesn't repeat the
+  opening, minutes, Original ↗, the lead picture when not in the text), its HTML, and a footer (Mark as
+  finished, Keep offline, Open original). Appearance (device only, `reader-prefs.ts`): Light / Sepia /
+  Dark, Serif / Sans, size 15–25, spacing 1.4–2.05, measure 520–870, first use following the app's theme.
+  Active Reading (`ActiveReading`): beside the text from 800px of reader (208px, 240px from 1100px; a
+  container query), else a sheet over it with a backdrop, focus inside, the text `inert`, Escape closes;
+  it holds the article's status, read %, minutes, Keep offline and the original, and says plainly that
+  highlights and notes come later (Phase 3): nothing invented. Opening an article not yet fetched
+  fetches it now; one Instapaper can't extract shows why, with Try again (one request per tap, the button
+  saying it's trying, no reset of the library) and Open original. The highlight button of the prototype
+  waits for Phase 3.
+- **The article's HTML** (`sanitize.ts`): DOMPurify with an allowlist (text structure, links, images,
+  tables, figures); embeds become a link; links open beside the app (`noopener noreferrer`), other schemes
+  keep their words; headings shift so the article's start at h2 and h2/h3 get ids for Contents; images
+  keep their address in `data-src`; every innermost block of text is numbered (`data-b`). Drawn once into
+  the page (`ArticleBody`, memo, `dangerouslySetInnerHTML`): React never redraws it.
+- **Your place** (`place.ts`, `reading.ts`): a block, a hash of its first 40 characters (no article text
+  in synced data), and how far through it the reading line is (just under the bar). Noted on every scroll
+  frame; put back (`goTo`) when the article is drawn, after any change of size, spacing, measure or font
+  (`useLayoutEffect`), and whenever the text reflows while you aren't scrolling (a ResizeObserver: the
+  panel, a rotation, a picture arriving). A scroll is yours if a touch, wheel, key or press came in the
+  3 s before (momentum included); only then is anything written: `ar:<bookmark id>` (`intake-reading`,
+  `{ progress: furthest, place }`) 1.2 s after scrolling rests, on leaving the article, on the app being
+  hidden; opening and putting the place back write nothing. Finished is `ac:<bookmark id>`
+  (`intake-read-mark`, `{ finished }`), by your tap only (the bar's button or the footer's). Two devices:
+  `mergeReading` (storage/merge.ts) keeps the furthest progress and the later write's place; the mark is
+  last-write-wins.
+- **Pictures** (`images.ts`, `reader-images.ts`, D4): loaded as they come within 1,500px (never all at
+  once), through `/api/intake/image` (the server fetches an http(s) picture from a public host name,
+  jpeg/png/gif/webp/avif only, ≤6 MB, redirects checked, nothing of ours sent, `no-store`, sandboxed), and
+  kept in a database of their own, `my-planning-intake-images` (`imageMeta` + `imageData`; bytes as an
+  ArrayBuffer, as Safari can't store a Blob in a private window; the library's database stays at version
+  1, so a rollback to Phase 1 finds it as it left it; sign-out deletes both) within 400 pictures and 150 MB; eviction: unused for
+  60 days, then least recently used, never a picture an article kept offline holds. Their sizes are noted
+  so they hold their space next time. Not kept, or refused: the browser tries the publisher directly
+  online; else "Picture not on this device" / "Picture unavailable", the alt text kept. The service worker
+  is untouched (cross-origin pictures in it would be opaque: no size, no error, padded quota).
+  **Keep offline** (`keep` on the article, this device): the text is here already; all its pictures are
+  fetched and held for it; taking it back lets them be evicted in turn.
 - **Takeaways from articles** (D7, shipped ahead of Phase 3): a `SavedInsight` may carry `source`
   (`kind: 'intake-article'`, bookmark id, url, title, publication, author). `originOf` names it
   "Intake · Article" where a feed name was, `originalOf` links "Original article" where "Original in
@@ -776,10 +821,14 @@ Sanctuary reader) and Phase 3 (Active Reading: highlights, notes, Save to Takeaw
   it opens the article. A briefing's takeaway reads exactly as before.
 - **The old Intake** (Quick Add, cards over `data.learning`) is gone from the screen (D9); its data
   (42 OPML podcasts) and the OPML seeding (`intake-loader.ts`) stay for Podcasts.
-- **Tests:** `server/intake.test.ts`, `src/intake/articles.test.ts`, `sync.test.ts`,
+- **Tests:** `server/intake.test.ts`, `src/intake/{articles,sync,sanitize,reading,images}.test.ts`,
   `intelligence/article-takeaway.test.ts`, `ui/sign-out.test.ts`. The browser checks (real library,
-  WebKit) are kept in `../SUPPORTING FILES/intake-harnesses/`; under Playwright, block the service
-  worker (`serviceWorkers: 'block'`), or WebKit's requests escape `route()`.
+  WebKit: `ik-checks`, `ikr-checks` from a saved library state made by `ikr-prime`, and `ikr-sync`, two
+  devices through a local sync worker) are kept in `../SUPPORTING FILES/intake-harnesses/`. Under
+  Playwright: block the service worker (`serviceWorkers: 'block'`), or WebKit's requests escape
+  `route()`; scroll a library row into view with the page's own `scrollIntoView` (Playwright's misses rows
+  skipped by `content-visibility`); a route that refuses the network must spare `blob:` addresses; and
+  `setOffline` in WebKit refuses even a page's own `blob:` pictures, which Safari offline doesn't.
 
 ## Plan calendar integration
 

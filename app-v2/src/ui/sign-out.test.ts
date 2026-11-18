@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
 // Signing out of a device: the server is told first, then the briefings'
-// cache, the Instapaper library's and the offline copy of the app go. Nothing goes if the server could
+// cache, the Instapaper library's and its pictures', and the offline copy of the app go. Nothing goes if the server could
 // not be told, and the app's own database is never touched.
 import 'fake-indexeddb/auto';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { signOutOfThisDevice } from './sign-out';
 import { cachedFeed, _closeLibrary } from '../intelligence/library';
 import { loadArticles, _closeCache } from '../intake/cache';
+import { imageUse, _closeImages } from '../intake/images';
 
 let answer: 'ok' | 'offline' | 'refused' | 'no-gate';
 const unregister = vi.fn(async () => true);
@@ -32,6 +33,7 @@ const databases = async () => (await indexedDB.databases()).map(d => d.name).sor
 beforeEach(async () => {
   _closeLibrary();
   _closeCache();
+  _closeImages();
   unregister.mockClear();
   deleted.length = 0;
   answer = 'ok';
@@ -40,11 +42,12 @@ beforeEach(async () => {
   await new Promise<void>(res => { const r = indexedDB.open('my-planning-db', 1); r.onsuccess = () => { r.result.close(); res(); }; });
   await cachedFeed('enterprise-ai-challenge');
   await loadArticles();
+  await imageUse();
 });
 
 describe('signing out of this device', () => {
   it('tells the server, then drops the briefings, the library and the offline app, keeping the app database', async () => {
-    expect(await databases()).toEqual(['my-planning-db', 'my-planning-intake', 'my-planning-intel']);
+    expect(await databases()).toEqual(['my-planning-db', 'my-planning-intake', 'my-planning-intake-images', 'my-planning-intel']);
     expect(await signOutOfThisDevice()).toBe('signed-out');
     expect(await databases()).toEqual(['my-planning-db']);
     expect(unregister).toHaveBeenCalled();
@@ -54,7 +57,7 @@ describe('signing out of this device', () => {
   it('offline, it changes nothing and says so', async () => {
     answer = 'offline';
     expect(await signOutOfThisDevice()).toBe('offline');
-    expect(await databases()).toEqual(['my-planning-db', 'my-planning-intake', 'my-planning-intel']);
+    expect(await databases()).toEqual(['my-planning-db', 'my-planning-intake', 'my-planning-intake-images', 'my-planning-intel']);
     expect(unregister).not.toHaveBeenCalled();
     expect(deleted).toEqual([]);
   });

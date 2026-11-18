@@ -2,9 +2,9 @@
 // bodies of unread articles fetched in the background, one every two seconds, while Intake is open.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Article } from './articles';
-import { fetchArticle, fetchChanges, IntakeError, type IntakeErrorCode } from './api';
+import { fetchArticleNow, fetchArticleQueued, fetchChanges, IntakeError, type IntakeErrorCode } from './api';
 import { loadArticles, loadMeta, saveArticles, saveBody, saveMeta } from './cache';
-import { fetchBodies as fetchAll, syncLibrary, type BodiesEnd } from './sync';
+import { fetchBodies as fetchAll, fetchOne, syncLibrary, type BodiesEnd, type FetchOutcome } from './sync';
 
 export interface LibraryStatus {
   phase: 'loading' | 'syncing' | 'ready' | 'error';
@@ -40,7 +40,7 @@ export function useArticles() {
     let end: BodiesEnd | null = null;
     try {
       end = await fetchAll({
-        fetchArticle, saveBody, saveArticles, now: Date.now, sleep,
+        fetchArticle: fetchArticleQueued, saveBody, saveArticles, now: Date.now, sleep,
         list: () => [...current.current.values()],
         alive: () => alive.current,
         onArticle: a => apply([a]),
@@ -84,5 +84,24 @@ export function useArticles() {
     return () => { alive.current = false; };
   }, [refresh]);
 
-  return { articles, status, refresh };
+  /** An article's body now, for the reader (opening one not yet here, or Try again on one set aside). */
+  const fetchNow = useCallback(async (a: Article): Promise<FetchOutcome> => {
+    const out = await fetchOne({ ...a, content: 'none', tries: 0, retryAt: null }, { fetchArticle: fetchArticleNow, saveBody, saveArticles, now: Date.now });
+    if ('article' in out) {
+      // Asked for by you: a failure here is said, not counted as a background try.
+      const next = out.failed ? { ...a } : out.article;
+      if (out.failed) await saveArticles([next]);
+      apply([next]);
+      return out.failed ? { stop: new IntakeError('unreachable', "Instapaper didn't return this article in time.") } : { article: next };
+    }
+    return out;
+  }, [apply]);
+
+  /** A change the reader made to an article on this device (Keep offline). */
+  const update = useCallback(async (a: Article) => {
+    await saveArticles([a]);
+    apply([a]);
+  }, [apply]);
+
+  return { articles, status, refresh, fetchNow, update };
 }
