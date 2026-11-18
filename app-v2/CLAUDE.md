@@ -767,7 +767,11 @@ reader) are built; Phase 3 (Active Reading's highlights, notes, Save to Takeaway
   (`my-planning-intake-library`), the search and the place for the session. Switching views and
   coming back keep the first article in view where it was (`holdAnchor`: rows use
   `content-visibility`, so it re-places for a second as they lay out). An article's title is its button
-  (`.ik-open`, its `::after` covering the row or card) and opens the reader; thumbnails load with
+  (`.ik-open`, the control for the keyboard and screen readers) and the row or card itself opens the reader
+  on a click anywhere in it. Not the title's `::after` cover alone: WebKit on a touch screen sends a tap's
+  press to the cover but its release to what lies under it, so the click reached neither (found on the iPad
+  after the Phase 2 deploy: only the title's words opened; `tap-probe.mjs` in `intake-harnesses/` taps every
+  part of rows and cards). Thumbnails load with
   `referrerPolicy="no-referrer"` and fall back to the initial. A description that is page debris (a
   breadcrumb trail, a doubled menu word, a run of labels: `looksLikeDebris`) gives way to the parse's
   own when that reads as prose (C5); nothing is rewritten.

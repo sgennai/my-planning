@@ -267,19 +267,23 @@ function Thumb({ a, className }: { a: Article; className: string }) {
   );
 }
 
-// The title is the article's one control, its touch area the whole row or card (`.ik-open::after`).
-function Open({ a, onOpen }: { a: Article; onOpen: (id: number) => void }) {
-  return <button type="button" className="ik-open" onClick={() => onOpen(a.id)}>{titleOf(a)}</button>;
+// The title is the article's one control for the keyboard and screen readers; the row or card itself opens
+// the article on a click anywhere in it (the title's own included, which reaches it too). Not the title's
+// cover (`.ik-open::after`) alone: WebKit on a touch screen sends a tap's press to the cover but its release
+// to what lies under it (the description, the picture), so the click went to neither: on the iPad only a tap
+// on the title's very words opened the article.
+function Open({ a }: { a: Article }) {
+  return <button type="button" className="ik-open">{titleOf(a)}</button>;
 }
 
 function Row({ a, reading, onOpen }: { a: Article; reading: ReadonlyMap<number, Reading>; onOpen: (id: number) => void }) {
   const desc = descriptionOf(a);
   const author = authorOf(a);
   return (
-    <div className="ik-row">
+    <div className="ik-row" onClick={() => onOpen(a.id)}>
       <Thumb a={a} className="ik-thumb" />
       <div className="ik-row-body">
-        <h2 className="ik-row-title"><Open a={a} onOpen={onOpen} /></h2>
+        <h2 className="ik-row-title"><Open a={a} /></h2>
         {desc && <p className="ik-desc">{desc}</p>}
         {author && <p className="ik-author">{author}</p>}
         <Meta a={a} reading={reading} />
@@ -292,11 +296,11 @@ function Card({ a, reading, lead, onOpen }: { a: Article; reading: ReadonlyMap<n
   const desc = descriptionOf(a);
   const image = !!imageOf(a);
   return (
-    <div className={`ik-card${image ? '' : ' is-type'}${lead ? ' is-lead' : ''}`}>
+    <div className={`ik-card${image ? '' : ' is-type'}${lead ? ' is-lead' : ''}`} onClick={() => onOpen(a.id)}>
       {image && <Thumb a={a} className="ik-card-img" />}
       <div className="ik-card-body">
         {a.domain && <p className="ik-source">{a.domain}</p>}
-        <h2 className="ik-card-title"><Open a={a} onOpen={onOpen} /></h2>
+        <h2 className="ik-card-title"><Open a={a} /></h2>
         {desc && (!image || lead) && <p className="ik-desc">{desc}</p>}
         <Meta a={a} reading={reading} source={false} />
       </div>

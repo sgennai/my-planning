@@ -251,7 +251,7 @@
   transition: background .15s, box-shadow .15s;
 }
 .ik-row { display: flex; align-items: flex-start; gap: 18px; padding: 12px; }
-.ik-row, .ik-card { position: relative; }
+.ik-row, .ik-card { position: relative; cursor: pointer; }
 /* The title is the article's button; its touch area covers the row or card. */
 .ik-open {
   appearance: none;
