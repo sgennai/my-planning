@@ -61,6 +61,45 @@ export const descriptionOf = (a: Article) => {
   const own = a.description, lead = a.lead?.description ?? null;
   return own && lead && looksLikeDebris(own) && !looksLikeDebris(lead) ? lead : own ?? lead;
 };
+
+/** About three lines under the title on an iPad. */
+const DECK_MAX = 260;
+/** Instapaper cuts its descriptions at 400 characters: one this long may end mid-sentence. */
+const CUT = 390;
+const STRETCH = 60;
+const END = /[.!?…]["'”’»)\]]?$/u;
+/** Any stretch of the description (60 characters, every 20) found in the article's text. */
+function repeats(mine: string, article: string) {
+  if (mine.length <= STRETCH) return article.includes(mine);
+  for (let i = 0; i + STRETCH <= mine.length; i += 20) if (article.includes(mine.slice(i, i + STRETCH))) return true;
+  return false;
+}
+const foldText = (t: string) => t.normalize('NFC').toLowerCase().replace(/[’‘]/g, "'").replace(/[“”«»]/g, '"').replace(/\s+/g, ' ').trim();
+
+/**
+ * The deck under the reader's title (2.1): the description, only where it adds to the article. Instapaper's
+ * description is mostly the first 400 characters of the page's text, cut where they stop, menu words and
+ * all ("Sommaire …", "Download PDF …"): the article's own opening, which the reader shows in full just
+ * below. So no deck when a stretch of it is found in the article's start (`start`, sanitize.ts), nor when it
+ * is page debris. Otherwise its first whole sentences, up to about three lines; nothing when even the
+ * first is cut short or longer than that. Never rewritten.
+ */
+export function deckOf(description: string | null, start: string): string | null {
+  const text = description?.replace(/\s+/g, ' ').trim();
+  if (!text || looksLikeDebris(text)) return null;
+  if (repeats(foldText(text), foldText(start))) return null;
+  const sentences = text.split(/(?<=[.!?…]["'”’»)\]]?)\s+/u);
+  const last = sentences.at(-1)!;
+  if (text.length >= CUT || !END.test(last)) sentences.pop();
+  let deck = '';
+  for (const s of sentences) {
+    const next = deck ? `${deck} ${s}` : s;
+    if (next.length > DECK_MAX) break;
+    deck = next;
+  }
+  return deck.split(' ').length >= 5 && /^["'“«(]?[\p{Lu}\p{N}]/u.test(deck) && !looksLikeDebris(deck) ? deck : null;
+}
+
 export const authorOf = (a: Article) => a.author ?? a.lead?.author ?? null;
 export const titleOf = (a: Article) => a.title ?? a.domain ?? a.url ?? 'Untitled';
 

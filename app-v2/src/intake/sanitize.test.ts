@@ -67,10 +67,10 @@ describe('what the reader needs', () => {
   });
 
   it('numbers each block of text once, innermost first, a figure as one', () => {
-    const { html, opening } = cleanArticle('<h2>H</h2><p>One</p><blockquote><p>Two</p><p>Three</p></blockquote><ul><li>Four</li></ul><figure><img src="https://cdn.example.com/d.png"><figcaption>Cap</figcaption></figure><p>Five <img src="https://cdn.example.com/e.png"></p><div>Loose text</div>', BASE);
+    const { html, start } = cleanArticle('<h2>H</h2><p>One</p><blockquote><p>Two</p><p>Three</p></blockquote><ul><li>Four</li></ul><figure><img src="https://cdn.example.com/d.png"><figcaption>Cap</figcaption></figure><p>Five <img src="https://cdn.example.com/e.png"></p><div>Loose text</div>', BASE);
     const blocks = [...dom(html).querySelectorAll('[data-b]')];
     expect(blocks.map(b => `${b.getAttribute('data-b')}:${b.tagName}`)).toEqual(['0:H2', '1:P', '2:P', '3:P', '4:LI', '5:FIGURE', '6:P', '7:DIV']);
-    expect(opening).toBe('H');
+    expect(start).toBe('H One Two Three Four Cap Five Loose text');
   });
 });
 

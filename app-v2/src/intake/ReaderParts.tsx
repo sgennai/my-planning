@@ -1,11 +1,13 @@
-// The reader's smaller parts: its icons (the prototype's), the lead picture, the appearance popover, the
-// contents, and the Active Reading panel. The panel holds what is true now (this article's reading, Keep
-// offline, the original) and says plainly that highlights and notes come later: nothing invented.
-import { useEffect, useRef, useState, type RefObject } from 'react';
+// The reader's smaller parts: its icons (the prototype's), the lead picture, a picture full size, the
+// appearance popover, the contents, and the Active Reading panel. The panel holds what is true now (this
+// article's reading, Keep offline, the original) and says plainly that highlights and notes come later:
+// nothing invented.
+import { useEffect, useRef, useState, type CSSProperties, type RefObject } from 'react';
 import { flushSync } from 'react-dom';
 import { RANGES, type ReaderPrefs } from './reader-prefs';
 import type { Heading } from './sanitize';
 import { imageFor } from './images';
+import { EXPAND_PATH, isTall, nextFrame } from './reader-images';
 
 const PATHS = {
   back: <path d="m14 5-7 7 7 7" />,
@@ -14,34 +16,96 @@ const PATHS = {
   circle: <circle cx="12" cy="12" r="8" />,
   done: <><circle cx="12" cy="12" r="8" /><path d="m8.5 12 2.4 2.5 4.7-5.4" /></>,
   close: <path d="M6 6l12 12M18 6 6 18" />,
+  expand: <path d={EXPAND_PATH} />,
 };
 export function Icon({ name }: { name: keyof typeof PATHS }) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>{PATHS[name]}</svg>;
 }
 
 /**
- * The article's lead picture, when it isn't already in its text; nothing when it can't be shown. It appears
- * (and goes, if it fails) inside `steady`, so the text below it doesn't move under your reading line.
+ * The article's lead picture, when it isn't already in its text; nothing when it can't be shown. Never cropped
+ * (2.1): decoded off the page first so its size is known, then shown whole, in its own shape, inside `steady`,
+ * so the text below it doesn't move under your reading line.
  */
 export function HeroImage({ src, sigOf, keptBy, steady }: { src: string; sigOf: (url: string) => Promise<string | null>; keptBy: RefObject<number | undefined>; steady: (change: () => void) => void }) {
-  const [shown, setShown] = useState<{ url: string; direct: boolean } | null>(null);
+  const [shown, setShown] = useState<{ url: string; direct: boolean; w: number; h: number } | null>(null);
   useEffect(() => {
     let made: string | null = null;
     let alive = true;
-    void sigOf(src).then(sig => imageFor(src, { keptBy: keptBy.current, sig })).then(r => {
+    void sigOf(src).then(sig => imageFor(src, { keptBy: keptBy.current, sig })).then(async r => {
       if (!alive) return;
       if ('blob' in r) made = URL.createObjectURL(r.blob);
       else if (r.missing === 'offline' || navigator.onLine === false) return;
-      const next = { url: made ?? src, direct: !made };
+      const url = made ?? src;
+      const probe = new Image();
+      if (!made) probe.referrerPolicy = 'no-referrer';
+      probe.src = url;
+      await probe.decode().catch(() => undefined);
+      await nextFrame();
+      if (!alive) return;
+      const next = { url, direct: !made, w: probe.naturalWidth, h: probe.naturalHeight };
       steady(() => flushSync(() => setShown(next)));
     });
     return () => { alive = false; if (made) URL.revokeObjectURL(made); };
   }, [src, sigOf, keptBy, steady]);
   if (!shown) return null;
+  const { w, h } = shown;
   return (
     <div className="ikr-hero">
-      <img src={shown.url} alt="" decoding="async" referrerPolicy="no-referrer" onError={() => steady(() => flushSync(() => setShown(null)))} />
+      <img
+        src={shown.url} alt="" decoding="async" referrerPolicy="no-referrer"
+        width={w || undefined} height={h || undefined} style={w && h ? { '--ikr-r': +(w / h).toFixed(4) } as CSSProperties : undefined}
+        onError={() => steady(() => flushSync(() => setShown(null)))}
+      />
+      {w > 0 && isTall(w, h) && <button type="button" className="ikr-whole"><Icon name="expand" />View full size</button>}
     </div>
+  );
+}
+
+export interface Viewing {
+  src: string;
+  alt: string;
+  caption: string | null;
+  /** From the publisher directly (no copy on the device): sent without a referrer, as in the text. */
+  direct: boolean;
+  /** Where the focus goes back to. */
+  from: HTMLElement | null;
+}
+
+/**
+ * A picture full size, over everything (a modal <dialog>, in the top layer): as wide as the screen allows and
+ * no wider than itself, scrolling down a tall one, its description and caption kept. Close, Escape or a tap
+ * beside it closes it. It changes nothing in the article, so your place stays where it was.
+ */
+export function PictureViewer({ pic, onClose }: { pic: Viewing; onClose: () => void }) {
+  const box = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const d = box.current;
+    if (!d) return;
+    d.showModal();
+    d.scrollTop = 0;
+    d.focus({ preventScroll: true }); // the dialog itself (named by its picture), Close next
+    const from = pic.from;
+    return () => {
+      if (d.open) d.close();
+      if (from?.isConnected) from.focus({ preventScroll: true });
+    };
+  }, [pic]);
+  return (
+    <dialog
+      ref={box} className="ikr-viewer" tabIndex={-1} aria-label={pic.alt ? `Picture: ${pic.alt}` : 'Picture, full size'}
+      onCancel={e => { e.preventDefault(); onClose(); }}
+      onClick={e => { if (e.target === e.currentTarget || (e.target as Element).classList.contains('ikr-viewer-pic')) onClose(); }}
+    >
+      <div className="ikr-viewer-bar">
+        <span className="ikr-caption">{pic.alt || 'Full size'}</span>
+        <button type="button" className="ikr-icon" onClick={onClose} aria-label="Close the picture" title="Close"><Icon name="close" /></button>
+      </div>
+      <figure className="ikr-viewer-pic">
+        <img src={pic.src} alt={pic.alt} referrerPolicy={pic.direct ? 'no-referrer' : undefined} />
+        {pic.caption && <figcaption>{pic.caption}</figcaption>}
+      </figure>
+    </dialog>
   );
 }
 

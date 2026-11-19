@@ -2,10 +2,16 @@
   The Paper Sanctuary reader (Intake 2.0 Phase 2, ArticleReader.tsx), after the approved prototype
   intake-reader.html: Concept 01's paper (#fffdfa, Literata, a 690px measure), its sticky bar and 3px
   reading line, the appearance popover and contents, and Concept 10's Active Reading panel beside the
-  text (240px, 208px in a narrower reader) or over it (a sheet, below 800px of reader). The frame sits
-  on Intake's Jour & verre background; the reading surface itself is paper: no gradient, no blur.
+  text (240px, 208px in a narrower reader) or over it (a sheet, below 800px of reader). Since 2.1 the
+  paper is the whole workspace under Intake's places, edge to edge (no card, border or shadow); only
+  the text keeps its measure. In portrait it runs on under the floating pill, the article and the sheet
+  ending clear of it (--ikr-foot), as the library does. No gradient, no blur.
   Three reading themes: Light, Sepia, Dark, the prototype's, a few greys made darker (lighter on Dark)
   for 4.5:1. Sizes follow the iPad's Text Size (--tpx); the reader's own size multiplies it.
+  Pictures are never cropped (2.1): each keeps its own shape, no wider than the text and no taller than
+  about a screen (--ikr-pic-max; the lead picture --ikr-hero-max), its width worked out from its
+  proportions (--ikr-r, set as it is placed) so it is never stretched or letterboxed. One shown smaller
+  than itself opens full size (.ikr-viewer).
 */
 .ikr {
   --ikr-paper: #fffdfa;
@@ -27,10 +33,13 @@
   --ikr-font: 'Literata', Georgia, serif;
   --ikr-display: 'Space Grotesk', 'Inter', sans-serif;
   --ikr-ui: 'Inter', system-ui, sans-serif;
+  /* What the end of the article and the panel keep clear of: the pill in portrait, else the home indicator. */
+  --ikr-clear: var(--ikr-foot, env(safe-area-inset-bottom, 0px));
+  --ikr-pic-max: min(70svh, 820px);
+  --ikr-hero-max: min(52svh, 430px);
   flex: 1;
   min-height: 0;
   display: flex;
-  padding: 2px 22px var(--ikr-foot, 22px);
 }
 .ikr[data-theme="sepia"] {
   --ikr-paper: #f7efdf;
@@ -67,7 +76,6 @@
 }
 .ikr[data-font="sans"] { --ikr-font: 'Inter', system-ui, sans-serif; }
 @media (orientation: portrait) {
-  /* The frame ends above the floating pill. */
   .ik { --ikr-foot: calc(var(--nav-h) + var(--sp-8) + env(safe-area-inset-bottom)); }
 }
 
@@ -76,11 +84,10 @@
   flex: 1;
   min-width: 0;
   display: grid;
-  border: 1px solid rgba(209, 217, 237, .6);
-  border-radius: 21px;
+  /* The paper runs to the screen's edge; the bar and the panel keep clear of a phone's notch in landscape. */
+  padding-right: env(safe-area-inset-right, 0px);
   overflow: hidden;
   background: var(--ikr-paper);
-  box-shadow: 0 15px 45px rgba(27, 49, 97, .07);
   container: ikr / inline-size;
 }
 .ikr-stage {
@@ -172,7 +179,7 @@
   width: calc(100% - 74px);
   max-width: var(--ikr-measure, 690px);
   margin: 0 auto;
-  padding: 35px 0 105px;
+  padding: 35px 0 calc(105px + var(--ikr-clear));
   font-family: var(--ikr-font);
   font-size: calc(var(--ikr-size-n, 19) * var(--tpx));
   line-height: var(--ikr-line, 1.75);
@@ -183,21 +190,41 @@
 .ikr-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 14px;
+  align-items: center;
+  gap: 4px 9px;
   margin: 3px 0 16px;
   font: 750 calc(11 * var(--tpx)) / 1.4 var(--ikr-ui);
   letter-spacing: .12em;
   text-transform: uppercase;
   color: var(--ikr-soft);
 }
+/* The prototype's bullets between source, author and date. */
+.ikr-meta span + span::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  margin: 0 9px 0 0;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .55;
+  vertical-align: middle;
+}
+/* The prototype's size (4.1vw: 44px on an iPad in landscape), from the reader's width, so the panel doesn't
+   change it; a long title smaller, by its length, and its lines balanced. */
 .ikr-title {
+  --ikr-title-k: 1;
   margin: 0 0 14px;
-  font: 600 clamp(calc(30 * var(--tpx)), calc(5.6cqi * var(--ik-scale, 1)), calc(54 * var(--tpx))) / 1.08 'Literata', Georgia, serif;
-  letter-spacing: -.035em;
+  font: 600 calc(var(--ikr-title-k) * clamp(calc(30 * var(--tpx)), calc(4.4cqi * var(--ik-scale, 1)), calc(50 * var(--tpx)))) / 1.08 'Literata', Georgia, serif;
+  letter-spacing: -.04em;
+  text-wrap: balance;
   color: var(--ikr-ink);
 }
+.ikr-title[data-length="long"] { --ikr-title-k: .86; }
+.ikr-title[data-length="longer"] { --ikr-title-k: .77; }
+.ikr-title[data-length="longest"] { --ikr-title-k: .7; }
 .ikr[data-font="sans"] .ikr-title { font-family: var(--ikr-display); letter-spacing: -.045em; }
-.ikr-deck { margin: 0 0 18px; font: 400 calc(17 * var(--tpx)) / 1.55 var(--ikr-ui); letter-spacing: -.015em; color: var(--ikr-soft); }
+.ikr-deck { margin: 0 0 18px; font: 400 calc(16 * var(--tpx)) / 1.55 var(--ikr-ui); letter-spacing: -.01em; color: var(--ikr-soft); }
 .ikr-info {
   display: flex;
   flex-wrap: wrap;
@@ -209,11 +236,18 @@
   text-transform: uppercase;
   color: var(--ikr-soft);
 }
-.ikr-info b { font-weight: 700; }
+.ikr-info b { font-weight: 700; color: var(--ikr-link); }
 .ikr-info a { position: relative; color: var(--ikr-link); text-decoration: none; }
 .ikr-info a::after { content: ''; position: absolute; inset: -16px -10px; }
-.ikr-hero { height: 235px; margin: 0 0 27px; border-radius: 15px; overflow: hidden; background: var(--ikr-tint); }
-.ikr-hero img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.ikr-hero { margin: 0 0 27px; }
+.ikr-hero img {
+  display: block;
+  max-width: min(100%, calc(var(--ikr-hero-max) * var(--ikr-r, 100)));
+  height: auto;
+  margin: 0 auto;
+  border-radius: 15px;
+}
+.ikr-hero .ikr-whole { margin-top: 4px; margin-bottom: -10px; }
 .ikr-notice {
   margin: 0 0 24px;
   padding: 12px 16px;
@@ -246,7 +280,7 @@
 .ikr-body :is(ul, ol) { margin: 0 0 1em; padding-left: 1.35em; }
 .ikr-body li { margin: .35em 0; }
 .ikr-body li > :is(ul, ol) { margin: .35em 0 0; }
-.ikr-body img { display: block; max-width: 100%; height: auto; margin: 26px auto; border-radius: 10px; }
+.ikr-body img { display: block; max-width: min(100%, calc(var(--ikr-pic-max) * var(--ikr-r, 100))); height: auto; margin: 26px auto; border-radius: 10px; }
 .ikr-body p img { margin: 12px auto; }
 .ikr-body figure { margin: 28px 0; }
 .ikr-body figure img { margin: 0 auto; }
@@ -261,6 +295,26 @@
 .ikr-body :is(th, td) { padding: 7px 11px; border: 1px solid var(--ikr-line-c); text-align: left; vertical-align: top; }
 .ikr-body th { font-weight: 650; background: var(--ikr-tint); }
 .ikr-body [data-embed] a { font: 600 calc(14 * var(--tpx)) / 1.4 var(--ikr-ui); }
+/* Under a tall picture (reader-images.ts), outside the article's blocks. */
+.ikr-whole {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: fit-content;
+  min-height: 44px;
+  margin: -16px auto 10px;
+  padding: 0 12px;
+  border: 0;
+  background: none;
+  color: var(--ikr-soft);
+  font: 600 calc(12.5 * var(--tpx)) / 1.3 var(--ikr-ui);
+  cursor: zoom-in;
+  touch-action: manipulation;
+}
+.ikr-whole svg { flex: none; width: 15px; height: 15px; }
+@media (hover: hover) { .ikr-whole:hover { color: var(--ikr-link); } }
+@media (hover: hover) and (pointer: fine) { .ikr-body img[src]:not(a img), .ikr-hero img { cursor: zoom-in; } }
 .ikr-img-missing {
   display: block;
   margin: 22px 0;
@@ -314,7 +368,7 @@
   position: absolute;
   z-index: 32;
   top: 66px;
-  max-height: calc(100% - 83px);
+  max-height: calc(100% - 83px - var(--ikr-clear));
   overflow: auto;
   padding: 19px;
   box-sizing: border-box;
@@ -386,14 +440,14 @@
   min-width: 0;
   min-height: 0;
   overflow: auto;
-  padding: 23px 17px;
+  padding: 23px 17px calc(23px + var(--ikr-clear));
   box-sizing: border-box;
   border-left: 1px solid var(--ikr-panel-edge);
   background: var(--ikr-panel-bg);
   color: var(--ikr-ink);
   font-family: var(--ikr-ui);
 }
-@container ikr (max-width: 1099px) { .ikr-panel { padding: 20px 12px; } }
+@container ikr (max-width: 1099px) { .ikr-panel { padding: 20px 12px calc(20px + var(--ikr-clear)); } }
 .ikr-frame.is-overlay .ikr-panel {
   position: absolute;
   z-index: 22;
@@ -401,7 +455,7 @@
   right: 0;
   bottom: 0;
   width: min(85%, 330px);
-  padding: 23px 18px;
+  padding: 23px 18px calc(23px + var(--ikr-clear));
   box-shadow: -12px 0 32px rgba(25, 38, 76, .15);
 }
 .ikr-backdrop { position: absolute; z-index: 21; inset: 0; border: 0; background: rgba(16, 28, 52, .21); }
@@ -437,24 +491,66 @@
 .ikr-switch:disabled { opacity: .55; }
 .ikr-footnote { margin: auto 0 0; padding-top: 14px; font: 400 calc(10.5 * var(--tpx)) / 1.6 var(--ikr-ui); color: var(--ikr-card-ink); }
 
+/* ── A picture full size (PictureViewer) ──────────────────────────────────── */
+/* A modal <dialog>, in the top layer: over the pill too. The page under it doesn't move. */
+.ikr-viewer {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--ikr-paper);
+  color: var(--ikr-ink);
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  outline: none;
+}
+.ikr-viewer[open] { display: flex; flex-direction: column; }
+.ikr-viewer::backdrop { background: rgba(16, 28, 52, .4); }
+.ikr-viewer-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 60px;
+  padding: calc(9px + env(safe-area-inset-top, 0px)) max(28px, env(safe-area-inset-right, 0px)) 9px max(28px, env(safe-area-inset-left, 0px));
+  box-sizing: border-box;
+  background: var(--ikr-bar);
+  border-bottom: 1px solid var(--ikr-line-c);
+}
+.ikr-viewer-bar .ikr-caption { max-width: none; }
+/* Centred while it fits, from the top when it is taller than the screen (auto margins never cut it off). */
+.ikr-viewer-pic {
+  box-sizing: border-box;
+  max-width: 100%;
+  margin: auto;
+  padding: 24px max(16px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+.ikr-viewer-pic img { display: block; max-width: 100%; height: auto; margin: 0 auto; border-radius: 10px; }
+.ikr-viewer-pic figcaption { max-width: 690px; margin: 12px auto 0; font: 400 calc(13 * var(--tpx)) / 1.5 var(--ikr-ui); color: var(--ikr-soft); }
+
 /* ── Narrower readers ────────────────────────────────────────────────────── */
 @container ikr (max-width: 799px) {
   .ikr-chrome { min-height: 55px; padding: 8px 14px; }
   .ikr-essay { width: calc(100% - 48px); padding-top: 25px; }
-  .ikr-hero { height: 180px; }
 }
 @media (max-width: 600px) {
-  .ikr { padding: 0 6px var(--ikr-foot, 8px); }
-  .ikr-frame { border-radius: 13px; }
   .ikr-caption { display: none; }
   .ikr-chrome { padding: 7px 8px; }
   .ikr-chrome-side { gap: 3px; }
   .ikr-essay { width: calc(100% - 34px); padding-top: 26px; }
-  .ikr-hero { height: 155px; }
   .ikr-deck { font-size: calc(15 * var(--tpx)); }
   .ikr-appearance { right: 4px; left: 4px; width: auto; }
   .ikr-contents { left: 4px; right: 4px; width: auto; }
-  .ikr-frame.is-overlay .ikr-panel { width: min(88%, 350px); padding: 19px 15px; }
+  .ikr-frame.is-overlay .ikr-panel { width: min(88%, 350px); padding: 19px 15px calc(19px + var(--ikr-clear)); }
 }
 @media (prefers-reduced-motion: reduce) {
   .ikr-stage, .ikr-switch-track, .ikr-switch-track span { transition: none; }

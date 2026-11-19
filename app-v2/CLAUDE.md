@@ -777,13 +777,22 @@ reader) are built; Phase 3 (Active Reading's highlights, notes, Save to Takeaway
   own when that reads as prose (C5); nothing is rewritten.
 - **The reader** (Phase 2; `ArticleReader.tsx`, `ReaderParts.tsx`, `styles/intake-reader.css`), after the
   approved prototype `intake-reader.html` (Concept 01 "Paper Sanctuary" with Concept 10's Active Reading
-  panel): paper (#fffdfa, Literata), a sticky opaque bar
+  panel): paper (#fffdfa, Literata) over the whole workspace under Intake's places, edge to edge, no
+  card, border or shadow (2.1; in portrait it runs on under the pill and the article and the sheet end
+  clear of it, `--ikr-clear`), a sticky opaque bar
   (back, Contents when the article has h2/h3, Aa, Active Reading, Finished) with the 3px reading line at
-  its foot, the article (source · author · date, title, a deck when the description doesn't repeat the
-  opening, minutes, Original ↗, the lead picture when not in the text), its HTML, and a footer (Mark as
-  finished, Keep offline, Open original). Appearance (device only, `reader-prefs.ts`): Light / Sepia /
-  Dark, Serif / Sans, size 15–25, spacing 1.4–2.05, measure 520–870, first use following the app's theme.
-  Active Reading (`ActiveReading`): beside the text from 800px of reader (208px, 240px from 1100px; a
+  its foot, the article (source • author • date, title, a deck, minutes, Original ↗, the lead picture,
+  whole, when not in the text), its HTML, and a footer (Mark as finished, Keep offline, Open original). The
+  title is the prototype's size (4.4cqi of the reader, 44px on an iPad in landscape), smaller by its
+  length (`data-length` over 70/110/150 characters), lines balanced. The deck (`deckOf`) only when the
+  description adds to the article: Instapaper's is the page's first 400 characters (menu words and all,
+  "Sommaire …"), which the article shows in full below, so a description with a 60-character stretch
+  found in the article's start (`CleanArticle.start`) gives none; otherwise its first whole sentences up
+  to 260 characters, never a fragment. Appearance (device only, `reader-prefs.ts`): Light / Sepia /
+  Dark, Serif / Sans, size 15–25, spacing 1.4–2.05, measure 520–870. Light until a theme is chosen in
+  Aa, whatever the app's theme (2.1): `themeChosen` marks a chosen one; a Dark that Phase 2 saved (it
+  followed the app's theme, R5) can't be told from a chosen one and reads as Light, a saved Sepia stays.
+  Active Reading (`ActiveReading`): beside the text from 850px of reader (208px, 240px from 1100px; a
   container query), else a sheet over it with a backdrop, focus inside, the text `inert`, Escape closes;
   it holds the article's status, read %, minutes, Keep offline and the original, and says plainly that
   highlights and notes come later (Phase 3): nothing invented. Opening an article not yet fetched
@@ -844,12 +853,24 @@ reader) are built; Phase 3 (Active Reading's highlights, notes, Save to Takeaway
   least recently used, never a picture an article kept offline holds, only this database touched. A
   browser that refuses to store (quota) gets a quarter of the unheld pictures given back and one more
   try; refused again, nothing more is kept that session and pictures are still shown. **Placing a
-  picture never moves your words** (`steady` in `ArticleReader`): it is decoded off the page first (a decode
+  picture never moves your words** (`steady` in `ArticleReader`): it is decoded off the page first, then put in at the start of the next frame (`nextFrame`: WebKit can finish a decode while delivering ResizeObserver notices, and a picture placed then is reported as a "ResizeObserver loop" error) (a decode
   that fails leaves it to its own load and error: WebKit's offline switch refuses blob: copies off the
   page), then its size and source are set in one step and the place put back in the same frame (the block at the
   line where it was on the screen, or as far through it when the picture is in that block); a picture
   above the screen waits for a pause in your scrolling (or until it nears the screen), as moving the
-  scroll position mid-flick would cut the flick short. The hero appears the same way. Not kept, or
+  scroll position mid-flick would cut the flick short. The hero appears the same way, decoded off the page
+  first so its size is known. **No picture is cropped** (2.1, after the user's review: Sarbacane's banner
+  holds text, and the prototype's 235px `cover` band cut it): each keeps its own proportions, never wider
+  than the text nor enlarged past its own size, no taller than `--ikr-pic-max` (70svh, 820px at most; the
+  lead picture `--ikr-hero-max`, 52svh, 430px), its width worked out from `--ikr-r` (its width over height,
+  set with its size) so it is never stretched or letterboxed. A tall one (`isTall`: at least 1.2 times as
+  high as wide and 600px high) gets "View full size" (`.ikr-whole`) after the outermost block holding it,
+  never inside one (a block's words are your place's fingerprint) nor in a link; a tap on any picture
+  shown smaller than itself (not a link's) opens it too: `PictureViewer` (`ReaderParts.tsx`), a modal
+  `<dialog>` in the top layer (over the pill), the reading theme's paper, the picture as wide as the
+  screen allows and no wider than itself, scrolling down a tall one, its description and caption kept;
+  Close, Escape or a tap beside it closes it, the focus back where it was, the article not moved and
+  nothing written. `pics-checks` in `intake-harnesses/` covers it. Not kept, or
   refused: the browser tries the publisher directly online; else "Picture not on this device" / "Picture
   unavailable", the alt text kept. The service worker is untouched (cross-origin pictures in it would be
   opaque: no size, no error, padded quota).
@@ -962,7 +983,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (661 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (669 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris

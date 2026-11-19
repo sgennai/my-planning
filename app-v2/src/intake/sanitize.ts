@@ -18,8 +18,8 @@ export interface CleanArticle {
   headings: Heading[];
   /** Every image's address, in order. */
   images: string[];
-  /** The text of the first block, to tell whether a description only repeats it. */
-  opening: string;
+  /** The article's text from the top (its first blocks, about 3,000 characters), to tell whether a description only repeats it. */
+  start: string;
 }
 
 const TAGS = [
@@ -41,6 +41,7 @@ const absolute = (raw: string | null, base: string | null): URL | null => {
   if (!raw) return null;
   try { return new URL(raw.trim(), base ?? undefined); } catch { return null; }
 };
+const START = 3000;
 const textOf = (el: Element) => (el.textContent ?? '').replace(/\s+/g, ' ').trim();
 
 let purify: ReturnType<typeof DOMPurify> | null = null;
@@ -125,8 +126,13 @@ export function cleanArticle(html: string, base: string | null): CleanArticle {
   const counted = leaves.filter(el => !el.parentElement?.closest('figure, table'));
   counted.forEach((el, i) => el.setAttribute('data-b', String(i)));
 
-  const first = counted.find(el => textOf(el));
-  return { html: body.innerHTML, headings, images, opening: first ? textOf(first) : '' };
+  let start = '';
+  for (const el of counted) {
+    if (start.length >= START) break;
+    const text = textOf(el);
+    if (text) start += `${start && ' '}${text}`;
+  }
+  return { html: body.innerHTML, headings, images, start };
 }
 
 /** The article's own headings start at h2: an h1 in the body becomes h2, and the rest follow. */

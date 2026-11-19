@@ -11,8 +11,57 @@
 // turns out to be missing. A picture above the screen waits, while you are scrolling, for a pause (or until
 // it is about to come into view): moving the scroll position in the middle of a flick would cut it short.
 // Nothing here writes your place: only your own scrolling does.
+//
+// A picture is never cropped (2.1): it keeps its own shape, no wider than the text and no taller than about a
+// screen (its width from its proportions, `--ikr-r`, in the stylesheet). A tall one gets "View full size"
+// under it, outside the article's blocks so their words (and your place's fingerprint) are unchanged; any
+// picture shown smaller than itself opens full size on a tap (`PictureViewer`).
 import { useEffect, type RefObject } from 'react';
 import { imageFor, imageSizes, isInline, noteImageSize, type Missing } from './images';
+
+/**
+ * The start of the next frame, before it is drawn. A decoded picture is put in the page then: WebKit can finish
+ * a decode while it is delivering size notices (the reader's ResizeObserver), and a picture placed at that
+ * moment is a change it reports as a "ResizeObserver loop" error.
+ */
+export const nextFrame = () => new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+
+/** A picture at least this much taller than wide, and this tall, is shown smaller than itself on most screens. */
+export const isTall = (w: number, h: number) => h >= 1.2 * w && h >= 600;
+/** The expand icon, in the reader's icon family (ReaderParts.tsx). */
+export const EXPAND_PATH = 'M14 4h6v6M10 20H4v-6M20 4l-6.5 6.5M4 20l6.5-6.5';
+const wholeOf = new WeakMap<HTMLImageElement, HTMLButtonElement>();
+const pictures = new WeakMap<Element, HTMLImageElement>();
+/** The picture a "View full size" button shows. */
+export const pictureOf = (button: Element): HTMLImageElement | null =>
+  pictures.get(button) ?? (button.previousElementSibling instanceof HTMLImageElement ? button.previousElementSibling : null);
+
+/** Sizes a picture's box by its own proportions, so the stylesheet can keep it within a screen without cropping. */
+function size(img: HTMLImageElement, w: number, h: number) {
+  img.width = w;
+  img.height = h;
+  img.style.setProperty('--ikr-r', String(+(w / h).toFixed(4)));
+}
+
+/** "View full size" under a tall picture: after the outermost block holding it, never inside one, nor in a link. */
+function addWhole(img: HTMLImageElement) {
+  if (wholeOf.has(img) || img.closest('a')) return;
+  let after: Element = img.closest('[data-b]') ?? img;
+  for (let up = after.parentElement?.closest('[data-b]'); up; up = up.parentElement?.closest('[data-b]')) after = up;
+  const doc = img.ownerDocument;
+  const button = doc.createElement('button');
+  button.type = 'button';
+  button.className = 'ikr-whole';
+  const svg = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  for (const [k, v] of Object.entries({ viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.8', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' })) svg.setAttribute(k, v);
+  const path = doc.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', EXPAND_PATH);
+  svg.append(path);
+  button.append(svg, 'View full size');
+  after.after(button);
+  wholeOf.set(img, button);
+  pictures.set(button, img);
+}
 
 const NEAR = '1500px 0px';
 /** Scrolling has paused after this long without a scroll. */
@@ -35,6 +84,7 @@ function missing(img: HTMLImageElement, why: Missing) {
   note.textContent = `${why === 'offline' ? 'Picture not on this device' : 'Picture unavailable'}${alt ? `: ${alt}` : ''}`;
   img.hidden = true;
   img.after(note);
+  wholeOf.get(img)?.remove();
 }
 
 /**
@@ -68,7 +118,7 @@ export function useArticleImages(body: RefObject<HTMLElement | null>, scroller: 
       steady(() => {
         for (const img of imgs) {
           const s = sizes.get(img.dataset.src!);
-          if (s && !img.getAttribute('src') && !img.hasAttribute('width')) { img.width = s[0]; img.height = s[1]; }
+          if (s && !img.getAttribute('src') && !img.hasAttribute('width')) size(img, s[0], s[1]);
         }
       });
     });
@@ -86,12 +136,15 @@ export function useArticleImages(body: RefObject<HTMLElement | null>, scroller: 
       if (!alive) return;
       await settled(img);
       if (!alive) return;
+      await nextFrame();
+      if (!alive) return;
       const w = probe.naturalWidth, h = probe.naturalHeight;
       img.addEventListener('error', () => steady(() => missing(img, 'blocked')), { once: true });
       steady(() => {
-        if (w && h) { img.width = w; img.height = h; }
+        if (w && h) size(img, w, h);
         if (direct) img.referrerPolicy = 'no-referrer';
         img.src = url;
+        if (w && h && isTall(w, h)) addWhole(img);
       });
       if (w && h && !isInline(src)) void noteImageSize(src, w, h).catch(() => undefined);
     };

@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   mergeSync, withParse, readingIndex, statusOf, matchesFilter, matchesQuery, sortArticles, toFetch, domainOf, minutesOf,
-  imageOf, descriptionOf, authorOf, titleOf, looksLikeDebris, type Article, type SyncedBookmark,
+  imageOf, descriptionOf, deckOf, authorOf, titleOf, looksLikeDebris, type Article, type SyncedBookmark,
 } from './articles';
 
 const bm = (id: number, extra: Partial<SyncedBookmark> = {}): SyncedBookmark => ({
@@ -152,5 +152,33 @@ describe('descriptions that are page debris (C5)', () => {
     expect(descriptionOf(art(1, { description: 'Home > News > Tech > Story', lead: lead('Menu > Other > Debris > Too') }))).toBe('Home > News > Tech > Story');
     expect(descriptionOf(art(1, { description: 'Good words.', lead: lead('Other words.') }))).toBe('Good words.');
     expect(descriptionOf(art(1, { description: null, lead: lead('Only these.') }))).toBe('Only these.');
+  });
+});
+
+describe("the reader's deck (2.1)", () => {
+  // Invented text, shaped as Instapaper's descriptions are: the page's first 400 characters.
+  const opening = 'Northwind, a maker of garden tools based in Lille, has renamed its main product line. The change comes after twenty years under the same name and marks a new stage for the company, which now employs 300 people across Europe.';
+  const cut = (t: string) => t.slice(0, 400);
+
+  it("gives none when it is the article's own opening, menu word and quotes aside", () => {
+    const start = `Contents ${opening} A second paragraph follows here.`;
+    expect(deckOf(cut(`Contents ${opening} A second paragraph follows here, and goes on well past where Instapaper stops counting the characters of the page`), start)).toBeNull();
+    expect(deckOf('Northwind’s “new” name: the change comes after twenty years under the same name.', "Northwind's \"new\" name: the change comes after twenty years under the same name. More.")).toBeNull();
+    expect(deckOf('Download PDF Summary: The change comes after twenty years under the same name and marks a new stage for the company.', start)).toBeNull();
+  });
+
+  it('gives none for page debris or a fragment', () => {
+    expect(deckOf('Home > Industry > Technology > The future of work and what it asks of us all', '')).toBeNull();
+    expect(deckOf('A sentence that Instapaper cut before it could', '')).toBeNull();
+    expect(deckOf(null, '')).toBeNull();
+    expect(deckOf('Short one.', '')).toBeNull();
+  });
+
+  it("keeps a summary of the publisher's own, whole sentences only, about three lines at most", () => {
+    const own = 'A garden-tool maker changes its name after twenty years. What it keeps, and what it drops.';
+    expect(deckOf(own, opening)).toBe(own);
+    const long = cut(`${own} Then a third sentence that runs on and on about the history of the brand, its founders, its factories, its first catalogue and the many shops that sold its spades and rakes across the north of France for decades. And more after that, until Instapaper's cut`);
+    expect(deckOf(long, opening)).toBe(own);
+    expect(deckOf(`${'A first sentence far too long to stand under a title, '.repeat(6)}ending here.`, opening)).toBeNull();
   });
 });

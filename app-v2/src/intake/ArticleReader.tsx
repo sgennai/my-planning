@@ -11,19 +11,20 @@
 // the scrollbar (and the momentum after it), or a jump from Contents; never a tap on another button (the
 // panel, Finished). It is written when scrolling rests, on leaving, and when the app is hidden; opening an
 // article and putting your place back write nothing. Finished is your tap only. The article's HTML is
-// drawn once and never by React again.
+// drawn once and never by React again. Its pictures are never cropped; one shown smaller than itself opens
+// full size (`PictureViewer`), which leaves the article, and your place, as they were.
 import '../styles/intake-reader.css';
-import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type RefObject } from 'react';
-import { authorOf, descriptionOf, imageOf, minutesOf, statusOf, titleOf, type Article, type Reading } from './articles';
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type RefObject } from 'react';
+import { authorOf, deckOf, descriptionOf, imageOf, minutesOf, statusOf, titleOf, type Article, type Reading } from './articles';
 import { loadBody, type Body } from './cache';
 import { cleanArticle } from './sanitize';
 import { blockOf, goTo, placeAt, progressOf, type Place } from './place';
 import { withFinished, withPosition } from './reading';
 import { imageAddress, isInline, keepImages, releaseImages } from './images';
-import { useArticleImages, type PictureHooks } from './reader-images';
-import { recallPrefs, rememberPrefs, type ReaderPrefs } from './reader-prefs';
+import { pictureOf, useArticleImages, type PictureHooks } from './reader-images';
+import { recallPrefs, rememberPrefs, withPrefs, type ReaderPrefs } from './reader-prefs';
 import { loadReaderFont } from './reader-font';
-import { Appearance, Contents, ActiveReading, Icon, HeroImage } from './ReaderParts';
+import { Appearance, Contents, ActiveReading, Icon, HeroImage, PictureViewer, type Viewing } from './ReaderParts';
 import type { FetchOutcome } from './sync';
 
 type Log = { progressLog?: unknown[] } & Record<string, unknown>;
@@ -51,17 +52,20 @@ const SCROLL_KEYS = new Set([' ', 'PageDown', 'PageUp', 'ArrowDown', 'ArrowUp', 
 /** The first draw waits this long at most for Literata, so the text isn't laid out twice. */
 const FONT_WAIT_MS = 1200;
 const REST_MS = 1200;
-/** Beside the text from this width of the reader; over it below. */
-const PANEL_BESIDE = 800;
+/** Beside the text from this width of the reader; over it below. The reader is the whole workspace since 2.1
+ *  (no card): an iPad in portrait (up to 834px) keeps the sheet, as before. */
+const PANEL_BESIDE = 850;
 
 const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
 const DATE = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark';
+/** A long title is set smaller, so the opening stays a few lines high (in characters: 2.1). */
+const titleLength = (t: string) => (t.length > 150 ? 'longest' : t.length > 110 ? 'longer' : t.length > 70 ? 'long' : undefined);
 
 export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, update, signBody }: Props) {
   const [view, setView] = useState<View>(article.content === 'unavailable' ? { state: 'failed', why: 'unavailable' } : { state: 'loading' });
-  const [prefs, setPrefsState] = useState<ReaderPrefs>(() => recallPrefs(isDark()));
+  const [prefs, setPrefsState] = useState<ReaderPrefs>(recallPrefs);
   const [popover, setPopover] = useState<'appearance' | 'contents' | null>(null);
+  const [viewing, setViewing] = useState<Viewing | null>(null);
   const [narrow, setNarrow] = useState(false);
   const [retrying, setRetrying] = useState(false);
   const [keepNote, setKeepNote] = useState<string | null>(null);
@@ -113,8 +117,7 @@ export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, u
   const clean = useMemo(() => (view.state === 'ready' ? cleanArticle(view.body.html, article.url) : null), [view, article.url]);
   const hero = imageAddress(imageOf(article));
   const heroInBody = !!hero && !!clean?.images.includes(hero);
-  const description = descriptionOf(article);
-  const deck = description && clean && !clean.opening.toLowerCase().startsWith(description.slice(0, 60).toLowerCase()) ? description : null;
+  const deck = clean ? deckOf(descriptionOf(article), clean.start) : null;
   const minutes = minutesOf(article.words ?? (view.state === 'ready' ? view.body.words : null));
   const finished = statusOf(id, new Map(reading ? [[id, reading]] : [])) === 'finished';
 
@@ -290,14 +293,14 @@ export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, u
     return () => sizes.disconnect();
   }, []);
   const panelOpen = prefs.panel ?? !narrow;
-  const setPrefs = (patch: Partial<ReaderPrefs>) => setPrefsState(p => { const next = { ...p, ...patch }; rememberPrefs(next); return next; });
+  const setPrefs = (patch: Partial<ReaderPrefs>) => setPrefsState(p => { const next = withPrefs(p, patch); rememberPrefs(next); return next; });
   // Over the text, the panel opens only when asked, and is closed by a tap outside it.
   const overlay = narrow && panelOpen;
   const togglePanel = () => setPrefs({ panel: !panelOpen });
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
+      if (e.key !== 'Escape' || viewing) return; // the picture full size closes itself
       if (popover) { setPopover(null); return; }
       if (overlay) setPrefs({ panel: false });
     };
@@ -331,6 +334,22 @@ export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, u
         : `Kept offline, with ${out.kept} of its ${urls.length} pictures: ${missed === 1 ? "one couldn't" : `${missed} couldn't`} be fetched.`);
     }
     setKeepBusy(false);
+  };
+
+  /** A picture full size: from its "View full size", or a tap on one shown smaller than itself (not a link's). */
+  const viewPicture = (e: MouseEvent<HTMLElement>) => {
+    const target = e.target as Element;
+    const whole = target.closest<HTMLElement>('.ikr-whole');
+    const img = whole ? pictureOf(whole) : target.closest('.ikr-body img, .ikr-hero img');
+    if (!(img instanceof HTMLImageElement) || !img.getAttribute('src') || img.hidden || !img.naturalWidth) return;
+    if (!whole && (img.closest('a') || img.naturalWidth <= img.clientWidth + 1)) return;
+    setViewing({
+      src: img.currentSrc || img.src,
+      alt: img.alt.trim(),
+      caption: img.closest('figure')?.querySelector('figcaption')?.textContent?.replace(/\s+/g, ' ').trim() || null,
+      direct: img.referrerPolicy === 'no-referrer' && !img.src.startsWith('blob:'),
+      from: whole ?? e.currentTarget,
+    });
   };
 
   const goToHeading = (headingId: string) => {
@@ -380,14 +399,14 @@ export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, u
               <div className="ikr-progress" aria-hidden><div className="ikr-progress-fill" ref={fillRef} style={{ transform: `scaleX(${reading?.progress ?? 0})` }} /></div>
             </div>
 
-            <article className="ikr-essay" tabIndex={-1} aria-labelledby="ikr-title">
+            <article className="ikr-essay" tabIndex={-1} aria-labelledby="ikr-title" onClick={viewPicture}>
               <header className="ikr-head">
                 <p className="ikr-meta">
                   {article.domain && <span>{article.domain}</span>}
                   {author && <span>{author}</span>}
                   {published && <span>{DATE.format(new Date(published * 1000))}</span>}
                 </p>
-                <h1 className="ikr-title" id="ikr-title">{title}</h1>
+                <h1 className="ikr-title" id="ikr-title" data-length={titleLength(title)}>{title}</h1>
                 {deck && <p className="ikr-deck">{deck}</p>}
                 <p className="ikr-info">
                   {minutes && <b>{String(minutes).padStart(2, '0')} min read</b>}
@@ -429,6 +448,7 @@ export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, u
           </div>
 
           {overlay && <button type="button" className="ikr-backdrop" aria-label="Close Active Reading" onClick={() => setPrefs({ panel: false })} />}
+          {viewing && <PictureViewer pic={viewing} onClose={() => setViewing(null)} />}
           {panelOpen && (
             <ActiveReading
               overlay={overlay}
