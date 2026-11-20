@@ -219,6 +219,17 @@
   line-height: 1.45;
 }
 .ik-status.is-alert { background: var(--alert-tint); border-color: transparent; color: var(--alert); }
+/* A takeaway's article that isn't in the library on this device (Phase 3). */
+.ik-jump-note {
+  flex: none;
+  margin: 8px 22px 0;
+  padding: 9px 14px;
+  border-radius: 12px;
+  background: var(--alert-tint);
+  color: var(--alert);
+  font-size: calc(13 * var(--tpx));
+  line-height: 1.45;
+}
 .ik-status button {
   position: relative;
   flex: none;

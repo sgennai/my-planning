@@ -13,6 +13,11 @@
 // article and putting your place back write nothing. Finished is your tap only. The article's HTML is
 // drawn once and never by React again. Its pictures are never cropped; one shown smaller than itself opens
 // full size (`PictureViewer`), which leaves the article, and your place, as they were.
+//
+// Active Reading (Phase 3, ReaderNotes.tsx): select words to highlight them, note them or save them to
+// Takeaways; your highlights drawn on the text and listed in the panel. None of it moves or writes your
+// place: going to a passage (from the panel, or from a takeaway) shows it below the bar without counting
+// as reading (`showPassage`).
 import '../styles/intake-reader.css';
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type RefObject } from 'react';
 import { authorOf, deckOf, descriptionOf, imageOf, minutesOf, statusOf, titleOf, type Article, type Reading } from './articles';
@@ -25,20 +30,26 @@ import { pictureOf, useArticleImages, type PictureHooks } from './reader-images'
 import { recallPrefs, rememberPrefs, withPrefs, type ReaderPrefs } from './reader-prefs';
 import { loadReaderFont } from './reader-font';
 import { Appearance, Contents, ActiveReading, Icon, HeroImage, PictureViewer, type Viewing } from './ReaderParts';
+import { useReaderNotes, type ContentChange, type JumpTarget } from './ReaderNotes';
 import type { FetchOutcome } from './sync';
 
-type Log = { progressLog?: unknown[] } & Record<string, unknown>;
+type Log = { progressLog?: unknown[]; content?: unknown[] } & Record<string, unknown>;
 export type Persist = (mutator: (current: Log) => Log) => void;
 
 interface Props {
   article: Article;
   reading: Reading | undefined;
+  /** The app's synced `content`: your highlights and notes, and Takeaways. */
+  content: unknown[] | undefined;
   onBack: () => void;
   onPersist: Persist;
   fetchNow: (a: Article) => Promise<FetchOutcome>;
   update: (a: Article) => Promise<void>;
   /** The picture signatures for a body fetched before Phase 2 (null if they couldn't be had). */
   signBody: (a: Article) => Promise<Record<string, string> | null>;
+  /** A passage to go to once the article is drawn (from a takeaway). */
+  jump?: JumpTarget | null;
+  onJumped?: () => void;
 }
 
 type View =
@@ -61,7 +72,7 @@ const DATE = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', 
 /** A long title is set smaller, so the opening stays a few lines high (in characters: 2.1). */
 const titleLength = (t: string) => (t.length > 150 ? 'longest' : t.length > 110 ? 'longer' : t.length > 70 ? 'long' : undefined);
 
-export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, update, signBody }: Props) {
+export function ArticleReader({ article, reading, content, onBack, onPersist, fetchNow, update, signBody, jump = null, onJumped }: Props) {
   const [view, setView] = useState<View>(article.content === 'unavailable' ? { state: 'failed', why: 'unavailable' } : { state: 'loading' });
   const [prefs, setPrefsState] = useState<ReaderPrefs>(recallPrefs);
   const [popover, setPopover] = useState<'appearance' | 'contents' | null>(null);
@@ -73,6 +84,7 @@ export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, u
   const [shownProgress, setShownProgress] = useState(reading?.progress ?? 0);
 
   const frameRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const chromeRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -284,6 +296,31 @@ export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, u
 
   useArticleImages(bodyRef, scrollRef, `${id}:${clean ? 'drawn' : ''}`, keptBy, hooks);
 
+  /**
+   * A passage shown just below the bar (going to it from the panel or a takeaway), which is not reading: your
+   * place so far is written if you had moved, and nothing more until you scroll again; the passage then stays
+   * put while pictures arrive and the text reflows, as a place does.
+   */
+  const showPassage = useCallback((range: Range) => {
+    const sc = scrollRef.current;
+    const r = range.getClientRects()[0] ?? range.getBoundingClientRect();
+    if (!sc || !r) return;
+    save();
+    touched.current = false;
+    inputAt.current = 0;
+    restoring.current = null;
+    sc.scrollTop += r.top - (line() + Math.min(sc.clientHeight * 0.18, 140));
+    measure();
+    // In the article's opening the reading line would sit above its first block, which the reader takes for
+    // "the top" (and a reflow would put it back there): the passage's block goes to the line instead.
+    const block = range.startContainer.parentElement?.closest('[data-b]');
+    if (!place.current && block) {
+      sc.scrollTop += block.getBoundingClientRect().top - line();
+      measure();
+    }
+    ownTop.current = sc.scrollTop;
+  }, [save, measure]);
+
   // ── The panel, the bar's popovers ───────────────────────────────────────
   useEffect(() => {
     const frame = frameRef.current;
@@ -298,9 +335,18 @@ export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, u
   const overlay = narrow && panelOpen;
   const togglePanel = () => setPrefs({ panel: !panelOpen });
 
+  // ── Highlights, notes, takeaways ────────────────────────────────────────
+  const change = useCallback<ContentChange>(
+    f => onPersist(d => ({ ...d, content: f(d.content), lastModified: new Date().toISOString() })), [onPersist]);
+  const notes = useReaderNotes({
+    article, content, change, bodyRef, scrollRef, stageRef, chromeRef, drawn: clean, overlay,
+    closeSheet: () => setPrefs({ panel: false }), showPassage, jump, onJumped: () => onJumped?.(),
+  });
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape' || viewing) return; // the picture full size closes itself
+      // The picture full size and the note editor close themselves.
+      if (e.key !== 'Escape' || viewing || notes.editing) return;
       if (popover) { setPopover(null); return; }
       if (overlay) setPrefs({ panel: false });
     };
@@ -380,7 +426,7 @@ export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, u
   return (
     <div className="ikr" data-theme={prefs.theme} data-font={prefs.font} style={style}>
       <div className={`ikr-frame${panelOpen ? ' is-panel' : ''}${overlay ? ' is-overlay' : ''}`} ref={frameRef}>
-        <div className="ikr-stage">
+        <div className="ikr-stage" ref={stageRef}>
           <div className="ikr-scroll" ref={scrollRef} inert={overlay || undefined}>
             <div className="ikr-chrome" ref={chromeRef}>
               <div className="ikr-chrome-side">
@@ -399,7 +445,7 @@ export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, u
               <div className="ikr-progress" aria-hidden><div className="ikr-progress-fill" ref={fillRef} style={{ transform: `scaleX(${reading?.progress ?? 0})` }} /></div>
             </div>
 
-            <article className="ikr-essay" tabIndex={-1} aria-labelledby="ikr-title" onClick={viewPicture}>
+            <article className="ikr-essay" tabIndex={-1} aria-labelledby="ikr-title" onClick={e => { viewPicture(e); notes.onArticleClick(e); }}>
               <header className="ikr-head">
                 <p className="ikr-meta">
                   {article.domain && <span>{article.domain}</span>}
@@ -447,8 +493,11 @@ export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, u
             </article>
           </div>
 
+          {notes.toolbar}
           {overlay && <button type="button" className="ikr-backdrop" aria-label="Close Active Reading" onClick={() => setPrefs({ panel: false })} />}
           {viewing && <PictureViewer pic={viewing} onClose={() => setViewing(null)} />}
+          {notes.dialogs}
+          {notes.live}
           {panelOpen && (
             <ActiveReading
               overlay={overlay}
@@ -463,7 +512,8 @@ export function ArticleReader({ article, reading, onBack, onPersist, fetchNow, u
               onKeep={() => void toggleKeep()}
               canKeep={view.state === 'ready'}
               url={article.url}
-            />
+              summary={notes.summary}
+            >{notes.panel}</ActiveReading>
           )}
         </div>
 

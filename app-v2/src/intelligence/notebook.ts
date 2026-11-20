@@ -7,7 +7,7 @@
 // review counts them), and everything else kept (a line to rehearse, a term,
 // a passage, a section, an edition) is an insight.
 import type { FeedId } from './feeds';
-import { searchSaved, type SavedInsight } from './saved';
+import { isFromArticle, searchSaved, type SavedInsight } from './saved';
 import { reviewKindOf, statusOf, type ReviewIndex } from './review';
 import { shortTitle, plainText } from './present';
 import { wordingOf } from './kit';
@@ -128,7 +128,7 @@ export function supportingOf(item: SavedInsight, saved: SavedInsight[], topicsOf
     const sameEdition = other.driveFileId === item.driveFileId;
     const topic = tag || sameEdition ? null : topicsOf(other).flatMap(topicKeys).find(k => topics.has(k));
     if (!tag && !sameEdition && !topic) continue;
-    const why = tag ? `Tagged ${tags.get(tag.toLowerCase())}` : sameEdition ? 'Same edition' : `Topic: ${topics.get(topic!)}`;
+    const why = tag ? `Tagged ${tags.get(tag.toLowerCase())}` : sameEdition ? (isFromArticle(item) ? 'Same article' : 'Same edition') : `Topic: ${topics.get(topic!)}`;
     found.push({ item: other, why, score: (tag ? 4 : 0) + (sameEdition ? 2 : 0) + (topic ? 1 : 0) + (noteKindOf(other) !== kind ? 0.5 : 0) });
   }
   return found

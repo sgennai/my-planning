@@ -3,11 +3,16 @@
 // as the document had them and enough of the edition to show where they came
 // from even on a device that has never fetched it. Never written to Drive.
 // A takeaway can also come from an article read in Intake (`source`, Intake 2.0): it then names the
-// article in place of an edition.
+// article in place of an edition. Saved from Intake's reader (Phase 3, `saveArticleInsight`): a passage with
+// its exact words, or the whole article with your note, each with the article's title, address, source,
+// author and date, and the way back to the passage (its highlight's id and its anchor, kept on the takeaway
+// itself so the way back outlives the highlight).
 import type { Edition } from './parse';
 import { feedById, type FeedId } from './feeds';
 import { generateId } from '../ui/helpers';
 import { fold } from './blocks';
+import { dayKeyOf } from '../routine/dates';
+import type { PassageAnchor } from '../intake/anchor';
 
 export const SAVED_TYPE = 'intel-saved';
 
@@ -50,9 +55,75 @@ export interface ArticleSource {
   /** The source, as its domain: Instapaper gives no publication name. */
   publication: string | null;
   author: string | null;
+  /** When the article was published (`YYYY-MM-DD`), when known. */
+  published?: string | null;
+  /** The highlight (or article note) it was saved from, in Intake. */
+  annotationId?: string | null;
+  /** The passage's words and what finds them again in the article (Intake's anchor.ts). */
+  anchor?: PassageAnchor | null;
 }
 
 export const isFromArticle = (item: Pick<SavedInsight, 'source'>): boolean => item.source?.kind === 'intake-article';
+
+/** What stands for a feed on a takeaway from an article: no feed of Intelligence's. */
+export const ARTICLE_FEED = 'intake' as FeedId;
+
+/** What Intake's reader knows when it saves: the article, and the passage or your note on the whole of it. */
+export interface ArticleSaveInput {
+  bookmarkId: number;
+  url: string | null;
+  title: string;
+  publication: string | null;
+  author: string | null;
+  published: string | null;
+  /** `passage`: its words; `edition`: the whole article (its title), with your note. */
+  kind: 'passage' | 'edition';
+  text: string;
+  note: string;
+  /** The heading the passage sits under, if the article has headings. */
+  sectionTitle: string | null;
+  annotationId: string | null;
+  anchor: PassageAnchor | null;
+}
+
+/** A takeaway from an article, added to Takeaways: dated by the article's publication, else by today. */
+export function saveArticleInsight(content: unknown[] | undefined, input: ArticleSaveInput, now = new Date()): { content: unknown[]; id: string } {
+  const item: SavedInsight = {
+    id: `is:${generateId()}`,
+    type: SAVED_TYPE,
+    kind: input.kind,
+    feedId: ARTICLE_FEED,
+    driveFileId: `ia:${input.bookmarkId}`,
+    editionTitle: input.title,
+    editionDate: input.published ?? dayKeyOf(now),
+    editionTime: null,
+    sourceUrl: input.url ?? '',
+    sectionId: null,
+    sectionTitle: input.sectionTitle,
+    label: null,
+    text: input.kind === 'edition' ? input.title : input.text,
+    note: input.note.trim(),
+    tags: [],
+    savedAt: now.toISOString(),
+    source: {
+      kind: 'intake-article',
+      bookmarkId: input.bookmarkId,
+      url: input.url,
+      title: input.title,
+      publication: input.publication,
+      author: input.author,
+      published: input.published,
+      annotationId: input.annotationId,
+      anchor: input.anchor,
+    },
+  };
+  return { content: [...(content || []), item], id: item.id };
+}
+
+/** The takeaway saved from this highlight or note, if it is still in Takeaways. */
+export function takeawayOf(saved: SavedInsight[], annotationId: string, takeawayId?: string | null): SavedInsight | undefined {
+  return saved.find(s => isFromArticle(s) && (s.id === takeawayId || s.source?.annotationId === annotationId));
+}
 
 /** Where a takeaway comes from, in words: its feed, or Intake's article. */
 export const originOf = (item: Pick<SavedInsight, 'feedId' | 'source'>): string =>

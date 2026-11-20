@@ -1,8 +1,8 @@
 // The reader's smaller parts: its icons (the prototype's), the lead picture, a picture full size, the
-// appearance popover, the contents, and the Active Reading panel. The panel holds what is true now (this
-// article's reading, Keep offline, the original) and says plainly that highlights and notes come later:
-// nothing invented.
-import { useEffect, useRef, useState, type CSSProperties, type RefObject } from 'react';
+// appearance popover, the contents, and the Active Reading panel. The panel holds this article's reading,
+// Keep offline and the original, then your highlights and notes (Phase 3, ReaderNotes.tsx): only what is
+// there, nothing invented.
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react';
 import { flushSync } from 'react-dom';
 import { RANGES, type ReaderPrefs } from './reader-prefs';
 import type { Heading } from './sanitize';
@@ -17,6 +17,10 @@ const PATHS = {
   done: <><circle cx="12" cy="12" r="8" /><path d="m8.5 12 2.4 2.5 4.7-5.4" /></>,
   close: <path d="M6 6l12 12M18 6 6 18" />,
   expand: <path d={EXPAND_PATH} />,
+  // The prototype's highlighter; a note; Takeaways' bookmark.
+  highlight: <path d="m3 20 4-1 12-12-3-3L4 16z M14 6l3 3M9 21h12" />,
+  note: <><path d="M5 4h14v11l-5 5H5z" /><path d="M14 20v-5h5M8.5 9h7M8.5 12.5h4" /></>,
+  takeaway: <path d="M7 4h10v16l-5-3.6L7 20z" />,
 };
 export function Icon({ name }: { name: keyof typeof PATHS }) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>{PATHS[name]}</svg>;
@@ -185,12 +189,16 @@ interface PanelProps {
   onKeep: () => void;
   canKeep: boolean;
   url: string | null;
+  /** "2 highlights · 1 note · 1 in Takeaways", or nothing yet. */
+  summary: string | null;
+  /** Your reading notes, and Keep what matters (ReaderNotes.tsx). */
+  children: ReactNode;
 }
 
 const DAY = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
 export function ActiveReading(p: PanelProps) {
-  const box = useRef<HTMLElement>(null);
+  const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!p.overlay) return;
     const before = document.activeElement as HTMLElement | null;
@@ -198,10 +206,15 @@ export function ActiveReading(p: PanelProps) {
     return () => { if (before?.isConnected) before.focus({ preventScroll: true }); };
   }, [p.overlay]);
   const left = p.minutes ? Math.max(0, Math.round(p.minutes * (1 - p.progress))) : null;
+  // Beside the text, a complementary region; over it, a dialog (which an <aside> may not be).
+  const Box = p.overlay ? 'div' : 'aside';
   return (
-    <aside className="ikr-panel" id="ikr-panel" aria-label="Active Reading" ref={box} {...(p.overlay ? { role: 'dialog', 'aria-modal': true } : {})}>
+    <Box className="ikr-panel" id="ikr-panel" aria-label="Active Reading" ref={box} {...(p.overlay ? { role: 'dialog', 'aria-modal': true } : {})}>
       <div className="ikr-panel-head">
-        <p className="ikr-eyebrow">Active reading</p>
+        <div>
+          <p className="ikr-eyebrow">Active reading</p>
+          {p.summary && <p className="ikr-summary">{p.summary}</p>}
+        </div>
         <button type="button" className="ikr-close" onClick={p.onClose} aria-label="Hide Active Reading"><Icon name="close" /></button>
       </div>
       <section className="ikr-card" aria-labelledby="ikr-card-article">
@@ -218,11 +231,8 @@ export function ActiveReading(p: PanelProps) {
         {p.keepNote && <p className="ikr-card-note" role="status">{p.keepNote}</p>}
         {p.url && <a className="ikr-card-link" href={p.url} target="_blank" rel="noopener noreferrer">Open original<span aria-hidden> ↗</span></a>}
       </section>
-      <section className="ikr-card" aria-labelledby="ikr-card-notes">
-        <h2 className="ikr-card-title" id="ikr-card-notes">Highlights and notes</h2>
-        <p className="ikr-card-text">Highlighting, notes and Save to Takeaways come with the next part of Intake.</p>
-      </section>
-      <p className="ikr-footnote">Your place and Finished follow you to your other devices. How the reader looks stays on this one.</p>
-    </aside>
+      {p.children}
+      <p className="ikr-footnote">Your place, Finished, highlights and notes follow you to your other devices. How the reader looks stays on this one.</p>
+    </Box>
   );
 }

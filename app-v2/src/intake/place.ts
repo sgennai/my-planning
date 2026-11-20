@@ -16,7 +16,7 @@ const KEY_LENGTH = 40;
 const clamp = (n: number) => Math.min(1, Math.max(0, n));
 
 /** FNV-1a, 32 bits, in base 36: short, and enough to tell a block from its neighbours. */
-function hash(s: string): string {
+export function hash(s: string): string {
   let h = 0x811c9dc5;
   for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); }
   return (h >>> 0).toString(36);

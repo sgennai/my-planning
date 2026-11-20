@@ -117,6 +117,8 @@ export function App() {
   // Routine is the default landing page.
   const [appPage, setAppPage] = useState('routine');
   const [pendingCalAction, setPendingCalAction] = useState(null);
+  // A takeaway's article, asked for from Intelligence: Intake opens it at the passage.
+  const [intakeOpen, setIntakeOpen] = useState(null);
   const [remoteConflicts, setRemoteConflicts] = useState([]);
   // The authoritative copy between renders. `persist` updates it
   // synchronously so two interactions in the same frame both build on the
@@ -412,7 +414,7 @@ export function App() {
   } else if (appPage === 'intake') {
     pageContent = (
       <Suspense fallback={<Centered>Loading…</Centered>}>
-        <IntakeScreen data={data} onPersist={persist} />
+        <IntakeScreen data={data} onPersist={persist} open={intakeOpen} onOpened={() => setIntakeOpen(null)} />
       </Suspense>
     );
   } else if (appPage === 'practice') {
@@ -429,7 +431,7 @@ export function App() {
   } else if (appPage === 'intelligence') {
     pageContent = (
       <Suspense fallback={<Centered>Loading…</Centered>}>
-        <IntelligenceScreen data={data} onPersist={persist} />
+        <IntelligenceScreen data={data} onPersist={persist} onOpenArticle={target => { setIntakeOpen({ ...target, key: Date.now() }); setAppPage('intake'); }} />
       </Suspense>
     );
   } else {

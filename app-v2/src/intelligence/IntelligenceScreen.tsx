@@ -57,6 +57,7 @@ import { kitOf, withRole, withMembership, withKitLabel, withoutKit, type Role } 
 import { wordsOf, NOTEBOOK_START, type NotebookState } from './notebook';
 import { dayNameShort, formatDayCompact, dayKeyOf, addDaysKey } from '../routine/dates';
 import { IconRefresh, IconList, IconX, IconChevronLeft, IconBookmark, IconPulse, IconSearch } from '../ui/icons';
+import type { PassageAnchor } from '../intake/anchor';
 
 // "Jour & verre", the theme of `styles/intel-jour-et-verre.css`. Phase 1
 // (INT-59): the three memo views. Phase 2 (INT-60): Today and Takeaways, and,
@@ -187,9 +188,11 @@ const unsave = (d: IntelData & Record<string, unknown>, id: string) => ({
 interface Props {
   data: IntelData | null;
   onPersist: (mutator: (current: IntelData & Record<string, unknown>) => IntelData & Record<string, unknown>) => void;
+  /** Opens an article in Intake at a takeaway's passage (Intake 2.0 Phase 3). */
+  onOpenArticle?: (target: { bookmarkId: number; annotationId: string | null; anchor: PassageAnchor | null }) => void;
 }
 
-export function IntelligenceScreen({ data, onPersist }: Props) {
+export function IntelligenceScreen({ data, onPersist, onOpenArticle }: Props) {
   const { states, refreshed, refreshing, refresh } = useFeeds();
   const phone = useMatches(PHONE);
   const portrait = useMatches(PORTRAIT);
@@ -476,9 +479,11 @@ export function IntelligenceScreen({ data, onPersist }: Props) {
     switchView(from);
   };
   const openSaved = (item: SavedInsight) => {
-    // Kept from an Intake article: its original, until Intake's reader can open the passage.
+    // Kept from an Intake article: back to it in Intake's reader, at the passage; else (no Intake here) its original.
     if (isFromArticle(item)) {
-      if (item.source?.url) window.open(item.source.url, '_blank', 'noopener,noreferrer');
+      const source = item.source!;
+      if (onOpenArticle) onOpenArticle({ bookmarkId: source.bookmarkId, annotationId: source.annotationId ?? null, anchor: source.anchor ?? null });
+      else if (source.url) window.open(source.url, '_blank', 'noopener,noreferrer');
       else onNote("That article has no address to open.");
       return;
     }

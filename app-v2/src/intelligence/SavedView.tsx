@@ -190,7 +190,7 @@ function Notebook({ item, reviews, today, topics, noteRef, actions, onView, onTa
         {item.kind !== 'edition' && <> · <cite>{item.editionTitle}</cite></>}{place && ` · ${place}`}. The saved wording is preserved exactly.
       </p>
       <p className="tk-sources">
-        <button type="button" className="tk-source" onClick={() => actions.onOpen(item)}>{isFromArticle(item) ? 'Open the article' : 'Open the edition'}</button>
+        <button type="button" className="tk-source" onClick={() => actions.onOpen(item)}>{isFromArticle(item) ? (item.kind === 'passage' ? 'Return to passage' : 'Open the article') : 'Open the edition'}</button>
         {original.url && <a className="tk-source" href={original.url} target="_blank" rel="noopener noreferrer">{original.label}<span aria-hidden> ↗</span></a>}
       </p>
       <div className="tk-divider" />

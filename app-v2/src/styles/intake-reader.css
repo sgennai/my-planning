@@ -12,6 +12,9 @@
   about a screen (--ikr-pic-max; the lead picture --ikr-hero-max), its width worked out from its
   proportions (--ikr-r, set as it is placed) so it is never stretched or letterboxed. One shown smaller
   than itself opens full size (.ikr-viewer).
+  Phase 3: your highlights (::highlight, a warm gold per theme), the bar by a selection, the panel's reading
+  notes, the note editor (a modal near the top: the keyboard leaves it in view) and a short word when
+  something is done.
 */
 .ikr {
   --ikr-paper: #fffdfa;
@@ -30,6 +33,13 @@
   --ikr-card-edge: #dddff7;
   --ikr-card-ink: #4d5b6f;
   --ikr-eyebrow: #5752b9;
+  /* Your highlights (Phase 3): a warm gold, never Finished's sage. */
+  --ikr-hl-bg: #fbecbb;
+  --ikr-hl-noted: #f6df96;
+  --ikr-hl-flash: #f2cd5c;
+  --ikr-hl-edge: #c99a2e;
+  --ikr-warn: #8a4b12;
+  --ikr-danger: #8c2f39;
   --ikr-font: 'Literata', Georgia, serif;
   --ikr-display: 'Space Grotesk', 'Inter', sans-serif;
   --ikr-ui: 'Inter', system-ui, sans-serif;
@@ -56,6 +66,11 @@
   --ikr-card-edge: #e0d6c3;
   --ikr-card-ink: #54493a;
   --ikr-eyebrow: #5a4f9e;
+  --ikr-hl-bg: #f0da9c;
+  --ikr-hl-noted: #e9cf84;
+  --ikr-hl-flash: #e4c264;
+  --ikr-hl-edge: #b48a36;
+  --ikr-warn: #7d4310;
 }
 .ikr[data-theme="dark"] {
   --ikr-paper: #111a2b;
@@ -73,6 +88,12 @@
   --ikr-card-edge: #445172;
   --ikr-card-ink: #dbe4ef;
   --ikr-eyebrow: #b9b4ff;
+  --ikr-hl-bg: #4d4223;
+  --ikr-hl-noted: #5c4f28;
+  --ikr-hl-flash: #786530;
+  --ikr-hl-edge: #b3934a;
+  --ikr-warn: #f0c27a;
+  --ikr-danger: #ffb3bb;
 }
 .ikr[data-font="sans"] { --ikr-font: 'Inter', system-ui, sans-serif; }
 @media (orientation: portrait) {
@@ -361,7 +382,7 @@
 .ikr[data-theme="dark"] .ikr-button.is-on { background: #23413a; border-color: #3b6457; color: #cfeadd; }
 .ikr-button:disabled { opacity: .55; }
 @media (hover: hover) { .ikr-button:not(:disabled):hover { background: var(--ikr-tint); } .ikr-button.is-on:hover { background: #d8e8df; } }
-.ikr :is(button, a, input):focus-visible { outline: 3px solid rgba(76, 65, 223, .6); outline-offset: 3px; }
+.ikr :is(button, a, input, textarea):focus-visible { outline: 3px solid rgba(76, 65, 223, .6); outline-offset: 3px; }
 
 /* ── Popovers: appearance, contents ─────────────────────────────────────── */
 .ikr-pop {
@@ -440,14 +461,17 @@
   min-width: 0;
   min-height: 0;
   overflow: auto;
-  padding: 23px 17px calc(23px + var(--ikr-clear));
+  padding: 23px 17px 0;
   box-sizing: border-box;
   border-left: 1px solid var(--ikr-panel-edge);
   background: var(--ikr-panel-bg);
   color: var(--ikr-ink);
   font-family: var(--ikr-ui);
 }
-@container ikr (max-width: 1099px) { .ikr-panel { padding: 20px 12px calc(20px + var(--ikr-clear)); } }
+@container ikr (max-width: 1099px) { .ikr-panel { padding: 20px 12px 0; } }
+/* The room at its end (and the nav pill's) as its last item, not as padding: WebKit leaves a flex column's end
+   padding out of what scrolls, so a long panel would end under the pill. */
+.ikr-panel::after { content: ""; flex: none; height: calc(22px + var(--ikr-clear)); margin-top: -12px; }
 .ikr-frame.is-overlay .ikr-panel {
   position: absolute;
   z-index: 22;
@@ -455,7 +479,7 @@
   right: 0;
   bottom: 0;
   width: min(85%, 330px);
-  padding: 23px 18px calc(23px + var(--ikr-clear));
+  padding: 23px 18px 0;
   box-shadow: -12px 0 32px rgba(25, 38, 76, .15);
 }
 .ikr-backdrop { position: absolute; z-index: 21; inset: 0; border: 0; background: rgba(16, 28, 52, .21); }
@@ -469,7 +493,7 @@
 .ikr-facts dt { color: var(--ikr-card-ink); }
 .ikr-facts dd { margin: 0; text-align: right; font-weight: 600; color: var(--ikr-ink); font-variant-numeric: tabular-nums; }
 .ikr-card-text { margin: 0; }
-.ikr-card-note { margin: 6px 0 0; color: var(--ikr-card-ink); }
+.ikr-card-note, .ikr-card-hint { margin: 6px 0 0; color: var(--ikr-card-ink); }
 .ikr-card-link { display: inline-flex; align-items: center; min-height: 44px; color: var(--ikr-link); font-weight: 600; text-decoration: none; }
 .ikr-switch {
   display: flex;
@@ -490,6 +514,198 @@
 .ikr-switch.is-on .ikr-switch-track span { transform: translateX(14px); }
 .ikr-switch:disabled { opacity: .55; }
 .ikr-footnote { margin: auto 0 0; padding-top: 14px; font: 400 calc(10.5 * var(--tpx)) / 1.6 var(--ikr-ui); color: var(--ikr-card-ink); }
+
+/* ── Highlights, notes, takeaways (Phase 3, ReaderNotes.tsx) ─────────────── */
+/* Drawn by the browser (the Custom Highlight API: nothing in the article's HTML changes, nothing moves); one
+   with a note a shade deeper and underlined. The colours are set per theme here, not through variables, which
+   highlights don't take everywhere. Text on each keeps 7:1 or more. */
+.ikr ::highlight(ikr-hl) { background-color: #fbecbb; color: #2c2d35; }
+.ikr ::highlight(ikr-hl-noted) { background-color: #f6df96; color: #2c2d35; text-decoration: underline 1.5px #c99a2e; text-underline-offset: 3px; }
+.ikr ::highlight(ikr-hl-flash) { background-color: #f2cd5c; color: #2c2d35; }
+.ikr[data-theme="sepia"] ::highlight(ikr-hl) { background-color: #f0da9c; color: #3d3428; }
+.ikr[data-theme="sepia"] ::highlight(ikr-hl-noted) { background-color: #e9cf84; color: #3d3428; text-decoration: underline 1.5px #b48a36; text-underline-offset: 3px; }
+.ikr[data-theme="sepia"] ::highlight(ikr-hl-flash) { background-color: #e4c264; color: #3d3428; }
+.ikr[data-theme="dark"] ::highlight(ikr-hl) { background-color: #4d4223; color: #f4efe0; }
+.ikr[data-theme="dark"] ::highlight(ikr-hl-noted) { background-color: #5c4f28; color: #f4efe0; text-decoration: underline 1.5px #b3934a; text-underline-offset: 3px; }
+.ikr[data-theme="dark"] ::highlight(ikr-hl-flash) { background-color: #786530; color: #fff; }
+/* Without the API: spans, inline, with no box of their own. */
+.ikr-hl { background: var(--ikr-hl-bg); border-radius: 2px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.ikr-hl.is-noted { background: var(--ikr-hl-noted); text-decoration: underline 1.5px var(--ikr-hl-edge); text-underline-offset: 3px; }
+.ikr-hl.is-flash { background: var(--ikr-hl-flash); }
+
+/* The bar by your selection, or a highlight you tapped: the prototype's dark bar, 44px to the touch. */
+.ikr-selbar {
+  position: absolute;
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  max-width: calc(100% - 16px);
+  padding: 4px;
+  box-sizing: border-box;
+  border: 1px solid #35456a;
+  border-radius: 14px;
+  background: #14203c;
+  color: #fff;
+  box-shadow: 0 9px 30px rgba(17, 30, 64, .3);
+  font-family: var(--ikr-ui);
+}
+.ikr-selbar button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font: 700 calc(12.5 * var(--tpx)) / 1.2 var(--ikr-ui);
+  white-space: nowrap;
+  touch-action: manipulation;
+}
+.ikr-selbar button svg { flex: none; width: 16px; height: 16px; }
+.ikr-selbar button.is-done { color: #bfe3d2; }
+.ikr-selbar button.is-danger { background: #a3333f; color: #fff; }
+.ikr-selbar-ask { padding: 0 6px 0 10px; font: 600 calc(12.5 * var(--tpx)) / 1.3 var(--ikr-ui); white-space: nowrap; }
+.ikr-selbar :focus-visible { outline: 3px solid #a9a2ff; outline-offset: 1px; }
+@media (hover: hover) { .ikr-selbar button:hover { background: #334366; } .ikr-selbar button.is-danger:hover { background: #b33d4a; } }
+.ikr[data-theme="dark"] .ikr-selbar { border-color: #c9d2e6; background: #e9edf6; color: #14203c; box-shadow: 0 9px 30px rgba(0, 0, 0, .45); }
+.ikr[data-theme="dark"] .ikr-selbar button.is-done { color: #2f6a52; }
+.ikr[data-theme="dark"] .ikr-selbar :focus-visible { outline-color: #5149d6; }
+@media (hover: hover) { .ikr[data-theme="dark"] .ikr-selbar button:hover { background: #d3dbec; } }
+.ikr-short { display: none; }
+@media (max-width: 430px) {
+  .ikr-selbar button { padding: 0 10px; }
+  .ikr-selbar .ikr-long { display: none; }
+  .ikr-selbar .ikr-short { display: inline; }
+}
+
+/* The panel: the summary under its name, your reading notes, keep what matters. */
+.ikr-summary { margin: 5px 0 0; font: 600 calc(11 * var(--tpx)) / 1.4 var(--ikr-ui); color: var(--ikr-card-ink); }
+.ikr-notes-list { list-style: none; margin: 0; padding: 0; }
+.ikr-note { padding: 11px 0 4px; border-top: 1px solid var(--ikr-card-edge); }
+.ikr-note:first-child { padding-top: 0; border-top: 0; }
+.ikr-note-go { display: block; width: 100%; min-height: 44px; padding: 0; border: 0; background: none; color: inherit; text-align: left; cursor: pointer; }
+.ikr-note-quote {
+  display: block;
+  margin: 0;
+  padding-left: 9px;
+  border-left: 3px solid var(--ikr-hl-edge);
+  font: italic 400 calc(13.5 * var(--tpx)) / 1.5 var(--ikr-font);
+  color: var(--ikr-ink);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.ikr-note-quote.is-clamped { display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+@media (hover: hover) { .ikr-note-go:hover .ikr-note-quote { background: color-mix(in srgb, var(--ikr-hl-bg) 55%, transparent); } }
+.ikr-note.is-missing .ikr-note-quote { border-left-style: dashed; border-left-color: var(--ikr-card-edge); color: var(--ikr-card-ink); }
+.ikr-note-flag { margin: 6px 0 0; font: 500 calc(11.5 * var(--tpx)) / 1.45 var(--ikr-ui); color: var(--ikr-warn); }
+.ikr-note-kind { margin: 0 0 2px; font: 800 calc(9.5 * var(--tpx)) / 1.4 var(--ikr-ui); letter-spacing: .13em; text-transform: uppercase; color: var(--ikr-eyebrow); }
+.ikr-note-text { margin: 7px 0 0; font: 400 calc(12.5 * var(--tpx)) / 1.55 var(--ikr-ui); color: var(--ikr-ink); white-space: pre-wrap; overflow-wrap: anywhere; }
+.ikr-note-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ikr-note-tk { display: inline-flex; align-items: center; gap: 4px; font: 700 calc(9.5 * var(--tpx)) / 1.3 var(--ikr-ui); letter-spacing: .1em; text-transform: uppercase; color: var(--ikr-eyebrow); }
+.ikr-note-tk svg { width: 13px; height: 13px; }
+.ikr-note-more, .ikr-note-link { min-height: 44px; padding: 0 2px; border: 0; background: none; color: var(--ikr-link); font: 600 calc(12 * var(--tpx)) / 1.2 var(--ikr-ui); }
+.ikr-note-link { display: block; }
+.ikr-note-actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 6px; }
+.ikr-note-actions button {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--ikr-card-edge);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ikr-ink);
+  font: 600 calc(12 * var(--tpx)) / 1.2 var(--ikr-ui);
+}
+.ikr-note-ask p { margin: 6px 0 4px; font-weight: 600; color: var(--ikr-ink); }
+.ikr-note-actions button.is-danger, .ikr-button.is-danger { border-color: color-mix(in srgb, var(--ikr-danger) 35%, transparent); color: var(--ikr-danger); }
+.ikr-rail-cta {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  box-sizing: border-box;
+  border: 1px dashed #b5c5d8;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ikr-card-ink);
+  font: 700 calc(12 * var(--tpx)) / 1.3 var(--ikr-ui);
+  text-align: center;
+}
+.ikr[data-theme="dark"] .ikr-rail-cta { border-color: #5b678a; }
+.ikr-rail-cta:disabled { opacity: .6; }
+@media (hover: hover) { .ikr-rail-cta:not(:disabled):hover { background: var(--ikr-tint); } }
+
+/* The note editor: near the top, so the keyboard below leaves it in view; 16px text, so iOS doesn't zoom. */
+.ikr-editor {
+  box-sizing: border-box;
+  width: min(560px, calc(100% - 32px));
+  max-height: calc(100dvh - 32px);
+  margin: max(72px, calc(env(safe-area-inset-top, 0px) + 16px)) auto auto;
+  padding: 0;
+  border: 1px solid var(--ikr-line-c);
+  border-radius: 18px;
+  background: var(--ikr-paper);
+  color: var(--ikr-ink);
+  box-shadow: 0 24px 60px rgba(25, 38, 76, .25);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.ikr-editor::backdrop { background: rgba(16, 28, 52, .28); }
+.ikr-editor-box { display: flex; flex-direction: column; gap: 10px; padding: 20px 20px 18px; font-family: var(--ikr-ui); }
+.ikr-editor-title { margin: 0; font: 700 calc(16 * var(--tpx)) / 1.3 var(--ikr-display); letter-spacing: -.01em; color: var(--ikr-ink); }
+.ikr-editor-quote {
+  max-height: 9.5em;
+  margin: 0;
+  padding: 2px 0 2px 12px;
+  overflow: auto;
+  border-left: 3px solid var(--ikr-hl-edge);
+  font: italic 400 calc(15 * var(--tpx)) / 1.55 var(--ikr-font);
+  color: var(--ikr-ink);
+  white-space: pre-line;
+}
+.ikr-editor-quote.is-title { font-style: normal; font-weight: 600; }
+.ikr-editor-label { font: 650 calc(12 * var(--tpx)) / 1.3 var(--ikr-ui); color: var(--ikr-soft); }
+.ikr-editor textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 120px;
+  padding: 12px 14px;
+  border: 1px solid var(--ikr-panel-edge);
+  border-radius: 12px;
+  background: var(--ikr-card-bg);
+  color: var(--ikr-ink);
+  font: 400 max(16px, calc(15 * var(--tpx))) / 1.5 var(--ikr-ui);
+  resize: vertical;
+}
+.ikr-editor textarea::placeholder { color: var(--ikr-soft); opacity: 1; }
+.ikr-editor-hint { margin: 0; font: 400 calc(11.5 * var(--tpx)) / 1.5 var(--ikr-ui); color: var(--ikr-soft); }
+.ikr-editor-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+.ikr-editor-gap { flex: 1; }
+.ikr-editor-quiet { min-height: 44px; padding: 0 4px; border: 0; background: none; color: var(--ikr-danger); font: 600 calc(13 * var(--tpx)) / 1.2 var(--ikr-ui); }
+.ikr-editor-ask p { margin: 0 0 8px; font: 600 calc(13.5 * var(--tpx)) / 1.4 var(--ikr-ui); color: var(--ikr-ink); }
+.ikr-button.is-primary { border-color: #14203c; background: #14203c; color: #fff; }
+.ikr-button.is-primary:disabled { opacity: .45; }
+.ikr[data-theme="dark"] .ikr-button.is-primary { border-color: #e9edf6; background: #e9edf6; color: #14203c; }
+@media (hover: hover) { .ikr-button.is-primary:not(:disabled):hover { background: #26335a; } .ikr[data-theme="dark"] .ikr-button.is-primary:not(:disabled):hover { background: #fff; } }
+
+/* A word that something was done (Highlighted, Saved to Takeaways), clear of the pill. */
+.ikr-toast { position: absolute; z-index: 26; left: 50%; bottom: calc(var(--ikr-clear) + 18px); width: max-content; max-width: min(90%, 440px); transform: translateX(-50%); pointer-events: none; }
+.ikr-toast span {
+  display: block;
+  padding: 10px 16px;
+  border-radius: 18px;
+  background: #101c35;
+  color: #fff;
+  font: 600 calc(12.5 * var(--tpx)) / 1.4 var(--ikr-ui);
+  text-align: center;
+  box-shadow: 0 12px 36px rgba(22, 36, 71, .23);
+  animation: ikr-toast-in .16s ease-out;
+}
+.ikr[data-theme="dark"] .ikr-toast span { background: #e9edf6; color: #14203c; }
+@keyframes ikr-toast-in { from { opacity: 0; transform: translateY(6px); } }
 
 /* ── A picture full size (PictureViewer) ──────────────────────────────────── */
 /* A modal <dialog>, in the top layer: over the pill too. The page under it doesn't move. */
@@ -550,8 +766,13 @@
   .ikr-deck { font-size: calc(15 * var(--tpx)); }
   .ikr-appearance { right: 4px; left: 4px; width: auto; }
   .ikr-contents { left: 4px; right: 4px; width: auto; }
-  .ikr-frame.is-overlay .ikr-panel { width: min(88%, 350px); padding: 19px 15px calc(19px + var(--ikr-clear)); }
+  .ikr-frame.is-overlay .ikr-panel { width: min(88%, 350px); padding: 19px 15px 0; }
+}
+@media (max-width: 600px) {
+  .ikr-editor { width: calc(100% - 16px); margin-top: max(12px, calc(env(safe-area-inset-top, 0px) + 8px)); }
+  .ikr-editor-box { padding: 16px 16px 14px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .ikr-stage, .ikr-switch-track, .ikr-switch-track span { transition: none; }
+  .ikr-toast span { animation: none; }
 }

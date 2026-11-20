@@ -17,6 +17,9 @@ import { reviewIndex, withRating } from '../intelligence/review';
 import type { Edition } from '../intelligence/parse';
 import { savedOf, removeInsight, type SavedInsight } from '../intelligence/saved';
 import { kitOf, roleOf, withRole, withMembership, withKitLabel, withoutKit } from '../intelligence/kit';
+import { annotationsOf, newArticleNote, newPassage, withAnnotation, withNote, withoutAnnotation, withTakeaway } from '../intake/annotations';
+import { saveArticleInsight } from '../intelligence/saved';
+import type { PassageAnchor } from '../intake/anchor';
 
 // ── Stand-in Worker: last-write-wins by updatedAt, listed by arrival ─────────
 let clock = Date.parse('2026-10-29T08:00:00.000Z');
@@ -393,6 +396,102 @@ describe('the meeting kit on two devices (INT-56)', () => {
       expect(saved.map(s => s.id)).toEqual(['is:r']);
       expect(kit.members.size).toBe(0);
       expect(kit.roles.size).toBe(0);
+    });
+  });
+});
+
+describe('highlights and notes on two devices (Intake 2.0 Phase 3)', () => {
+  const words = (start: number, quote: string): PassageAnchor => ({
+    quote, prefix: '', suffix: '', start, end: start + quote.length, startBlock: null, endBlock: null, textLength: 900, textHash: 'h',
+  });
+  const put = (f: (c: unknown[] | undefined) => unknown[]) => async () => {
+    const d = await read();
+    tick();
+    await save({ ...d, content: f(d.content as unknown[] | undefined) });
+  };
+  const notesOf = async () => annotationsOf((await read()).content as unknown[], 7);
+  const syncNow = async () => { tick(); await sync(); };
+
+  it('made on each, offline: both kept on both', async () => {
+    const [first, second] = await twoDevices();
+    online.value = false;
+    let ipad = await as(first, put(c => withAnnotation(c, newPassage(7, words(10, 'from the iPad'), '', new Date(clock)))));
+    let iphone = await as(second, put(c => withAnnotation(c, newArticleNote(7, 'from the iPhone', new Date(clock)))));
+    online.value = true;
+    ipad = await as(ipad, syncNow);
+    iphone = await as(iphone, syncNow);
+    ipad = await as(ipad, syncNow);
+    for (const d of [ipad, iphone]) await as(d, async () => expect((await notesOf()).map(a => a.note || a.anchor?.quote).sort()).toEqual(['from the iPad', 'from the iPhone']));
+  });
+
+  it('the same note edited on both before they sync: the later edit stands on both', async () => {
+    const [first, second] = await twoDevices();
+    const a = newPassage(7, words(10, 'kept words'), 'first', new Date(clock));
+    let ipad = await as(first, async () => { await put(c => withAnnotation(c, a))(); await syncNow(); });
+    let iphone = await as(second, syncNow);
+    online.value = false;
+    ipad = await as(ipad, put(c => withNote(c, a.id, 'edited on the iPad')));
+    iphone = await as(iphone, put(c => withNote(c, a.id, 'edited later on the iPhone')));
+    online.value = true;
+    ipad = await as(ipad, syncNow);
+    iphone = await as(iphone, syncNow);
+    ipad = await as(ipad, syncNow);
+    for (const d of [ipad, iphone]) await as(d, async () => expect((await notesOf())[0].note).toBe('edited later on the iPhone'));
+  });
+
+  it('removed offline on one: stays removed on both, the other holding an older copy, in either order', async () => {
+    for (const order of ['remover first', 'holder first']) {
+      server.clear();
+      const [first, second] = await twoDevices();
+      const a = newPassage(7, words(10, 'to be removed'), 'with a note', new Date(clock));
+      const b = newPassage(7, words(40, 'to stay'), '', new Date(clock));
+      let ipad = await as(first, async () => { await put(c => withAnnotation(withAnnotation(c, a), b))(); await syncNow(); });
+      let iphone = await as(second, syncNow);
+      online.value = false;
+      ipad = await as(ipad, put(c => withoutAnnotation(c, a.id)));
+      online.value = true;
+      if (order === 'remover first') { ipad = await as(ipad, syncNow); iphone = await as(iphone, syncNow); }
+      else { iphone = await as(iphone, syncNow); ipad = await as(ipad, syncNow); iphone = await as(iphone, syncNow); }
+      ipad = await as(ipad, syncNow);
+      for (const d of [ipad, iphone]) await as(d, async () => expect((await notesOf()).map(x => x.id), order).toEqual([b.id]));
+    }
+  });
+
+  it('a highlight removed on one and saved to Takeaways on the other: the takeaway stays, the highlight goes', async () => {
+    const [first, second] = await twoDevices();
+    const a = newPassage(7, words(10, 'worth keeping'), '', new Date(clock));
+    let ipad = await as(first, async () => { await put(c => withAnnotation(c, a))(); await syncNow(); });
+    let iphone = await as(second, syncNow);
+    online.value = false;
+    iphone = await as(iphone, put(c => {
+      const out = saveArticleInsight(c, { bookmarkId: 7, url: null, title: 'T', publication: null, author: null, published: null, kind: 'passage', text: 'worth keeping', note: '', sectionTitle: null, annotationId: a.id, anchor: a.anchor }, new Date(clock));
+      return out.content;
+    }));
+    ipad = await as(ipad, put(c => withoutAnnotation(c, a.id)));
+    online.value = true;
+    iphone = await as(iphone, syncNow);
+    ipad = await as(ipad, syncNow);
+    iphone = await as(iphone, syncNow);
+    for (const d of [ipad, iphone]) {
+      await as(d, async () => {
+        expect(await notesOf()).toEqual([]);
+        expect(savedOf((await read()).content as unknown[]).map(s => s.text)).toEqual(['worth keeping']);
+      });
+    }
+  });
+
+  it("a takeaway removed in Takeaways leaves the highlight it came from", async () => {
+    const [first] = await twoDevices();
+    const a = newPassage(7, words(10, 'kept apart'), '', new Date(clock));
+    await as(first, async () => {
+      await put(c => {
+        const out = saveArticleInsight(withAnnotation(c, a), { bookmarkId: 7, url: null, title: 'T', publication: null, author: null, published: null, kind: 'passage', text: 'kept apart', note: '', sectionTitle: null, annotationId: a.id, anchor: a.anchor }, new Date(clock));
+        return withTakeaway(out.content, a.id, out.id);
+      })();
+      const id = savedOf((await read()).content as unknown[])[0].id;
+      await put(c => removeInsight(c, id))();
+      await syncNow();
+      expect((await notesOf()).map(x => x.id)).toEqual([a.id]);
     });
   });
 });

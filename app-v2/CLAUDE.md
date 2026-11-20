@@ -727,8 +727,8 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
 
 Intake 2.0: your Instapaper library, then a reader. Plan and decisions D1–D11:
 `../SUPPORTING FILES/intake-2-articles-audit-and-plan-2026-11-16.md` (with the probe report and each
-phase's validation report beside it). Phase 1 (the Articles library) and Phase 2 (the Paper Sanctuary
-reader) are built; Phase 3 (Active Reading's highlights, notes, Save to Takeaways) is not.
+phase's validation report beside it). Phase 1 (the Articles library), Phase 2 (the Paper Sanctuary
+reader) and Phase 3 (Active Reading: highlights, notes, Save to Takeaways) are built.
 
 - **Instapaper access** is server-side and read-only: `functions/api/intake/[[path]].ts` →
   `server/intake.ts` (`GET /api/intake/status`, `/sync?since=&offset=`, `/articles/<id>`, `/folders`,
@@ -741,7 +741,7 @@ reader) are built; Phase 3 (Active Reading's highlights, notes, Save to Takeaway
   `my-planning-intake` (`cache.ts`: `articles`, `bodies`, `meta`; still version 1), the reader's pictures,
   their sizes and its font in `my-planning-intake-images` (version 2), both deleted on sign-out (`ui/sign-out.ts`). Only your own data syncs:
   reading `ar:<bookmark id>` (`intake-reading`) and Finished `ac:<id>` (`intake-read-mark`) in
-  `progressLog` (Phase 2); highlights and notes in Phase 3.
+  `progressLog` (Phase 2); highlights and notes in `content` (`ih:` / `in:`, Phase 3, below).
 - **Sync** (`sync.ts`, pure, with `useArticles.ts` driving it): `since` from the last complete sync
   less a minute (1 the first time), pages of 500, offset advanced past bookmarks and deleted ids; a
   sync cut short resumes from its saved offset. `mergeSync` (`articles.ts`) keeps what the device
@@ -794,11 +794,11 @@ reader) are built; Phase 3 (Active Reading's highlights, notes, Save to Takeaway
   followed the app's theme, R5) can't be told from a chosen one and reads as Light, a saved Sepia stays.
   Active Reading (`ActiveReading`): beside the text from 850px of reader (208px, 240px from 1100px; a
   container query), else a sheet over it with a backdrop, focus inside, the text `inert`, Escape closes;
-  it holds the article's status, read %, minutes, Keep offline and the original, and says plainly that
-  highlights and notes come later (Phase 3): nothing invented. Opening an article not yet fetched
+  it holds the article's status, read %, minutes, Keep offline and the original, then your reading notes
+  (Phase 3, below): nothing invented. Opening an article not yet fetched
   fetches it now; one Instapaper can't extract shows why, with Try again (one request per tap, the button
-  saying it's trying, no reset of the library) and Open original. The highlight button of the prototype
-  waits for Phase 3.
+  saying it's trying, no reset of the library) and Open original. The prototype's highlighter button in
+  the bar was not added: a selection brings the actions itself (Phase 3).
 - **The article's HTML** (`sanitize.ts`): DOMPurify with an allowlist (text structure, links, images,
   tables, figures); embeds become a link; links open beside the app (`noopener noreferrer`), other schemes
   keep their words; headings shift so the article's start at h2 and h2/h3 get ids for Contents; images
@@ -876,15 +876,82 @@ reader) are built; Phase 3 (Active Reading's highlights, notes, Save to Takeaway
   opaque: no size, no error, padded quota).
   **Keep offline** (`keep` on the article, this device): the text is here already; all its pictures are
   fetched and held for it; taking it back lets them be evicted in turn.
+- **Active Reading** (Phase 3; `anchor.ts`, `annotations.ts`, `highlights.ts`, `ReaderNotes.tsx` (the hook,
+  `useReaderNotes`), `NotesParts.tsx` (the editor, the panel's list), `drafts.ts`; styles in `intake-reader.css`):
+  read → select → highlight or note → review → save to Takeaways. Report:
+  `../SUPPORTING FILES/intake-2-phase3-active-reading-report-2026-11-19.md`.
+  - **Records** in `content` (beside Takeaways; no D1, Worker or schema change), type `intake-annotation`, `v: 1`:
+    `ih:<uuid>` a passage (a highlight, its note or none), `in:<uuid>` a note on the whole article; `bookmarkId`,
+    `anchor` (null for an article note), `note` (plain text), `takeawayId`, `createdAt`, `editedAt`. Each is
+    last-write-wins between devices like a takeaway (the storage stamps each change and tombstones a removal):
+    a copy older than a removal never brings it back, two notes edited offline keep the later edit, highlights
+    made on two devices are both kept. Finding a passage writes nothing; only your hand changes a record.
+  - **Anchors** (`anchor.ts`): the article's text read once into one string (`indexText`: text nodes in order,
+    white space as one space, a block's end as a newline, the reader's own additions (`.ikr-img-missing`,
+    `.ikr-whole`) left out); a passage keeps its exact words (`quote`), 32 characters each side, its offsets,
+    its first and last blocks (place.ts's number and fingerprint) and the text's length and FNV fingerprint.
+    `resolve`: the same version, where it was; another version, wherever the same words stand with the most
+    of their context, only when that place stands out (full context on one side, or the only place with
+    24+ characters or 8+ of context, or 16+ of context and 8 ahead of any other); else `gone` / `ambiguous`,
+    shown as "Passage unavailable" with its words and note kept, never drawn on maybe-wrong words.
+  - **Drawing** (`highlights.ts`): the CSS Custom Highlight API (`ikr-hl`, `ikr-hl-noted`, `ikr-hl-flash`; the
+    article's HTML untouched); without it, `span.ikr-hl` wraps per text node (inline, no box: nothing moves,
+    the blocks' words and so the place's fingerprint unchanged), unwrapped and re-wrapped on each change.
+    Colours per theme in the stylesheet (not variables: `::highlight` doesn't take them everywhere): a warm
+    gold, never Finished's sage; text on it 7:1 or more. **None are drawn while the note editor is open**
+    (`holdPaint`): WebKit 26 draws a page's custom highlights on the first words of an open `<dialog>` holding
+    a text field, instead of their own words, for as long as it is open (a bare page reproduces it; Chromium
+    doesn't). They are held back and drawn again as it closes.
+  - **The bar** (`.ikr-selbar`): once a selection is still (a finger let go and the handles rested 450 ms; a
+    mouse 120 ms; the keys 250 ms), Highlight / Add note / Save to Takeaways; inside an existing highlight, or
+    on a tap on its words (`hitAt`), that highlight's: its note, Takeaways, Remove (asks in the bar). The words
+    are taken as offsets when the selection settles (iOS clears the selection when the bar is tapped; the bar
+    lingers 700 ms); an action takes them once (two taps make one highlight). Below the words on a touch
+    screen (iOS keeps its own menu above them), above with a mouse, flipped when there is no room, at the foot
+    of the reading area when neither has; never under the reader's bar or the pill; follows the words while
+    you scroll, hidden while they are off screen. A selection made with Shift held gets the focus (Safari
+    has no caret browsing: keys can't select plain text there). Nothing is highlighted by selecting alone.
+    Highlighting over others makes one highlight (`planHighlight`: the first one's record, the others'
+    notes after its own, then removed); inside one does nothing new.
+  - **Notes**: a modal `<dialog>` near the top (the keyboard below leaves it in view), the quote above a 16px
+    field, Save / Cancel (asks before discarding), Delete note (asks; a passage's highlight stays). What you
+    type is kept on this device (`drafts.ts`, localStorage, 30 days) until saved or discarded, and offered
+    back after a reload. Rendered as text (React), never HTML.
+  - **The panel**: a summary under its name (`summaryOf`), "Your reading notes" (an article's notes first,
+    then passages in the article's order; a long quote cut at 5 lines with Show all; In Takeaways marked;
+    More → note, Save to Takeaways, Remove/Delete, asking), "+ A note on the whole article", and Keep what
+    matters with "+ Save a takeaway" (for the current selection). Beside the text it is an `<aside>`; over it
+    (the sheet) a `<div role="dialog">` (an aside may not be a dialog). The room for the pill at its end is
+    its last flex item (`.ikr-panel::after`), not padding: WebKit leaves a flex column's end padding out of
+    what scrolls, so the iPhone sheet's end sat under the pill.
+  - **Going to a passage** (from the panel or a takeaway; `showPassage` in ArticleReader): your place so far is
+    written if you had moved, then the passage is put just below the bar (in the article's opening, its block
+    at the reading line: above the first block the reader's place is "the top", which a reflow would restore),
+    flashed for 1.6 s, and nothing more is written until you scroll again: going there is not reading.
+  - **Save to Takeaways** (`saveArticleInsight` in intelligence/saved.ts): a takeaway `is:<uuid>` of kind
+    `passage` (the words, paragraph breaks as blank lines) or `edition` (a note on the whole article: the
+    title, with the note), `feedId` `intake` (`ARTICLE_FEED`), `driveFileId` `ia:<bookmark id>`, `editionDate`
+    the article's publication day (else today), `sectionTitle` the heading above the passage, `note` your
+    insight (optional; a highlight's note to start with), and `source` (bookmark id, address, title, domain,
+    author, `published`, `annotationId`, its own copy of the `anchor`). Saving also highlights the passage and
+    links both ways (`takeawayId` / `annotationId`); "Already in Takeaways" when its takeaway exists
+    (`takeawayOf`). Lifecycles apart: removing either never removes the other. In Takeaways: "Return to
+    passage" (IntelligenceScreen `onOpenArticle` → main-app `intakeOpen` → IntakeScreen `open` → the reader's
+    `jump`, by the highlight, else the takeaway's own anchor, else it says the passage couldn't be found);
+    "Same article" for two from one article.
 - **Takeaways from articles** (D7, shipped ahead of Phase 3): a `SavedInsight` may carry `source`
-  (`kind: 'intake-article'`, bookmark id, url, title, publication, author). `originOf` names it
-  "Intake · Article" where a feed name was, `originalOf` links "Original article" where "Original in
-  Google Docs" was, search reads its source and author, export and the meeting kit name it, and opening
-  it opens the article. A briefing's takeaway reads exactly as before.
+  (`kind: 'intake-article'`, bookmark id, url, title, publication, author; Phase 3 adds `published`,
+  `annotationId`, `anchor`). `originOf` names it "Intake · Article" where a feed name was, `originalOf` links
+  "Original article" where "Original in Google Docs" was, search reads its source and author, export and the
+  meeting kit name it, and opening it returns to the passage in Intake (above). A briefing's takeaway reads
+  exactly as before.
 - **The old Intake** (Quick Add, cards over `data.learning`) is gone from the screen (D9); its data
   (42 OPML podcasts) and the OPML seeding (`intake-loader.ts`) stay for Podcasts.
-- **Tests:** `server/intake.test.ts`, `src/intake/{articles,sync,sanitize,reading,images}.test.ts`,
-  `intelligence/article-takeaway.test.ts`, `ui/sign-out.test.ts`. The browser checks (real library,
+- **Tests:** `server/intake.test.ts`, `src/intake/{articles,sync,sanitize,reading,images,anchor,annotations}.test.ts`,
+  `intelligence/article-takeaway.test.ts`, `ui/sign-out.test.ts`, and the two-device annotation cases in
+  `storage/sync-merge.test.ts`. Phase 3's browser checks: `annot-checks` (96, WebKit, real library) and
+  `annot-sync` (9, two devices); every two-device run gets a new local D1 from `schema.sql`
+  (`run-sync-fresh.sh`), so no run sees another's records. The browser checks (real library,
   WebKit: `ik-checks`, `ikr-checks` from a saved library state made by `ikr-prime`, and `ikr-sync`, two
   devices through a local sync worker; `img-probe`, the picture endpoint's attacks in workerd) are kept in
   `../SUPPORTING FILES/intake-harnesses/`. `ikr-checks` section G watches each picture as it is placed (the
@@ -983,7 +1050,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (669 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (705 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris
