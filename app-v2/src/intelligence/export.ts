@@ -3,8 +3,9 @@
 // (feed, date, edition, section, the Google Doc's link), the words as kept,
 // and your note and tags. The words are quoted line by line, as written, so
 // their own headings, lists and links survive without breaking the file's
-// structure. The full JSON backup in Settings is unchanged.
-import { isFromArticle, originOf, originalOf, type SavedInsight } from './saved';
+// structure. An article's words are plain text, not Markdown: their Markdown characters are escaped, so a
+// reader of the file sees them as the article had them. The full JSON backup in Settings is unchanged.
+import { isFromArticle, isLiteral, originOf, originalOf, sourceDateOf, type SavedInsight } from './saved';
 import { shortTitle } from './present';
 import { clockOf, dayKeyOf, dayNameShort, formatDayAnchor, formatDayCompact, type DayKey } from '../routine/dates';
 
@@ -14,6 +15,11 @@ const literal = (s: string) => s.replace(/([\\`*_[\]<>#|])/g, '\\$1');
 /** Quoted line by line; a run of blank lines is one, which changes no Markdown. */
 const quoted = (text: string) => text.trim().replace(/\n[ \t]*(?:\n[ \t]*)+\n/g, '\n\n')
   .split('\n').map(line => (line.trim() ? `> ${line}` : '>')).join('\n');
+
+/** An article's words, line by line, every Markdown character taken literally (a "1." or "-" opening a line too). */
+const literalLines = (text: string) => text.split('\n')
+  .map(line => literal(line).replace(/~/g, '\\~').replace(/^(\s*\d+)([.)])/, '$1\\$2').replace(/^(\s*)([-+])(\s)/, '$1\\$2$3'))
+  .join('\n');
 
 const dayOf = (day: DayKey) => `${dayNameShort(day)} ${formatDayCompact(day)} ${day.slice(0, 4)}`;
 
@@ -28,14 +34,17 @@ function headingOf(item: SavedInsight): string {
 }
 
 function itemOf(item: SavedInsight): string {
+  const published = sourceDateOf(item);
   const from = [
     originOf(item),
-    `${dayOf(item.editionDate)}${item.editionTime ? `, ${item.editionTime}` : ''}`,
+    ...(isFromArticle(item)
+      ? (published ? [`published ${dayOf(published)}`] : [])
+      : [`${dayOf(item.editionDate)}${item.editionTime ? `, ${item.editionTime}` : ''}`]),
     ...(item.kind === 'edition' ? [] : [literal(item.editionTitle)]),
     ...(item.sectionTitle && item.kind !== 'section' ? [literal(shortTitle(item.sectionTitle))] : []),
   ].join(' · ');
   const parts = [`## ${headingOf(item)}`, `*${from}*`];
-  if (item.kind !== 'edition') parts.push(quoted(item.text));
+  if (item.kind !== 'edition') parts.push(quoted(isLiteral(item) ? literalLines(item.text) : item.text));
   if (item.note.trim()) parts.push(`**Note:** ${item.note.trim().replace(/\n/g, '  \n')}`);
   if (item.tags.length) parts.push(`**Tags:** ${item.tags.map(literal).join(', ')}`);
   const original = originalOf(item);

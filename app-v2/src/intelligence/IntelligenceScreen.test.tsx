@@ -9,7 +9,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, cleanup, within } from '@testing-library/react';
 import { IntelligenceScreen } from './IntelligenceScreen';
 import { _closeLibrary } from './library';
-import { savedOf } from './saved';
+import { savedOf, saveArticleInsight } from './saved';
 import { readingIndex, isRead } from './reading';
 import { CHALLENGE_DOC, CHALLENGE_FILE, ENGAGEMENT_DOC, ENGAGEMENT_FILE, SALES_DOC, SALES_FILE } from './test-fixtures';
 
@@ -325,6 +325,25 @@ describe('the Intelligence section', () => {
     expect(screen.getByText('1 item')).toBeInTheDocument();
     fireEvent.change(screen.getByRole('searchbox', { name: 'Search saved knowledge' }), { target: { value: 'nothing like it' } });
     expect(screen.getByText('No saved item matches “nothing like it”.')).toBeInTheDocument();
+  });
+
+  it("an article's takeaway: dated the day it was kept, its publication as the source's date, its words exactly as the article had them", async () => {
+    const words = '*Not emphasis* and **not bold**, `not code` [not a link](x)';
+    const { content } = saveArticleInsight([], {
+      bookmarkId: 7, url: 'https://example.com/a', title: 'A made-up article', publication: 'example.com', author: null, published: '2019-03-12',
+      kind: 'passage', text: words, note: '', sectionTitle: null, annotationId: 'ih:1', anchor: null,
+    }, new Date());
+    render(<App initial={{ progressLog: [], content }} />);
+    fireEvent.click(await screen.findByRole('tab', { name: /Takeaways/ }));
+    const notebook = screen.getByRole('article', { name: words });
+    const quote = within(notebook).getByRole('heading', { level: 2, name: words });
+    expect(quote.textContent).toBe(words);
+    expect(quote.querySelector('em, strong, code, a')).toBeNull();
+    expect(notebook).toHaveTextContent('Original source · Intake · Article, published Tue 12 Mar 2019 · A made-up article.');
+    const entry = document.querySelector('.tk-entry')!;
+    expect(entry).toHaveTextContent(words);
+    expect(entry).toHaveTextContent('Intake · Article · 2 Nov 2026');
+    expect(entry).not.toHaveTextContent('2019');
   });
 
   it('removing from Takeaways asks first', async () => {

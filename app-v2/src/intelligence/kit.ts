@@ -18,7 +18,7 @@
 // the kit, not to the takeaway, so a later second kit can give the same
 // takeaway another role. Version 1 has one kit, `main`. A takeaway removed
 // from Takeaways takes its kit records with it (`withoutKit`).
-import { originOf, type SavedInsight } from './saved';
+import { isFromArticle, isLiteral, originOf, sourceDateOf, type SavedInsight } from './saved';
 import { reviewKindOf } from './review';
 import { copyText } from './present';
 import { dayNameShort, formatDayCompact } from '../routine/dates';
@@ -166,17 +166,23 @@ export const kitSize = (sections: KitSection[]) => sections.reduce((n, s) => n +
 
 /**
  * The words of a takeaway to say or paste, as kept: a term with its meaning,
- * an edition by its title, anything else its text without Markdown's
- * emphasis or the quotation marks around it.
+ * an edition by its title, an article's words exactly, anything else its text
+ * without Markdown's emphasis or the quotation marks around it.
  */
 export function wordingOf(item: SavedInsight): string {
   if (item.kind === 'term') return `${item.label} — ${copyText(item.text)}`;
   if (item.kind === 'edition') return item.editionTitle;
+  if (isLiteral(item)) return item.text;
   return copyText(item.text);
 }
 
-const sourceOf = (item: SavedInsight) =>
-  `${originOf(item)}, ${dayNameShort(item.editionDate)} ${formatDayCompact(item.editionDate)} ${item.editionDate.slice(0, 4)}`;
+/** Where it came from: the feed and the edition's date; an article and its publication date, when known. */
+const sourceOf = (item: SavedInsight) => {
+  const day = sourceDateOf(item);
+  const when = day && `${dayNameShort(day)} ${formatDayCompact(day)} ${day.slice(0, 4)}`;
+  if (isFromArticle(item)) return when ? `${originOf(item)}, published ${when}` : originOf(item);
+  return `${originOf(item)}, ${when}`;
+};
 
 /**
  * The kit as text to paste into notes, a document or an email: the meeting,

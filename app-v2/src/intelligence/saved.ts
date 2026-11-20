@@ -65,6 +65,16 @@ export interface ArticleSource {
 
 export const isFromArticle = (item: Pick<SavedInsight, 'source'>): boolean => item.source?.kind === 'intake-article';
 
+/** The date its source bears: a briefing's edition date; an article's publication date, when known. */
+export const sourceDateOf = (item: Pick<SavedInsight, 'editionDate' | 'source'>): string | null =>
+  (isFromArticle(item) ? item.source!.published ?? null : item.editionDate);
+
+/**
+ * Whether its words are an article's own text rather than a briefing's Markdown: shown, copied and exported
+ * exactly as they are, so an asterisk or a "1." at a line's start is never taken for formatting.
+ */
+export const isLiteral = (item: Pick<SavedInsight, 'kind' | 'source'>): boolean => isFromArticle(item) && item.kind !== 'edition';
+
 /** What stands for a feed on a takeaway from an article: no feed of Intelligence's. */
 export const ARTICLE_FEED = 'intake' as FeedId;
 
@@ -86,7 +96,11 @@ export interface ArticleSaveInput {
   anchor: PassageAnchor | null;
 }
 
-/** A takeaway from an article, added to Takeaways: dated by the article's publication, else by today. */
+/**
+ * A takeaway from an article, added to Takeaways and dated as every takeaway is, by when you kept it:
+ * `savedAt`, with its Paris day as `editionDate` (the date Takeaways shows beside it; an article has no
+ * edition). The article's publication date is its source's, kept apart in `source.published` (`sourceDateOf`).
+ */
 export function saveArticleInsight(content: unknown[] | undefined, input: ArticleSaveInput, now = new Date()): { content: unknown[]; id: string } {
   const item: SavedInsight = {
     id: `is:${generateId()}`,
@@ -95,7 +109,7 @@ export function saveArticleInsight(content: unknown[] | undefined, input: Articl
     feedId: ARTICLE_FEED,
     driveFileId: `ia:${input.bookmarkId}`,
     editionTitle: input.title,
-    editionDate: input.published ?? dayKeyOf(now),
+    editionDate: dayKeyOf(now),
     editionTime: null,
     sourceUrl: input.url ?? '',
     sectionId: null,
@@ -231,10 +245,10 @@ export function tagsOf(saved: SavedInsight[]): { tag: string; count: number }[] 
 }
 
 /** A short name for the item, for a confirmation or a note. */
-export function nameOf(item: Pick<SavedInsight, 'kind' | 'label' | 'sectionTitle' | 'text' | 'editionTitle'>): string {
+export function nameOf(item: Pick<SavedInsight, 'kind' | 'label' | 'sectionTitle' | 'text' | 'editionTitle' | 'source'>): string {
   if (item.kind === 'edition') return item.editionTitle;
   if (item.label) return item.label;
   if (item.kind === 'section' && item.sectionTitle) return item.sectionTitle;
-  const plain = item.text.replace(/[*_`#>]/g, '').replace(/\s+/g, ' ').trim();
+  const plain = (isLiteral(item) ? item.text : item.text.replace(/[*_`#>]/g, '')).replace(/\s+/g, ' ').trim();
   return plain.length > 60 ? `${plain.slice(0, 57).trimEnd()}…` : plain;
 }

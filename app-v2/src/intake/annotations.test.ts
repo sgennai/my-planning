@@ -1,11 +1,11 @@
-// Your highlights and notes as records (Phase 3), and what a highlight over others does. Made-up words.
+// Your highlights and notes as records (Phase 3), and what a highlight over others does: it keeps its own record. Made-up words.
 import { describe, it, expect } from 'vitest';
 import {
-  annotationsOf, countsOf, isAnnotation, newArticleNote, newPassage, planHighlight, summaryOf, withAnnotation, withJoin,
+  annotationsOf, countsOf, isAnnotation, isAnnotationId, newArticleNote, newPassage, planHighlight, summaryOf, withAnnotation,
   withNote, withoutAnnotation, withTakeaway, type Annotation, type Placed,
 } from './annotations';
 import type { PassageAnchor } from './anchor';
-import { saveArticleInsight, savedOf, takeawayOf, isFromArticle, originOf, removeInsight } from '../intelligence/saved';
+import { saveArticleInsight, savedOf, sourceDateOf, takeawayOf, isFromArticle, originOf, removeInsight, type SavedInsight } from '../intelligence/saved';
 
 const anchor = (start: number, quote: string): PassageAnchor => ({
   quote, prefix: '', suffix: '', start, end: start + quote.length, startBlock: null, endBlock: null, textLength: 1000, textHash: 'h',
@@ -71,25 +71,51 @@ describe('highlighting where highlights are', () => {
     expect(planHighlight([placed(one), placed(two)], 21, 29)).toEqual({ kind: 'new', start: 21, end: 29 });
   });
 
-  it('over two: one highlight over both, in the first one’s record, both notes kept in order, the other gone', () => {
-    const p = planHighlight([placed(two), placed(one)], 15, 35);
-    expect(p).toMatchObject({ kind: 'join', keep: one, absorb: [two], start: 10, end: 40 });
-    if (p.kind !== 'join') return;
-    const withTk = withTakeaway([one, two], two.id, 'is:9');
-    const { content, a } = withJoin(withTk, { ...p, absorb: [(withTk[1] as Annotation)] }, anchor(10, 'x'.repeat(30)), later);
-    expect(a.id).toBe(one.id);
-    expect(a.note).toBe('first note\n\nsecond note');
-    expect(a.takeawayId).toBe('is:9');
-    expect(annotationsOf(content, 1).map(x => x.id)).toEqual([one.id]);
+  it('over two: a new highlight of its own; the two stay as they were', () => {
+    expect(planHighlight([placed(two), placed(one)], 15, 35)).toEqual({ kind: 'new', start: 15, end: 35 });
   });
 
-  it('partly over one: that one grows to cover both', () => {
-    expect(planHighlight([placed(one)], 5, 15)).toMatchObject({ kind: 'join', keep: one, absorb: [], start: 5, end: 20 });
+  it('partly over one: a new one; that one stays', () => {
+    expect(planHighlight([placed(one)], 5, 15)).toEqual({ kind: 'new', start: 5, end: 15 });
+  });
+
+  it('two overlapping highlights, each with its own note and takeaway, and a third over both: three records, nothing joined or lost', () => {
+    const save = (c: unknown[], a: Annotation, note: string) => {
+      const out = saveArticleInsight(c, { bookmarkId: 1, url: null, title: 'A made-up article', publication: null, author: null, published: null, kind: 'passage', text: a.anchor!.quote, note, sectionTitle: null, annotationId: a.id, anchor: a.anchor }, at);
+      return withTakeaway(out.content, a.id, out.id);
+    };
+    const first = newPassage(1, anchor(10, 'x'.repeat(20)), 'my first note', at);   // 10–30
+    const second = newPassage(1, anchor(20, 'y'.repeat(20)), 'my second note', at); // 20–40, over the first's end
+    let content: unknown[] = save(save(withAnnotation(withAnnotation([], first), second), first, 'first insight'), second, 'second insight');
+    const now = annotationsOf(content, 1);
+    expect(planHighlight(now.map(placed), 5, 45)).toEqual({ kind: 'new', start: 5, end: 45 });
+    const third = newPassage(1, anchor(5, 'z'.repeat(40)), '', later);
+    content = withAnnotation(content, third);
+    const all = annotationsOf(content, 1);
+    expect(all.map(a => a.id)).toEqual([third.id, first.id, second.id]);
+    expect(all.find(a => a.id === first.id)).toMatchObject({ note: 'my first note' });
+    expect(all.find(a => a.id === second.id)).toMatchObject({ note: 'my second note' });
+    const saved = savedOf(content);
+    for (const [a, insight] of [[first, 'first insight'], [second, 'second insight']] as const) {
+      const own = all.find(x => x.id === a.id)!;
+      const t = takeawayOf(saved, own.id, own.takeawayId);
+      expect(t).toMatchObject({ note: insight, text: a.anchor!.quote, source: { annotationId: a.id } });
+    }
+    expect(takeawayOf(saved, third.id, third.takeawayId)).toBeUndefined();
+    expect(countsOf(all, a => !!takeawayOf(saved, a.id, a.takeawayId))).toEqual({ highlights: 3, notes: 2, takeaways: 2 });
   });
 
   it('done twice: the second time finds the highlight the first made', () => {
     const made = newPassage(1, anchor(50, 'twice over'), '', at);
     expect(planHighlight([placed(made)], 50, 60)).toEqual({ kind: 'existing', a: made });
+  });
+});
+
+describe('their ids', () => {
+  it('a highlight and a note are told from every other record by their prefix', () => {
+    expect(isAnnotationId(newPassage(1, anchor(0, 'a'), '', at).id)).toBe(true);
+    expect(isAnnotationId(newArticleNote(1, 'n', at).id)).toBe(true);
+    for (const other of ['is:1', 'mk:main', 'km:main:is:1', 'kr:main:is:1', 'ar:1', 'ac:1', 'rc:x:2026-11-19', 'ir:doc']) expect(isAnnotationId(other)).toBe(false);
   });
 });
 
@@ -121,12 +147,26 @@ describe('a takeaway from an article (Takeaways, Phase 3B)', () => {
     expect(t.id).toBe(id);
     expect(t).toMatchObject({
       type: 'intel-saved', kind: 'passage', text: 'Exact words, as kept.', note: 'Why it matters.', editionTitle: 'A made-up article',
-      editionDate: '2026-06-02', sourceUrl: 'https://example.com/a', sectionTitle: 'A heading', driveFileId: 'ia:42',
+      editionDate: '2026-11-19', savedAt: at.toISOString(), sourceUrl: 'https://example.com/a', sectionTitle: 'A heading', driveFileId: 'ia:42',
     });
     expect(t.source).toMatchObject({ kind: 'intake-article', bookmarkId: 42, url: 'https://example.com/a', publication: 'example.com', author: 'A. Writer', published: '2026-06-02', annotationId: a.id });
     expect(t.source!.anchor!.quote).toBe('Exact words, as kept.');
     expect(isFromArticle(t)).toBe(true);
     expect(originOf(t)).toBe('Intake · Article');
+  });
+
+  it('is dated when it was kept, never by the article: an article from 2019 kept today is today’s takeaway, its publication kept apart', () => {
+    const a = newPassage(42, anchor(5, 'Old words.'), '', at);
+    const { content } = saveArticleInsight([a], { ...article, published: '2019-03-12', kind: 'passage', text: 'Old words.', note: '', sectionTitle: null, annotationId: a.id, anchor: a.anchor }, at);
+    const [t] = savedOf(content);
+    expect(t.savedAt).toBe('2026-11-19T10:00:00.000Z');
+    expect(t.editionDate).toBe('2026-11-19');
+    expect(t.source!.published).toBe('2019-03-12');
+    expect(sourceDateOf(t)).toBe('2019-03-12');
+    // Listed by when kept, among takeaways from briefings.
+    const older = { ...t, id: 'is:older', savedAt: '2026-11-18T09:00:00.000Z', source: undefined, feedId: 'enterprise-ai-challenge' as SavedInsight['feedId'], editionDate: '2026-11-18' };
+    expect(savedOf([older, ...content]).map(x => x.id)).toEqual([t.id, 'is:older']);
+    expect(sourceDateOf(older)).toBe('2026-11-18');
   });
 
   it('a note on the whole article saves the article itself, with the note; an undated one is dated today', () => {

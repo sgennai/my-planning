@@ -1,4 +1,4 @@
-import { mergeActivityLists, mergeLogRecord } from './merge';
+import { mergeActivityLists, mergeLogRecord, removalWins } from './merge';
 import { openDB } from 'idb';
 import type { IDBPDatabase } from 'idb';
 
@@ -469,6 +469,25 @@ export async function syncData(syncUrl: string, secret: string): Promise<SyncRes
             }
             continue;
           }
+        }
+
+        // Intake's highlights and notes: a removal stands over any copy (merge.ts). One that arrives is
+        // applied over this device's copy, edited or not; a copy that arrives for one removed here leaves the
+        // removal in place and sends it up again, stamped after both, so the server holds it too.
+        if (removalWins(rec.storeName, rec.id) && (rec.deleted || localRec?._deleted)) {
+          if (rec.deleted) {
+            if (localRec && !localRec._deleted) changedEntities.push({ id: rec.id, storeName: rec.storeName });
+            if (!localRec?._deleted || rec.updatedAt > localRec.updatedAt) {
+              await store.put({ id: rec.id, _deleted: true, updatedAt: rec.updatedAt });
+            }
+            dirty.delete(key);
+          } else {
+            const stamp = [mark, after(rec.updatedAt), after(localRec.updatedAt)].sort().pop()!;
+            const removal = { id: rec.id, _deleted: true, updatedAt: stamp };
+            await store.put(removal);
+            dirty.set(key, toPush(rec.storeName, removal));
+          }
+          continue;
         }
 
         if (!localRec || rec.updatedAt > localRec.updatedAt) {

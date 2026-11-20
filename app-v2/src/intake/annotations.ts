@@ -7,11 +7,13 @@
 // `note` is your own writing, plain text ('' for none). `takeawayId` is the takeaway it was saved as
 // (`is:<id>`, Intelligence's saved.ts): each lives on its own, removing one never removes the other.
 //
-// Between devices each record is last-write-wins, like a takeaway: the storage stamps every change and
-// leaves a tombstone for a removal, so a copy older than the removal never brings it back, and two highlights
-// made on two devices are both kept. The same note edited on two devices before they sync keeps the later
-// edit. On one device highlights never overlap: highlighting over others makes them one (`planHighlight`).
-// Finding a passage again writes nothing: a record changes only by your hand.
+// Between devices each record is last-write-wins, like a takeaway: the storage stamps every change, two
+// highlights made on two devices are both kept, and the same note edited on two devices before they sync keeps
+// the later edit. A removal stands (storage/merge.ts, `removalWins`): no copy from another device, edited
+// offline or stamped by a clock running ahead, brings it back; highlighting the same words again makes a new
+// record with its own id. Highlights may overlap: each stays its own record, with its own note and takeaway
+// (`planHighlight`), and they are drawn as one. Finding a passage again writes nothing: a record changes only
+// by your hand.
 import { generateId } from '../ui/helpers';
 import type { PassageAnchor } from './anchor';
 
@@ -28,7 +30,7 @@ export interface Annotation {
   note: string;
   takeawayId: string | null;
   createdAt: string;
-  /** Your last change to it: the note, or the passage when highlights were joined. */
+  /** Your last change to its note. */
   editedAt: string;
 }
 
@@ -57,6 +59,9 @@ export function newPassage(bookmarkId: number, anchor: PassageAnchor, note = '',
 export function newArticleNote(bookmarkId: number, note: string, now = new Date()): Annotation {
   return { id: `in:${generateId()}`, type: ANNOTATION_TYPE, v: 1, kind: 'article', bookmarkId, anchor: null, note: cleanNote(note), takeawayId: null, createdAt: stamp(now), editedAt: stamp(now) };
 }
+
+/** Whether a record's id is a highlight's or a note's (`ih:`, `in:`). */
+export const isAnnotationId = (id: string) => /^i[hn]:/.test(id);
 
 const idOf = (r: unknown) => (r as { id?: unknown } | null)?.id;
 
@@ -99,45 +104,17 @@ export interface Placed {
 
 /**
  * What highlighting the words from `start` to `end` does, among the highlights in place:
- * - inside one already (the same words, or fewer): that highlight, nothing new;
- * - touching none: a new highlight;
- * - overlapping some: one highlight over all of them, kept in the first one's record (its id, note and
- *   takeaway), the others joined into it (their notes after its own, in the article's order) and removed.
- * Doing it twice does nothing the second time.
+ * - inside one already (the same words, or fewer): that highlight, nothing new, so doing it twice makes one;
+ * - otherwise a new highlight over those words, even where it overlaps others: each one keeps its own
+ *   record, note and takeaway (nothing is joined or removed), and they are drawn as one.
  */
 export type Plan =
   | { kind: 'new'; start: number; end: number }
-  | { kind: 'existing'; a: Annotation }
-  | { kind: 'join'; keep: Annotation; absorb: Annotation[]; start: number; end: number };
+  | { kind: 'existing'; a: Annotation };
 
 export function planHighlight(placed: Placed[], start: number, end: number): Plan {
   const inside = placed.filter(p => p.start <= start && end <= p.end).sort((x, y) => (x.end - x.start) - (y.end - y.start));
-  if (inside.length) return { kind: 'existing', a: inside[0].a };
-  const touched = placed.filter(p => p.start < end && start < p.end).sort((x, y) => x.start - y.start);
-  if (!touched.length) return { kind: 'new', start, end };
-  return {
-    kind: 'join',
-    keep: touched[0].a,
-    absorb: touched.slice(1).map(p => p.a),
-    start: Math.min(start, touched[0].start),
-    end: Math.max(end, ...touched.map(p => p.end)),
-  };
-}
-
-/** The joined highlight: one record over all their words, every note kept, removed ones gone. */
-export function withJoin(content: unknown[] | undefined, plan: Extract<Plan, { kind: 'join' }>, anchor: PassageAnchor, now = new Date()): { content: unknown[]; a: Annotation } {
-  const all = [plan.keep, ...plan.absorb];
-  const note = all.map(a => a.note).filter(Boolean).join('\n\n');
-  const a: Annotation = {
-    ...plan.keep,
-    anchor,
-    note,
-    takeawayId: all.find(x => x.takeawayId)?.takeawayId ?? null,
-    editedAt: stamp(now),
-  };
-  let next = withAnnotation(content, a);
-  for (const x of plan.absorb) next = withoutAnnotation(next, x.id);
-  return { content: next, a };
+  return inside.length ? { kind: 'existing', a: inside[0].a } : { kind: 'new', start, end };
 }
 
 export interface Counts {

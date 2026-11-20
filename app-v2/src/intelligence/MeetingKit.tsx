@@ -6,7 +6,8 @@
 // as text, or goes out as a Markdown file like the Takeaways export.
 import { useId } from 'react';
 import { Markdown } from './Markdown';
-import { originOf, type SavedInsight } from './saved';
+import { isLiteral, originOf, type SavedInsight } from './saved';
+import { LiteralText } from './LiteralText';
 import { kitText, kitFileName, kitSize, type KitSection } from './kit';
 import { isQuotable, wordsOf, dateOf } from './notebook';
 import { handOver } from './export';
@@ -30,6 +31,7 @@ interface Props {
 function KitWords({ item }: { item: SavedInsight }) {
   if (item.kind === 'edition') return <p>{item.editionTitle}</p>;
   if (item.kind === 'term') return <p><b><Markdown inline>{item.label ?? ''}</Markdown></b> — <Markdown inline>{item.text}</Markdown></p>;
+  if (isLiteral(item)) return isQuotable(item.text) ? <p>{item.text}</p> : <div className="tk-kit-long"><LiteralText text={item.text} /></div>;
   if (isQuotable(item.text)) return <p><Markdown inline>{item.text}</Markdown></p>;
   return <div className="tk-kit-long"><Markdown>{item.text}</Markdown></div>;
 }

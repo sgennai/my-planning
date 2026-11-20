@@ -463,11 +463,12 @@ describe('highlights and notes on two devices (Intake 2.0 Phase 3)', () => {
     let ipad = await as(first, async () => { await put(c => withAnnotation(c, a))(); await syncNow(); });
     let iphone = await as(second, syncNow);
     online.value = false;
+    ipad = await as(ipad, put(c => withoutAnnotation(c, a.id)));
+    // Later by the clock, as the reader saves: the takeaway, and its id written on the highlight.
     iphone = await as(iphone, put(c => {
       const out = saveArticleInsight(c, { bookmarkId: 7, url: null, title: 'T', publication: null, author: null, published: null, kind: 'passage', text: 'worth keeping', note: '', sectionTitle: null, annotationId: a.id, anchor: a.anchor }, new Date(clock));
-      return out.content;
+      return withTakeaway(out.content, a.id, out.id);
     }));
-    ipad = await as(ipad, put(c => withoutAnnotation(c, a.id)));
     online.value = true;
     iphone = await as(iphone, syncNow);
     ipad = await as(ipad, syncNow);
@@ -478,6 +479,87 @@ describe('highlights and notes on two devices (Intake 2.0 Phase 3)', () => {
         expect(savedOf((await read()).content as unknown[]).map(s => s.text)).toEqual(['worth keeping']);
       });
     }
+  });
+
+  it('removed on one, its note edited later offline on the other: removed on both, in either order', async () => {
+    for (const order of ['remover first', 'editor first']) {
+      server.clear();
+      const [first, second] = await twoDevices();
+      const a = newPassage(7, words(10, 'to be removed'), 'my note', new Date(clock));
+      let ipad = await as(first, async () => { await put(c => withAnnotation(c, a))(); await syncNow(); });
+      let iphone = await as(second, syncNow);
+      online.value = false;
+      ipad = await as(ipad, put(c => withoutAnnotation(c, a.id)));
+      iphone = await as(iphone, put(c => withNote(c, a.id, 'edited after the removal')));
+      online.value = true;
+      if (order === 'remover first') { ipad = await as(ipad, syncNow); iphone = await as(iphone, syncNow); ipad = await as(ipad, syncNow); }
+      else { iphone = await as(iphone, syncNow); ipad = await as(ipad, syncNow); iphone = await as(iphone, syncNow); }
+      for (const d of [ipad, iphone]) await as(d, async () => expect(await notesOf(), order).toEqual([]));
+      expect(server.get(`content:${a.id}`)?.deleted, order).toBe(true);
+    }
+  });
+
+  it("the other device's clock a day ahead: the removal still wins", async () => {
+    const [first, second] = await twoDevices();
+    const a = newPassage(7, words(10, 'clock words'), '', new Date(clock));
+    let ipad = await as(first, async () => { await put(c => withAnnotation(c, a))(); await syncNow(); });
+    let iphone = await as(second, syncNow);
+    ipad = await as(ipad, async () => { await put(c => withoutAnnotation(c, a.id))(); await syncNow(); });
+    // The iPhone edits before it has synced, its clock a day fast: its copy is stamped long after the removal.
+    iphone = await as(iphone, async () => {
+      const d = await read();
+      vi.setSystemTime(clock + 24 * 3600 * 1000);
+      await saveData({ ...d, content: withNote(d.content as unknown[], a.id, 'a day ahead') } as never);
+      await syncNow();
+    });
+    ipad = await as(ipad, syncNow);
+    iphone = await as(iphone, syncNow);
+    for (const d of [ipad, iphone]) await as(d, async () => expect(await notesOf()).toEqual([]));
+  });
+
+  it('a third device that saw the stale copy meanwhile ends with the removal too', async () => {
+    const [first, second] = await twoDevices();
+    const a = newPassage(7, words(10, 'three devices'), '', new Date(clock));
+    let ipad = await as(first, async () => { await put(c => withAnnotation(c, a))(); await syncNow(); });
+    let iphone = await as(second, syncNow);
+    online.value = false;
+    ipad = await as(ipad, put(c => withoutAnnotation(c, a.id)));
+    iphone = await as(iphone, put(c => withNote(c, a.id, 'offline edit')));
+    online.value = true;
+    iphone = await as(iphone, syncNow);                 // the stale edit reaches the server first
+    let mac = await as({ rows: {}, storage: {} }, syncNow);
+    await as(mac, async () => expect((await notesOf()).map(x => x.note)).toEqual(['offline edit']));
+    ipad = await as(ipad, syncNow);                     // the removal comes back up, stamped after the edit
+    mac = await as(mac, syncNow);
+    iphone = await as(iphone, syncNow);
+    for (const d of [ipad, iphone, mac]) await as(d, async () => expect(await notesOf()).toEqual([]));
+  });
+
+  it('removed, then the same words highlighted again: a new record of its own, kept on both', async () => {
+    const [first, second] = await twoDevices();
+    const a = newPassage(7, words(10, 'again'), '', new Date(clock));
+    let ipad = await as(first, async () => { await put(c => withAnnotation(c, a))(); await syncNow(); });
+    let iphone = await as(second, syncNow);
+    const again = newPassage(7, words(10, 'again'), 'second time', new Date(clock));
+    ipad = await as(ipad, async () => { await put(c => withAnnotation(withoutAnnotation(c, a.id), again))(); await syncNow(); });
+    iphone = await as(iphone, syncNow);
+    expect(again.id).not.toBe(a.id);
+    for (const d of [ipad, iphone]) await as(d, async () => expect((await notesOf()).map(x => [x.id, x.note])).toEqual([[again.id, 'second time']]));
+  });
+
+  it('the rule is for highlights and notes only: a takeaway edited offline after its removal elsewhere still comes back, as before (D12)', async () => {
+    const [first, second] = await twoDevices();
+    const t = { id: 'is:kept', type: 'intel-saved', kind: 'passage', feedId: 'enterprise-ai-challenge', driveFileId: 'doc', editionTitle: 'E', editionDate: '2026-10-29', editionTime: null, sourceUrl: '', sectionId: null, sectionTitle: null, label: null, text: 'made-up', note: '', tags: [], savedAt: new Date(clock).toISOString() };
+    let ipad = await as(first, async () => { await put(c => [...(c ?? []), t])(); await syncNow(); });
+    let iphone = await as(second, syncNow);
+    online.value = false;
+    ipad = await as(ipad, put(c => removeInsight(c, t.id)));
+    iphone = await as(iphone, put(c => (c ?? []).map(r => ((r as { id: string }).id === t.id ? { ...(r as object), note: 'edited later' } : r))));
+    online.value = true;
+    ipad = await as(ipad, syncNow);
+    iphone = await as(iphone, syncNow);
+    ipad = await as(ipad, syncNow);
+    for (const d of [ipad, iphone]) await as(d, async () => expect(savedOf((await read()).content as unknown[]).map(x => x.note)).toEqual(['edited later']));
   });
 
   it("a takeaway removed in Takeaways leaves the highlight it came from", async () => {

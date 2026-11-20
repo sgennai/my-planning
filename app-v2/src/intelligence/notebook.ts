@@ -7,7 +7,7 @@
 // review counts them), and everything else kept (a line to rehearse, a term,
 // a passage, a section, an edition) is an insight.
 import type { FeedId } from './feeds';
-import { isFromArticle, searchSaved, type SavedInsight } from './saved';
+import { isFromArticle, isLiteral, searchSaved, type SavedInsight } from './saved';
 import { reviewKindOf, statusOf, type ReviewIndex } from './review';
 import { shortTitle, plainText } from './present';
 import { wordingOf } from './kit';
@@ -38,7 +38,7 @@ export function keptAsOf(item: SavedInsight): string {
 export function wordsOf(item: SavedInsight): string {
   if (item.kind === 'edition') return item.editionTitle;
   if (item.kind === 'term' && item.label) return plainText(item.label);
-  const plain = plainText(item.text);
+  const plain = isLiteral(item) ? flat(item.text) : plainText(item.text);
   return plain.length > 60 ? `${plain.slice(0, 57).trimEnd()}…` : plain;
 }
 
@@ -158,8 +158,11 @@ export interface NotebookState {
 
 export const NOTEBOOK_START: NotebookState = { selected: null, view: 'notebook', filter: 'all', query: '', tag: null };
 
+/** An article's words on one line, every character as it is. */
+const flat = (text: string) => text.replace(/\s+/g, ' ').trim();
+
 /** "11 Nov 2026" */
 export const dateOf = (day: DayKey) => `${formatDayCompact(day)} ${day.slice(0, 4)}`;
 
 /** The words as the list shows them: plain, a term with its meaning, an edition by its title. */
-export const listTextOf = (item: SavedInsight) => plainText(wordingOf(item));
+export const listTextOf = (item: SavedInsight) => (isLiteral(item) ? flat(item.text) : plainText(wordingOf(item)));

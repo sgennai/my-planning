@@ -17,7 +17,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent, type RefObject } from 'react';
 import { anchorAt, indexText, offsetsOf, quoteText, rangeAt, resolve, type PassageAnchor, type TextIndex } from './anchor';
 import {
-  annotationsOf, cleanNote, countsOf, newArticleNote, newPassage, planHighlight, summaryOf, withAnnotation, withJoin,
+  annotationsOf, cleanNote, countsOf, newArticleNote, newPassage, planHighlight, summaryOf, withAnnotation,
   withNote, withoutAnnotation, withTakeaway, type Annotation,
 } from './annotations';
 import { clearPaint, drawsHighlights, flash, hitAt, holdPaint, paint, unwrap, type Painted } from './highlights';
@@ -280,17 +280,14 @@ export function useReaderNotes(o: Options) {
     };
   }, [article, id]);
 
-  /** The highlight for the words selected: the one they lie in, else a new one, or one over those they touch. */
+  /** The highlight for the words selected: the one they lie in, else a new one (overlapping others or not). */
   const ensure = useCallback((c: unknown[] | undefined, sel: { start: number; end: number }): { content: unknown[]; a: Annotation } | null => {
     const index = ix.current;
     if (!index) return null;
     const p = planHighlight(laid.placed, sel.start, sel.end);
     if (p.kind === 'existing') return { content: c ?? [], a: p.a };
-    if (p.kind === 'new') {
-      const a = newPassage(id, anchorAt(index, p.start, p.end));
-      return { content: withAnnotation(c, a), a };
-    }
-    return withJoin(c, p, anchorAt(index, p.start, p.end));
+    const a = newPassage(id, anchorAt(index, p.start, p.end));
+    return { content: withAnnotation(c, a), a };
   }, [laid, id]);
 
   /** The selection, taken once: a second tap before the page catches up finds none (no duplicate). */
@@ -309,14 +306,12 @@ export function useReaderNotes(o: Options) {
     const sel = a ? null : takeSelection();
     if (!a && !sel) return;
     const index = ix.current;
-    // A selection over other highlights: the note goes on the one they become, theirs above it.
     const p = !a && sel ? planHighlight(laid.placed, sel.start, sel.end) : null;
     const target = a ?? (p?.kind === 'existing' ? p.a : null);
-    const joined = p?.kind === 'join' ? [p.keep, ...p.absorb].map(x => x.note).filter(Boolean).join('\n\n') : '';
     const quote = target?.anchor ? target.anchor.quote : sel && index ? index.text.slice(sel.start, sel.end) : null;
     setEditing({
       mode: 'note', id: target?.id ?? null, sel: target ? null : sel, article: target?.kind === 'article',
-      quote, initial: target?.note ?? joined,
+      quote, initial: target?.note ?? '',
       draftKey: target ? `note:${target.id}` : `note:new:${id}:${sel!.start}-${sel!.end}`,
       canDelete: !!target?.note, from,
     });

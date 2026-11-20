@@ -15,7 +15,8 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode,
 import { Markdown } from './Markdown';
 import { feedById, type FeedId } from './feeds';
 import { plainText } from './present';
-import { isFromArticle, originOf, originalOf, parseTags, tagsOf, type SavedInsight } from './saved';
+import { isFromArticle, isLiteral, originOf, originalOf, parseTags, sourceDateOf, tagsOf, type SavedInsight } from './saved';
+import { LiteralText } from './LiteralText';
 import { canReview, dayText, statusOf, RATINGS, type ReviewIndex } from './review';
 import {
   noteKindOf, NOTE_KIND_LABEL, keptAsOf, placeOf, wordsOf, standingOf, STANDING_LABEL, notebookList, supportingOf, isQuotable, FILTERS,
@@ -97,11 +98,13 @@ function Kept({ item, quoteId }: { item: SavedInsight; quoteId: string }) {
       </>
     );
   }
-  if (isQuotable(item.text)) return <h2 className="tk-quote" id={quoteId}><Markdown inline>{item.text}</Markdown></h2>;
+  // An article's words as they are (never Markdown); a briefing's as its Markdown.
+  const literal = isLiteral(item);
+  if (isQuotable(item.text)) return <h2 className="tk-quote" id={quoteId}>{literal ? item.text : <Markdown inline>{item.text}</Markdown>}</h2>;
   return (
     <>
       <h2 className="intel-vh" id={quoteId}>{wordsOf(item)}</h2>
-      <div className="tk-longtext"><Markdown>{item.text}</Markdown></div>
+      <div className="tk-longtext">{literal ? <LiteralText text={item.text} /> : <Markdown>{item.text}</Markdown>}</div>
     </>
   );
 }
@@ -179,6 +182,8 @@ function Notebook({ item, reviews, today, topics, noteRef, actions, onView, onTa
   const original = originalOf(item);
   const s = statusOf(item, reviews);
   const due = canReview(item) && s.on && !!s.due && s.due <= today;
+  // The source's own date: a briefing's edition, an article's publication (not the day it was kept).
+  const sourceDay = sourceDateOf(item);
   return (
     <article className="tk-detail" aria-labelledby={quoteId}>
       <p className="tk-label">{NOTE_KIND_LABEL[noteKindOf(item)]} · {place ?? keptAsOf(item)} · Saved from {originOf(item)}</p>
@@ -186,7 +191,7 @@ function Notebook({ item, reviews, today, topics, noteRef, actions, onView, onTa
       <Tags item={item} onPatch={actions.onPatch} onNote={actions.onNote} onTag={onTag} />
       {topics.length > 0 && <p className="tk-meta">Topics of the edition · {topics.slice(0, TOPICS_SHOWN).join(', ')}{topics.length > TOPICS_SHOWN && ` +${topics.length - TOPICS_SHOWN}`}</p>}
       <p className="tk-meta">
-        Original source · {originOf(item)}, {dayNameShort(item.editionDate)} {dateOf(item.editionDate)}{item.editionTime && `, ${item.editionTime}`}
+        Original source · {originOf(item)}{sourceDay && <>, {isFromArticle(item) && 'published '}{dayNameShort(sourceDay)} {dateOf(sourceDay)}</>}{item.editionTime && `, ${item.editionTime}`}
         {item.kind !== 'edition' && <> · <cite>{item.editionTitle}</cite></>}{place && ` · ${place}`}. The saved wording is preserved exactly.
       </p>
       <p className="tk-sources">
@@ -238,8 +243,8 @@ function Conversation({ item, kit, saved, topicsOf, actions, onSelect, onWriteNo
       <figure className="tk-card">
         <p className="tk-label">Exact original {item.kind === 'term' ? 'term' : kind}</p>
         {item.kind !== 'term' && item.kind !== 'edition' && !isQuotable(item.text)
-          ? <div className="tk-card-long"><Markdown>{item.text}</Markdown></div>
-          : <blockquote className="tk-card-quote">“{plainText(wordingOf(item))}”</blockquote>}
+          ? <div className="tk-card-long">{isLiteral(item) ? <LiteralText text={item.text} /> : <Markdown>{item.text}</Markdown>}</div>
+          : <blockquote className="tk-card-quote">“{isLiteral(item) ? item.text : plainText(wordingOf(item))}”</blockquote>}
         <figcaption className="tk-meta">
           {originOf(item)} · {dateOf(item.editionDate)}{place && ` · ${place}`} · {roleInfo(role).label}
         </figcaption>

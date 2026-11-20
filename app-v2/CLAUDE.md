@@ -883,9 +883,15 @@ reader) and Phase 3 (Active Reading: highlights, notes, Save to Takeaways) are b
   - **Records** in `content` (beside Takeaways; no D1, Worker or schema change), type `intake-annotation`, `v: 1`:
     `ih:<uuid>` a passage (a highlight, its note or none), `in:<uuid>` a note on the whole article; `bookmarkId`,
     `anchor` (null for an article note), `note` (plain text), `takeawayId`, `createdAt`, `editedAt`. Each is
-    last-write-wins between devices like a takeaway (the storage stamps each change and tombstones a removal):
-    a copy older than a removal never brings it back, two notes edited offline keep the later edit, highlights
-    made on two devices are both kept. Finding a passage writes nothing; only your hand changes a record.
+    last-write-wins between devices like a takeaway (the storage stamps each change): two notes edited offline
+    keep the later edit, highlights made on two devices are both kept. **A removal always stands**
+    (`removalWins` in storage/merge.ts, applied in `syncData`'s pull for `content` ids `ih:`/`in:` only): a
+    removal that arrives replaces this device's copy, edited or not; a copy that arrives for one removed here
+    leaves the removal and sends it up again stamped after both, so an offline edit or a clock running ahead
+    never brings it back, in any sync order. Tombstones stay in IndexedDB, which is what lets a device
+    re-assert one; nothing re-creates a removed id (highlighting the same words again makes a new record).
+    Takeaways and every other record keep plain last-write-wins (D12). Finding a passage writes nothing; only
+    your hand changes a record.
   - **Anchors** (`anchor.ts`): the article's text read once into one string (`indexText`: text nodes in order,
     white space as one space, a block's end as a newline, the reader's own additions (`.ikr-img-missing`,
     `.ikr-whole`) left out); a passage keeps its exact words (`quote`), 32 characters each side, its offsets,
@@ -911,8 +917,9 @@ reader) and Phase 3 (Active Reading: highlights, notes, Save to Takeaways) are b
     of the reading area when neither has; never under the reader's bar or the pill; follows the words while
     you scroll, hidden while they are off screen. A selection made with Shift held gets the focus (Safari
     has no caret browsing: keys can't select plain text there). Nothing is highlighted by selecting alone.
-    Highlighting over others makes one highlight (`planHighlight`: the first one's record, the others'
-    notes after its own, then removed); inside one does nothing new.
+    Highlighting over others makes a new highlight of its own (`planHighlight`): each keeps its own record,
+    note and takeaway, nothing is joined or removed, and they are drawn as one stretch (with spans, a piece
+    two share carries both ids in `data-hl`); inside one, or the same words again, does nothing new.
   - **Notes**: a modal `<dialog>` near the top (the keyboard below leaves it in view), the quote above a 16px
     field, Save / Cancel (asks before discarding), Delete note (asks; a passage's highlight stays). What you
     type is kept on this device (`drafts.ts`, localStorage, 30 days) until saved or discarded, and offered
@@ -930,15 +937,18 @@ reader) and Phase 3 (Active Reading: highlights, notes, Save to Takeaways) are b
     flashed for 1.6 s, and nothing more is written until you scroll again: going there is not reading.
   - **Save to Takeaways** (`saveArticleInsight` in intelligence/saved.ts): a takeaway `is:<uuid>` of kind
     `passage` (the words, paragraph breaks as blank lines) or `edition` (a note on the whole article: the
-    title, with the note), `feedId` `intake` (`ARTICLE_FEED`), `driveFileId` `ia:<bookmark id>`, `editionDate`
-    the article's publication day (else today), `sectionTitle` the heading above the passage, `note` your
+    title, with the note), `feedId` `intake` (`ARTICLE_FEED`), `driveFileId` `ia:<bookmark id>`, `savedAt` and
+    `editionDate` when it was kept (its Paris day: Takeaways dates every takeaway by when it was kept; the
+    article's publication is the source's date, `source.published`, read through `sourceDateOf`), `sectionTitle` the heading above the passage, `note` your
     insight (optional; a highlight's note to start with), and `source` (bookmark id, address, title, domain,
     author, `published`, `annotationId`, its own copy of the `anchor`). Saving also highlights the passage and
     links both ways (`takeawayId` / `annotationId`); "Already in Takeaways" when its takeaway exists
     (`takeawayOf`). Lifecycles apart: removing either never removes the other. In Takeaways: "Return to
     passage" (IntelligenceScreen `onOpenArticle` → main-app `intakeOpen` → IntakeScreen `open` → the reader's
     `jump`, by the highlight, else the takeaway's own anchor, else it says the passage couldn't be found);
-    "Same article" for two from one article.
+    "Same article" for two from one article. An article's words are plain text, never Markdown
+    (`isLiteral`): Takeaways shows them with `LiteralText`, copies them as they are (`wordingOf`), and the
+    export escapes their Markdown characters; a briefing's words read as its Markdown, as before.
 - **Takeaways from articles** (D7, shipped ahead of Phase 3): a `SavedInsight` may carry `source`
   (`kind: 'intake-article'`, bookmark id, url, title, publication, author; Phase 3 adds `published`,
   `annotationId`, `anchor`). `originOf` names it "Intake · Article" where a feed name was, `originalOf` links
@@ -949,8 +959,8 @@ reader) and Phase 3 (Active Reading: highlights, notes, Save to Takeaways) are b
   (42 OPML podcasts) and the OPML seeding (`intake-loader.ts`) stay for Podcasts.
 - **Tests:** `server/intake.test.ts`, `src/intake/{articles,sync,sanitize,reading,images,anchor,annotations}.test.ts`,
   `intelligence/article-takeaway.test.ts`, `ui/sign-out.test.ts`, and the two-device annotation cases in
-  `storage/sync-merge.test.ts`. Phase 3's browser checks: `annot-checks` (96, WebKit, real library) and
-  `annot-sync` (9, two devices); every two-device run gets a new local D1 from `schema.sql`
+  `storage/sync-merge.test.ts`. Phase 3's browser checks: `annot-checks` (108, WebKit, real library) and
+  `annot-sync` (11, two devices); every two-device run gets a new local D1 from `schema.sql`
   (`run-sync-fresh.sh`), so no run sees another's records. The browser checks (real library,
   WebKit: `ik-checks`, `ikr-checks` from a saved library state made by `ikr-prime`, and `ikr-sync`, two
   devices through a local sync worker; `img-probe`, the picture endpoint's attacks in workerd) are kept in
@@ -1050,7 +1060,7 @@ overwritten and re-running it cannot duplicate. **Migrations are non-destructive
 
 ## Workflow
 
-- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (705 tests). Dev: `npm run dev`.
+- Typecheck: `npx tsc -b`. Tests: `npx vitest run` (720 tests). Dev: `npm run dev`.
   Build: `npm run build`.
 - Two suites must stay green: the **cost-guard** in `src/storage/sync.test.ts`, and
   `src/routine/routine.test.ts` — recurrence on the brief's reference days, both Europe/Paris

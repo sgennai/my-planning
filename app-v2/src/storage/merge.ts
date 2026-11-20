@@ -1,6 +1,7 @@
 import { mergeReading, READING_TYPE, type ReadingRecord } from '../intelligence/reading';
 import { mergeReview, REVIEW_TYPE, type ReviewRecord } from '../intelligence/review';
 import { mergeReading as mergeArticleReading, READING_TYPE as ARTICLE_READING_TYPE, type ReadingRecord as ArticleReadingRecord } from '../intake/reading';
+import { isAnnotationId } from '../intake/annotations';
 
 // Merging a synced record that both devices changed since they last synced.
 //
@@ -52,3 +53,12 @@ export function mergeLogRecord(local: unknown, remote: unknown): unknown | null 
   if (type === ARTICLE_READING_TYPE) return mergeArticleReading(local as ArticleReadingRecord, remote as ArticleReadingRecord);
   return null;
 }
+
+/**
+ * Intake's highlights and notes (`ih:`, `in:` in `content`): a removal stands. Otherwise each is
+ * last-write-wins like a takeaway, but a copy from a device that had not seen the removal (edited offline, or
+ * stamped by a clock running ahead) must never bring back what you removed, so for these a removal wins over
+ * any copy of the same record, whatever the stamps say. Highlighting the same words again makes a new record
+ * with its own id. Every other record is unchanged.
+ */
+export const removalWins = (storeName: string, id: string): boolean => storeName === 'content' && isAnnotationId(id);

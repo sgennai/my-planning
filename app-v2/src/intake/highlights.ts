@@ -90,13 +90,14 @@ export function paint(root: Element, items: Painted[]): Painted[] {
       piece.splitText(e - s);
       const span = doc.createElement('span');
       span.className = SPAN + (over.some(p => p.noted) ? ' is-noted' : '');
-      span.dataset.hl = over[0].id;
+      // Every highlight over these words, so each finds all of its own pieces (overlapping ones share some).
+      span.dataset.hl = [...new Set(over.map(p => p.id))].join(' ');
       piece.replaceWith(span);
       span.append(piece);
     }
   }
   return items.flatMap(it => {
-    const spans = root.querySelectorAll<HTMLElement>(`span.${SPAN}[data-hl="${CSS.escape(it.id)}"]`);
+    const spans = root.querySelectorAll<HTMLElement>(`span.${SPAN}[data-hl~="${CSS.escape(it.id)}"]`);
     if (!spans.length) return [];
     const range = root.ownerDocument.createRange();
     range.setStartBefore(spans[0]);
@@ -162,7 +163,7 @@ export function flash(root: Element, range: Range, id: string | null, ms = 1600)
     flashTimer = window.setTimeout(() => reg.delete(HL_FLASH), ms);
     return;
   }
-  const spans = id ? [...root.querySelectorAll<HTMLElement>(`span.${SPAN}[data-hl="${CSS.escape(id)}"]`)] : [];
+  const spans = id ? [...root.querySelectorAll<HTMLElement>(`span.${SPAN}[data-hl~="${CSS.escape(id)}"]`)] : [];
   spans.forEach(s => s.classList.add('is-flash'));
   flashTimer = window.setTimeout(() => spans.forEach(s => s.classList.remove('is-flash')), ms);
 }
