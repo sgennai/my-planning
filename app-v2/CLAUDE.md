@@ -907,7 +907,10 @@ reader) and Phase 3 (Active Reading: highlights, notes, Save to Takeaways) are b
     gold, never Finished's sage; text on it 7:1 or more. **None are drawn while the note editor is open**
     (`holdPaint`): WebKit 26 draws a page's custom highlights on the first words of an open `<dialog>` holding
     a text field, instead of their own words, for as long as it is open (a bare page reproduces it; Chromium
-    doesn't). They are held back and drawn again as it closes.
+    doesn't). They are held back and drawn again as it closes. **Each name keeps one Highlight, changed in
+    place** (`show`: its `clear`/`add`): WebKit before autumn 2026 (bugs 306396, 321567) doesn't redraw the
+    words of a Highlight replaced in, or deleted from, `CSS.highlights`, so a removed highlight stayed gold
+    until something else redrew its lines. Playwright's screenshots paint afresh, so they can't show it.
   - **The bar** (`.ikr-selbar`): once a selection is still (a finger let go and the handles rested 450 ms; a
     mouse 120 ms; the keys 250 ms), Highlight / Add note / Save to Takeaways; inside an existing highlight, or
     on a tap on its words (`hitAt`), that highlight's: its note, Takeaways, Remove (asks in the bar). The words

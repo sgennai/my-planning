@@ -17,12 +17,29 @@ export interface Painted {
   noted: boolean;
 }
 
-type Registry = Map<string, unknown>;
+interface Hl extends Iterable<Range> { add(r: Range): unknown; clear(): void }
+type Registry = Map<string, Hl>;
 const registry = (): Registry | null => {
   const css = (globalThis as { CSS?: { highlights?: Registry } }).CSS;
   return css?.highlights && typeof (globalThis as { Highlight?: unknown }).Highlight === 'function' ? css.highlights : null;
 };
-const highlight = (ranges: Range[]) => new (globalThis as unknown as { Highlight: new (...r: Range[]) => unknown }).Highlight(...ranges);
+const highlight = () => new (globalThis as unknown as { Highlight: new () => Hl }).Highlight();
+
+/**
+ * Draws these ranges under one name, changing its Highlight in place. WebKit before autumn 2026 doesn't redraw
+ * the words of a Highlight replaced in, or deleted from, the registry (WebKit bugs 306396, 321567): a removed
+ * highlight stayed gold until something else redrew its lines. A Highlight's own clear and add redraw them.
+ */
+function show(reg: Registry, name: string, ranges: Range[]): void {
+  let h = reg.get(name);
+  if (!ranges.length) {
+    if (h) { h.clear(); reg.delete(name); }
+    return;
+  }
+  if (!h) { h = highlight(); reg.set(name, h); }
+  h.clear();
+  for (const r of ranges) h.add(r);
+}
 
 /** Whether this browser draws highlights itself. */
 export const drawsHighlights = () => registry() !== null;
@@ -64,9 +81,10 @@ function piecesOf(range: Range): { node: Text; start: number; end: number }[] {
 export function paint(root: Element, items: Painted[]): Painted[] {
   const reg = registry();
   if (reg) {
-    const into = held ?? reg;
-    into.set(HL, highlight(items.filter(i => !i.noted).map(i => i.range)));
-    into.set(HL_NOTED, highlight(items.filter(i => i.noted).map(i => i.range)));
+    const plain = items.filter(i => !i.noted).map(i => i.range);
+    const noted = items.filter(i => i.noted).map(i => i.range);
+    if (held) { held.set(HL, plain); held.set(HL_NOTED, noted); }
+    else { show(reg, HL, plain); show(reg, HL_NOTED, noted); }
     return items;
   }
   // Spans: per text node, the stretches each highlight covers (two devices' overlapping highlights split into
@@ -109,7 +127,7 @@ export function paint(root: Element, items: Painted[]): Painted[] {
 /** Nothing drawn any more (leaving the article). */
 export function clearPaint(root: Element | null): void {
   const reg = registry();
-  if (reg) { reg.delete(HL); reg.delete(HL_NOTED); reg.delete(HL_FLASH); }
+  if (reg) for (const name of [HL, HL_NOTED, HL_FLASH]) show(reg, name, []);
   held?.clear();
   if (root) unwrap(root);
 }
@@ -119,21 +137,20 @@ export function clearPaint(root: Element | null): void {
  * field, in place of their own words, for as long as it is open. So while the note editor is open none are drawn:
  * they are held back here (and any drawn meanwhile with them), and drawn again as it closes.
  */
-let held: Registry | null = null;
+let held: Map<string, Range[]> | null = null;
 export function holdPaint(): () => void {
   const reg = registry();
   if (!reg || held) return () => {};
-  const keep: Registry = new Map();
+  const keep = new Map<string, Range[]>();
   for (const name of [HL, HL_NOTED]) {
-    const h = reg.get(name);
-    if (h) keep.set(name, h);
-    reg.delete(name);
+    keep.set(name, [...(reg.get(name) ?? [])]);
+    show(reg, name, []);
   }
-  reg.delete(HL_FLASH);
+  show(reg, HL_FLASH, []);
   held = keep;
   return () => {
     held = null;
-    for (const [name, h] of keep) reg.set(name, h);
+    for (const [name, ranges] of keep) show(reg, name, ranges);
   };
 }
 
@@ -159,8 +176,8 @@ export function flash(root: Element, range: Range, id: string | null, ms = 1600)
   const reg = registry();
   if (reg) {
     if (held) return;
-    reg.set(HL_FLASH, highlight([range]));
-    flashTimer = window.setTimeout(() => reg.delete(HL_FLASH), ms);
+    show(reg, HL_FLASH, [range]);
+    flashTimer = window.setTimeout(() => show(reg, HL_FLASH, []), ms);
     return;
   }
   const spans = id ? [...root.querySelectorAll<HTMLElement>(`span.${SPAN}[data-hl~="${CSS.escape(id)}"]`)] : [];
