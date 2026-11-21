@@ -20,6 +20,7 @@ import { kitOf, roleOf, withRole, withMembership, withKitLabel, withoutKit } fro
 import { annotationsOf, newArticleNote, newPassage, withAnnotation, withNote, withoutAnnotation, withTakeaway } from '../intake/annotations';
 import { saveArticleInsight } from '../intelligence/saved';
 import type { PassageAnchor } from '../intake/anchor';
+import { newWebsite, pinnedOf, moveTo, pinPatch, updateWebsite, updateWebsites, websitesOf, withWebsite, withoutWebsite, type Website } from '../intake/websites';
 
 // ── Stand-in Worker: last-write-wins by updatedAt, listed by arrival ─────────
 let clock = Date.parse('2026-10-29T08:00:00.000Z');
@@ -575,6 +576,99 @@ describe('highlights and notes on two devices (Intake 2.0 Phase 3)', () => {
       await syncNow();
       expect((await notesOf()).map(x => x.id)).toEqual([a.id]);
     });
+  });
+});
+
+describe('websites on two devices (Intake › Websites)', () => {
+  const put = (f: (c: unknown[] | undefined) => unknown[]) => async () => {
+    const d = await read();
+    tick();
+    await save({ ...d, content: f(d.content as unknown[] | undefined) });
+  };
+  const sitesNow = async () => websitesOf((await read()).content as unknown[]);
+  const syncNow = async () => { tick(); await sync(); };
+  const site = (name: string, url: string, pinned = false, sites: Website[] = []) =>
+    newWebsite({ url, name, description: '', category: 'Enterprise AI', tags: [], note: '', pinned }, sites, new Date(clock));
+  /** Both devices sync until each has the other's changes. */
+  const settle = async (a: Device, b: Device): Promise<[Device, Device]> => {
+    a = await as(a, syncNow); b = await as(b, syncNow); a = await as(a, syncNow); b = await as(b, syncNow);
+    return [a, b];
+  };
+
+  it('added on each, offline: both kept on both', async () => {
+    const [first, second] = await twoDevices();
+    online.value = false;
+    let ipad = await as(first, put(c => withWebsite(c, site('HBR', 'https://hbr.org/'))));
+    let iphone = await as(second, put(c => withWebsite(c, site('Stratechery', 'https://stratechery.com/'))));
+    online.value = true;
+    [ipad, iphone] = await settle(ipad, iphone);
+    for (const d of [ipad, iphone]) await as(d, async () => expect((await sitesNow()).map(s => s.name).sort()).toEqual(['HBR', 'Stratechery']));
+  });
+
+  it('pinned on one and its note edited on the other, both offline: both changes kept on both, in either order', async () => {
+    for (const order of ['pinner first', 'writer first']) {
+      server.clear();
+      const [first, second] = await twoDevices();
+      const w = site('MIT Technology Review', 'https://www.technologyreview.com/');
+      let ipad = await as(first, async () => { await put(c => withWebsite(c, w))(); await syncNow(); });
+      let iphone = await as(second, syncNow);
+      online.value = false;
+      ipad = await as(ipad, put(c => updateWebsite(c, w.id, { pinned: true, pinRank: 1 }, new Date(clock))));
+      iphone = await as(iphone, put(c => updateWebsite(c, w.id, { note: 'Weekly AI briefing' }, new Date(clock))));
+      online.value = true;
+      [ipad, iphone] = order === 'pinner first' ? await settle(ipad, iphone) : (await settle(iphone, ipad)).reverse() as [Device, Device];
+      for (const d of [ipad, iphone]) await as(d, async () => {
+        const [got] = await sitesNow();
+        expect([got.pinned, got.note], order).toEqual([true, 'Weekly AI briefing']);
+      });
+    }
+  });
+
+  it('the same field edited on both before they sync: the later edit stands on both', async () => {
+    const [first, second] = await twoDevices();
+    const w = site('Braze', 'https://www.braze.com/resources');
+    let ipad = await as(first, async () => { await put(c => withWebsite(c, w))(); await syncNow(); });
+    let iphone = await as(second, syncNow);
+    online.value = false;
+    ipad = await as(ipad, put(c => updateWebsite(c, w.id, { category: 'Customer Engagement' }, new Date(clock))));
+    iphone = await as(iphone, put(c => updateWebsite(c, w.id, { category: 'Sales & GTM' }, new Date(clock))));
+    online.value = true;
+    [ipad, iphone] = await settle(ipad, iphone);
+    for (const d of [ipad, iphone]) await as(d, async () => expect((await sitesNow())[0].category).toBe('Sales & GTM'));
+  });
+
+  it('deleted on one, edited offline later on the other: deleted on both, in either order', async () => {
+    for (const order of ['deleter first', 'editor first']) {
+      server.clear();
+      const [first, second] = await twoDevices();
+      const gone = site('OpenAI News', 'https://openai.com/news/');
+      const kept = site('GitHub Blog', 'https://github.blog/');
+      let ipad = await as(first, async () => { await put(c => withWebsite(withWebsite(c, gone), kept))(); await syncNow(); });
+      let iphone = await as(second, syncNow);
+      online.value = false;
+      ipad = await as(ipad, put(c => withoutWebsite(c, gone.id)));
+      iphone = await as(iphone, put(c => updateWebsite(c, gone.id, { note: 'edited after the deletion', pinned: true }, new Date(clock))));
+      online.value = true;
+      [ipad, iphone] = order === 'deleter first' ? await settle(ipad, iphone) : (await settle(iphone, ipad)).reverse() as [Device, Device];
+      for (const d of [ipad, iphone]) await as(d, async () => expect((await sitesNow()).map(s => s.name), order).toEqual(['GitHub Blog']));
+    }
+  });
+
+  it('the pinned reordered on one while another is pinned on the other: one order on both, each change kept', async () => {
+    const [first, second] = await twoDevices();
+    const a = site('A', 'https://a.example.com/', true);
+    const b = site('B', 'https://b.example.com/', true, [a]);
+    const c = site('C', 'https://c.example.com/', true, [a, b]);
+    const d = site('D', 'https://d.example.com/');
+    let ipad = await as(first, async () => { await put(x => [a, b, c, d].reduce((y, w) => withWebsite(y, w), x ?? []))(); await syncNow(); });
+    let iphone = await as(second, syncNow);
+    online.value = false;
+    // iPad: C to the front. iPhone: D pinned (last).
+    ipad = await as(ipad, put(x => updateWebsites(x, moveTo(websitesOf(x), c.id, 0).map(m => ({ id: m.id, patch: { pinRank: m.pinRank } })), new Date(clock))));
+    iphone = await as(iphone, put(x => { const all = websitesOf(x); return updateWebsite(x, d.id, pinPatch(all, all.find(w => w.id === d.id)!, true), new Date(clock)); }));
+    online.value = true;
+    [ipad, iphone] = await settle(ipad, iphone);
+    for (const dev of [ipad, iphone]) await as(dev, async () => expect(pinnedOf(await sitesNow()).map(s => s.name)).toEqual(['C', 'A', 'B', 'D']));
   });
 });
 

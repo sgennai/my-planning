@@ -205,7 +205,7 @@ function ipv6Words(ip: string): number[] | null {
 }
 
 /** Every address a name has, from Cloudflare's resolver (the one this runtime's own requests use); null if it can't say. */
-async function addressesOf(host: string, fetchImpl: typeof fetch, signal: AbortSignal): Promise<string[] | null> {
+export async function addressesOf(host: string, fetchImpl: typeof fetch, signal: AbortSignal): Promise<string[] | null> {
   const ask = async (type: 'A' | 'AAAA') => {
     const res = await fetchImpl(`${DNS_API}?name=${encodeURIComponent(host)}&type=${type}`, { headers: { Accept: 'application/dns-json' }, redirect: 'manual', signal });
     if (!res.ok) throw new Error('dns');
@@ -237,7 +237,7 @@ export function sniffImage(b: Uint8Array): string | null {
 }
 
 /** The body, or null as soon as it passes `max` (the rest is never read). */
-async function readAtMost(response: Response, max: number): Promise<Uint8Array<ArrayBuffer> | null> {
+export async function readAtMost(response: Response, max: number): Promise<Uint8Array<ArrayBuffer> | null> {
   if (!response.body) return new Uint8Array(0);
   const reader = response.body.getReader();
   const parts: Uint8Array[] = [];
@@ -295,7 +295,7 @@ export function normalImageAddress(raw: string | null | undefined): string | nul
 }
 
 const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
-const decodeAttribute = (s: string) => s.replace(/&(?:#(\d{1,7})|#x([0-9a-f]{1,6})|([a-z]+));/gi, (m, dec?: string, hex?: string, name?: string) => {
+export const decodeAttribute = (s: string) => s.replace(/&(?:#(\d{1,7})|#x([0-9a-f]{1,6})|([a-z]+));/gi, (m, dec?: string, hex?: string, name?: string) => {
   try { return dec ? String.fromCodePoint(Number(dec)) : hex ? String.fromCodePoint(parseInt(hex, 16)) : ENTITIES[name!.toLowerCase()] ?? m; } catch { return m; }
 });
 

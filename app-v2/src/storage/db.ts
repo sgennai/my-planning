@@ -1,4 +1,4 @@
-import { mergeActivityLists, mergeLogRecord, removalWins } from './merge';
+import { mergeActivityLists, mergeContentRecord, mergeLogRecord, removalWins } from './merge';
 import { openDB } from 'idb';
 import type { IDBPDatabase } from 'idb';
 
@@ -445,14 +445,15 @@ export async function syncData(syncUrl: string, secret: string): Promise<SyncRes
           continue;
         }
 
-        // An edition's reading and a takeaway's review combine rather than
-        // the later copy replacing the other (merge.ts); the result, when it
-        // is neither copy as it was, goes up stamped after both.
-        if (rec.storeName === STORES.PROGRESS_LOG && localRec && !localRec._deleted && !rec.deleted) {
+        // An edition's reading, a takeaway's review and an Intake website
+        // combine rather than the later copy replacing the other (merge.ts);
+        // the result, when it is neither copy as it was, goes up stamped
+        // after both.
+        if ((rec.storeName === STORES.PROGRESS_LOG || rec.storeName === STORES.CONTENT) && localRec && !localRec._deleted && !rec.deleted) {
           const localPayload = { ...localRec };
           delete localPayload.updatedAt;
           delete localPayload._deleted;
-          const merged = mergeLogRecord(localPayload, rec.payload);
+          const merged = rec.storeName === STORES.PROGRESS_LOG ? mergeLogRecord(localPayload, rec.payload) : mergeContentRecord(localPayload, rec.payload);
           if (merged) {
             if (deepEqual(merged, rec.payload)) {
               if (!deepEqual(localPayload, rec.payload)) {

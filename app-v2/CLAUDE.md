@@ -728,7 +728,7 @@ account's Drive (`feeds.ts` holds the folder IDs; Today reads them in that order
 Intake 2.0: your Instapaper library, then a reader. Plan and decisions D1–D11:
 `../SUPPORTING FILES/intake-2-articles-audit-and-plan-2026-11-16.md` (with the probe report and each
 phase's validation report beside it). Phase 1 (the Articles library), Phase 2 (the Paper Sanctuary
-reader) and Phase 3 (Active Reading: highlights, notes, Save to Takeaways) are built.
+reader) and Phase 3 (Active Reading: highlights, notes, Save to Takeaways) are built, and Websites (below).
 
 - **Instapaper access** is server-side and read-only: `functions/api/intake/[[path]].ts` →
   `server/intake.ts` (`GET /api/intake/status`, `/sync?since=&offset=`, `/articles/<id>`, `/folders`,
@@ -757,7 +757,9 @@ reader) and Phase 3 (Active Reading: highlights, notes, Save to Takeaways) are b
   Reading time = words / 230.
 - **The library** (`ArticlesLibrary.tsx`, `styles/intake.css`): Intelligence's Jour & verre look on
   its own root `.ik` (tokens copied, not shared), light in both themes, lazy-loaded with its CSS. A pill
-  navigation (Websites "Planned", Articles, Podcasts and Webinars disabled) and Sync; the header (counts,
+  navigation (Websites, Articles; Podcasts and Webinars disabled; the place chosen kept on the device,
+  `my-planning-intake-place`, Articles until one is; a takeaway's article always opens Articles) and, on
+  Articles only, Sync; the header (counts,
   last sync), search (title, source, author, description, tags; every word, case and accents ignored),
   sort (recently saved, oldest, recently added to ROUTINE, shortest read), filters (your reading:
   All · Unread · In progress · Finished; Instapaper's, apart: Archived · Liked; Removed only when
@@ -958,6 +960,61 @@ reader) and Phase 3 (Active Reading: highlights, notes, Save to Takeaways) are b
   "Original article" where "Original in Google Docs" was, search reads its source and author, export and the
   meeting kit name it, and opening it returns to the passage in Intake (above). A briefing's takeaway reads
   exactly as before.
+- **Websites** (`WebsitesLibrary.tsx`, `WebsiteParts.tsx`, `WebsiteSheets.tsx`, `websites.ts`, `site-logo.ts`,
+  `styles/intake-websites.css`; server `server/websites.ts` → `functions/api/websites/[[path]].ts`), after the
+  approved prototype "Focus Desk Light" (`websites-focus-desk-light.html`, concept 03 light). Report:
+  `../SUPPORTING FILES/intake-2-websites-validation-report-2026-11-21.md`.
+  - **Records** in `content` (no D1, Worker or schema change), type `intake-website`, `v: 1`, id `ws:<uuid>`: `url`,
+    `name`, `description`, `category` (a topic: the six `DEFAULT_CATEGORIES`, then any typed), `tags`, `note`,
+    `pinned`, `pinRank` (ascending; a move changes one record, `moveTo`: between its new neighbours), `logo`,
+    `createdAt`, `editedAt`, `stamps` (when each field was last changed by hand). Between devices a record
+    **merges field by field** (`mergeWebsite`, via `mergeContentRecord` in storage/merge.ts and `syncData`'s pull:
+    each field from the copy that changed it last; a tie goes to the larger value so both devices agree), and **a
+    removal stands** (`removalWins` covers `ws:`). Duplicates: `urlKey` (host without `www.`, http or https, path
+    without its closing slash, query less tracking tags; never the domain alone).
+  - **The logo** is found once and kept in the record, so every device shows it at once, offline, with nothing
+    loading late: `/api/websites/meta?url=` reads the page's head (structured-data organisation logo of the same
+    site, Apple Touch icons, the web app manifest's icons (not monochrome), favicons, then `/apple-touch-icon.png`
+    and `/favicon.ico`; never `og:image`, nor a "logo" that is the share picture or named like one,
+    `BANNER_NAME`) and returns those addresses signed for an hour (HMAC under a key derived from
+    `BASIC_AUTH_PASS`, its own label; no new secret); `/api/websites/icon?url=&e=&s=` fetches only those, with
+    Intake's picture rules (http(s) host names only, every address public by DoH at each of ≤3 redirects, 1 MB,
+    10 s, 240/min/instance; raster by its bytes, ICO, or SVG as a sandboxed attachment; nothing of ours sent).
+    A page that refuses or times out still offers the usual addresses (Adobe and McKinsey refuse automated
+    readers; their favicons answer). The device (`resolveLogo`) decodes each candidate off the page (an SVG only
+    as a picture, from its bytes), passes over what doesn't decode, is under 16px or is blank (flat on white and
+    on black), trims transparent margins and a white field, and keeps a PNG (≤48 KB): `square` (≤128px) for lists,
+    `wide` (an official wordmark ≥1.6:1, never one on a coloured field: a banner) for cards and tiles, a `plate`
+    (dark for a light logo), `bleed` (an app icon, shown whole), and the card's two colours (`palette`) from a
+    clear brand colour, else the prototype's, by domain. `SiteLogo` is the one component: a fixed square frame, or
+    a plate of fixed height as wide as a wordmark needs; with no logo, initials in the same frame. What a record
+    holds is checked before it is drawn (`safeLogoImage`, `safePalette` in websites.ts): only a
+    `data:image/png;base64,` PNG within the pipeline's sizes (48 KB; square ≤128px, wordmark ≤384×96) and two
+    `#rrggbb` colours; anything else (SVG, another address, a script, a wrong size, from a damaged or foreign record)
+    gives the initials. A website
+    saved offline, or whose look-up failed for a passing reason, gets its logo later, one at a time while
+    Websites is open and online (the look-up is aborted only on leaving: aborting it when its own state changed
+    stopped every one).
+  - **The page**: Pinned & ready (tiles that are links, `noopener noreferrer`; a blank tile under four; Arrange:
+    up/down, unpin, pin others), Browse by topic with the List / Bento switch (all topics; never the pinned;
+    kept on the device with the filter, `my-planning-intake-websites`; the first website on screen kept where it
+    was across a switch), filters (All, Pinned, each topic with its count), topics as collections, every website
+    of a topic shown (no "Show all", as in the prototype; the user's review, 21 Nov). Search: name, domain,
+    description, topic, tags, note, every word, accents and case ignored. **A row or card opens the website**
+    (the user's review, 21 Nov): each is an `<a>` (new tab, `noopener noreferrer`) holding the logo, name, domain
+    and description; its pin (☆) and More (⋯, "Details for …") are buttons beside the link, never inside it, so
+    a tap on them never navigates. The name's two-line clamp is on a span (WebKit doesn't clamp a `<button>`'s
+    lines). Safari's Tab moves between text fields only; Option-Tab reaches the link, the pin and More, in that
+    order. Sheets are modal `<dialog>`s near the top (over the pill): details (Delete asks in the sheet), Add/Edit
+    (looked up as you paste; a failed look-up never blocks saving; leaving with changes asks), Arrange. A look-up's
+    answer is used only for the address still in the field (`current`, set as it is typed; a new address drops
+    the one under way at once), and never replaces a name or description you typed. Container queries follow
+    Intake's own width: 4 pinned and 3 columns from 900px, 2 below, phones one list column, filters in one
+    sideways row. Tests: `server/websites.test.ts`, `src/intake/{websites,site-logo}.test.ts`, the website cases
+    in `storage/sync-merge.test.ts`; browser checks `ws-checks` (86), `ws-sync` (12, two devices), `ws-probe`
+    (27, the routes' refusals in workerd), in `../SUPPORTING FILES/intake-harnesses/websites/`. Intelligence's
+    `today-checks` (41) and `tk-checks` (49, from the state `tk-fill.mjs` makes) are in
+    `../SUPPORTING FILES/intelligence-harnesses/`.
 - **The old Intake** (Quick Add, cards over `data.learning`) is gone from the screen (D9); its data
   (42 OPML podcasts) and the OPML seeding (`intake-loader.ts`) stay for Podcasts.
 - **Tests:** `server/intake.test.ts`, `src/intake/{articles,sync,sanitize,reading,images,anchor,annotations}.test.ts`,

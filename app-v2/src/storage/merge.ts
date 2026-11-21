@@ -2,6 +2,7 @@ import { mergeReading, READING_TYPE, type ReadingRecord } from '../intelligence/
 import { mergeReview, REVIEW_TYPE, type ReviewRecord } from '../intelligence/review';
 import { mergeReading as mergeArticleReading, READING_TYPE as ARTICLE_READING_TYPE, type ReadingRecord as ArticleReadingRecord } from '../intake/reading';
 import { isAnnotationId } from '../intake/annotations';
+import { isWebsiteId, mergeWebsite } from '../intake/websites';
 
 // Merging a synced record that both devices changed since they last synced.
 //
@@ -55,10 +56,23 @@ export function mergeLogRecord(local: unknown, remote: unknown): unknown | null 
 }
 
 /**
- * Intake's highlights and notes (`ih:`, `in:` in `content`): a removal stands. Otherwise each is
- * last-write-wins like a takeaway, but a copy from a device that had not seen the removal (edited offline, or
- * stamped by a clock running ahead) must never bring back what you removed, so for these a removal wins over
- * any copy of the same record, whatever the stamps say. Highlighting the same words again makes a new record
- * with its own id. Every other record is unchanged.
+ * Intake's highlights and notes (`ih:`, `in:` in `content`) and its websites (`ws:`): a removal stands. Otherwise
+ * a highlight or note is last-write-wins like a takeaway, and a website merges field by field (below), but a copy
+ * from a device that had not seen the removal (edited offline, or stamped by a clock running ahead) must never
+ * bring back what you removed, so for these a removal wins over any copy of the same record, whatever the stamps
+ * say. Highlighting the same words again, or saving the same address again, makes a new record with its own id.
+ * Every other record is unchanged.
  */
-export const removalWins = (storeName: string, id: string): boolean => storeName === 'content' && isAnnotationId(id);
+export const removalWins = (storeName: string, id: string): boolean => storeName === 'content' && (isAnnotationId(id) || isWebsiteId(id));
+
+/**
+ * A `content` record held by both this device and the server, combined instead of the later copy replacing the
+ * other, for Intake's websites: each field from the copy that changed it last (`mergeWebsite`), so a pin made on
+ * one device and a note edited on another, both before they synced, are both kept. Null for every other record,
+ * which stays last-write-wins.
+ */
+export function mergeContentRecord(local: unknown, remote: unknown): unknown | null {
+  const id = (local as { id?: unknown } | null)?.id;
+  if (typeof id !== 'string' || !isWebsiteId(id)) return null;
+  return mergeWebsite(local, remote);
+}
